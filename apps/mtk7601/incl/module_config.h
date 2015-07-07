@@ -1,0 +1,86 @@
+#ifndef _MODULE_CONFIG_
+#define _MODULE_CONFIG_
+
+#if 0
+/* config */
+#define LINUX
+#define MTK7601
+
+// support ATE function
+// HAS_ATE = y
+#define RALINK_ATE
+#define CONFIG_RT2880_ATE_CMD_NEW
+// HAS_QA_SUPPORT = y
+#define RALINK_QA
+
+// support WSC function
+// HAS_WSC = y
+#undef  WSC_AP_SUPPORT 
+#define WSC_STA_SUPPORT
+
+// HAS_WSC_V2 = y
+#define WSC_V2_SUPPORT
+
+// HAS_IWSC_SUPPORT = y
+#define IWSC_SUPPORT
+
+// support WAP_SUPPLICANT
+// HAS_WPA_SUPPLICANT = y
+#define WPA_SUPPLICANT_SUPPORT
+
+// support features 802.11n
+// HAS_DOT11_N_SUPPORT = y
+#define DOT11_N_SUPPORT
+
+// support statistics count
+// HAS_STATS_COUNT = y
+#define STATS_COUNT_SUPPORT
+
+// MT7601
+// HAS_RX_CSO_SUPPORT = y
+#define CONFIG_RX_CSO_SUPPORT
+
+// CHIPSET == MTK7601U
+#define MT7601
+#define MT7601U
+#define RLT_MAC
+#define RLT_RF
+#define RTMP_MAC_USB
+#define RTMP_USB_SUPPORT
+#define RTMP_TIMER_TASK_SUPPORT /* ? */
+#define RX_DMA_SCATTER /* ? */
+#define VCORECAL_SUPPORT /* ? */
+#define RTMP_EFUSE_SUPPORT
+#define NEW_MBSSID_MODE
+#define RTMP_INTERNAL_TX_ALC
+#define CONFIG_ANDES_SUPPORT
+#define DPD_CALIBRATION_SUPPORT
+
+// RT28xx_Mode == STA
+#define CONFIG_STA_SUPPORT
+#define SCAN_SUPPORT
+#define RTMP_FREQ_CALIBRATION_SUPPORT
+
+// OS ABL - YES or NO
+#undef OS_ABL_SUPPORT /* ? */
+// HAS_OSABL_FUNC_SUPPORT = y
+#undef OS_ABL_FUNC_SUPPORT /* ? */
+// HAS_OSABL_OS_PCI_SUPPORT = y
+#undef OS_ABL_OS_PCI_SUPPORT
+// HAS_OSABL_OS_USB_SUPPORT = y
+#undef OS_ABL_OS_USB_SUPPORT /* ? */
+// HAS_OSABL_OS_RBUS_SUPPORT = n
+#undef OS_ABL_OS_RBUS_SUPPORT
+// HAS_OSABL_OS_AP_SUPPORT = n
+#undef OS_ABL_OS_AP_SUPPORT
+// HAS_OSABL_OS_STA_SUPPORT = y
+#undef OS_ABL_OS_STA_SUPPORT /* ? */
+
+#define ADHOC_WPA2PSK_SUPPORT
+
+#define CONFIG_WEXT_PRIV
+#define RESOURCE_PRE_ALLOC
+#endif /* if 0 */
+
+#define WLANMAC NONWLAN
+#endif /* _MODULE_CONFIG_ */

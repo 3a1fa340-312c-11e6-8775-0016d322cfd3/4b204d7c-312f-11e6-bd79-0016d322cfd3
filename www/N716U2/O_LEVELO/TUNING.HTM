@@ -1,0 +1,26 @@
+<HTML>
+<HEAD>
+<META charset="ISO-8859-1">
+<meta http-equiv="cache-control" content="no-cache">	<!-- http 1.1 -->
+<meta http-equiv="pragma" content="no-cache">			<!-- http 1.0 -->
+<TITLE>TUNING</TITLE>
+<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="basic_style.css">
+<BODY>
+<form method="GET" name="SETUP" action="RESTART.HTM">
+<P>TimeOut Value: <input type="text" name="TimeOutValue" size=5 maxlength=3 value="ZO__I-TimeOutValue">
+<P>PrnMon Recv Packet: <select name="NTMaxRecvPacket" size=1>
+ ZO__S-NTMaxRecvPacket
+</select>
+<P>Prn Q Test Mode: <select name="QTestMode" size=1>
+ ZO__S-QTestMode
+</select>
+
+<P>Port1:
+   Printer Mode : <select name="SetP1MOD" size=1>
+   ZO__S-IEEE1284Mode1
+   </select> , Current mode = ZO__T-Port1PrinterMode
+
+<P><input type="submit" value="Submit">
+</form>
+</BODY>
+</HTML>

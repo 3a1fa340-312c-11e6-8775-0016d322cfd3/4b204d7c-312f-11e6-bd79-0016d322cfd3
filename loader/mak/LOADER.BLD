@@ -1,0 +1,19 @@
+#############################################################################
+#
+#       Makefile for Zero One Print Server with ARM 
+#
+#		This kernal base on KA9Q TCP/IP
+#
+#############################################################################
+
+SRCGROUP = LOADER
+EXT_FLAGS = -O2
+
+OBJS = \
+	STR8132.o	\
+	spiflash.o	\
+	INFLATE.o	\
+	LOADER.o	\
+	CRC32.o		\
+	ALLOC.o
+	

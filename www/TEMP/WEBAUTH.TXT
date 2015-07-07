@@ -1,0 +1,7 @@
+  //<<Begin Web NO authorization file list>>
+	SIMONSAY.HTM
+	TUNING.HTM
+	IPP.HTM	
+	MYPWD.HTM
+	{-SUCCESS-}
+  //<<End Web authorization file list>>

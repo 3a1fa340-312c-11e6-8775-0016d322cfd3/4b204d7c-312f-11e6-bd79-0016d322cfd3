@@ -1,0 +1,19 @@
+<HTML>
+<HEAD>
+<META charset="sjis">
+<TITLE>TUNING</TITLE>
+<form method="POST" name="SETUP" action="/{-success-}">
+<P>TimeOut Value: <input type="text" name="TimeOutValue" size=5 maxlength=3 value="ZO__I-TimeOutValue">
+<P>PrnMon Recv Packet: <select name="NTMaxRecvPacket" size=1>
+ <option value="ZO__S-NTMaxRecvPacket">ZO__S-NTMaxRecvPacket</option>
+</select>
+<P>Prn Q Test Mode: <select name="QTestMode" size=1>
+ <option value="ZO__S-QTestMode">ZO__S-QTestMode</option>
+</select>
+
+<P>Printer Mode : <select name="SetP1MOD" size=1>
+   <option value="ZO__S-IEEE1284Mode1">ZO__S-IEEE1284Mode1</option>
+   </select> , Current mode = ZO__T-Port1PrinterMode
+
+<P><input type="submit" value="Submit">
+</form>

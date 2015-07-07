@@ -1,0 +1,1 @@
+call ..\W2IMAGE CR O_CONRAD ..\O_CONRAD.WWW ..\N716U2W_CONRAD.BIN ..\web_info_CONRAD.def

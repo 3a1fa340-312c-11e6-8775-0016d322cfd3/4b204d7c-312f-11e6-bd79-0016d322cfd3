@@ -1,0 +1,1 @@
+call ..\W2IMAGE Q O_IDSERV ..\O_IDSERV.WWW ..\N716U2W_IDSERV.BIN ..\web_info_IDSERV.def

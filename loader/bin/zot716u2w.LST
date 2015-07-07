@@ -1,0 +1,43 @@
+AREA map of C:\ZOT716U2W_SDK_0.01\loader\bin\zot716u2w.BIN:
+
+Base     Size     Type RO? Name
+0        39c      CODE RO  Init from object file INIT.o
+39c      10       CODE RO  C$$code from object file STR8132.o
+3ac      5dc      CODE RO  C$$code from object file LOADER.o
+988      550      CODE RO  C$$code from object file spiflash.o
+ed8      3c       CODE RO  C$$code from object file CRC32.o
+f14      132c     CODE RO  C$$code from object file INFLATE.o
+2240     1ec      CODE RO  C$$code from object file ALLOC.o
+242c     c0       CODE RO  C$$code from object file rt_udiv.o
+24ec     240      CODE RO  C$$code from object file memcpy.o
+272c     bc       CODE RO  C$$code from object file memset.o
+27e8     38       CODE RO  C$$code from object file rt_div0.o
+2820     404      CODE RO  C$$code from object file kernel.o
+2c24     190      CODE RO  C$$code from object file oslow.o
+2db4     c4       CODE RO  C$$code from object file stkcont.o
+2e78     f4       CODE RO  C$$code from object file handlers.o
+2f6c     1b8      CODE RO  C$$code from object file lib_init.o
+3124     c        CODE RO  C$$code from object file image.o
+3130     2d4      CODE RO  C$$code from object file signal.o
+3404     14       CODE RO  C$$code from object file sys_misc.o
+3418     84       CODE RO  C$$code from object file _sys_msg.o
+349c     a8       CODE RO  C$$code from object file oshigh.o
+3544     14       CODE RO  C$$code from object file sys_wrch.o
+3558     3c       CODE RO  SysSupportCode from object file suppapp.o
+3594     400      DATA RO  C$$constdata from object file CRC32.o
+207e0000 198      DATA RW  C$$data from object file INFLATE.o
+207e0198 c        DATA RW  C$$data from object file ALLOC.o
+207e01a4 b8       DATA RW  C$$data from object file kernel.o
+207e025c 40       DATA RW  C$$data from object file oslow.o
+207e029c 8        DATA RW  C$$data from object file stkcont.o
+207e02a4 8        DATA RW  C$$data from object file lib_init.o
+207e02ac 8000     ZERO RW  C$$zidata from object file INFLATE.o
+207e82ac 1000c    ZERO RW  C$$zidata from object file ALLOC.o
+207f82b8 30       ZERO RW  C$$zidata from object file signal.o
+207f82e8 20       ZERO RW  C$$zidata from object file oshigh.o
+207f8308 4800     ZERO RW  SYS_STACK from object file INIT.o
+
+
+Image entry point : 0
+Entry area : "Init" from object file INIT.o
+ARM Linker: finished,  0 informational, 1 warning and 0 error messages.

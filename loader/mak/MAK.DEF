@@ -1,0 +1,56 @@
+#############################################################################
+#
+#       Makefile for Zero One Print Server with ARM 
+#
+#		This kernal base on KA9Q TCP/IP
+#
+#############################################################################
+
+!INCLUDE PATH.DEF
+
+!INCLUDE $(SRCGROUP).BLD
+OBJS = $$(ODIR)\$(OBJS: = $(ODIR^)\)
+
+ALL :
+	@ECHO Generating $(SRCGROUP).MAK...
+	@TYPE <<	 > $(SRCGROUP).MAK
+#############################################################################
+#
+#       Makefile for Zero One Print Server with ARM 
+#
+#		$(SRCGROUP).MAK
+#
+#############################################################################
+
+SDIR = $(SRC_DIR)
+ODIR = $(OBJ_DIR)
+OBJS = $(OBJS)
+
+$$(ODIR) :
+	@if not exist "$$(ODIR)" mkdir "$$(ODIR)"
+
+$(LIB_DIR)\$(SRCGROUP).LIB : $$(ODIR) $$(LIB_DIR) $$(OBJS)
+	@ECHO Generating $(SRCGROUP).LIB...
+	$$(LIB) -v <<
+<<
+	@MYECHO "	-c $$^@ $$(OBJS)" >> $(SRCGROUP).MAK
+	@MYECHO "^<^<"  >> $(SRCGROUP).MAK
+	@TYPE <<    >> $(SRCGROUP).MAK
+
+{$$(SDIR)}.s{$$(ODIR)}.o :
+	@ECHO %|fF%|eF
+	$$(ASM) -Errors E -via <<
+<<
+	@MYECHO "	$$(S_FLAGS) $$^< -o $$^@" >> $(SRCGROUP).MAK
+	@MYECHO "^<^<"  >> $(SRCGROUP).MAK
+	@TYPE <<    >> $(SRCGROUP).MAK	
+
+{$$(SDIR)}.c{$$(ODIR)}.o :
+	@ECHO %|fF%|eF
+	$$(CC) -Errors E -via <<
+<<
+	@MYECHO "	$$(C_FLAGS) $(EXT_FLAGS) $$(CODE_TYPE_FLAG) $$^< -o $$^@" >> $(SRCGROUP).MAK
+	@MYECHO "^<^<"  >> $(SRCGROUP).MAK
+	@TYPE <<    >> $(SRCGROUP).MAK	
+
+<<

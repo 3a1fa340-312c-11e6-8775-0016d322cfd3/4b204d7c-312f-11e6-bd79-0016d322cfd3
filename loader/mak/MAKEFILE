@@ -1,0 +1,31 @@
+#############################################################################
+#
+#       Makefile for Zero One Print Server with ARM 
+#
+#		This kernal base on KA9Q TCP/IP
+#
+#############################################################################
+
+!INCLUDE PATH.DEF
+!INCLUDE TARGET.DEF
+
+#Ron Add 4/15/2004 ==================================================================
+#|0xB0: ALL FLASH | 0xB1: Code1 | 0xB2: Code2 | 0xB3: EEPROM |0xB4: LOADER
+ALLFLASHMARK    = 0xB0
+CODE1MARK       = 0xB1
+CODE2MARK       = 0xB2
+EEPROMMARK      = 0xB3
+LOADERMARK      = 0xB4
+
+BASE_DEFS = MAK.DEF  PATH.DEF
+
+ALL : LOADER.MAK 
+	@ATTRIB -R $(SRC_DIR)\INIT.S
+	@maketarget
+	@LOGFILE $(SRC_DIR)\INIT.S $(SRC_DIR)\TEMP.S $(PSMODELINDEX) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersion) $(BuildVer) $(MAKER_AND_CPU)
+	@$(MAKE) /NOLOGO /$(MAKEFLAGS) -f ZOT716U2W.MAK
+	@makimage $(PSMODELINDEX) $(LOADERMARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersion) $(BuildVer) $(MAKER_AND_CPU) $(BIN_DIR)\zot716u2w.BIN $(BIN_DIR)\MPS$(PSMODELINDEX)_loader.bin
+
+LOADER.MAK : LOADER.BLD  $(BASE_DEFS)
+	@SET SRCGROUP=LOADER
+	@$(MAKE) /NOLOGO -f MAK.DEF

@@ -1,0 +1,1 @@
+call ..\W2IMAGE AN O_ANSEL ..\O_ANSEL.WWW ..\N716U2W_ANSEL.BIN ..\web_info_ANSEL.def

@@ -1,0 +1,34 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: MAKECFG - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP98.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/MAKECFG.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"C:\ZOT716U2_SDK_0.01\www\tool source\MAKECFG\MAKECFG.C"
+]
+Creating command line "cl.exe @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP98.tmp" 
+Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP99.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/MAKECFG.pdb" /debug /machine:I386 /out:"Debug/MAKECFG.exe" /pdbtype:sept 
+".\Debug\MAKECFG.OBJ"
+]
+Creating command line "link.exe @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP99.tmp"
+<h3>Output Window</h3>
+Compiling...
+MAKECFG.C
+c:\zot716u2_sdk_0.01\www\tool source\makecfg\makecfg.c(48) : warning C4013: 'memset' undefined; assuming extern returning int
+c:\zot716u2_sdk_0.01\www\tool source\makecfg\makecfg.c(50) : warning C4013: 'strlen' undefined; assuming extern returning int
+Linking...
+
+
+
+<h3>Results</h3>
+MAKECFG.exe - 0 error(s), 2 warning(s)
+</pre>
+</body>
+</html>

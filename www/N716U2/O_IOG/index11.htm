@@ -1,0 +1,75 @@
+<html>
+<head>
+<SCRIPT LANGUAGE="JavaScript">
+function changURL(cngURL)
+{
+	document.getElementById("MainBlock").src=cngURL;
+}
+</script>
+<title>Index</title>
+</head>
+<body LINK='#FFFFFF' VLINK='#FFFFFF' topmargin="0" leftmargin="0" text=white>
+<table width=100% cellpadding=0 cellspacing=0>
+<tr><td BGCOLOR=#343434 width=150 valign=top>
+		<table align=center>
+		<tr><tH height=80><font FACE="Arial" color='#FFFFFF' size=+2>Menu</font></th></tr>
+		<tr><td><FONT FACE="Arial"><B>Status</B></font></td></tr>
+		<tr><td>
+			<table>
+			<tr><td><li><A HREF=# onclick="changURL('STATUS.HTM#SYS');"><FONT FACE="Arial" size=-1>System</font></A></td></tr>
+			<tr><td><li><A HREF=# onclick="changURL('STATUS.HTM#PRINTJOBS');"><FONT FACE="Arial" size=-1>Print Jobs</font></A></td></tr>
+			<tr><td><li><A HREF=# onclick="changURL('STATUS.HTM#PRINTER');"><FONT FACE="Arial" size=-1>Printer</font></A></td></tr>
+			<tr><td><li><A HREF=# onclick="changURL('STATUS.HTM#NETWARE');"><FONT FACE="Arial" size=-1>NetWare</font></A></td></tr>
+			<tr><td><li><A HREF=# onclick="changURL('STATUS.HTM#TCP-IP');"><FONT FACE="Arial" size=-1>TCP/IP</font></A></td></tr>
+<!--			<tr><td><li><A HREF=# onclick="changURL('STATUS.HTM#RENDEZVOUS');"><FONT FACE="Arial" size=-1>Rendezvous</font></A></td></tr>-->
+			<tr><td><li><A HREF=# onclick="changURL('STATUS.HTM#SNMP');"><FONT FACE="Arial" size=-1>SNMP</font></A></td></tr>
+			<tr><td><li><A HREF=# onclick="changURL('STATUS.HTM#ATALK');"><FONT FACE="Arial" size=-1>AppleTalk</font></A></td></tr>
+			<tr><td><li><A HREF=# onclick="changURL('STATUS.HTM#SMB');"><FONT FACE="Arial" size=-1>SMB</font></A></td></tr>
+			</table>
+		</td></tr>
+		<tr><td height=10>&nbsp;</td></tr>
+		<tr><td>
+			<A href=index12.HTM><FONT FACE="Arial" color='#FFFF00'><B>Setup</B></FONT></A>
+			</td></tr>
+		<tr><td height=30>&nbsp;</td></tr>
+		<tr><td><A href=index13.HTM><FONT FACE="Arial" color='#FFFF00'><B>Upgrade</B></font></A></td></tr>
+		<tr><td height=10>&nbsp;</td></tr>
+		<tr><td>
+			<A href=DEFAULT.HTM target=_top onclick=" return confirm('Are you sure you want to restore the factory default settings ?');">
+				<FONT FACE="Arial" color='#FFFF00'><B>Load Default</B></FONT></A>
+			</td></tr>
+		<tr><td height=10>&nbsp;</td></tr>
+		<tr><td>
+			<A href=SUCCESS.HTM target=_top onclick=" return confirm('Are you sure you want to reset the Print Server ?');">
+				<FONT FACE="Arial" color='#FFFF00'><B>Reset</B></FONT></A>
+			</td></tr>
+		</table>
+	</td>
+	<td>
+		<table cellpadding=0 cellspacing=0 bgCOLOR="#6D6D6D">
+		<TR><Th height=80><a href="http://www.iogear.com/"><img border="0" src="left.gif" width="498" height="47"></a><img border="0" src="right.gif" width="161" height="47"></Th></TR>
+		<tr><TH><FONT FACE="Verdana,Arial" color='#FFFFFF' SIZE=+2>Print Server Status</FONT></TH></tr>
+		<tr><td>
+			<SCRIPT LANGUAGE="JavaScript">
+			var x_value=screen.availWidth;
+			var y_value=screen.availHeight;
+			if (!parseInt(x_value)){
+				x_value = 650;
+			}
+			else
+			{
+				x_value = x_value - 150;
+			}
+			y_value = y_value * 13 / 20;
+			document.write("<iframe id=MainBlock src=Status.htm  height=");
+			document.write( y_value );
+			document.write(" frameborder=0 width=");
+			document.write( x_value );
+			document.write("></iframe>");
+			</script>
+		</td></tr>
+		</table>
+	</td>
+</table>
+</body>
+</html>

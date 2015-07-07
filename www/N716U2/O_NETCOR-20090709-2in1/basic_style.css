@@ -1,0 +1,111 @@
+
+	body {
+		font-family: Verdana, 細明體, Helvetica, Arial, sans-serif;
+		font-size: 11px;
+		line-height: 14px;
+		color: #000000;
+        background-color: #FFFFFF;
+		margin-left: 0px;
+		margin-top: 0px;
+		}
+			
+	td {
+		font-family: Verdana, 細明體, Helvetica, Arial, sans-serif;
+		font-size: 12px;	
+		font-style: normal;
+		line-height: 14px;  
+		color: #000000;
+		}
+	th {
+		font-family: Verdana, 細明體, Helvetica, Arial, sans-serif;
+		font-size: 11px;	
+		font-style: normal;
+		line-height: 14px;  
+		color: #000000;
+		}
+	a {
+		color: #C72626;
+		}
+		
+	select {
+		font-family: Verdana, 細明體, Helvetica, Arial, sans-serif;
+		font-size: 11px;  
+		color: #000000;
+		}
+		
+	input {
+		font-family: Verdana, 細明體, Helvetica, Arial, sans-serif;
+		font-size: 11px;  
+		color: #000000;
+        background-color: #FFFFFF;
+		}
+
+	.input_more_back {
+		font-family: Verdana, 細明體, Helvetica, Arial, sans-serif;
+		font-size: 12px;  
+		color: #FFFFFF;
+        background-color: #4F84BF;
+		}
+		
+	textarea {
+		font-family: Verdana, 細明體, Helvetica, Arial, sans-serif;
+		font-size: 11px;  
+		color: #000000;
+		}
+
+	h1 {font-family: Georgia, 細明體, "Times New Roman", Times;
+		font-size: 24px;	 
+		font-style: normal; 
+		font-weight: bold;
+		line-height: 14px;  
+		color: #666666;
+		}
+		
+	h2 {
+		font-family: Georgia, 細明體, "Times New Roman", Times;
+		font-size: 19px;	 
+		font-style: normal;  
+		font-weight: bold;
+		line-height: 14px; 
+		color: #666666;
+		}
+		
+	h3 {
+		font-family: Georgia, 細明體, "Times New Roman", Times;
+		font-size: 12px;
+		font-style: normal;
+		font-weight: bold;
+		line-height: 14px;  
+		color: #666666;
+		}
+			
+
+    .BGLink {
+      	background-color: #B1B9B6;
+		margin-left: 10px;
+		margin-top: 10px;
+		}
+		
+    .BGLine {
+		background-color: #444444;
+		line-height: 0px;
+		width: 1px;
+		}	
+		
+	.MU2color{
+		background-color: #FFFFFF;
+		line-height: 0px;
+		width: 1px;
+		}
+		
+	.BuBlack93x18 {
+		height: 36px;
+		}
+
+	.BuBlack93x18a {
+		height: 16px;
+		}
+
+	.BuGray93x18 {
+		height: 32px;
+		}				

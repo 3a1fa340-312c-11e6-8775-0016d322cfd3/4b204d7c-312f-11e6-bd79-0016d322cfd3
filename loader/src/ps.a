@@ -1,0 +1,38 @@
+
+;/*******************************************************************************/
+;/* SYSTEM STACK MEMORY                                                         */
+;/*******************************************************************************/
+USR_STACK_SIZE  	EQU     4096
+UDF_STACK_SIZE  	EQU     1024
+ABT_STACK_SIZE  	EQU     1024
+IRQ_STACK_SIZE  	EQU     4096
+FIQ_STACK_SIZE  	EQU     4096
+SUP_STACK_SIZE  	EQU     4096
+
+;/*******************************************************************************/
+;/*  Define ARM CPSR(Current Program Status Register) Value			            */
+;/*******************************************************************************/
+INTR_MASK       EQU     0xC0       ;Interrupt lockout mask value
+IBit			EQU		0x80
+FBit			EQU		0x40
+TBit			EQU		0x20
+MODE_MASK       EQU     0x1F       ;Processor Mode Mask
+UDF_MODE        EQU     0x1B       ;Undefine Mode(UDF)
+ABT_MODE        EQU     0x17       ;Abort Mode(ABT)
+SUP_MODE        EQU     0x13       ;Supervisor Mode (SVC)
+IRQ_MODE        EQU     0x12       ;Interrupt Mode (IRQ)
+FIQ_MODE        EQU     0x11       ;Fast Interrupt Mode (FIQ)
+USR_MODE        EQU     0x10       ;User Mode(USR)
+SYS_MODE		EQU		0x1F	   ;System Mode(SYS)
+
+;/*******************************************************************************/
+;/*  Define ARM CPSR and MMU Value										        */
+;/*******************************************************************************/
+MMU_ON			EQU		(0x1:SHL:0)
+DC_ON			EQU		(0x1:SHL:2)
+BIG_END			EQU		(0x1:SHL:7)
+IC_ON			EQU		(0x1:SHL:12)
+nFASTBUS		EQU 	(0x1:SHL:30)
+ASYNC_CLK		EQU		(0x1:SHL:31)
+
+		END

@@ -1,0 +1,301 @@
+<HTML><HEAD>
+<meta http-equiv="content-type" content="text/html;charset=ISO-8859-1">
+<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="STYLE.CSS">
+<TITLE>Status</TITLE>
+<SCRIPT LANGUAGE=JavaScript>
+function onJobLog()
+{
+	var strFeatures="left=24,screenX=24,top=24,screenY=24,width=600,height=420,scrollbars=1,resizable=1";
+	newwindow=window.open("JobLog.HTM","",strFeatures);
+	return false;
+}
+</SCRIPT>
+</HEAD>
+<BODY LINK='#FFFFFF' VLINK='#FFFFFF' BGCOLOR="#6D6D6D" TEXT=white>
+
+<table width=100%>
+<tr><TD><font FACE="Arial,Helvetica" size=+1>
+<A NAME="SYS">System :</A></font></td></tr>
+</table>
+
+<table width='80%' bgcolor='#969696' align=center border=1>
+<tr><td align=Right width="150">
+    <font CLASS=F1>Device Name :</FONT></td>
+    <td><font CLASS=F1>ZO__T-BoxName</FONT>&nbsp;</td>
+</tr>
+<tr><td align=Right><font CLASS=F1>Contact :</FONT></td>
+	<td><font CLASS=F1>ZO__T-SnmpContact</FONT>&nbsp;</td>
+</tr>
+<tr><td align=Right><font CLASS=F1>Location :</FONT></td>
+    <td><font CLASS=F1>ZO__T-SnmpLocation</FONT>&nbsp;</td>
+</tr>
+<tr><td align=Right><font CLASS=F1>
+    System Up Time :</FONT></td>
+    <td><font CLASS=F1>ZO__T-SnmpUpTime</FONT>&nbsp;</td>
+</tr>
+<tr><Td align=Right><font CLASS=F1>
+    Firmware Version :</FONT></td>
+    <td><font CLASS=F1>ZO__T-Version</FONT>&nbsp;</td>
+</tr>
+<tr><td align=Right><font CLASS=F1>Node ID :</FONT></td>
+    <td><font CLASS=F1>ZO__T-NodeID</FONT>&nbsp;</td>
+</tr>
+<tr><td align=Right><font CLASS=F1>E-mail Alert :</FONT></td>
+    <td><font CLASS=F1>
+<SCRIPT LANGUAGE=JavaScript>
+var iALERT="ZO__S-ALERT";
+if (iALERT==1) 
+	document.write("Enabled");
+else
+	document.write("Disabled");
+</SCRIPT>
+    </FONT></td>
+</tr>
+</table>
+<BR><BR>
+<HR><BR>
+
+
+<table width=100%>
+<tr><td height=45 valign="top"><font FACE="Arial,Helvetica" size=+1>
+<A NAME="PRINTJOBS">Print Jobs :</A></font></td></tr>
+</table>
+
+<table border=1 align=center width='80%' bgcolor='#969696'>
+ZO__T-CURJOBLIST
+</table>
+<table align=center width='80%'>
+<tr><td align=left>
+    <font CLASS=F1><A HREF="#" onClick="return onJobLog()"><B>
+    View Job Log</B></A></font></td></tr>
+</table>
+<BR><BR>
+<HR><BR>
+
+
+<table width=100%>
+<tr><td height=45 valign="top"><font FACE="Arial,Helvetica" size=+1>
+<A NAME="PRINTER">Printer :</A></font></td></tr>
+</table>
+
+<table border=1 align=center width='80%' bgcolor='#969696'>
+<tr><td align=Right width="150">
+	<font CLASS=F1>Manufacturer :</font></td>
+	<td><font CLASS=F1>ZO__T-Port1Manufacture</font>&nbsp;</td>
+</tr>
+<tr><td align=Right><font CLASS=F1>Model :</font></td>
+	<td><font CLASS=F1>ZO__T-Port1Model</font>&nbsp;</td>
+</tr>
+<tr><td align=Right><font CLASS=F1>Command Set :</font></td>
+	<td><font CLASS=F1>ZO__T-Port1CommandSet</font>&nbsp;</td>
+</tr>
+<tr><td align=Right><font CLASS=F1>Status :</font></td>
+	<td><font CLASS=F1>ZO__T-Port1</font>&nbsp;</td>
+</tr>
+</table>
+<BR><BR>
+<HR><BR>
+
+
+<table width=100%>
+<tr><td height=45 valign="top"><font FACE="Arial,Helvetica" size=+1>
+<A NAME="NETWARE">NetWare :</A></font><td></tr>
+</table>
+
+<table width='80%' bgcolor='#969696' align=center border>
+<tr><td align=Right width="200">
+	<font CLASS=F1>Print Server Name :</font></td>
+	<td><font CLASS=F1>ZO__T-PSName</font>&nbsp;</td>
+</tr>
+<tr><td align=Right><font CLASS=F1>Polling Time :</font></td>
+	<td><font CLASS=F1>ZO__T-PollingTime seconds</font></td>
+</tr>
+</table>
+<BR>
+
+<table width='80%' align=center><tr><td>
+
+<table width=100% bgcolor='#969696' border>
+<tr><td colspan=2>
+	<font CLASS=F1>NDS Mode : ZO__T-NDSMode</font></td>
+</tr>
+<tr><td align=Right width="200">
+	<font CLASS=F1>Tree Name :</font></td>
+	<td><font CLASS=F1>ZO__T-NDSTreeName</font>&nbsp;</td>
+</tr>
+<tr><td align=Right valign=top><font CLASS=F1>Context :</font></td>
+	<td><font CLASS=F1>
+<script LANGUAGE=JavaScript>
+var nds_string="ZO__T-NDSContext";
+var nds_length=nds_string.length;
+var i=0;
+var slit=42;
+if (nds_length == 0)
+	document.writeln("&nbsp;");
+while(nds_length){
+document.write(nds_string.substring(i,((i+slit)>=nds_length)?nds_length:(i+slit)));
+if ((i+slit)>=nds_length)
+	break;
+document.writeln("<br>");
+i=i+slit;
+}
+</script></font></td>
+</tr>
+
+<tr><td align=Right><font CLASS=F1>Connection Status :</font></td>
+	<td><font CLASS=F1>ZO__T-NDSConnect</font>&nbsp;</td>
+</tr>
+</table>
+<BR>
+
+<table width=100% bgcolor='#969696' border>
+<tr><td colspan=2>
+	<font CLASS=F1>Bindery Mode : ZO__T-NetWareMode</font></td>
+</tr>
+<tr><td align=Right width="200">
+	<font CLASS=F1>File Server Name :</font></td>
+	<td><font CLASS=F1>ZO__T-FSName</font>&nbsp;</td>
+</tr>
+<tr><td align=Right><font CLASS=F1>Connection Status :</font></td>
+<td><font CLASS=F1>ZO__T-NetWareConnect</font>&nbsp;</td>
+</tr>
+</table>
+
+</td></tr></table>
+<BR><BR>
+<HR><BR>
+
+
+<table width=100%>
+<tr><td height=45 valign="top"><font FACE="Arial,Helvetica" size=+1>
+<A NAME="TCP-IP">TCP/IP :</A></font></td></tr>
+</table>
+
+<table border=1 align=center width='55%' bgcolor='#969696'>
+<tr><td align=Right width="150">
+	<font CLASS=F1>DHCP/BOOTP :</font></td>
+	<td><font CLASS=F1>ZO__T-DHCP</font></td>
+</tr>
+<tr><td align=Right><font CLASS=F1>IP Address :</font></td>
+	<td><font CLASS=F1>ZO__T-IP</font></td>
+</tr>
+<tr><td align=Right><font CLASS=F1>Subnet Mask :</font></td>
+	<td><font CLASS=F1>ZO__T-Subnet</font></td>
+</tr>
+<tr><td align=Right><font CLASS=F1>Gateway :</font></td>
+	<td><font CLASS=F1>ZO__T-Gateway</font></td>
+</tr>
+</table>
+<BR><BR>
+<HR><BR>
+
+<!--
+<table width=100%>
+<tr><td height=45 valign="top"><font FACE="Arial,Helvetica" size=+1>
+<A NAME="RENDEZVOUS">Rendezvous :</A></font></td></tr>
+</table>
+
+<table border=1 align=center width='55%' bgcolor='#969696'>
+<tr><td align=Right width="150">
+	<font CLASS=F1>Rendezvous Settings :</font></td>
+	<td><font CLASS=F1>
+<SCRIPT LANGUAGE=JavaScript>
+var iRandvous="ZO__S-Randvous";
+if(iRandvous == 0)
+	document.write("Disabled");
+else
+	document.write("Enabled");
+</SCRIPT>
+	</font></td>
+</tr>
+<tr><td align=Right><font CLASS=F1>Service Name :</font></td>
+	<td><font CLASS=F1>ZO__T-Randvousname</font></td>
+</tr>
+</table>
+<BR><BR>
+<HR><BR>
+-->
+
+<table width=100%>
+<tr><td height=45 valign="top"><font FACE="Arial,Helvetica" size=+1>
+<A NAME="SNMP">SNMP : </A></font></td></tr>
+</table>
+
+<table border=1 width='80%' align=center bgcolor='#969696'>
+<tr><td align="left" colspan=2>
+	<font CLASS=F1>SNMP Communities :</font></td>
+</tr>
+<tr><td align=Right valign='top' width="150">
+	<font CLASS=F1>Community 1 :</font></td>
+	<td><font CLASS=F1>ZO__T-SnmpCommunity1 , ZO__T-SnmpComm1Access</font></td>
+</tr>
+<tr><td align=Right valign='top'>
+	<font CLASS=F1>Community 2 :</font></td>
+	<td><font CLASS=F1>ZO__T-SnmpCommunity2 , ZO__T-SnmpComm2Access</font></td>
+</tr>
+</table>
+<BR><br>
+<table border width='80%' align=center bgcolor='#969696'>
+<tr><td colspan=2>
+	<font CLASS=F1>SNMP Traps : ZO__T-SnmpTrapEnable</font></td>
+</tr>
+<tr><td align=Right width="200">
+	<font CLASS=F1>Authentication Traps :</font></td>
+	<td><font CLASS=F1>ZO__T-SnmpTrapAuthEnable</font></td>
+</tr>
+<tr><td align=Right><font CLASS=F1>Trap 1 IP :</font></td>
+	<td><font CLASS=F1>ZO__T-SnmpTrapIP1</font></td>
+</tr>
+<tr><td align=Right><font CLASS=F1>Trap 2 IP :</font></td>
+	<td><font CLASS=F1>ZO__T-SnmpTrapIP2</font></td>
+</tr>
+</table>
+<BR><BR>
+<HR><br>
+
+
+<table width=100%>
+<tr><td height=45 valign="top"><font FACE="Arial,Helvetica" size=+1>
+<A NAME="ATALK">AppleTalk : </A></font></td>
+</tr>
+</table>
+
+<table width='80%' bgcolor='#969696' align=center border>
+<tr><td align=Right width="150">
+	<font CLASS=F1>Zone Name :</font></td>
+	<td colspan=2><font CLASS=F1>ZO__T-AtalkZoneName</font>&nbsp;</td>
+</tr>
+<tr><td align=Right><font CLASS=F1>Chooser Name :</font></td>
+	<td><font CLASS=F1>ZO__T-AtalkPort1Name</font>&nbsp;</td>
+</tr>
+<tr><td align=Right><font CLASS=F1>Printer Type :</font></td>
+	<td><font CLASS=F1>ZO__T-AtalkPort1Type</font>&nbsp;</td>
+</tr>
+<tr><td align=Right><font CLASS=F1>Data Format :</font></td>
+	<td><font CLASS=F1>ZO__T-AtalkPort1DataMode</font>&nbsp;</td>
+</tr>
+</table>
+<BR><BR>
+<HR><BR>
+
+
+<table width=100%>
+<tr><td height=45 valign="top"><font FACE="Arial,Helvetica" size=+1>
+<A NAME="SMB">SMB : </A></font></td>
+</tr>
+</table>
+
+<table width='80%' bgcolor='#969696' align=center border>
+<tr><td align=Right width="150">
+	<font CLASS=F1>Workgroup Name :</font></td>
+	<td colspan=2><font CLASS=F1>ZO_T-WorkGroup</font>&nbsp;</td>
+</tr>
+<tr><td align=Right><font CLASS=F1>Shared Printer Name :</font></td>
+	<td><font CLASS=F1>ZO_T-SMBPrint1</font>&nbsp;</td>
+</tr>
+</table>
+<BR><BR>
+<HR>
+
+
+</body></html>

@@ -1,0 +1,66 @@
+// *********************************
+// * Http Status and Setup message *
+// *********************************
+[WebMsg]
+/////  Printer status /////
+(00) "Waiting for job"
+(01) "Paper Out"
+(02) "Off Line"
+(03) "Printing"
+///// DHCP status /////
+(04) "ON"
+(05) "OFF"
+///// Netware status /////
+(06) "Enable"
+(07) "Disable"
+///// Netware connect status ///
+(08) "Connected"
+(09) "Disconnected"
+///// Port speed status /////
+(10) "Fast"
+(11) "Normal"
+(12) "Slow"
+///// SNMP community access right /////
+(13) "Read-Only"
+(14) "Read-Write"
+///// SNMP TRAP Status /////
+(15) "Enable"
+(16) "Disable"
+///// SNMP AUTH TRAP Status /////
+(17) "Enable"
+(18) "Disable"
+///// Netware File Server message /////
+(19) "File Server not found !"
+///// Bidirectional select message ////
+(20) "Auto Detect"
+(21) "Disable"
+//// (Atalk Data Format) Tag Binary Communication Protocol ////
+(22) "TBCP"
+//// (Atalk Data Format) Binary Communication Protocol ////
+(23) "BCP"
+//// (Atalk Data Format) ASCII ////
+(24) "ASCII"
+//// (IPP Job Status) Processing ////
+(25) "Processing"
+//// (IPP Job Status) Pending ////
+(26) "Pending"
+(27) "Mon, 24 Sep 2001 17:00:00 GMT"
+(28) "Mon, 24 Sep 2001 18:00:00 GMT"
+//// (WireLess) Model ////
+(29) "Infrastructure"
+(30) "802.11AdHoc"
+
+//************************
+//** Http Error message **
+//************************
+[ErrMsg]
+(00) "Invalid IP Address"
+(01) "Invalid Subnet Mask Address"
+(02) "Invalid Gateway Address"
+(03) "Invalid Polling Time Value"
+(04) "Invalid Print Server Name"
+(05) "Invalid File Server Name"
+(06) "DHCP/BOOTP Server not found"
+(07) "Invalid SNMP Trap IP Address"
+(08) "Setup password and confirmed do not match"
+(09) "Wrong firmware or upgrade failed"

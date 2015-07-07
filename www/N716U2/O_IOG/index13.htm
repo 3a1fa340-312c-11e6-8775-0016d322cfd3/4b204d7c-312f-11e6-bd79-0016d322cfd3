@@ -1,0 +1,60 @@
+<html>
+<head>
+<SCRIPT LANGUAGE="JavaScript">
+function changURL(cngURL)
+{
+	document.getElementById("MainBlock").src=cngURL;
+}
+</script>
+<title>Index</title>
+</head>
+<body LINK='#FFFFFF' VLINK='#FFFFFF' topmargin="0" leftmargin="0" text=white>
+<table width=100% cellpadding=0 cellspacing=0>
+<tr><td BGCOLOR=#343434 width=150 valign=top>
+		<table align=center>
+		<tr><tH height=80><font FACE="Arial" color='#FFFFFF' size=+2>Menu</font></th></tr>
+		<tr><td><A href=index11.HTM><FONT FACE="Arial" color='#FFFF00'><B>Status</B></font></a></td></tr>
+		<tr><td height=10>&nbsp;</td></tr>
+		<tr><td>
+			<A href=index12.HTM><FONT FACE="Arial" color='#FFFF00'><B>Setup</B></FONT></A>
+			</td></tr>
+		<tr><td height=30>&nbsp;</td></tr>
+		<tr><td><FONT FACE="Arial"><B>Upgrade</B></font></td></tr>
+		<tr><td height=10>&nbsp;</td></tr>
+		<tr><td>
+			<A href=DEFAULT.HTM target=_top onclick=" return confirm('Are you sure you want to restore the factory default settings ?');">
+				<FONT FACE="Arial" color='#FFFF00'><B>Load Default</B></FONT></A>
+			</td></tr>
+		<tr><td height=10>&nbsp;</td></tr>
+		<tr><td>
+			<A href=SUCCESS.HTM target=_top onclick=" return confirm('Are you sure you want to reset the Print Server ?');">
+				<FONT FACE="Arial" color='#FFFF00'><B>Reset</B></FONT></A>
+			</td></tr>
+		</table>
+	</td>
+	<td>
+		<table cellpadding=0 cellspacing=0>
+		<TR><Th height=80 bgCOLOR="#6D6D6D"><a href="http://www.iogear.com/"><img border="0" src="left.gif" width="498" height="47"></a><img border="0" src="right.gif" width="161" height="47"></Th></TR>
+		<tr><TH bgCOLOR="#6D6D6D"><FONT FACE="Verdana,Arial" color='#FFFFFF' SIZE=+2>Print Server Status</FONT></TH></tr>
+		<tr><td>
+			<SCRIPT LANGUAGE="JavaScript">
+			var x=screen.availWidth;
+			var y=screen.availHeight;
+			var str="<iframe id=MainBlock src=upgrade.htm  height=";
+			if (!parseInt(x))
+				x = 650;
+			else
+				x = x - 150;
+			y=y * 13 /20;
+			str= str + y;
+			str= str + " frameborder=0 width=";
+			str= str + x;
+			str= str + "></iframe>";
+			document.write(str);
+			</script>
+		</td></tr>
+		</table>
+	</td>
+</table>
+</body>
+</html>

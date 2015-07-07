@@ -1,0 +1,26 @@
+<HTML><HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML">
+<TITLE>Upgrade</TITLE>
+<SCRIPT LANGUAGE=JavaScript>
+function WebUpgrade() {
+	if( document.forms[0].CODE2BIN.value == "" )
+	{ alert("File name is empty !"); return false; }
+	document.forms[0].s1.disabled=true;
+	document.forms[0].action="URESTART.HTM";
+	document.forms[0].submit(); return false; }
+</SCRIPT>
+<BODY BGCOLOR="#6D6D6D" TEXT=white>
+<FORM METHOD="POST" NAME="SETUP" enctype="multipart/form-data">
+<table width="100%">
+<tr><td><FONT FACE="Verdana,Arial" SIZE=2><B>&nbsp;&nbsp;Firmware Upgrade</B></FONT></td></tr>
+<tr><td eight=50>&nbsp;</td></tr>
+</table>
+<table border=1 align=center width='80%' bgcolor='#969696'>
+<tr><td align='right' width=30%><FONT FACE="Verdana,Arial" SIZE=2><B>Select A Firmware File : &nbsp;</B></FONT></td>
+	<td><INPUT NAME=CODE2BIN TYPE=FILE VALUE=""></td></tr>
+</table>
+<BR><BR>
+<p align=center><input name=s1 type=button value="Upgrade"onClick="return WebUpgrade()"></p>
+<HR>
+</FORM>
+</body></html>

@@ -1,0 +1,359 @@
+<HTML>
+<HEAD>
+<SCRIPT language="JavaScript1.2" src="status.js"></SCRIPT>
+<SCRIPT language="JavaScript1.2" src="top.js"></SCRIPT>
+<SCRIPT language="JavaScript1.2" src="effect_setting.js"></SCRIPT>
+<SCRIPT language="JavaScript">
+	CharacterEncoding();
+</script>
+<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="basic_style.css">
+<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="font_style.css">
+<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="picture.css">
+</HEAD>
+
+<CENTER>
+<BODY TOPMARGIN=0 MARGINWIDTH=0 MARGINHEIGHT=0>
+<BR>
+<SCRIPT language="JavaScript">ShowTopBlock();</script>
+<!-- Button Tab start -->
+<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH=580>
+<TR>
+	<TD WIDTH=12 HEIGHT=24 ROWSPAN=3></TD>
+	<TD ROWSPAN=3 CLASS=BuLeftBlack3x24></TD>
+	<TD CLASS=BuLineBlack63x3></TD>
+	<TD ROWSPAN=3 CLASS=BuRightBlack3x24></TD>
+	<TD ROWSPAN=3 WIDTH="17" HEIGHT=24></TD>
+	<TD ROWSPAN=3 CLASS=BuLeftBlack3x24></TD>
+	<TD CLASS=BuLineBlack63x3></TD>
+	<TD ROWSPAN=3 CLASS=BuRightBlack3x24></TD>
+	<TD ROWSPAN=3 WIDTH=18 HEIGHT=24></TD>
+	<TD ROWSPAN=3 CLASS=BuLeftBlack3x24></TD>
+	<TD CLASS=BuLineBlack63x3></TD>
+	<TD ROWSPAN=3 CLASS=BuRightBlack3x24></TD>
+	<TD ROWSPAN=3 WIDTH=18 HEIGHT=24></TD>
+	<TD ROWSPAN=3 CLASS=BuLeftBlack3x24></TD>
+	<TD CLASS=BuLineBlack63x3></TD>
+	<TD ROWSPAN=3 CLASS=BuRightBlack3x24></TD>
+	<TD ROWSPAN=3 WIDTH=20 HEIGHT=24></TD>
+	<TD ROWSPAN=3 WIDTH=3 HEIGHT=24></TD>
+	<TD WIDTH=93 HEIGHT=3></TD>
+	<TD ROWSPAN=3 WIDTH=3 HEIGHT=24></TD>
+	<TD ROWSPAN=3 WIDTH=16 HEIGHT=24></TD>
+	<TD ROWSPAN=3 WIDTH=3 HEIGHT=24></TD>
+	<TD ROWSPAN=3 WIDTH=3 HEIGHT=24></TD>
+	<TD ROWSPAN=3 WIDTH=52 HEIGHT=24></TD>
+</TR>
+<TR ALIGN=center>
+	<TD CLASS=Bugray93x18><A HREF="SYSTEM.HTM" CLASS=ActiveLinkB target=_top><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+	<TD CLASS=BuBlack93x18><A HREF="CSYSTEM.HTM" CLASS=ActiveLinkG target=_top><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+	<TD CLASS=BuBlack93x18><A HREF="DEFAULT.HTM" CLASS=ActiveLinkG target=_top><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+	<TD CLASS=BuBlack93x18><A HREF="RESET.HTM" CLASS=ActiveLinkG target=_top><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+	<TD WIDTH=93 HEIGHT=18></TD>
+	<TD WIDTH=93 HEIGHT=18></TD>
+</TR>
+<TR>
+	<TD CLASS=BuLineBlack63x3></TD>
+	<TD CLASS=BuLineBlack63x3></TD>
+	<TD CLASS=BuLineBlack63x3></TD>
+	<TD CLASS=BuLineBlack63x3></TD>
+	<TD WIDTH=93 HEIGHT=3></TD>
+	<TD WIDTH=93 HEIGHT=3></TD>
+</TR>
+</TABLE>
+<P>
+</TABLE>
+<!-- Button END  -->
+<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0>
+<SCRIPT language="JavaScript">Showblank();</script>
+<TR>
+	<TD ROWSPAN=3 COLSPAN=3 class=FrameULeft11x27></TD>
+	<TD class=BGLine><IMG SRC="IMAGES/blank.gif" WIDTH=540 HEIGHT=2></TD>
+	<TD ROWSPAN=3 COLSPAN=3 class=FrameURight11x27></TD>
+</TR>
+<TR><TD WIDTH=560 HEIGHT=22 class=mu2color>
+	<TABLE WIDTH=560 BORDER=0 CELLSPACING=0 CELLPADDING=0>
+	<TR align=center><TD><A HREF="SYSTEM.HTM" CLASS=ActiveLinkSB><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+	    <TD><A HREF="PRINTER.HTM" CLASS=ActiveLinkSB><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+	    <TD CLASS=BGLink><A HREF="WLAN.HTM" CLASS=ActiveLinkSB><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+	    <TD><A HREF="TCPIP.HTM" CLASS=ActiveLinkSB><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+	    <TD ID="netware"><A HREF="NETWARE.HTM" CLASS=ActiveLinkSB><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+	    <TD ID="apple"><A HREF="APPLE.HTM" CLASS=ActiveLinkSB><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+	    <TD ID="snmp"><A HREF="SNMP.HTM" CLASS=ActiveLinkSB><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+	    <TD ID="smb"><A HREF="SMB.HTM" CLASS=ActiveLinkSB><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+		<TD ALIGN=right><INPUT ID="more" name="mybutton" TYPE="button" value="more" onclick="MODE_CHANG();"></TD>
+	</TR>
+	</TABLE>
+	</TD>
+</TR>
+<SCRIPT language="JavaScript">findcook();</script>
+<TR><TD CLASS=FrameUlinegray560x3></TD></TR>
+<TR><TD CLASS=BGLine><IMG SRC="IMAGES/blank.gif" WIDTH=2 HEIGHT=315></TD>
+	<TD COLSPAN=5 bgcolor="#E2E2E2" valign="top" align=center>
+<!--Contents Start-->
+	<TABLE CELLSPACING=0 CELLPADDING=1 BORDER=0 WIDTH=560>
+		<TR><td ALIGN=MIDDLE>
+			<SCRIPT LANGUAGE=JavaScript>  
+				var Diag="ZO__T-DIAGNOSTIC";
+				showhead('wlan');
+				if (Diag == 0)
+					textindex++;
+				else
+					showtext8(textindex++);
+			</SCRIPT>
+		</TD></TR>
+	</TABLE>
+	<P>
+	<TABLE CELLSPACING=0 CELLPADDING=1 BORDER=0 BGCOLOR=#505050 WIDTH=560>
+	<tr><td>
+    	<TABLE CELLSPACING=0 CELLPADDING=1 BORDER=0 BGCOLOR=#F1F1F1 WIDTH=100%>
+    	<TR><TD><Script Language="JavaScript">showtext8(textindex++);</script></TD></TR>
+    	</TABLE> 
+		<TABLE CELLSPACING=1 CELLPADDING=1 BORDER=0 BGCOLOR=#FFFFFF WIDTH=100%>
+		<TR><TD WIDTH=30%><BR><Script Language="JavaScript">showtext8(textindex++);</script></TD> 
+			<TD><BR>
+				<SCRIPT LANGUAGE=JavaScript>
+					var iWLAPMode="ZO__T-WLAPMode";
+					if (iWLAPMode==0)
+					{
+						showtext8(textindex++);
+						textindex+=1;
+					}
+					else
+					{
+						textindex+=1;
+						showtext8(textindex++);
+					}
+				</SCRIPT>
+			</TD>
+		</TR>
+		<TR><TD><Script Language="JavaScript">showtext8(textindex++);</script></TD> 
+			<TD>
+				<SCRIPT LANGUAGE=JavaScript>  
+					var Diag="ZO__T-DIAGNOSTIC";
+					var iWLMode="ZO__T-WLMode";
+					if (Diag == 0){
+						if (iWLMode == 0)
+						{
+							showtext8(textindex++);
+							textindex+=1;
+						}
+						else if (iWLMode == 1)
+						{
+							textindex+=1;
+							showtext8(textindex++);
+						}
+						else
+						{
+							textindex+=1;
+							showtext8(textindex++);
+						}
+					}
+					else{
+							textindex+=1;
+							showtext8(textindex++);
+					}
+				</SCRIPT>
+			</TD>
+		</TR>
+		<TR><TD><Script Language="JavaScript">showtext8(textindex++);</script></TD>
+			<TD>
+				<SCRIPT LANGUAGE=JavaScript>  
+					var Diag="ZO__T-DIAGNOSTIC";
+					document.write(" ZO__T-CURRBSSID ");
+				</SCRIPT>
+			</TD>
+		</TR>
+		<TR><TD><Script Language="JavaScript">showtext8(textindex++);</script></TD>
+			<TD>
+				<SCRIPT LANGUAGE=JavaScript>  
+					var Diag = "ZO__T-DIAGNOSTIC";
+
+					if (Diag == 0)
+						document.write(" ZO__T-CURRSSID ");
+					else
+						document.write(" WLAN-PS ");
+				</SCRIPT>
+			</TD>
+		</TR>
+		<TR><TD><Script Language="JavaScript">showtext8(textindex++);</script></TD>
+			<TD>
+				<SCRIPT LANGUAGE=JavaScript>  
+					var Diag = "ZO__T-DIAGNOSTIC";
+					var iWLMode = "ZO__T-WLMode";
+					
+					if(Diag == 0)
+					{					
+							document.write(" ZO__T-WLCurChannel ");						
+					}
+					else
+						document.write(" ZO__T-WLChannel ");
+				</SCRIPT>
+			</TD>
+	    </TR>
+	    <TR><TD><Script Language="JavaScript">showtext8(textindex++);</script></TD>
+			<TD>
+				<SCRIPT LANGUAGE=JavaScript>  
+					var iWLTxMode="ZO__T-WLTxMode";
+						if( iWLTxMode == 1)
+						{
+							showtext8(textindex++);
+							textindex+=3;
+						}
+						else if( iWLTxMode == 2)
+						{
+							textindex+=1;
+							showtext8(textindex++);
+							textindex+=2;
+						}
+						else if( iWLTxMode == 3)
+						{
+							textindex+=2;
+							showtext8(textindex++);
+							textindex+=1;
+						}
+						else
+						{
+							textindex+=3;
+							showtext8(textindex++);
+						}
+				</SCRIPT>
+			</TD>
+		</TR>
+		<TR><TD><Script Language="JavaScript">showtext8(textindex++);</script></TD>
+			<TD>
+				<SCRIPT LANGUAGE=JavaScript>  
+					var Diag="ZO__T-DIAGNOSTIC";
+					document.write(" ZO__T-CURRRATE ");
+				</SCRIPT>				
+			</TD>
+		</TR>
+		<TR><TD><Script Language="JavaScript">showtext8(textindex++);</script></TD>
+			<TD>
+				<SCRIPT LANGUAGE=JavaScript>  
+					var Diag="ZO__T-DIAGNOSTIC";
+					document.write(" ZO__T-WLRxRSSI ");
+				</SCRIPT>								
+			</TD>
+		</TR>
+		<TR><TD><Script Language="JavaScript">showtext8(textindex++);</script></TD>
+			<TD>
+				<SCRIPT LANGUAGE=JavaScript>  
+					var Diag="ZO__T-DIAGNOSTIC";
+					document.write(" ZO__T-WLLinkQuality ");
+				</SCRIPT>												
+			</TD>
+		</TR>
+		<TR><TD><Script Language="JavaScript">showtext8(textindex++);</script></TD>
+			<TD>
+				<SCRIPT LANGUAGE=JavaScript>  
+					var Diag="ZO__T-DIAGNOSTIC";
+					var iWEP="ZO__I-WLWEPType";
+					var iWAT="ZO__I-WLAuthType";
+					if (Diag == 0)
+					{
+						if( iWAT == 2)
+						{
+							showtext8(textindex++);
+							textindex+=3;
+						}
+						else if( iWAT == 4 )
+						{
+							textindex+=1;
+							showtext8(textindex++);
+							textindex+=2;
+						}
+						else if( iWAT == 5 )
+						{
+							textindex+=2;
+							showtext8(textindex++);
+							textindex+=1;
+						}
+						else
+						{
+							textindex+=3;
+							showtext8(textindex++);
+						}
+					}
+					else
+					{
+						textindex+=3;
+						showtext8(textindex++);
+					}
+				</SCRIPT>
+			</TD>
+		</TR>
+		<TR><TD><Script Language="JavaScript">showtext8(textindex++);</script></TD>
+			<TD>
+				<SCRIPT LANGUAGE=JavaScript>
+					var Diag = ZO__T-DIAGNOSTIC;
+					var iWAT = ZO__I-WLAuthType;
+					var iWEP = ZO__I-WLWEPType;
+					var iWLWPAType = ZO__I-WLWPAType;
+
+					if(Diag == 0)
+					{
+						if(iWAT == 4)
+						{
+							if( iWLWPAType == 1)
+								document.write(" WPA-PSK (CCMP) ");
+							else
+								document.write(" WPA-PSK (TKIP) ");
+						}	
+						else if(iWAT == 5)
+						{
+							if( iWLWPAType == 1)
+								document.write(" WPA2-PSK (CCMP) ");
+							else
+								document.write(" WPA2-PSK (TKIP) ");
+						}
+						else
+						{
+							if( iWEP == 1)
+							{
+								showtext8(textindex++);
+								textindex+=3;
+							}
+							else if( iWEP == 2)
+							{
+								textindex+=1;
+								showtext8(textindex++);
+								textindex+=2;
+							}
+							else
+							{
+								textindex+=2;
+								showtext8(textindex++);
+								textindex+=1;
+							}
+						}
+					}
+					else
+					{
+						textindex+=3;
+						showtext8(textindex++);
+					}
+				</SCRIPT>
+			</TD>
+		</TR>
+		</TABLE>
+	</td></tr>
+	</TABLE>
+	<br><br>
+	
+	<TABLE border="0" width="560">
+	<TR><TD align="right"><IMG SRC="images/LOGO.GIF"></TD></TR>
+	</TABLE>
+	<br><br>
+<!--Contents END-->
+	</TD>
+	<TD CLASS=BGLine><IMG SRC="IMAGES/blank.gif" WIDTH=1 HEIGHT=315></TD>
+</TR>
+<TR><TD ROWSPAN=2 COLSPAN=2 CLASS=FrameDleft8x10></TD>
+	<TD COLSPAN=3 WIDTH=540 HEIGHT=8 bgcolor="#E2E2E2"></TD>
+	<TD ROWSPAN=2 COLSPAN=2 CLASS=FrameDright10x10></TD>
+</TR>
+<TR><TD COLSPAN=3 CLASS=BGLine><IMG SRC="IMAGES/blank.gif" WIDTH=540 HEIGHT=2></TD></TR>
+</TABLE>
+</BODY>
+</CENTER>
+</HTML>

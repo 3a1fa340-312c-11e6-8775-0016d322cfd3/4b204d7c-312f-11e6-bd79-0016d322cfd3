@@ -1,0 +1,59 @@
+# The following variable MUST be defined in the environment
+#    ROOT_DIR     :: fully qualified name of root of entire source tree
+#    HDR_MAK      :: fully qualified name of the common header makefile
+#    FTR_MAK      :: fully qualified name of the common footer makefile
+#
+
+include $(HDR_MAK)
+
+# Names
+DST_NAME = smbd.a
+
+all: DIR_CHECK $(DST_NAME)
+
+# MAKE_LIB_DIR and MAKE_OBJ_DIR are defined in $(FTR_MAK)
+DIR_CHECK: MAKE_LIB_DIR MAKE_OBJ_DIR
+
+###### OVERRIDE COMMON MAKEFILE VARIABLES HERE
+# Override the variables defined in $(HDR_MAK) here
+# The following directory variables are defined in $(HDR_MAK)
+# SRC_DIR       =
+OBJ_DIR       = $(PROD_BUILD_DIR)/obj
+LIB_DIR       = $(PROD_BUILD_DIR)/lib
+
+###### FLAGS
+EXTRACFLAGS += -I../incl -I$(PROD_BUILD_DIR) -I$(APPS_DIR)/ps/common/incl \
+			   -I$(APPS_DIR)/http_zot/incl \
+			    -I$(APPS_DIR)/spooler/incl \
+			   -I$(APPS_DIR)/ps/ntps/incl \
+			   -I$(APPS_DIR)/tcpip/incl
+
+
+###### LOCAL BUILD RULES
+#
+$(OBJ_DIR)/%.o: %.c
+	$(CC) -c -o $(OBJ_DIR)/$*.o $(CFLAGS) $(EXTRACFLAGS) $<
+
+###### MANDATORY LOCAL VARIABLES
+# The local makefile must define the following:
+#    SRCS     :: list of source files
+#    OBJS     :: list of object files
+#    DST      :: name of build product, like a library
+# You need only add new file to the list in SRCS
+SRCS = smbinit.c nmbd.c smbutil.c server.c n_packet.c intface.c nmblib.c utilsock.c \
+	   n_ann.c n_name.c n_reg.c n_req.c n_subnet.c unistr.c conn.c negprot.c process.c \
+       nttrans.c pipes.c srvpipe.c parserpc.c parseprs.c spipe.c reply.c srvwksvc.c \
+       srvsvc.c srvreg.c parsewks.c parsemis.c parsesrv.c util_hnd.c parsereg.c ipc.c trans2.c
+#SRCS = smbinit.c nmbd.c smbutil.c server.c n_packet.c intface.c nmblib.c utilsock.c \
+#		n_ann.c n_name.c n_reg.c n_req.c unistr.c conn.c negprot.c process.c \
+#		nttrans.c pipes.c srvpipe.c parserpc.c parseprs.c spipe.c reply.c srvwksvc.c \
+#		srvsvc.c srvreg.c parsewks.c parsemis.c parsesrv.c util_hnd.c parsereg.c ipc.c
+# DO not edit OBJS and DST
+OBJS=${SRCS:%.c=$(OBJ_DIR)/%.o}
+DST=$(LIB_DIR)/$(DST_NAME)
+
+$(DST_NAME): ${OBJS}
+	$(AR) $(ARFLAGS) $(DST) $?
+
+include $(FTR_MAK)
+

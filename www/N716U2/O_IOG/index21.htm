@@ -1,0 +1,335 @@
+<html>
+<head>
+<title>Index</title>
+<SCRIPT LANGUAGE=JavaScript>
+function onJobLog()
+{
+	var strFeatures="left=24,screenX=24,top=24,screenY=24,width=600,height=420,scrollbars=1,resizable=1";
+	newwindow=window.open("JobLog.HTM","",strFeatures);
+	return false;
+}
+</SCRIPT>
+</head>
+<body LINK='#FFFFFF' VLINK='#FFFFFF' topmargin="0" leftmargin="0" TEXT=white>
+<table width=100% cellpadding=0 cellspacing=0>
+<tr><td bgcolor=#343434 width=150 valign=top>
+		<table align=center>
+		<tr><tH height=80><font FACE="Arial" color='#FFFFFF' size=+2>Menu</font></th></tr>
+		<tr><td><FONT FACE="Arial"><B>Status</B></font></td></tr>
+		<tr><td>
+			<table>
+			<tr><td><li><A HREF=#SYS><FONT FACE="Arial" size=-1>System</font></A></td></tr>
+			<tr><td><li><A HREF=#PRINT-JOBS><FONT FACE="Arial" size=-1>Print Jobs</font></A></td></tr>
+			<tr><td><li><A HREF=#PRN><FONT FACE="Arial" size=-1>Printer</font></A></td></tr>
+			<tr><td><li><A HREF=#NETWARE><FONT FACE="Arial" size=-1>NetWare</font></A></td></tr>
+			<tr><td><li><A HREF=#TCP-IP><FONT FACE="Arial" size=-1>TCP/IP</font></A></td></tr>
+<!--			<tr><td><li><A HREF=#RENDEZVOUS><FONT FACE="Arial" size=-1>Rendezvous</font></A></td></tr>-->
+			<tr><td><li><A HREF=#SNMP><FONT FACE="Arial" size=-1>SNMP</font></A></td></tr>
+			<tr><td><li><A HREF=#ATALK><FONT FACE="Arial" size=-1>AppleTalk</font></A></td></tr>
+			<tr><td><li><A HREF=#SMB><FONT FACE="Arial" size=-1>SMB</font></A></td></tr>
+			</table>
+		</td></tr>
+		<tr><td height=10>&nbsp;</td></tr>
+		<tr><td>
+			<A href=index22.HTM><FONT FACE="Arial" color='#FFFF00'><B>Setup</B></FONT></A>
+			</td></tr>
+		<tr><td height=30>&nbsp;</td></tr>
+		<tr><td><A HREF=index23.HTM><FONT FACE="Arial" color='#FFFF00'><B>Upgrade</B></font></A></td></tr>
+		<tr><td height=10>&nbsp;</td></tr>
+		<tr><td>
+			<A href=DEFAULT.HTM target=_top onclick=" return confirm('Are you sure you want to restore the factory default settings ?');">
+				<FONT FACE="Arial" color='#FFFF00'><B>Load Default</B></FONT></A>
+			</td></tr>
+		<tr><td height=10>&nbsp;</td></tr>
+		<tr><td>
+			<A href=SUCCESS.HTM target=_top onclick=" return confirm('Are you sure you want to reset the Print Server ?');">
+				<FONT FACE="Arial" color='#FFFF00'><B>Reset</B></FONT></A>
+			</td></tr>
+		</table>
+	</td>
+	<td>
+		<table width=100% cellpadding=0 cellspacing=0>
+		<TR><Th height=80 bgCOLOR="#6D6D6D"><a href="http://www.iogear.com/"><img border="0" src="left.gif" width="498" height="47"></a><img border="0" src="right.gif" width="161" height="47"></Th></TR>
+		<tr><TH bgCOLOR="#6D6D6D"><FONT FACE="Verdana,Arial" SIZE=+2>Print Server Status</FONT></TH></tr>
+		<tr><td align=center BGCOLOR="#6D6D6D">
+
+
+<A NAME="SYS"></A>
+<table width="100%">
+<tr><TD><font FACE="Arial,Helvetica" size=+1 color="#FFFFFF">System :</font></td></tr>
+</table>
+
+<table width='80%' bgcolor='#969696' align=center border=1>
+<tr><td align='right' width="150">
+    <font FACE="Arial,Helvetica" size="2">Device Name :</FONT></td>
+    <td><font FACE="Arial,Helvetica" size="2">ZO__T-BoxName</FONT>&nbsp;</td>
+</tr>
+<tr><td align='right'><font FACE="Arial,Helvetica" size="2">Contact :</FONT></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-SnmpContact</FONT>&nbsp;</td>
+</tr>
+<tr><td align='right'><font FACE="Arial,Helvetica" size="2">Location :</FONT></td>
+    <td><font FACE="Arial,Helvetica" size="2">ZO__T-SnmpLocation</FONT>&nbsp;</td>
+</tr>
+<tr><td align='right'><font FACE="Arial,Helvetica" size="2">
+    System Up Time :</FONT></td>
+    <td><font FACE="Arial,Helvetica" size="2">ZO__T-SnmpUpTime</FONT>&nbsp;</td>
+</tr>
+<tr><Td align='right'><font FACE="Arial,Helvetica" size="2">
+    Firmware Version :</FONT></td>
+    <td><font FACE="Arial,Helvetica" size="2">ZO__T-Version</FONT>&nbsp;</td>
+</tr>
+<tr><td align='right'><font FACE="Arial,Helvetica" size="2">Node ID :</FONT></td>
+    <td><font FACE="Arial,Helvetica" size="2">ZO__T-NodeID</FONT>&nbsp;</td>
+</tr>
+<tr><td align='right'><font FACE="Arial,Helvetica" size="2">E-mail Alert :</FONT></td>
+    <td><font FACE="Arial,Helvetica" size="2">
+<SCRIPT LANGUAGE=JavaScript>
+var iALERT="ZO__S-ALERT";
+if (iALERT==1) 
+	document.write("Enabled");
+else
+	document.write("Disabled");
+</SCRIPT>
+    </FONT></td>
+</tr>
+</table>
+<BR><BR>
+<HR><BR>
+
+<A NAME="PRINT-JOBS"></A>
+<table width="100%">
+<tr><td height=45 valign='top' >
+    <font FACE="Arial,Helvetica" size=+1>Print Jobs :</font></td></tr>
+</table>
+
+<table border=1 align=center width='80%' bgcolor='#969696'>
+ZO__T-CURJOBLIST
+</table>
+<table align=center width='80%'>
+<tr><td align=left>
+    <font FACE="Arial,Helvetica" size="2">
+    <A HREF="#" onClick="return onJobLog()"><B>View Job Log</B></A>
+    </font>
+    </td></tr>
+</table>
+<BR><BR>
+<HR><BR>
+
+<A NAME="PRN"></A>
+<table width="100%">
+<tr><td height=45 valign='top' >
+    <font FACE="Arial,Helvetica" size=+1>Printer :</font></td></tr>
+</table>
+
+<table border=1 align=center width='80%' bgcolor='#969696'>
+<tr><td align="right" width="150">
+	<font FACE="Arial,Helvetica" size="2">Manufacturer :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-Port1Manufacture</font>&nbsp;</td>
+</tr>
+<tr><td align='right'><font FACE="Arial,Helvetica" size="2">Model :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-Port1Model</font>&nbsp;</td>
+</tr>
+<tr><td align="right"><font FACE="Arial,Helvetica" size="2">Command Set :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-Port1CommandSet</font>&nbsp;</td>
+</tr>
+<tr><td align="right"><font FACE="Arial,Helvetica" size="2">Status :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-Port1</font>&nbsp;</td>
+</tr>
+</table>
+<BR><BR>
+<HR><BR>
+
+<A NAME="NETWARE"></A>
+<table width="100%">
+<tr><td height=45 valign='top'>
+	<font FACE="Arial,Helvetica" size=+1 color="#FFFFFF">NetWare :</font><td>
+</tr>
+</table>
+
+<table width='80%' bgcolor='#969696' align=center border>
+<tr><td align='right' width="200">
+	<font FACE="Arial,Helvetica" size="2">Print Server Name :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-PSName</font>&nbsp;</td>
+</tr>
+<tr><td align='right'><font FACE="Arial,Helvetica" size="2">Polling Time :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-PollingTime seconds</font></td>
+</tr>
+</table>
+<BR>
+
+<table width='80%' align=center><tr><td>
+
+<table width='100%' bgcolor='#969696' border>
+<tr><td colspan=2>
+	<font FACE="Arial,Helvetica" size="2">NDS Mode : ZO__T-NDSMode</font></td>
+</tr>
+<tr><td align='right' width="200">
+	<font FACE="Arial,Helvetica" size="2">Tree Name :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-NDSTreeName</font>&nbsp;</td>
+</tr>
+<tr><td align='right'><font FACE="Arial,Helvetica" size="2">Context :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-NDSContext</font>&nbsp;</td>
+</tr>
+
+<tr><td align='right'><font FACE="Arial,Helvetica" size="2">Connection Status :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-NDSConnect</font>&nbsp;</td>
+</tr>
+</table>
+<BR>
+
+<table width='100%' bgcolor='#969696' border>
+<tr><td colspan=2>
+	<font FACE="Arial,Helvetica" size="2">Bindery Mode : ZO__T-NetWareMode</font></td>
+</tr>
+<tr><td align='right' width="200">
+	<font FACE="Arial,Helvetica" size="2">File Server Name :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-FSName</font>&nbsp;</td>
+</tr>
+<tr><td align='right'><font FACE="Arial,Helvetica" size="2">Connection Status :</font></td>
+<td><font FACE="Arial,Helvetica" size="2">ZO__T-NetWareConnect</font>&nbsp;</td>
+</tr>
+</table>
+
+</td></tr></table>
+<BR><BR>
+<HR><BR>
+
+<A NAME="TCP-IP"></A>
+<table width='100%'>
+<tr><td height=45 valign='top'>
+    <font FACE="Arial,Helvetica" size=+1>TCP/IP :</font></td></tr>
+</table>
+
+<table border=1 align=center width='55%' bgcolor='#969696'>
+<tr><td align="right" width="150">
+	<font FACE="Arial,Helvetica" size="2">DHCP/BOOTP :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-DHCP</font></td>
+</tr>
+<tr><td align="right"><font FACE="Arial,Helvetica" size="2">IP Address :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-IP</font></td>
+</tr>
+<tr><td align="right"><font FACE="Arial,Helvetica" size="2">Subnet Mask :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-Subnet</font></td>
+</tr>
+<tr><td align="right"><font FACE="Arial,Helvetica" size="2">Gateway :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-Gateway</font></td>
+</tr>
+</table>
+<BR><BR>
+<HR><BR>
+
+<!--
+<A NAME="RENDEZVOUS"></A>
+<table width='100%'>
+<tr><td height=45 valign='top'>
+    <font FACE="Arial,Helvetica" size=+1>Rendezvous :</font></td></tr>
+</table>
+<table border=1 align=center width='55%' bgcolor='#969696'>
+<tr><td align="right" width="150">
+	<font FACE="Arial,Helvetica" size="2">Rendezvous Settings :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">
+<SCRIPT LANGUAGE=JavaScript>
+var iRandvous="ZO__S-Randvous";
+if(iRandvous == 0)
+	document.write("Disabled");
+else
+	document.write("Enabled");
+</SCRIPT>
+	</font></td>
+</tr>
+<tr><td align="right"><font FACE="Arial,Helvetica" size="2">Service Name :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-Randvousname</font></td>
+</tr>
+</table>
+<BR><BR>
+<HR><BR>
+-->
+
+<A NAME="SNMP"></A>
+<table width='100%'>
+<tr><td height=45 valign='top'>
+    <font FACE="Arial,Helvetica" size=+1>SNMP : </font></td></tr>
+</table>
+<table border=1 width='80%' align=center bgcolor='#969696'>
+<tr><td align="left" colspan=2>
+	<font FACE="Arial,Helvetica" size="2">SNMP Communities :</font></td>
+</tr>
+<tr><td align="right" valign='top' width="150">
+	<font FACE="Arial,Helvetica" size="2">Community 1 :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-SnmpCommunity1 , ZO__T-SnmpComm1Access</font></td>
+</tr>
+<tr><td align="right" valign='top'>
+	<font FACE="Arial,Helvetica" size="2">Community 2 :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-SnmpCommunity2 , ZO__T-SnmpComm2Access</font></td>
+</tr>
+</table>
+<BR><br>
+<table border width='80%' align=center bgcolor='#969696'>
+<tr><td colspan=2>
+	<font FACE="Arial,Helvetica" size="2">SNMP Traps : ZO__T-SnmpTrapEnable</font></td>
+</tr>
+<tr><td align="right" width="200">
+	<font FACE="Arial,Helvetica" size="2">Authentication Traps :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-SnmpTrapAuthEnable</font></td>
+</tr>
+<tr><td align="right"><font FACE="Arial,Helvetica" size="2">Trap 1 IP :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-SnmpTrapIP1</font></td>
+</tr>
+<tr><td align="right"><font FACE="Arial,Helvetica" size="2">Trap 2 IP :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-SnmpTrapIP2</font></td>
+</tr>
+</table>
+<BR><BR>
+<HR><br>
+
+<A NAME="ATALK"></A>
+<table width='100%'>
+<tr><td height=45 valign='top'>
+	<font FACE="Arial,Helvetica" size=+1>AppleTalk : </font></td>
+</tr>
+</table>
+
+<table width='80%' bgcolor='#969696' align=center border>
+<tr><td align="right" width="150">
+	<font FACE="Arial,Helvetica" size="2">Zone Name :</font></td>
+	<td colspan=2><font FACE="Arial,Helvetica" size="2">ZO__T-AtalkZoneName</font>&nbsp;</td>
+</tr>
+<tr><td align="right"><font FACE="Arial,Helvetica" size="2">Chooser Name :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-AtalkPort1Name</font>&nbsp;</td>
+</tr>
+<tr><td align="right"><font FACE="Arial,Helvetica" size="2">Printer Type :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-AtalkPort1Type</font>&nbsp;</td>
+</tr>
+<tr><td align="right"><font FACE="Arial,Helvetica" size="2">Data Format :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO__T-AtalkPort1DataMode</font>&nbsp;</td>
+</tr>
+</table>
+<BR><BR>
+<HR><BR>
+
+
+<A NAME="SMB"></A>
+<table width='100%'>
+<tr><td height=45 valign='top'>
+	<font FACE="Arial,Helvetica" size=+1>SMB : </font></td>
+</tr>
+</table>
+
+<table width='80%' bgcolor='#969696' align=center border>
+<tr><td align="right" width="150">
+	<font FACE="Arial,Helvetica" size="2">Workgroup Name :</font></td>
+	<td colspan=2><font FACE="Arial,Helvetica" size="2">ZO_T-WorkGroup</font>&nbsp;</td>
+</tr>
+<tr><td align="right"><font FACE="Arial,Helvetica" size="2">Shared Printer Name :</font></td>
+	<td><font FACE="Arial,Helvetica" size="2">ZO_T-SMBPrint1</font>&nbsp;</td>
+</tr>
+</table>
+<BR><BR>
+<HR>
+
+		</td></tr>
+		</table>
+	</td>
+</table>
+</body>
+</html>

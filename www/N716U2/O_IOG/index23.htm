@@ -1,0 +1,65 @@
+<html>
+<head>
+<SCRIPT LANGUAGE=JavaScript>
+var btnclick=0;
+function WebUpgrade() {
+	if( btnclick!= 0 )
+	{ document.forms[0].action="URESTART.HTM"; return false; }
+	if( document.forms[0].CODE2BIN.value == "" )
+	{ alert("File name is empty !"); return false; }
+	btnclick=1;
+	document.forms[0].action="URESTART.HTM";
+	document.forms[0].submit(); return false; }
+</SCRIPT>
+<title>Index</title>
+</head>
+<body LINK='#FFFFFF' VLINK='#FFFFFF' topmargin="0" leftmargin="0" TEXT=white>
+<table width=100% cellpadding=0 cellspacing=0>
+<tr><td bgcolor=#343434 width=150 valign=top>
+		<table align=center>
+		<tr><tH height=80><font FACE="Arial" color='#FFFFFF' size=+2>Menu</font></th></tr>
+		<tr><td><A href=index21.HTM><FONT FACE="Arial" color='#FFFF00'><B>Status</B></font></a></td></tr>
+		<tr><td height=10>&nbsp;</td></tr>
+		<tr><td>
+			<A href=index22.HTM><FONT FACE="Arial" color='#FFFF00'><B>Setup</B></FONT></A>
+			</td></tr>
+		<tr><td height=30>&nbsp;</td></tr>
+		<tr><td><FONT FACE="Arial"><B>Upgrade</B></font></td></tr>
+		<tr><td height=10>&nbsp;</td></tr>
+		<tr><td>
+			<A href=DEFAULT.HTM target=_top onclick=" return confirm('Are you sure you want to restore the factory default settings ?');">
+				<FONT FACE="Arial" color='#FFFF00'><B>Load Default</B></FONT></A>
+			</td></tr>
+		<tr><td height=10>&nbsp;</td></tr>
+		<tr><td>
+			<A href=SUCCESS.HTM target=_top onclick=" return confirm('Are you sure you want to reset the Print Server ?');">
+				<FONT FACE="Arial" color='#FFFF00'><B>Reset</B></FONT></A>
+			</td></tr>
+		</table>
+	</td>
+	<td>
+		<table width=100% cellpadding=0 cellspacing=0 height=600>
+		<TR><Th height=80 bgCOLOR="#6D6D6D"><a href="http://www.iogear.com/"><img border="0" src="left.gif" width="498" height="47"></a><img border="0" src="right.gif" width="161" height="47"></Th></TR>
+		<tr><TH bgCOLOR="#6D6D6D"><FONT FACE="Verdana,Arial" SIZE=+2>Print Server Status</FONT></TH></tr>
+		<tr><td align=center BGCOLOR="#6D6D6D">
+
+<FORM METHOD="POST" NAME="SETUP" enctype="multipart/form-data">
+<table width="100%">
+<tr><td><FONT FACE="Verdana,Arial" SIZE=2><B>&nbsp;&nbsp;Firmware Upgrade</B></FONT></td></tr>
+<tr><td height=20>&nbsp;</td></tr>
+</table>
+<table border=1 align=center width='80%' bgcolor='#969696'>
+<tr><td align='right' width=30%><FONT FACE="Verdana,Arial" SIZE=2><B>Select A Firmware File : &nbsp;</B></FONT></td>
+	<td><INPUT NAME=CODE2BIN TYPE=FILE VALUE=""></td></tr>
+</table>
+<BR><BR>
+<p align=center><input type=submit value="&nbsp;Upgrade&nbsp;"onClick="return WebUpgrade()"></p>
+<HR>
+</form>
+
+		</td></tr>
+		</table>
+	</td>
+</table>
+</body>
+</html>

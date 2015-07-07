@@ -1,0 +1,865 @@
+<HTML>
+<HEAD>
+<SCRIPT language="JavaScript1.2" src="top.js"></SCRIPT>
+<SCRIPT language="JavaScript1.2" src="setup.js"></SCRIPT>
+<SCRIPT language="JavaScript1.2" src="effect_setting.js"></SCRIPT>
+<SCRIPT language="JavaScript">
+CharacterEncoding();
+</script>
+<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="basic_style.css"/>
+<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="font_style.css"/>
+<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="picture.css"/>
+</HEAD>
+<SCRIPT language="JavaScript">
+function initialValue()
+{
+var f = document.myform;
+/* Network Type */
+var iWLMode = "<!--# echo var="WLMode"-->";
+// 0: Infrastructure	2: Ad-Hoc
+var iWEP = "<!--# echo var="WLWEPType"-->";
+// 0: None			1: WEP-64bit	2: WEP-128bit
+var iWAT = "<!--# echo var="WLAuthType"-->";
+// 1: Open System	2: Shared Key	4: WPA-PSK	5: WPA2-PSK
+var iWEPformat = "<!--# echo var="WLWEPFormat"-->";
+// 0: Alphanumeric	1: Hexadecimal
+var iWLWPAType = "<!--# echo var="WLWPAType"-->";
+// 0: TKIP			1: CCMP
+switch(iWLMode)
+{
+case '0':
+// Infrastructure
+f.WLMode[0].selected = true;
+f.WLChannel.disabled = true;
+// Enable WEP, WPA-PSK, and WPA2-PSK options and properties
+f.security_mode[2].disabled = false;
+f.security_mode[3].disabled = false;
+// WPA/WPA2 Encryption Type
+f.WLWPAType.disabled = false;
+f.WPA_Pass.disabled = false;
+break;
+default:
+// Ad-Hoc
+f.WLMode[1].selected = true;
+f.WLChannel.disabled = false;
+iWAT = 1;
+// Disable WEP, WPA-PSK, and WPA2-PSK options and properties			
+f.security_mode[2].disabled = true;
+f.security_mode[3].disabled = true;
+// WPA/WPA2 Encryption Type
+f.WLWPAType.disabled = true;
+f.WPA_Pass.disabled = true;
+}
+// Security Type
+if(iWEP == 0)
+{
+f.security_mode[0].checked = true;
+// Disabled
+f.wep_sel[0].disabled = true;
+f.wep_sel[1].disabled = true;
+f.wep_sel[2].disabled = true;
+f.wep_sel[3].disabled = true;
+f.wep_type.disabled = true;
+f.wep_key1.disabled = true;
+f.wep_key2.disabled = true;
+f.wep_key3.disabled = true;
+f.wep_key4.disabled = true;
+f.wep_authmode.disabled = true;
+f.WLWPAType.disabled = true;
+f.WPA_Pass.disabled = true;
+}
+// Key Index
+var iWEPsel = "<!--# echo var="WLWEPKeySel"-->";
+switch(iWEPsel)
+{
+case '0':
+f.wep_sel[0].checked = true;
+break;
+case '1':
+f.wep_sel[1].checked = true;
+break;
+case '2':
+f.wep_sel[2].checked = true;
+break;
+case '3':
+f.wep_sel[3].checked = true;
+break;
+default:
+f.wep_sel[0].checked = true;
+}
+// WEP Encryption Type
+if((iWEP == 1) || (iWEP == 2) )
+{
+if(iWEP == 1)
+{
+f.security_mode[1].checked = true;
+// WEP 64-bit
+if(iWEPformat == 1)
+f.wep_type[0].selected=true;	// Hexadecimal
+else
+f.wep_type[1].selected=true;	// Alphanumeric
+// WEP Keys
+f.wep_key1.value = "<!--# echo var="WLWEPKey1"-->";
+f.wep_key2.value = "<!--# echo var="WLWEPKey2"-->";
+f.wep_key3.value = "<!--# echo var="WLWEPKey3"-->";
+f.wep_key4.value = "<!--# echo var="WLWEPKey4"-->";
+}
+if(iWEP == 2)
+{
+f.security_mode[1].checked = true;
+// WEP 128-bit
+if(iWEPformat == 1)
+f.wep_type[2].selected=true;	// Hexadecimal
+else
+f.wep_type[3].selected=true;	// Alphanumeric
+// WEP Keys
+f.wep_key1.value = "<!--# echo var="WLWEP128Key"-->";
+f.wep_key2.value = "<!--# echo var="WLWEP128Key2"-->";
+f.wep_key3.value = "<!--# echo var="WLWEP128Key3"-->";
+f.wep_key4.value = "<!--# echo var="WLWEP128Key4"-->";
+}
+// WEP enabled; Others disabled
+f.wep_sel[0].disabled = false;
+f.wep_sel[1].disabled = false;
+f.wep_sel[2].disabled = false;
+f.wep_sel[3].disabled = false;
+f.wep_type.disabled = false;
+f.wep_key1.disabled = false;
+f.wep_key2.disabled = false;
+f.wep_key3.disabled = false;
+f.wep_key4.disabled = false;
+//f.wep_authmode.disabled = false;
+switch(iWLMode)
+{
+case '0':
+f.wep_authmode.disabled = false;
+break;
+default:
+f.wep_authmode.disabled = true;
+break;
+}
+// Others disabled
+f.WLWPAType.disabled = true;
+f.WPA_Pass.disabled = true;
+}
+// Authentication
+if(iWAT < 3)
+{
+// 1: Open System	2: Shared Key
+if(iWAT == 1)
+f.wep_authmode[0].selected = true;
+if(iWAT == 2)
+f.wep_authmode[1].selected = true;
+}
+// WPA-PSK or WPA2-PSK
+if((iWAT == 4) || (iWAT == 5))
+{
+if(iWAT == 4)
+f.security_mode[2].checked = true;	// WPA-PSK
+if(iWAT == 5)
+f.security_mode[3].checked = true;	// WPA2-PSK
+// WPA enabled
+f.WLWPAType.disabled = false;
+f.WPA_Pass.disabled = false;
+// Others disabled
+f.wep_sel[0].disabled = true;
+f.wep_sel[1].disabled = true;
+f.wep_sel[2].disabled = true;
+f.wep_sel[3].disabled = true;
+f.wep_type.disabled = true;
+f.wep_key1.disabled = true;
+f.wep_key2.disabled = true;
+f.wep_key3.disabled = true;
+f.wep_key4.disabled = true;
+f.wep_authmode.disabled = true;
+}
+// WPA/WPA2 Encryption Type
+if(iWLWPAType == 1)
+f.WLWPAType[1].selected = true;
+else
+f.WLWPAType[0].selected = true;
+// Transmission Rate
+var	iWLRate = "<!--# echo var="WLRate"-->";
+// Wireless Mode
+var iWLTxMode = "<!--# echo var="WLTxMode"-->";
+if(iWLTxMode == 1)		// B only
+f.WLTxMode[1].selected = true;
+else if(iWLTxMode == 2)	// G only
+f.WLTxMode[2].selected = true;
+else if(iWLTxMode == 3)	// B/G/N Mixed
+f.WLTxMode[3].selected = true;	
+else					// B/G Mixed
+f.WLTxMode[0].selected = true;
+}
+//---------------------------------------------------------------------------
+function SecurityMode()
+{
+var f = document.myform;
+if(f.security_mode[1].checked)
+{
+// WEP enabled; Others disabled
+f.wep_sel[0].disabled = false;
+f.wep_sel[1].disabled = false;
+f.wep_sel[2].disabled = false;
+f.wep_sel[3].disabled = false;
+f.wep_type.disabled = false;
+f.wep_key1.disabled = false;
+f.wep_key2.disabled = false;
+f.wep_key3.disabled = false;
+f.wep_key4.disabled = false;
+//f.wep_authmode.disabled = false;
+if(f.WLChannel.disabled == false)
+f.wep_authmode.disabled = true;
+else	
+f.wep_authmode.disabled = false;
+// Others disabled
+f.WLWPAType.disabled = true;
+f.WPA_Pass.disabled = true;
+}
+else if((f.security_mode[2].checked) || (f.security_mode[3].checked))
+{
+// WPA enabled
+f.WLWPAType.disabled = false;
+f.WPA_Pass.disabled = false;
+// Others disabled
+f.wep_sel[0].disabled = true;
+f.wep_sel[1].disabled = true;
+f.wep_sel[2].disabled = true;
+f.wep_sel[3].disabled = true;
+f.wep_type.disabled = true;
+f.wep_key1.disabled = true;
+f.wep_key2.disabled = true;
+f.wep_key3.disabled = true;
+f.wep_key4.disabled = true;
+f.wep_authmode.disabled = true;
+}
+else
+{
+// Disabled
+f.wep_sel[0].disabled = true;
+f.wep_sel[1].disabled = true;
+f.wep_sel[2].disabled = true;
+f.wep_sel[3].disabled = true;
+f.wep_type.disabled = true;
+f.wep_key1.disabled = true;
+f.wep_key2.disabled = true;
+f.wep_key3.disabled = true;
+f.wep_key4.disabled = true;
+f.wep_authmode.disabled = true;
+f.WLWPAType.disabled = true;
+f.WPA_Pass.disabled = true;
+}
+}
+// WEP
+//-----------------------------------------------------------------------------
+function change_max_length()
+{
+var f = document.myform;
+var keylength;
+var key1='', key2='', key3='', key4='';
+switch( f.wep_type.selectedIndex )
+{
+case 0:		// 64-bit hex
+f.wep_key1.maxLength = 10;
+f.wep_key2.maxLength = 10;
+f.wep_key3.maxLength = 10;
+f.wep_key4.maxLength = 10;
+keylength = 10;
+break;
+case 1:		// 64-bit ascii
+f.wep_key1.maxLength = 5;
+f.wep_key2.maxLength = 5;
+f.wep_key3.maxLength = 5;
+f.wep_key4.maxLength = 5;
+keylength = 5;
+break;
+case 2:		// 128-bit hex
+f.wep_key1.maxLength = 26;
+f.wep_key2.maxLength = 26;
+f.wep_key3.maxLength = 26;
+f.wep_key4.maxLength = 26;
+keylength = 26;
+break;
+case 3:		// 128-bit ascii
+f.wep_key1.maxLength = 13;
+f.wep_key2.maxLength = 13;
+f.wep_key3.maxLength = 13;
+f.wep_key4.maxLength = 13;
+keylength = 13;
+break;
+default:	// 64-bit hex
+f.wep_key1.maxLength = 10;
+f.wep_key2.maxLength = 10;
+f.wep_key3.maxLength = 10;
+f.wep_key4.maxLength = 10;
+keylength = 10;
+}
+for (var i=0; i< keylength; i++)
+{
+key1 += f.wep_key1.value.charAt(i);
+key2 += f.wep_key2.value.charAt(i);
+key3 += f.wep_key3.value.charAt(i);
+key4 += f.wep_key4.value.charAt(i);						
+}
+f.wep_key1.value = key1;
+f.wep_key2.value = key2;
+f.wep_key3.value = key3;
+f.wep_key4.value = key4;
+return true;
+}
+function remove_all_keys()
+{
+var f = document.myform;
+var key = '';
+var iWEP_type;			// WEP Encryption
+f.wep_key1.value = key;
+f.wep_key2.value = key;
+f.wep_key3.value = key;
+f.wep_key4.value = key;
+return true;
+}
+//-----------------------------------------------------------------------------
+function convertHexString (s,len,len2)
+{
+if (s.match (/^\s*$/)) {
+var a = new Array;
+for (var i=0; i<len2; i++) a = a.concat (0);
+return a;
+}
+var got = s.match (/^\s*([0-9a-fA-F]+)\s*$/);
+if (got) {
+if (got[1].length != len*2) return 0;
+var a = new Array;
+var i;
+for (i=0; i < len; i++) {
+a = a.concat (parseInt(got[1].substr(i*2,2),16));
+}
+for (; i < len2; i++) {
+a = a.concat (0);
+}
+return a;
+}
+else return 0;
+}
+//---------------------------------------------------------------------------
+function to_upper()
+{
+var f = document.myform;
+f.wep_key1.value.toUpperCase();
+f.wep_key2.value.toUpperCase();
+f.wep_key3.value.toUpperCase();
+f.wep_key4.value.toUpperCase();
+}
+// WPA-PSK
+//-----------------------------------------------------------------------------
+function swallowEnter(event)
+{
+if(event.keyCode == 13)
+{
+event.returnValue = false;
+return false;
+}
+}
+//-----------------------------------------------------------------------------
+function chooseESSID(itabindex, iChannel, iNetworkType, iSecurity)
+{
+var f = document.myform;
+document.forms[0].WLESSID.value = document.forms[0].bssid[itabindex].value;
+document.forms[0].WLChannel.value = iChannel;
+if(iNetworkType > 0)
+{
+document.forms[0].WLMode[1].selected = true;	// Ad-Hoc
+f.WLChannel.disabled = false;
+f.wep_authmode[0].selected = true;
+f.security_mode[0].checked = true;
+// Disable WEP, WPA-PSK, and WPA2-PSK options and properties		
+f.security_mode[2].disabled = true;
+f.security_mode[3].disabled = true;
+SecurityMode();
+// WPA/WPA2 Encryption Type
+//f.WLWPAType.disabled = true;
+//f.WPA_Pass.disabled = true;
+}
+else
+{
+document.forms[0].WLMode[0].selected = true;	// Infrastructure;
+f.WLChannel.disabled = true;
+f.security_mode[0].checked = true;
+// Enable WEP, WPA-PSK, and WPA2-PSK options and properties
+f.security_mode[1].disabled = false;
+f.security_mode[2].disabled = false;
+f.security_mode[3].disabled = false;
+// WPA/WPA2 Encryption Type
+//f.WLWPAType.disabled = false;
+//f.WPA_Pass.disabled = false;	
+}
+}
+</script>
+<CENTER>
+<BODY TOPMARGIN=0 MARGINWIDTH=0 MARGINHEIGHT=0 onLoad="initialValue()">
+<BR>
+<SCRIPT language="JavaScript">ShowTopBlock();</script>
+<!-- Button Tab start -->
+<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH=580>
+<TR>
+<TD WIDTH=12 HEIGHT=24 ROWSPAN=3></TD>
+<TD ROWSPAN=3 CLASS=BuLeftBlack3x24></TD>
+<TD CLASS=BuLineBlack63x3></TD>
+<TD ROWSPAN=3 CLASS=BuRightBlack3x24></TD>
+<TD ROWSPAN=3 WIDTH="17" HEIGHT=24></TD>
+<TD ROWSPAN=3 CLASS=BuLeftBlack3x24></TD>
+<TD CLASS=BuLineBlack63x3></TD>
+<TD ROWSPAN=3 CLASS=BuRightBlack3x24></TD>
+<TD ROWSPAN=3 WIDTH=18 HEIGHT=24></TD>
+<TD ROWSPAN=3 CLASS=BuLeftBlack3x24></TD>
+<TD CLASS=BuLineBlack63x3></TD>
+<TD ROWSPAN=3 CLASS=BuRightBlack3x24></TD>
+<TD ROWSPAN=3 WIDTH=18 HEIGHT=24></TD>
+<TD ROWSPAN=3 CLASS=BuLeftBlack3x24></TD>
+<TD CLASS=BuLineBlack63x3></TD>
+<TD ROWSPAN=3 CLASS=BuRightBlack3x24></TD>
+<TD ROWSPAN=3 WIDTH=20 HEIGHT=24></TD>
+<TD ROWSPAN=3 WIDTH=3 HEIGHT=24></TD>
+<TD WIDTH=93 HEIGHT=3></TD>
+<TD ROWSPAN=3 WIDTH=3 HEIGHT=24></TD>
+<TD ROWSPAN=3 WIDTH=16 HEIGHT=24></TD>
+<TD ROWSPAN=3 WIDTH=3 HEIGHT=24></TD>
+<TD ROWSPAN=3 WIDTH=3 HEIGHT=24></TD>
+<TD ROWSPAN=3 WIDTH=52 HEIGHT=24></TD>
+</TR>
+<TR ALIGN=center>
+<TD CLASS=BuBlack93x18><A HREF="SYSTEM.HTM" CLASS=ActiveLinkG target=_top><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+<TD CLASS=Bugray93x18><A HREF="CSYSTEM.HTM" CLASS=ActiveLinkB target=_top><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+<TD CLASS=BuBlack93x18><A HREF="DEFAULT.HTM" CLASS=ActiveLinkG target=_top><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+<TD CLASS=BuBlack93x18><A HREF="RESET.HTM" CLASS=ActiveLinkG target=_top><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+<TD WIDTH=93 HEIGHT=18></TD>
+<TD WIDTH=93 HEIGHT=18></TD>
+</TR>
+<TR>
+<TD CLASS=BuLineBlack63x3></TD>
+<TD CLASS=BuLineBlack63x3></TD>
+<TD CLASS=BuLineBlack63x3></TD>
+<TD CLASS=BuLineBlack63x3></TD>
+<TD WIDTH=93 HEIGHT=3></TD>
+<TD WIDTH=93 HEIGHT=3></TD>
+</TR>
+</TABLE>
+<P>
+</TABLE>
+<!-- Button END  -->
+<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0>
+<SCRIPT language="JavaScript">Showblank();</script>
+<TR>
+<TD ROWSPAN=3 COLSPAN=3 class=FrameULeft11x27></TD>
+<TD class=BGLine><IMG SRC="IMAGES/blank.gif" WIDTH=540 HEIGHT=2></TD>
+<TD ROWSPAN=3 COLSPAN=3 class=FrameURight11x27></TD>
+</TR>
+<TR><TD WIDTH=560 HEIGHT=22 class=mu2color>
+<TABLE WIDTH=560 BORDER=0 CELLSPACING=0 CELLPADDING=0>
+<TR align=center><TD><A HREF="CSYSTEM.HTM" CLASS=ActiveLinkSB><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+<TD CLASS=BGLink><A HREF="CWLAN.HTM" CLASS=ActiveLinkSB><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+<TD><A HREF="CTCPIP.HTM" CLASS=ActiveLinkSB><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+<TD ID="netware"><A HREF="CNETWARE.HTM" CLASS=ActiveLinkSB><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+<TD ID="apple"><A HREF="CAPPLE.HTM" CLASS=ActiveLinkSB><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+<TD ID="snmp"><A HREF="CSNMP.HTM" CLASS=ActiveLinkSB><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+<TD ID="smb"><A HREF="CSMB.HTM" CLASS=ActiveLinkSB><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+<TD ALIGN=right><INPUT ID="more" name="mybutton" TYPE="button" value="more" onclick="MODE_CHANG();"></TD>
+</TR>
+</TABLE>
+</TD>
+</TR>
+<SCRIPT language="JavaScript">findcook();</script>
+<TR><TD CLASS=FrameUlinegray560x3></TD></TR>
+<TR><TD CLASS=BGLine><IMG SRC="IMAGES/blank.gif" WIDTH=2 HEIGHT=315></TD>
+<TD COLSPAN=5 bgcolor="#E2E2E2" valign="top" align=center>
+<!--Contents Start-->
+<FORM METHOD=GET NAME=myform ACTION=RESTART.HTM>
+<TABLE CELLSPACING=0 CELLPADDING=1 BORDER=0 WIDTH=560>
+<TR><td ALIGN=MIDDLE><Script Language="JavaScript">showhead('cwlan');</script></TD></TR>
+</TABLE>
+<P>
+<TABLE CELLSPACING=0 CELLPADDING=1 BORDER=0 BGCOLOR=#505050 WIDTH=560>
+<TR><TD>
+<!-- Basic Settings -->
+<TABLE CELLSPACING=0 CELLPADDING=1 BORDER=0 BGCOLOR=#F1F1F1 WIDTH=100%>
+<TR><TD><Script Language="JavaScript">showtext10(textindex10++);</script></TD></TR>
+</TABLE> 
+<TABLE CELLSPACING=1 CELLPADDING=1 BORDER=0 BGCOLOR=#FFFFFF WIDTH=100%>
+<!-- Network Type -->
+<TR><TD WIDTH=30%><br><Script Language="JavaScript">showtext10(textindex10++);</script></TD> 
+<TD><br>
+<SELECT NAME=WLMode SIZE=1 onChange="return SaveSetting('CWLAN.HTM');">
+<OPTION VALUE=0>Infrastructure</OPTION>
+<OPTION VALUE=2>Ad-Hoc</OPTION>
+</SELECT>
+</TD>
+</TR>
+<!-- SSID -->
+<TR><TD><Script Language="JavaScript">showtext10(textindex10++);</script></TD> 
+<TD><INPUT NAME=WLESSID SIZE=17 MAXLENGTH=32 VALUE="<!--# echo var="WLESSID"-->" >
+</TD>
+</TR>
+<!-- Channel -->
+<TR><TD><Script Language="JavaScript">showtext10(textindex10++);</script></TD> 
+<TD><SCRIPT LANGUAGE=JavaScript>  
+var iWLC = "<!--# echo var="WLCountry"-->";
+var iWLMode = "<!--# echo var="WLMode"-->";
+if (iWLMode!=0)
+{
+document.write('<INPUT NAME=WLChannel SIZE=4 MAXLENGTH=2 VALUE="<!--# echo var="WLChannel"-->" >');
+iWLMode	= iWLMode-1;
+}
+else
+document.write('<INPUT NAME=WLChannel SIZE=4 MAXLENGTH=2 VALUE="<!--# echo var="WLCurChannel"-->" >');  
+document.write('<FONT SIZE=1 COLOR=#00008b>&nbsp;');
+if (iWLC== 2)
+document.write("(1 - 13)");
+else if	(iWLC==	3)
+document.write("(10	- 11)");
+else if	(iWLC==	4)
+document.write("(10	- 13)");
+else if	(iWLC==	5)
+document.write("(14	only)");
+else if	(iWLC==	6)
+document.write("(1 - 14)");
+else
+document.write("(1 - 11)");
+document.write('</FONT>');
+</SCRIPT>
+</TD>
+</TR>
+<!-- Transmission Rate -->
+<TR><TD><Script Language="JavaScript">showtext10(textindex10++);</script></TD> 
+<TD><Script	Language="JavaScript">
+var	iWLTxMode = "<!--# echo var="WLTxMode"-->";
+var	iWLRate = "<!--# echo var="WLRate"-->";
+if ( iWLTxMode == 1)
+{
+// B only
+document.write('<SELECT NAME=WLRate SIZE=1 onChange=SaveSetting("CWLAN.HTM"); >');
+document.write("<option value=0>");
+showtext10(textindex10++);
+document.write("</option>");
+document.write('<OPTION	VALUE=1>1, 2 Mbps');
+document.write('<OPTION	VALUE=2>5.5	Mbps');
+document.write('<OPTION	VALUE=3>11 Mbps');
+document.write('</OPTION></SELECT>');
+switch(iWLRate)
+{
+case '1':
+case '2':
+case '3':
+document.forms[0].WLRate[iWLRate].selected = true;
+break;
+default:
+document.forms[0].WLRate[0].selected = true;	// Automatic
+}	// end of switch(iWLMode)
+document.forms[0].WLRate.disabled = false;
+}					
+else if ( iWLTxMode == 3)
+{
+// B/G/N Mixed
+document.write('<SELECT NAME=WLRate SIZE=1 onChange=SaveSetting("CWLAN.HTM"); >');
+document.write("<OPTION value=0>");
+showtext10(textindex10++);
+document.write('</OPTION></SELECT>');
+document.forms[0].WLRate.disabled = true;
+}
+else
+{
+// B/G Mixed or G only
+document.write('<SELECT NAME=WLRate SIZE=1 onChange=SaveSetting("CWLAN.HTM"); >');
+document.write("<option value=0>");
+showtext10(textindex10++);
+document.write("</option>");
+document.write('<OPTION	VALUE=1>1, 2 Mbps');
+document.write('<OPTION	VALUE=2>5.5	Mbps');
+document.write('<OPTION	VALUE=4>6 Mbps');
+document.write('<OPTION	VALUE=5>9 Mbps');
+document.write('<OPTION	VALUE=6>11 Mbps');
+document.write('<OPTION	VALUE=7>12 Mbps');
+document.write('<OPTION	VALUE=8>18 Mbps');
+document.write('<OPTION	VALUE=9>24 Mbps');
+document.write('<OPTION	VALUE=10>36	Mbps');
+document.write('<OPTION	VALUE=11>48	Mbps');
+document.write('<OPTION	VALUE=12>54	Mbps');
+document.write('</OPTION></SELECT>');
+switch(iWLRate)
+{
+case '1':
+document.forms[0].WLRate[1].selected = true;	// 1, 2 Mbps
+break;
+case '2':
+document.forms[0].WLRate[2].selected = true;	// 5.5 Mbps
+break;
+case '4':
+document.forms[0].WLRate[3].selected = true;	// 6 Mbps
+break;
+case '5':
+document.forms[0].WLRate[4].selected = true;	// 9 Mbps
+break;
+case '6':
+document.forms[0].WLRate[5].selected = true;	// 11 Mbps
+break;
+case '7':
+document.forms[0].WLRate[6].selected = true;	// 12 Mbps
+break;
+case '8':
+document.forms[0].WLRate[7].selected = true;	// 18 Mbps
+break;
+case '9':
+document.forms[0].WLRate[8].selected = true;	// 24 Mbps
+break;
+case '10':
+document.forms[0].WLRate[9].selected = true;	// 36 Mbps
+break;
+case '11':
+document.forms[0].WLRate[10].selected = true;	// 48 Mbps
+break;
+case '12':
+document.forms[0].WLRate[11].selected = true;	// 54 Mbps
+break;
+case '0':
+default:
+document.forms[0].WLRate[0].selected = true;	// Automatic
+}	// end of switch(iWLMode)
+document.forms[0].WLRate.disabled = false;
+}	// end of if ( iWLTxMode == 1)
+</SCRIPT>
+</TD>
+</TR>
+<!-- Wireless Mode -->
+<TR><TD><Script Language="JavaScript">showtext10(textindex10++);</script></TD> 
+<TD><SELECT NAME=WLTxMode SIZE=1 onChange="SaveSetting('CWLAN.HTM');" >
+<script language="JavaScript">
+document.write("<option value=0>");
+showtext10(textindex10++);
+document.write("</option>");
+document.write("<option value=1>");
+showtext10(textindex10++);
+document.write("</option>");
+document.write("<option value=2>");
+showtext10(textindex10++);
+document.write("</option>");
+document.write("<option value=3>");
+showtext10(textindex10++);
+document.write("</option>");
+</script>
+</SELECT>
+</TD>
+</TR>
+</TABLE>
+</TD>
+</TR>
+</TABLE>
+<BR>
+<!-- Advanced Settings -->
+<input type="hidden" name="WLWEPType" value="<!--# echo var="WLWEPType"-->">
+<input type="hidden" name="WLWEPKeySel" value="<!--# echo var="WLWEPKeySel"-->">
+<input type="hidden" name="WLWEPFormat" value="<!--# echo var="WLWEPFormat"-->">
+<input type="hidden" name="WLWEPKey1" value="<!--# echo var="WLWEPKey1"-->">
+<input type="hidden" name="WLWEPKey2" value="<!--# echo var="WLWEPKey2"-->">
+<input type="hidden" name="WLWEPKey3" value="<!--# echo var="WLWEPKey3"-->">
+<input type="hidden" name="WLWEPKey4" value="<!--# echo var="WLWEPKey4"-->">
+<input type="hidden" name="WLWEP128Key" value="<!--# echo var="WLWEP128Key"-->">
+<input type="hidden" name="WLWEP128Key2" value="<!--# echo var="WLWEP128Key2"-->">
+<input type="hidden" name="WLWEP128Key3" value="<!--# echo var="WLWEP128Key3"-->">
+<input type="hidden" name="WLWEP128Key4" value="<!--# echo var="WLWEP128Key4"-->">
+<input type="hidden" name="WLAuthType" value="<!--# echo var="WLAuthType"-->">
+<TABLE CELLSPACING=0 CELLPADDING=1 BORDER=0 BGCOLOR=#505050 WIDTH=560>
+<TR><TD> 
+<TABLE CELLSPACING=0 CELLPADDING=1 BORDER=0 BGCOLOR=#F1F1F1 WIDTH=100%>
+<TR><TD><Script Language="JavaScript">showtext11(textindex11++);</script></TD></TR>
+</TABLE>
+<TABLE CELLSPACING=1 CELLPADDING=1 BORDER=0 WIDTH=100% bgcolor="#FFFFFF">
+<TR><TD WIDTH=15%><br><Script Language="JavaScript">showtext11(textindex11++);</script></TD> 
+<TD WIDTH=5%><br>
+<input type="radio" name="security_mode" id="security_mode_0" value="0" onClick='SecurityMode()'></TD>
+<TD WIDTH=25%><br>
+<Script Language="JavaScript">showtext11(textindex11++);</script></TD>
+<TD>&nbsp;</TD>
+</TR>
+<TR><TD>&nbsp;</TD>
+<TD><input type="radio" name="security_mode" id="security_mode_1" value="1" onClick='SecurityMode()'></TD>
+<TD><Script Language="JavaScript">showtext11(textindex11++);</script></TD>
+<TD>&nbsp;</TD>
+</TR>
+<!-- Key Index -->
+<TR><TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD><Script Language="JavaScript">showtext11(textindex11++);</script></TD>
+<TD>
+<input type="radio" name="wep_sel" value="0">1&nbsp;
+<input type="radio" name="wep_sel" value="1">2&nbsp;
+<input type="radio" name="wep_sel" value="2">3&nbsp;
+<input type="radio" name="wep_sel" value="3">4
+</TD>
+</TR>
+<!-- Encryption Type -->
+<TR><TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD><Script Language="JavaScript">showtext11(textindex11++);</script></TD>
+<TD>
+<select name="wep_type" onChange="remove_all_keys();" size="1">
+<script language="JavaScript">
+document.write("<option value=1>");
+showtext11(textindex11++);
+document.write("</option>");
+document.write("<option value=3>");
+showtext11(textindex11++);
+document.write("</option>");
+document.write("<option value=2>");
+showtext11(textindex11++);
+document.write("</option>");
+document.write("<option value=4>");
+showtext11(textindex11++);
+document.write("</option>");
+</script>
+</select>
+</TD>
+</TR>
+<!-- Key 1 -->
+<TR><TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD><Script Language="JavaScript">showtext11(textindex11++);</script></TD>
+<TD>
+<input type="text" name="wep_key1" size="36" maxlength="26" onFocus="change_max_length()" onChange="to_upper()" >
+</TD>
+</TR>
+<!-- Key 2 -->
+<TR><TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD><Script Language="JavaScript">showtext11(textindex11++);</script></TD>
+<TD>
+<input type="text" name="wep_key2" size="36" maxlength="26" onFocus="change_max_length()" onChange="to_upper()" >
+</TD>
+</TR>
+<!-- Key 3 -->
+<TR><TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD><Script Language="JavaScript">showtext11(textindex11++);</script></TD>
+<TD>
+<input type="text" name="wep_key3" size="36" maxlength="26" onFocus="change_max_length()" onChange="to_upper()" >
+</TD>
+</TR>
+<!-- Key 4 -->
+<TR><TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD><Script Language="JavaScript">showtext11(textindex11++);</script></TD>
+<TD>
+<input type="text" name="wep_key4" size="36" maxlength="26" onFocus="change_max_length()" onChange="to_upper()" >
+</TD>
+</TR>
+<!-- Authentication -->
+<TR><TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD><Script Language="JavaScript">showtext11(textindex11++);</script></TD>
+<TD>
+<select name="wep_authmode" size="1">
+<script language="JavaScript">
+document.write("<option value=0>");
+showtext11(textindex11++);
+document.write("</option>");
+document.write("<option value=1>");
+showtext11(textindex11++);
+document.write("</option>");
+//	document.write("<option value=2>");
+//	showtext11(textindex11++);
+//	document.write("</option>");
+</script>
+</select>
+</TD>
+</TR>
+<TR><TD>&nbsp;</TD>
+<TD><input type="radio" name="security_mode" id="security_mode_4" value="4" onClick='SecurityMode()'></TD>
+<TD colspan=2><Script Language="JavaScript">showtext11(textindex11++);</script>&nbsp;
+<input type="radio" name="security_mode" id="security_mode_7" value="7" onClick='SecurityMode()'>
+<Script Language="JavaScript">showtext11(textindex11++);</script>
+</TD>
+</TR>
+<TR><TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD><Script Language="JavaScript">showtext11(textindex11++);</script></TD>
+<TD>
+<SELECT name="WLWPAType" width="100">
+<OPTION value=0>TKIP</OPTION>
+<OPTION value=1>AES (CCMP)</OPTION>
+</SELECT>
+</TD>
+</TR>
+<TR><TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD><Script Language="JavaScript">showtext11(textindex11++);</script></TD>
+<TD>
+<input type="text" name="WPA_Pass" size="32" maxlength="64" value="<!--# echo var="WPA_Pass"-->" onKeyPress="swallowEnter(event)">
+</TD>
+</TR>
+<TR><TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD colspan=2><Script Language="JavaScript">showtext11(textindex11++);</script></TD>
+</TR>
+</TABLE>
+</TD>
+</TR>
+</TABLE>
+<BR><BR>
+<!-- Site Survey -->
+<TABLE CELLSPACING=0 CELLPADDING=1 BORDER=0 BGCOLOR=#505050 WIDTH=560>
+<TR><TD>
+<TABLE CELLSPACING=0 CELLPADDING=1 BORDER=0 BGCOLOR=#F1F1F1 WIDTH=100%>
+<TR><TD><Script Language="JavaScript">showtext12(textindex12++);</script></TD></TR>
+</TABLE>
+<TABLE CELLSPACING=1 CELLPADDING=1 BORDER=0 BGCOLOR=#FFFFFF WIDTH=100%>
+<TR>
+<TD><br>
+<table width="100%">
+<tr>
+<td class=r width=5></td>
+<td class=r width=23%><Script Language="JavaScript">showtext12(textindex12++);</script></td>
+<td class=r width=25%><Script Language="JavaScript">showtext12(textindex12++);</script></td>
+<td class=r width=7%><Script Language="JavaScript">showtext12(textindex12++);</script></td>
+<td class=r width=10%><Script Language="JavaScript">showtext12(textindex12++);</script></td>
+<td class=r width=20%><Script Language="JavaScript">showtext12(textindex12++);</script></td>
+<td class=r><Script Language="JavaScript">showtext12(textindex12++);</script></td>
+</tr>
+<!--# echo var="Spy"-->
+</table>
+</TD>
+</TR>
+<TR>
+<TD align=center><BR>
+<Script Language="JavaScript">showtext12(textindex12++);</script>
+</TD>
+</TR>
+</TABLE>
+</TD></TR>
+</TABLE> 
+<BR>
+<TABLE border=0 WIDTH=560>
+<TR><BR><TD ALIGN=center height=40>
+<Script Language="JavaScript">
+showtext11(textindex11++);
+showtext11(textindex11++);
+showtext11(textindex11++);
+</script></TD>
+</TR>
+</TABLE>
+<br><br>
+<TABLE border="0" width="560">
+<TR><TD align="right"><IMG SRC="images/LOGO.GIF"></TD></TR>
+</TABLE>
+<br><br>
+</FORM> 	 
+<!--Contents END-->
+</TD>
+<TD CLASS=BGLine><IMG SRC="IMAGES/blank.gif" WIDTH=1 HEIGHT=315></TD>
+</TR>
+<TR><TD ROWSPAN=2 COLSPAN=2 CLASS=FrameDleft8x10></TD>
+<TD COLSPAN=3 WIDTH=540 HEIGHT=8 bgcolor="#E2E2E2"></TD>
+<TD ROWSPAN=2 COLSPAN=2 CLASS=FrameDright10x10></TD>
+</TR>
+<TR><TD COLSPAN=3 CLASS=BGLine><IMG SRC="IMAGES/blank.gif" WIDTH=540 HEIGHT=2></TD></TR>
+</TABLE>
+</BODY>
+</CENTER>
+</HTML>

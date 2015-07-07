@@ -1,0 +1,313 @@
+<HTML><HEAD>
+<meta http-equiv="content-type" content="text/html;charset=ISO-8859-1">
+<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="STYLE.CSS">
+<TITLE>Setup</TITLE>
+<SCRIPT LANGUAGE=JavaScript>
+<!--
+function chooseESSID(){
+	var idx;
+	idx=document.forms[0].Temp6.selectedIndex;
+	document.forms[0].WLESSID.value = document.forms[0].Temp6[idx].text;
+}
+function OnSiteSurvey(){
+	newwindow=window.open("BROWSER.HTM","","toolbar=0,location=0,directories=0,status=0,menubar=0,width=700,height=400,scrollbars=1");
+	return false;
+}
+function onWEPKeyHelp(){
+	newwindow=window.open("KEYHELP.HTM","","toolbar=0,location=0,directories=0,status=0,menubar=0,width=300,height=620,scrollbars=1");
+	return false;
+}
+function SaveSetting(szURL) {
+	document.forms[0].action=szURL;
+	document.forms[0].submit(); return false; }
+function CheckPwd() {
+  if(document.forms[0].SetupPWD.value != document.forms[0].ConfirmPWD.value) {
+	alert("Setup password and confirmed do not match !");
+	location.replace("#SYS");
+	return;
+  }
+  document.forms[0].submit();
+}
+//-->
+</SCRIPT>
+</HEAD>
+<BODY BGCOLOR="#6D6D6D" TEXT=white>
+<form method="POST" name="SETUP" action="SUCCESS.HTM">
+
+<table width=100%>
+<tr><td valign="top"><FONT FACE="Arial,Helvetica" SIZE=+1>
+<A NAME="SYS">System Information :</A></font></td></tr>
+
+<tr align=center><td>
+	<table width=80% bgcolor='#969696' border=1>
+	<tr><td align=Right width=200><FONT CLASS=F1>Device Name :</font></td>
+		<td><font><input type="text" name="BoxName" size=15 maxlength=18 value="ZO__I-BoxName"></font></td></tr>
+	<tr><td align=Right><FONT CLASS=F1>System Contact :</font></td>
+		<td><input type="text" name="SnmpSysContact" size=15 maxlength=15 value="ZO__I-SnmpContact"></td></tr>
+	<tr><td align=Right><FONT CLASS=F1>System Location :</font></td>
+		<td><input type="text" name="SnmpSysLocation" size=15 maxlength=24 value="ZO__I-SnmpLocation"></td></tr>
+	</table></td></tr>
+
+<tr><td height=10>&nbsp;</td></tr>
+<tr align=center><td>
+	<table width=80% bgcolor='#969696' border=1>
+	<tr><td align=Right width="200">
+      	<font CLASS=F1>Administrative Password :</font></td>
+		<td><font face="Arial,Helvetica"><input type="password" name="SetupPWD" size=12 maxlength=8 value="ZO__I-SetupPassword"></font></td></tr>
+	<tr><td align=Right><font CLASS=F1>Re-type Password :</font></td>
+		<td><font face="Arial,Helvetica"><input type="password" name="ConfirmPWD" size=12 maxlength=8 value="ZO__I-ConfirmPassword"></font></td></tr>
+	</table></td></tr>
+
+<tr><td height=10>&nbsp;</td></tr>
+<tr align=center><td>
+	<table width=80% bgcolor='#969696' border=1>
+	<tr><td align=Right width="200">
+      	<font CLASS=F1>Email Alert :</font></td>
+		<td><SELECT NAME="ALERT" SIZE=1>
+				<OPTION VALUE="0">Disabled</OPTION>
+				<OPTION VALUE="1">Enabled</OPTION>
+			</SELECT>
+		</td></tr>
+<SCRIPT LANGUAGE=JavaScript>
+var iALERT="ZO__S-ALERT";
+document.forms[0].ALERT[iALERT].defaultSelected=true;
+document.forms[0].ALERT[iALERT].selected=true;
+</SCRIPT>
+	<tr><td align=Right><font CLASS=F1>SMTP Server IP Address :</font></td>
+		<td><font face="Arial,Helvetica"><INPUT TYPE=TEXT NAME="SMTPIP" SIZE=16 MAXLENGTH=15 VALUE="ZO__I-SMTPIP"></font></td></tr>
+	<tr><td align=Right><font CLASS=F1>Administrator E-mail Address :</font></td>
+		<td><font face="Arial,Helvetica"><INPUT TYPE=TEXT NAME="SMTPMail" SIZE=32 MAXLENGTH=32 VALUE="ZO__I-SMTPMail"></font></td></tr>
+	</table>
+</td></tr>
+
+</table>
+<p align=right><FONT CLASS=F1><A HREF=#SAVE>GOTO Save</A></font></p>
+<hr><BR>
+
+
+<table width=100%>
+<tr><td valign="top"><font FACE="Arial,Helvetica" size=+1>
+<A NAME="NETWARE">NetWare Settings :</A></font></td></tr>
+
+<tr><td align=center>
+	<table width='80%' bgcolor='#969696' border=1>
+	<tr><td align=Right width="200">
+      	<font CLASS=F1>Print Server Name :</font></td>
+	    <td><input type="text" name="PSName" size=20 maxlength=47 value="ZO__I-PSName"></td></tr>
+	<tr><td align=Right><font CLASS=F1>Polling Time :</font></td>
+	    <td><input type="text" name="PollTime" size=2 maxlength=2 value="ZO__I-PollTime">
+	    <font CLASS=F0>(3 - 29) </font>
+        <font CLASS=F0>seconds.</font></td></tr>
+	<tr><td align=Right><font CLASS=F1>Encrypted Password :</font></td>
+	    <td><input type="password" name="NetwarePassword" size=12 maxlength=8 value="ZO__I-NetwarePassword"></td></tr>
+	</table></td></tr>
+<tr><td height=10>&nbsp;</td></tr>
+<tr><td align=center>
+	<table width=80% bgcolor='#969696' border=1>
+	<tr><td colspan=2><font CLASS=F1>NDS Mode :
+    	<select name="SetNDSMode" size=1><OPTION VALUE=0>Disable</OPTION><OPTION VALUE=1>Enable</OPTION></SELECT></td></tr>
+<SCRIPT LANGUAGE=JavaScript>
+var iNDSMode="ZO__S-NDSMode";
+document.forms[0].SetNDSMode[iNDSMode].defaultSelected=true;
+document.forms[0].SetNDSMode[iNDSMode].selected=true;
+</SCRIPT>
+  	<tr><td align=Right width="200">
+      	<font CLASS=F1>Tree Name :</font></td>
+    	<td><font face="Arial,Helvetica"><select name="SetNDSTreeName" size=1>"ZO__S-NDSTreeName"</select></font></td></tr>
+  	<tr><td align=Right valign=Top>
+      	<font CLASS=F1>Context :</font></td>
+		<td><font face="Arial,Helvetica"><input type="text" name="NDSContext" size=30 maxlength=250 value="ZO__I-NDSContext"></font></td></tr>
+	</table></td></tr>
+<tr><td height=10>&nbsp;</td></tr>
+<tr><td align=center>
+	<table width=80% bgcolor='#969696' border=1>
+  	<tr><td colspan=2>
+      <font CLASS=F1>Bindery Mode :</font><select name="NetWareMode" size=1><OPTION VALUE=0>Disable</OPTION><OPTION VALUE=1>Enable</OPTION></SELECT></td></tr>
+<SCRIPT LANGUAGE=JavaScript>
+var iNMode="ZO__S-NetWareMode";
+document.forms[0].NetWareMode[iNMode].defaultSelected=true;
+document.forms[0].NetWareMode[iNMode].selected=true;
+</SCRIPT>
+  	<tr><td align=Right valign=Top width="200">
+      	<font CLASS=F1>File Server Name :</font></td>
+    	<td><select name="FSName" size=5 multiple>"ZO__S-FSName"</select></td></tr>
+	</table></td></tr>
+</table>
+<p align=right><FONT CLASS=F1><A HREF=#SAVE>GOTO Save</A></font></p>
+<hr><BR>
+
+
+<table width=100%>
+<tr><td valign="top"><font FACE="Arial,Helvetica" size=+1>
+<A NAME="TCP-IP">TCP/IP Settings :</A></font></td></tr>
+
+<tr><td align=center>
+	<table width='60%' bgcolor='#969696' border=1>
+  	<tr><td><input type="radio" name="DHCP" value="ON" OnClick="SETUP.IP.value='';SETUP.Subnet.value='';SETUP.Gateway.value=''" ZO__C-DHCP></td>
+    	<td colspan=2><font CLASS=F1>Automatic - Using DHCP/BOOTP 
+        to obtain IP</font></td></tr>
+  	<tr><td><input type="radio" name="DHCP" value="OFF" OnClick="SETUP.IP.value='ZO__I-IP';SETUP.Subnet.value='ZO__I-Subnet';SETUP.Gateway.value='ZO__I-Gateway'" ZO__C-NotDHCP></td>
+    	<td colspan=2><font CLASS=F1>Manual - specify IP below</font></td></tr>
+  	<tr><td rowspan="3">&nbsp;</td>
+    	<td align=Right width="150">
+        <font CLASS=F1>IP Address :</font></td>
+    	<td><input type="text" name="IP" size=16 maxlength=15 value="ZO__I-IP" OnChange="if(SETUP.DHCP[0].checked) this.value=''"></td></tr>
+  	<tr><td align=Right><font CLASS=F1>Subnet Mask :</font></td>
+    	<td><input type="text" name="Subnet" size=16 maxlength=15 value="ZO__I-Subnet" OnChange="if(SETUP.DHCP[0].checked) this.value=''"></td></tr>
+  	<tr><td align=Right><font CLASS=F1>Gateway :</font></td>
+    	<td><input type="text" name="Gateway" size=16 maxlength=15 value="ZO__I-Gateway" OnChange="if(SETUP.DHCP[0].checked) this.value=''"></td></tr>
+	</table></td></tr>
+</table>
+<BR><BR>
+<p align=right><FONT CLASS=F1><A HREF=#SAVE>GOTO Save</A></font></p>
+<HR><BR>
+
+<!--
+<table width=100%>
+<tr><td valign="top"><font FACE="Arial,Helvetica" size=+1>
+<A NAME="RENDEZVOUS">Rendezvous Settings :</A></font></td></tr>
+
+<tr><td align=center>
+<table width=80% bgcolor='#969696' border=1>
+	<tr><td align='right' width="200">
+      	<FONT CLASS=F1>Rendezvous Settings :</font></td>
+		<td><SELECT NAME="Randvous" SIZE="1">
+			<OPTION VALUE="0">Disabled</OPTION>
+			<OPTION VALUE="1">Enabled</OPTION>
+		</SELECT>
+		</td></tr>
+<SCRIPT LANGUAGE=JavaScript>
+var iRandvous="ZO__S-Randvous";
+document.forms[0].Randvous[iRandvous].defaultSelected=true;
+document.forms[0].Randvous[iRandvous].selected=true;
+</SCRIPT>
+	<tr><td align='right'><FONT CLASS=F1>Service Name :</font></td>
+		<td><FONT CLASS=F1><INPUT TYPE=TEXT NAME="Randvousname" SIZE="30" MAXLENGTH="59" VALUE="ZO__I-Randvousname"></font></td></tr>
+	</table>
+</td></tr>
+</table>
+<BR><BR>
+<p align=right><FONT CLASS=F1><A HREF=#SAVE>GOTO Save</A></font></p>
+<HR><BR>
+-->
+
+<table width=100%>
+<tr><td valign="top"><font FACE="Arial,Helvetica" size=+1>
+<A NAME="SNMP">SNMP Settings :</A></font></td></tr>
+
+<tr><td align=center>
+	<table width='80%' bgcolor='#969696' border=1>
+	<tr><td colspan=2><font CLASS=F1>SNMP Community:</font></td></tr>
+	<tr><td valign=Top width=200 align=right>
+      	<font CLASS=F1>Support HP Web JetAdmin :</font></td>
+	    <td><select name="WebJetAdmin" size=1><OPTION VALUE=0>Disable</OPTION><OPTION VALUE=1>Enable</OPTION></SELECT></td></tr>
+			<SCRIPT LANGUAGE=JavaScript>
+			var iWebJetAdmin="ZO__T-WebJetAdmin";
+			document.forms[0].WebJetAdmin[iWebJetAdmin].defaultSelected=true;
+			document.forms[0].WebJetAdmin[iWebJetAdmin].selected=true;
+			</SCRIPT>
+	<tr><td align=Right valign=Top>
+      	<font CLASS=F1>Community 1 :</font></td>
+	    <td><font size="2"><input type="text" name="SnmpCommunity1" size=12 maxlength=12 value="ZO__I-SnmpCommunity1">,
+	    	<select name="SnmpSetComm1Access" size=1><OPTION VALUE=1>Read-Only</OPTION><OPTION VALUE=3>Read-Write</OPTION></SELECT></font></td></tr>
+			<SCRIPT LANGUAGE=JavaScript>
+			var iC1Access="ZO__S-SnmpSetComm1Access";
+			if(iC1Access==3)
+				iC1Access=1;
+			else
+				iC1Access=0;
+			document.forms[0].SnmpSetComm1Access[iC1Access].defaultSelected=true;
+			document.forms[0].SnmpSetComm1Access[iC1Access].selected=true;
+			</SCRIPT>
+	<tr><td align=Right valign=Top>
+      	<font CLASS=F1>Community 2 :</font></td>
+	    <td><font size="2"><input type="text" name="SnmpCommunity2" size=12 maxlength=12 value="ZO__I-SnmpCommunity2">,
+	    	<select name="SnmpSetComm2Access" size=1><OPTION VALUE=1>Read-Only</OPTION><OPTION VALUE=3>Read-Write</OPTION></SELECT></font></td></tr>
+			<SCRIPT LANGUAGE=JavaScript>
+			var iC2Access="ZO__S-SnmpSetComm2Access";
+			if(iC2Access==3)
+				iC2Access=1;
+			else
+				iC2Access=0;
+			document.forms[0].SnmpSetComm2Access[iC2Access].defaultSelected=true;
+			document.forms[0].SnmpSetComm2Access[iC2Access].selected=true;
+			</SCRIPT>
+	</table></td></tr>
+<tr><td height=10>&nbsp;</td></tr>
+<tr><td align=center>
+	<table width= 80% bgcolor='#969696' border=1>
+  	<tr><td colspan=2><font CLASS=F1>SNMP Traps : </font>
+        <select name="SnmpSetTrapEnable"><OPTION VALUE=0>Disable</OPTION><OPTION VALUE=1>Enable</OPTION></SELECT></td></tr>
+<SCRIPT LANGUAGE=JavaScript>
+var iTrap="ZO__S-SnmpSetTrapEnable";
+document.forms[0].SnmpSetTrapEnable[iTrap].defaultSelected=true;
+document.forms[0].SnmpSetTrapEnable[iTrap].selected=true;
+</SCRIPT>
+  	<tr><td align=Right width=200>
+      <font CLASS=F1>Authentication Traps :</font></td>
+    	<td><select name="SnmpSetAuthTrapEnable"><OPTION VALUE=2>Disable</OPTION><OPTION VALUE=1>Enable</OPTION></SELECT></td></tr>
+<SCRIPT LANGUAGE=JavaScript>
+var iAuthTrap="ZO__S-SnmpSetAuthTrapEnable";
+document.forms[0].SnmpSetAuthTrapEnable[2-iAuthTrap].defaultSelected=true;
+document.forms[0].SnmpSetAuthTrapEnable[2-iAuthTrap].selected=true;
+</SCRIPT>
+  	<tr><td align=Right><font CLASS=F1>Trap 1 IP Address :</font></td>
+    	<td><input type="text" name="SnmpTrapIP1" size=16 maxlength=15 value="ZO__I-SnmpTrapIP1"></td></tr>
+  	<tr><td align=Right><font CLASS=F1>Trap 2 IP Address :</font></td>
+    	<td><input type="text" name="SnmpTrapIP2" size=16 maxlength="15" value="ZO__I-SnmpTrapIP2"></td></tr>
+	</table></td></tr>
+</table>
+<p align=right><FONT CLASS=F1><A HREF=#SAVE>GOTO Save</A></font></p>
+<HR><BR>
+
+
+<table width=100%>
+<tr><td valign="top"><font FACE="Arial,Helvetica" size=+1>
+<A NAME="ATALK">AppleTalk Settings :</A></font></td></tr>
+
+<tr><td align=center>
+	<table width='60%' bgcolor='#969696' border=1>
+  	<tr><td align=Right width="200">
+      <font CLASS=F1>Zone Name :</font></td>
+		<td><input type=text name="AtalkSetZoneName" size=15 maxlength=32 value=ZO__I-AtalkZoneName></td></tr>
+  	<tr><td align=Right><font CLASS=F1>Port Name :</font></td>
+    	<td><input type=text name="AtalkSetPortName" size=15 maxlength=12 value=ZO__I-AtalkPortName></td></tr>
+  	<tr><td align=Right><font CLASS=F1>Printer Type :</font></td>
+    	<td><input type=text name="AtalkPort1Type" size=15 maxlength=20 value=ZO__I-AtalkPort1Type></td></tr>
+  	<tr><td align=Right><font CLASS=F1>Data Format :</font></td>
+		<td><select name="AtalkSetPort1DataMode" size=1><OPTION VALUE=0>ASCII</OPTION><OPTION VALUE=1>TBCP</OPTION><OPTION VALUE=2>BCP</OPTION></SELECT></td></tr>
+			<SCRIPT LANGUAGE=JavaScript>
+			var iP1Mode="ZO__S-AtalkPort1DataMode";
+			document.forms[0].AtalkSetPort1DataMode[iP1Mode].defaultSelected=true;
+			document.forms[0].AtalkSetPort1DataMode[iP1Mode].selected=true;
+			</SCRIPT>
+</table>
+<p align=right><FONT CLASS=F1><A HREF=#SAVE>GOTO Save</A></font></p>
+<HR><BR>
+
+
+<table width=100%>
+<tr><td valign="top"><font FACE="Arial,Helvetica" size=+1>
+<A NAME="SMB">SMB Settings :</A></font></td></tr>
+
+<tr><td align=center>
+	<table width='60%' bgcolor='#969696' border=1>
+  	<tr><td align=Right width="200">
+      <font CLASS=F1>Workgroup Name :</font></td>
+		<td><input type=text name="SMBWorkGroup" size=18 maxlength=15 value=ZO_T-WorkGroup></td></tr>
+  	<tr><td align=Right><font CLASS=F1>Shared Printer Name :</font></td>
+    	<td><input type=text name="SMBPrint1" size=15 maxlength=12 value=ZO_T-SMBPrint1></td></tr>
+</table>
+<p align=right><FONT CLASS=F1><A HREF=#SAVE>GOTO Save</A></font></p>
+<HR><BR>
+
+
+<table align=center>
+<tr><td align='middle' height="20"><A NAME="SAVE">
+<input type="button" onClick="CheckPwd()" value="    Save    "></A></td></tr>
+
+<tr><td><font FACE="Arial,Helvetica">(Press <FONT color=red>Save</font> button to save settings)</font>
+</td></tr>
+</table>
+<BR><HR>
+</form></BODY></html>

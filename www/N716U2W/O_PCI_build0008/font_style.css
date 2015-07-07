@@ -1,0 +1,80 @@
+/*==========================================================================*/
+/* font_style.css                                                           */
+/*                                                                          */
+/*                                                                          */
+/* Angel                                                                    */
+/*==========================================================================*/
+
+	.TOPTitle {
+		font-family: Arial, Georgia, Simsun, "Times New Roman", Times;
+		font-size: 24px;	
+		font-style: normal;  
+		font-weight: bold;
+		line-height: 28px;  
+		color: #9B262C;
+		}
+
+	.ActiveLinkG {
+  		font-family: Verdana, Simsun, Helvetica, Arial, sans-serif;
+		font-size: 12px;  
+		font-style: normal;  
+		font-weight: bold;
+		line-height: 14px;	
+		text-decoration: none;
+		color: #FFFFFF;
+		}
+	
+	.ActiveLinkB {
+  		font-family: Verdana, Simsun, Helvetica, Arial, sans-serif;
+		font-size: 12px;  
+		font-style: normal;  
+		font-weight: bold;
+		line-height: 14px;	
+		text-decoration: none;
+		color: #666666;
+		}
+	
+	
+	.ActiveLinkSG {
+  		font-family: Verdana, Simsun, Helvetica, Arial, sans-serif;
+		font-size: 10px;  
+		font-style: normal;  
+		font-weight: bold;
+		line-height: 14px;	
+		text-decoration: none;
+		color: #FFFFFF;
+		}
+
+	.ActiveLinkSB {
+  		font-family: Verdana, Simsun, Helvetica, Arial, sans-serif;
+		font-size: 12px;  
+		font-style: normal;  
+		font-weight: bold;
+		line-height: 14px;	
+		text-decoration: none;
+		color: #666666;
+		}
+
+	.r {
+		font-family: Arial, Helvetica, sans-serif;
+		color: black;
+		font-size: 8pt;
+		text-align: center;
+		background: #DDDDDD;
+	}
+	
+	.s1 { 
+		background-color:#ffffcc; 
+		font-family: Arial, Helvetica, sans-serif;
+		color: black;
+		text-align: center;
+		font-size: 8pt;
+	}
+
+	.s0 { 
+		background-color:white; 
+		font-family: Arial, Helvetica, sans-serif;
+		color: black;
+		text-align: center;
+		font-size: 8pt;
+	}

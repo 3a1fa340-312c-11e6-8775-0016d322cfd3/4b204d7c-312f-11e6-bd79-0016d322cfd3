@@ -26,7 +26,7 @@ C_DEFINED = -D$(HTML_FILE)
 
 INC_DIR   = -I$(PKG_INSTALL_DIR)/include
 CFLAGS    = -Wall $(INC_DIR) -ffunction-sections -fdata-sections
-CFLAGS   += -D__ECOS -DECOS
+CFLAGS   += -D__ECOS -DECOS -DMTK7601
 CFLAGS   += -DVERSION=\"$(VERSION_STRING)\"
 
 #add include 
@@ -35,8 +35,8 @@ CFLAGS   += $(C_DEFINED)
 LDFLAGS   = -nostartfiles -nostdlib -L$(PKG_INSTALL_DIR)/lib -Wl,--gc-sections\
     -Ttarget.ld  -Xlinker -Map -Xlinker $(basename $@).map
 ARFLAGS   = rv
-#COPTFLAGS     = -O3
-COPTFLAGS     := -g
+COPTFLAGS     = -O2
+#COPTFLAGS     := -g
 DEPEND_FLAGS =  -Wp,-MD,$*.d
 EXTRACFLAGS   = $(COPTFLAGS) $(DEPEND_FLAGS)
 LIBS          = -Ttarget.ld -nostdlib

@@ -80,7 +80,7 @@ void zot_idle_task(cyg_addrword_t data)
 
 			if(needwps)
 			{
-                #if (WLANMAC != MTK7601) 
+                #ifndef MTK7601 
 				set_realtek_wps(1);
                 #endif 
 				needwps = 0;

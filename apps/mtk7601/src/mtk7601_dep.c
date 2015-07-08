@@ -250,7 +250,7 @@ struct sk_buff* dev_alloc_skb (unsigned int length)
     	/* Clear just the header portion */
 		memset(skb,0,sizeof(struct sk_buff));
 		if((skb->size = length) != 0) {		
-			skb->data = pkt_alloc(length, 4096);
+			skb->data = aligned_alloc(length, 4096);
 			skb->original_data = skb->data;
 			if(skb->data == NULL)
 			{
@@ -283,7 +283,7 @@ void dev_kfree_skb_any (struct sk_buff* skb)
         cal_pkt_use --;
         DBGPRINT(RT_DEBUG_ERROR, ("termy say free, size = %d, addr = %x\n", skb->size, skb->data));
         */ 
-		pkt_free(skb->original_data); 		
+		aligned_free(skb->original_data); 		
 		free(skb);
 	}	
 }

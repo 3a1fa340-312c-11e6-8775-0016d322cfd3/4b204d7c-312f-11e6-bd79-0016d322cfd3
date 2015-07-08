@@ -36,7 +36,9 @@
 
 #define DO_PRINT(arg...)
 
-//#define printk(arg...)
+#ifndef MTK7601
+#define printk(arg...)
+#endif
 
 #define CONFIG_STAR_NIC_PHY_INTERNAL_PHY	//ZOT
 

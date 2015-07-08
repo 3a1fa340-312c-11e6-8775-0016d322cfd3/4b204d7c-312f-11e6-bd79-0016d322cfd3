@@ -1957,7 +1957,11 @@ static void dl_transfer_length(td_t * td)
 
 static void dl_del_urb (struct urb * urb)
 {
+    #ifdef MTK7601
 	ohci_wait_queue_head_t * wait_head = ((urb_priv_t *)(urb->hcpriv))->wait;
+    #else
+	wait_queue_head_t * wait_head = ((urb_priv_t *)(urb->hcpriv))->wait;
+    #endif
 
 	urb_rm_priv_locked (urb);
 
@@ -2091,7 +2095,11 @@ static void dl_del_list (ohci_t  * ohci, unsigned int frame)
 //			hash_free_ed(ohci, ed);
    	 		/* if all eds are removed wake up sohci_free_dev */
    	 		if (!--dev->ed_cnt) {
+                #ifdef MTK7601
 				ohci_wait_queue_head_t *wait_head = dev->wait;
+                #else
+				wait_queue_head_t *wait_head = dev->wait;
+                #endif
 
 				dev->wait = 0;
 				if (wait_head)

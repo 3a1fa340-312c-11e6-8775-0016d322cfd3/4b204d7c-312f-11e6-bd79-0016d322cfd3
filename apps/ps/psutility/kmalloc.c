@@ -73,10 +73,12 @@ static void kmallocinit(void)
 		_kFarHeap[i]= kFarHeap_base + i * (0x10000);
 	}
 
+    #if 0
     // for wireless packet use
     for (i = 0 ; i < 24; i++) {
         _kPktHeap[i] = kPktHeap_base + i * (0x2000);
     }
+    #endif
 
     //_kFarHeap[i++] = kFarHeap_hugebase;
     //_kFarHeap[i++] = kFarHeap_hugebase + 0x20000;
@@ -112,21 +114,13 @@ static void kmallocinit(void)
 
     kPktAllocp = CurBlock = &kPktBase;
 
+    #if 0
     nu = (0x2000 - 1)/MCBSIZE;
     for (i = 0 ; i < 24 ; i++) {
         CurBlock->s.Next = (MCB HUGE*)_kPktHeap[i];
         CurBlock->s.Next->s.McbSize = nu;
         CurBlock = CurBlock->s.Next;
         kPktAvailmem += nu;
-    }
-
-    #if 0
-    nu = (0x20000  - 1)/MCBSIZE;
-    for (i = KMEM_BLOCKS ; i < KMEM_BLOCKS + 1 ; i++) {
-        CurBlock->s.Next = (MCB HUGE*)_kFarHeap[i];
-        CurBlock->s.Next->s.McbSize = nu;
-        CurBlock = CurBlock->s.Next;
-        kAvailmem += nu;
     }
     #endif
 }
@@ -367,6 +361,7 @@ kaligned_free(void *block)
 	kfree( p , 0 );
 }
 
+#if 0
 /*
 int pkt_use = 0;
 */
@@ -410,5 +405,5 @@ pkt_free(void *block)
     */
 	kfree( p , 1 );
 }
-
+#endif
 

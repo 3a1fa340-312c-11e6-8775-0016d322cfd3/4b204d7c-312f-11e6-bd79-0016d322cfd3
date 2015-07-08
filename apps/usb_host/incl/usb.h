@@ -919,8 +919,9 @@ void usb_show_string(struct usb_device *dev, char *id, int index);
 #define dbg					printf
 #define err					printf
 #define warn				printf
-//#define printk				printf
-
+#ifndef MTK7601
+#define printk				printf
+#endif
 /*
  * bus and driver list
  */

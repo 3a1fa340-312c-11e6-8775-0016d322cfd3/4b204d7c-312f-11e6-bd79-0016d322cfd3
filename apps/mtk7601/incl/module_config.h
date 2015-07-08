@@ -82,5 +82,5 @@
 #define RESOURCE_PRE_ALLOC
 #endif /* if 0 */
 
-#define WLANMAC NONWLAN
+#define WLANMAC MTK7601
 #endif /* _MODULE_CONFIG_ */

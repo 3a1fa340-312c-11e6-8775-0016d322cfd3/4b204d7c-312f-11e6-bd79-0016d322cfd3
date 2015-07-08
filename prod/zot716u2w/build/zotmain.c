@@ -76,9 +76,11 @@ void USB_init(cyg_addrword_t data)
 	
 	// Wireless initialization
 	Wlan_MacInit();							// This line is important. wlanif.c
-    //r8712u_drv_entry();
+#ifdef MTK7601
 	rtusb_init();	//rt3070
-	
+#else
+	r8712u_drv_entry();
+#endif
 	cyg_semaphore_wait(&sem);
 	cyg_semaphore_destroy(&sem);	
 }

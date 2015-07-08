@@ -161,15 +161,15 @@ depend: proddep
 
 package:
 	make clean
-	make COPTFLAGS=-O3
-	cp $(DST_NAME) zotdwp2020.bin
-	$(STRIP) zotdwp2020.bin
-	cp zotdwp2020.bin TEMP.bin
-	gzip -c TEMP.bin > zotdwp2020.gz
+	make COPTFLAGS=-O2
+	cp $(DST_NAME) $(PROD_NAME).bin
+	$(STRIP) $(PROD_NAME).bin
+	cp $(PROD_NAME).bin TEMP.bin
+	gzip -c TEMP.bin > $(PROD_NAME).gz
 	rm TEMP.bin
 	cp $(TARGET_DEF) .
 	wine $(TOOLS_DIR)/maketarget 
-	wine $(TOOLS_DIR)/makimage $(PSMODELINDEX) $(CODE2MARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersion) $(BuildVer) $(MAKER_AND_CPU) zotdwp2020.gz MPS$(PSMODELINDEX).bin
+	wine $(TOOLS_DIR)/makimage $(PSMODELINDEX) $(CODE2MARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersion) $(BuildVer) $(MAKER_AND_CPU) $(PROD_NAME).gz MPS$(PSMODELINDEX).bin
 	cp MPS$(PSMODELINDEX).bin $(ROOT_DIR)/img/.
 	rm Target.def
 

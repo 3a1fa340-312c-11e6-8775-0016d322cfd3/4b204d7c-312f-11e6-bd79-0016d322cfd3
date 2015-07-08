@@ -631,7 +631,7 @@ char* WLan_config ()
     
     offset += sprintf(config_buf+offset, "ChannelGeography=1\n");
     /* SSID */
-    #if 1
+    #if 0
     offset += sprintf(config_buf+offset, "SSID=%s\n", mvESSID);
     #else
     offset += sprintf(config_buf+offset, "SSID=TStudio\n");
@@ -643,7 +643,7 @@ char* WLan_config ()
     //		Infra: infrastructure mode
     //     	Adhoc: adhoc mode
     
-    #if 1
+    #if 0
     if (mvBSSType == 2)
         offset += sprintf(config_buf+offset, "NetworkType=Infra\n");
     else
@@ -730,7 +730,7 @@ char* WLan_config ()
 
     //      mvWEPType : 1 -> 64-bit  , key at mvWEPKEY1-4
     //      mvWEPType : 2 -> 128-bit , key at mvWEP128KEY1-4
-    #if 1
+    #if 0
     switch(mvAuthenticationType) {
         case 1 : /* open */
         default:
@@ -791,7 +791,7 @@ char* WLan_config ()
     offset += sprintf(config_buf+offset, "Key3Type=1\n");
     offset += sprintf(config_buf+offset, "Key4Type=1\n");
 
-    #if 1
+    #if 0
     if ((mvAuthenticationType == 1) || (mvAuthenticationType == 2)) {
         if (mvWEPType == 1) {
             offset += sprintf(config_buf+offset, "Key1Str=%s\n", mvWEPKey1);

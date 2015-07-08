@@ -14,8 +14,12 @@ typedef unsigned long         u64;
 #define in_interrupt() 0 
 #define le32_to_cpup( s )				( * s )
 typedef unsigned int 	dma_addr_t;
+#ifdef MTK7601
 typedef unsigned int	ohci_wait_queue_head_t;
 typedef struct __wait_queue_head wait_queue_head_t;
+#else
+typedef unsigned int	wait_queue_head_t;
+#endif
 typedef int				atomic_t;
 
 static int cc_to_error[16] = { 

@@ -317,13 +317,13 @@ void ARMMain()
 	
 	//LED init
 	*(volatile unsigned int *)(0x7C000008) = 0x0001C000;   	//LED (GPIO14.15.16) is output 
-	*(volatile unsigned int *)(0x7C000000) = 0x0001C000;  //All LED (GPIO14.15.16) light off
+	*(volatile unsigned int *)(0x7C000000) = 0x0001C000;    //All LED (GPIO14.15.16) light off
 
 	//SOC init finish. (Light 1)	
 	i = 0x500000;
 	*(volatile unsigned int *)(0x7C000000) = 0x0000C000; 	//Stauts LED (GPIO16) light on
 	while(i--);
-	*(volatile unsigned int *)(0x7C000000) = 0x0001C000;  //Stauts LED (GPIO16) light off
+	*(volatile unsigned int *)(0x7C000000) = 0x0001C000;    //Stauts LED (GPIO16) light off
 
 	enable_interrupts();
 	str8131_cpu_clock_scale_start(250, 1);
@@ -334,7 +334,7 @@ void ARMMain()
 	i = 0x500000;
 	*(volatile unsigned int *)(0x7C000000) = 0x0000C000; 	//Stauts LED (GPIO16) light on
 	while(i--);
-	*(volatile unsigned int *)(0x7C000000) = 0x0001C000;  //Stauts LED (GPIO16) light off
+	*(volatile unsigned int *)(0x7C000000) = 0x0001C000;    //Stauts LED (GPIO16) light off
 	
 	AT91F_SpiInit();
 	
@@ -352,7 +352,7 @@ void ARMMain()
 		i = 0x5000000;
 		*(volatile unsigned int *)(0x7C000000) = 0x00000000; 	//All LED light on
 		while(i--);
-		*(volatile unsigned int *)(0x7C000000) = 0x0001C000;  //All LED light off
+		*(volatile unsigned int *)(0x7C000000) = 0x0001C000;    //All LED light off
 		HAL_PWRMGT_GLOBAL_SOFTWARE_RESET();
 	}
 
@@ -360,7 +360,7 @@ void ARMMain()
 	i = 0x500000;
 	*(volatile unsigned int *)(0x7C000000) = 0x0000C000; 	//Stauts LED (GPIO16) light on
 	while(i--);
-	*(volatile unsigned int *)(0x7C000000) = 0x0001C000;  //Stauts LED (GPIO16) light off	
+	*(volatile unsigned int *)(0x7C000000) = 0x0001C000;    //Stauts LED (GPIO16) light off	
 	
 	if (checksum){	
 

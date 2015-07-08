@@ -234,10 +234,10 @@ int del_timer_sync (struct timer_list* timer)
 	return 0;	
 }
 
+
 /*
 int cal_pkt_use = 0;
 */
-
 struct sk_buff* dev_alloc_skb (unsigned int length)
 {
 	struct sk_buff* skb; 
@@ -265,10 +265,12 @@ struct sk_buff* dev_alloc_skb (unsigned int length)
         restore(i_state);
 		return NULL;	
 	}
+    
     /*
     cal_pkt_use ++;
     DBGPRINT(RT_DEBUG_ERROR, ("termy say, cal_pkt_use = %d, size = %d, addr = %x\n", cal_pkt_use, length, skb->data));
     */
+    
 	restore(i_state);
 	return skb;	
 }
@@ -280,7 +282,7 @@ void dev_kfree_skb_any (struct sk_buff* skb)
         /*
         cal_pkt_use --;
         DBGPRINT(RT_DEBUG_ERROR, ("termy say free, size = %d, addr = %x\n", skb->size, skb->data));
-        */
+        */ 
 		pkt_free(skb->original_data); 		
 		free(skb);
 	}	

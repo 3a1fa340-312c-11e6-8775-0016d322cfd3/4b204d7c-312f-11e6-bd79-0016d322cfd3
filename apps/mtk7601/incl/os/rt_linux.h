@@ -384,10 +384,10 @@ typedef spinlock_t			OS_NDIS_SPIN_LOCK;
 	spin_unlock_irqrestore((spinlock_t *)(__lock), __irqflag);			\
 }
 #else
-#define OS_IRQ_LOCK(__lock, __irqflags)			\
-{												\
-	__irqflags = 0;								\
+#define OS_IRQ_LOCK(__lock, __irqflags)         \
+{                                               \
     cyg_mutex_t* mut_t = (cyg_mutex_t *)__lock; \
+    __irqflags = 0;                             \
     cyg_mutex_lock(mut_t);                      \
 }
 

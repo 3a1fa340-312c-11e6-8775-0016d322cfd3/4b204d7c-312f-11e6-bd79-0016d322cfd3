@@ -30,6 +30,7 @@
 
 #include "rt_config.h"
 
+
 extern UCHAR EpToQueue[];
 /* 802.11 MAC Header, Type:Data, Length:24bytes + 6 bytes QOS/HTC + 2 bytes padding */
 extern UCHAR TemplateFrame[32];
@@ -423,14 +424,14 @@ VOID ATE_RTUSBBulkOutDataPacket(
 {
 	PTX_CONTEXT		pNullContext = &(pAd->NullContext[0]);
 	PURB			pUrb;
-	INT			ret = 0;
+	INT			    ret = 0;
 	ULONG			IrqFlags;
 
 
 	ASSERT(BulkOutPipeId == 0);
 
 	/* Build up the frame first. */
-	BULK_OUT_LOCK(&pAd->BulkOutLock[BulkOutPipeId], IrqFlags);
+    BULK_OUT_LOCK(&pAd->BulkOutLock[BulkOutPipeId], IrqFlags);
 
 	if (pAd->BulkOutPending[BulkOutPipeId] == TRUE)
 	{

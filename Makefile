@@ -14,7 +14,7 @@ CODE2MARK       = 0xB2
 EEPROMMARK      = 0xB3
 LOADERMARK      = 0xB4
 
-TOOLS_DIR = ./tools
+TOOLS_DIR = ./prod/$(PROD_NAME)/build/tools
 
 DST_NAME = zot716u2w.axf
 
@@ -158,6 +158,20 @@ clean: prodclean
 cleanall: clean 
 	
 depend: proddep
+
+package:
+	make clean
+	make COPTFLAGS=-O3
+	cp $(DST_NAME) zotdwp2020.bin
+	$(STRIP) zotdwp2020.bin
+	cp zotdwp2020.bin TEMP.bin
+	gzip -c TEMP.bin > zotdwp2020.gz
+	rm TEMP.bin
+	cp $(TARGET_DEF) .
+	wine $(TOOLS_DIR)/maketarget 
+	wine $(TOOLS_DIR)/makimage $(PSMODELINDEX) $(CODE2MARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersion) $(BuildVer) $(MAKER_AND_CPU) zotdwp2020.gz MPS$(PSMODELINDEX).bin
+	cp MPS$(PSMODELINDEX).bin $(ROOT_DIR)/img/.
+	rm Target.def
 
 OBJ_DIR       = $(PROD_BUILD_DIR)/obj
 LIB_DIR       = $(PROD_BUILD_DIR)/lib

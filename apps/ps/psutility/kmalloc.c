@@ -347,7 +347,8 @@ kaligned_alloc(size_t nb, size_t align)
 	if( p == NULL ) 
         return NULL;
 
-	cp = ((uint32)( p + sizeof(uint32) + align ) & ~(align));
+	memset(p, 0, nb + sizeof(uint32) + align);
+	cp = ((uint32)( p + sizeof(uint32) + align ) & ~((uint32)align));
 	cp[-1] = p;
 
 	return cp;
@@ -366,8 +367,9 @@ kaligned_free(void *block)
 	kfree( p , 0 );
 }
 
+/*
 int pkt_use = 0;
-
+*/
 void *
 pkt_alloc(size_t nb, size_t align)
 {
@@ -383,10 +385,13 @@ pkt_alloc(size_t nb, size_t align)
 	if( p == NULL ) 
         return NULL;
 
-	cp = ((uint32)( p + sizeof(uint32) + align ) & ~(align));
+	memset(p, 0, nb + sizeof(uint32) + align);
+	cp = ((uint32)( p + sizeof(uint32) + align ) & ~((uint32)align));
 	cp[-1] = p;
 
+    /*
     pkt_use ++;
+    */
 	return cp;
 }
 
@@ -400,7 +405,9 @@ pkt_free(void *block)
 
 	p = *(uint32 *)( cp - sizeof(uint32) );
 
+    /*
     pkt_use --;
+    */
 	kfree( p , 1 );
 }
 

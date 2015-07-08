@@ -30,7 +30,6 @@
 
 #ifdef RTMP_MAC_USB
 
-
 #include	"rt_config.h"
 /* Match total 6 bulkout endpoint to corresponding queue.*/
 

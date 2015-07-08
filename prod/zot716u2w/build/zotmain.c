@@ -79,9 +79,6 @@ void USB_init(cyg_addrword_t data)
     //r8712u_drv_entry();
 	rtusb_init();	//rt3070
 	
-    uint32* ptest = malloc(16);
-    *ptest = 20;
-
 	cyg_semaphore_wait(&sem);
 	cyg_semaphore_destroy(&sem);	
 }

@@ -36,7 +36,7 @@ LDFLAGS   = -nostartfiles -nostdlib -L$(PKG_INSTALL_DIR)/lib -Wl,--gc-sections\
     -Ttarget.ld  -Xlinker -Map -Xlinker $(basename $@).map
 ARFLAGS   = rv
 #COPTFLAGS     = -O3
-COPTFLAGS     = -g
+COPTFLAGS     := -g
 DEPEND_FLAGS =  -Wp,-MD,$*.d
 EXTRACFLAGS   = $(COPTFLAGS) $(DEPEND_FLAGS)
 LIBS          = -Ttarget.ld -nostdlib

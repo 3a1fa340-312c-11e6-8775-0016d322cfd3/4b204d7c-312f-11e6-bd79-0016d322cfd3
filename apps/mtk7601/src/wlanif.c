@@ -570,17 +570,12 @@ char* WLan_config ()
 
     /* MAC address */
     if (config_buf) {
-        #if 0
         sprintf(str_buf, "%2X:%2X:%2X:%2X:%2X:%2X", mvEDDMAC[0],
                                                     mvEDDMAC[1],
                                                     mvEDDMAC[2],
                                                     mvEDDMAC[3],
                                                     mvEDDMAC[4],
                                                     mvEDDMAC[5]);
-        #endif
-        //sprintf(str_buf, "20:f4:1b:0f:d0:d9");
-        //sprintf(str_buf, "ac:a2:13:5f:90:eb");
-        sprintf(str_buf, "00:40:01:71:60:d9");
         for (i = 0; i < 14; i++) {
             if (str_buf[i] == 0x20)
                 str_buf[i] = 0x30;
@@ -590,10 +585,10 @@ char* WLan_config ()
     }
     
     /* channel */
-#if 1
+
     mvChannel = 0;
     offset += sprintf(config_buf+offset, "Channel=%s\n", mvChannel);
-#endif 
+ 
     /* wireless mode */
     //@> WirelessMode=value
 	//value	
@@ -636,8 +631,11 @@ char* WLan_config ()
     
     offset += sprintf(config_buf+offset, "ChannelGeography=1\n");
     /* SSID */
-    //offset += sprintf(config_buf+offset, "SSID=%s\n", mvESSID);
+    #if 1
+    offset += sprintf(config_buf+offset, "SSID=%s\n", mvESSID);
+    #else
     offset += sprintf(config_buf+offset, "SSID=TStudio\n");
+    #endif
 
     /* network type */
     //@> NetworkType=value	    		
@@ -645,23 +643,20 @@ char* WLan_config ()
     //		Infra: infrastructure mode
     //     	Adhoc: adhoc mode
     
-    #if 0
-    if (mvBSSType == 1)
+    #if 1
+    if (mvBSSType == 2)
         offset += sprintf(config_buf+offset, "NetworkType=Infra\n");
     else
         offset += sprintf(config_buf+offset, "NetworkType=Adhoc\n");
-    #endif
-
+    #else
     offset += sprintf(config_buf+offset, "NetworkType=Infra\n");
+    #endif
 
     /* beacon period */
     offset += sprintf(config_buf+offset, "BeaconPeriod=100\n");
 
     /* tx power default 100*/
-    /*
     offset += sprintf(config_buf+offset, "TxPower=%d\n", mvTxPower);
-    */
-    offset += sprintf(config_buf+offset, "TxPower=%d\n", 100);
 
     /* bg protection */
     //@> BGProtection=value
@@ -720,26 +715,9 @@ char* WLan_config ()
     //		WPA         Use WPA-Supplicant
     //		WPA2        Use WPA-Supplicant
     //
-    //      mvWPAauth;		// 0:Open/WEP 1:WPA-PSK 2:WPA2-PSK
-#if 0
-    switch(mvWPAauth) {
-        case 0:
-        default:
-            offset += sprintf(config_buf+offset, "AuthMode=OPEN\n");
-            if (mvWEPType == 0)
-                offset += sprintf(config_buf+offset, "EncryType=NONE\n");
-            else 
-                offset += sprintf(config_buf+offset, "EncryType=WEP\n");
-            break;
-        case 1:
-        offset += sprintf(config_buf+offset, "AuthMode=WPAPSK\n");
-            break;
-        case 2:
-            offset += sprintf(config_buf+offset, "AuthMode=WPA2PSK\n");
-            break;
-    }
-#endif
-
+    //      mvWPAauth;		        // 0:Open/WEP 1:WPA-PSK 2:WPA2-PSK
+    //      mvAuthenticationType;	// 1:open(default), 2: shared, 3:both 4:WPA-PSK 5:WPA2-PSK
+    
     //@> EncrypType=value
     //	value
     //		NONE		For AuthMode=OPEN                    
@@ -749,15 +727,42 @@ char* WLan_config ()
 
     //      mvWEPType;  // 0 disable, 1 64bit, 2 128 bit
     //      mvWPAType;	// 0 TKIP, 1 CCMP
-    #if 0
-    if (mvWPAType == 0)
-        offset += sprintf(config_buf+offset, "EncrypType=TKIP\n");
-    else
-        offset += sprintf(config_buf+offset, "EncrypType=AES\n");
-    #endif
 
+    //      mvWEPType : 1 -> 64-bit  , key at mvWEPKEY1-4
+    //      mvWEPType : 2 -> 128-bit , key at mvWEP128KEY1-4
+    #if 1
+    switch(mvAuthenticationType) {
+        case 1 : /* open */
+        default:
+            if (mvWEPType == 0) {
+                offset += sprintf(config_buf+offset, "AuthMode=OPEN\n");
+                offset += sprintf(config_buf+offset, "EncryType=NONE\n");
+            }
+            else {
+                offset += sprintf(config_buf+offset, "AuthMode=WEPAUTO\n");
+                offset += sprintf(config_buf+offset, "EncryType=WEP\n");
+            }
+            break;
+        case 2: /* shared */
+            break;
+        case 3: /* both */
+            break;
+        case 4: /* WPA PSK */
+                offset += sprintf(config_buf+offset, "AuthMode=WPAPSK\n");
+            break;
+        case 5: /* WPA2 PSK */
+            if (mvWPAType == 0)
+                offset += sprintf(config_buf+offset, "EncrypType=TKIP\n");
+            else
+                offset += sprintf(config_buf+offset, "EncrypType=AES\n");
+
+            offset += sprintf(config_buf+offset, "AuthMode=WPA2PSK\n");
+            break;
+    }
+    #else
     offset += sprintf(config_buf+offset, "AuthMode=WEPAUTO\n");
     offset += sprintf(config_buf+offset, "EncryType=WEP\n");
+    #endif
 
     /* default key index */
     //@> DefaultKeyID=value
@@ -782,9 +787,30 @@ char* WLan_config ()
     //		5 or 13 characters  (key type=1)
     //    (usage : reading profile only)	
     offset += sprintf(config_buf+offset, "Key1Type=1\n");
-#if 1
+    offset += sprintf(config_buf+offset, "Key2Type=1\n");
+    offset += sprintf(config_buf+offset, "Key3Type=1\n");
+    offset += sprintf(config_buf+offset, "Key4Type=1\n");
+
+    #if 1
+    if ((mvAuthenticationType == 1) || (mvAuthenticationType == 2)) {
+        if (mvWEPType == 1) {
+            offset += sprintf(config_buf+offset, "Key1Str=%s\n", mvWEPKey1);
+            offset += sprintf(config_buf+offset, "Key2Str=%s\n", mvWEPKey2);
+            offset += sprintf(config_buf+offset, "Key3Str=%s\n", mvWEPKey3);
+            offset += sprintf(config_buf+offset, "Key4Str=%s\n", mvWEPKey4);
+        } 
+        if (mvWEPType == 2) {
+            offset += sprintf(config_buf+offset, "Key1Str=%s\n", mvWEP128Key);
+        }
+    }
+
+    if ((mvAuthenticationType == 4) || (mvAuthenticationType == 5)) {
+        offset += sprintf(config_buf+offset, "WPAPSK=%s\n", mvWPAPass); 
+    }
+
+    #else
     offset += sprintf(config_buf+offset, "Key1Str=termy22688953\n");
-#endif
+    #endif
 
     //@> PSMode=value
     //    value
@@ -964,8 +990,11 @@ void Wlan_reset(void){
 int Wlan_SendPacket(struct sk_buff* pSkb){
 //not yet	struct mbuf* skbuf;
 
-	if( WirelessInitFailed )
-		return -1;
+    if( WirelessInitFailed ) {
+        if (pSkb)
+            dev_kfree_skb_any(pSkb);
+        return -1;
+    } 
 
     /*
     if(pSkb) {
@@ -1009,16 +1038,48 @@ void wlan_site_survey(void){
 	
 }
 
+extern knownbss_t* APList;
 knownbss_t *wlan_get_scanlist(void){
 		
 	if( WirelessInitFailed )
 		return NULL;
-	
+
+    #if 0
+    struct iw_point iw_p;
+    struct iw_event* iwe;
+    knownbss_t *pNext;
+    int i;
+
+	char* user_data = malloc(4096);
+    iw_p.pointer = NULL;
+    iw_p.length = 4096;
+
+    /* clear APList */
+    for (; APList != NULL; APList = pNext) {
+        pNext = APList->next;
+        free (APList);
+    } 
+
+    rt_ioctl_giwscan(g_wireless_dev, NULL, &iw_p, user_data);
+    iwe = (struct iw_event *)user_data;
+
+    for (i = 0; i < MAX_LEN_OF_BSS_TABLE; i++) {
+        
+    }
+
+    while( iwe->len != 0) {
+
+    }
+    
+    free(user_data);
+    #endif
+
 /*
 int rt_ioctl_giwscan(struct net_device *dev,
 			struct iw_request_info *info,
 			struct iw_point *data, char *extra)
 */
+#if 0
 	VOID *pAd = NULL;
 
 
@@ -1040,17 +1101,22 @@ int rt_ioctl_giwscan(struct net_device *dev,
     rt_ioctl_iwaplist(g_wireless_dev, NULL, &iw_p, user_data);
 
     free(user_data);
+#endif
     return NULL;
 }
 
 void wlan_get_currbssid(unsigned char huge * bssid){
 	
+    void *pAd = NULL;
+    struct sockaddr ap_addr;
+
 	if( WirelessInitFailed ){
 		memset(bssid, 0 ,WLAN_BSSID_LEN);
 		return;
 	}	
-	//rt_ioctl_giwap(bssid);
-	memset(bssid, 0 ,WLAN_BSSID_LEN);
+
+    if (!rt_ioctl_giwap(g_wireless_dev, NULL, &ap_addr, NULL))
+        memcpy(bssid, ap_addr.sa_data, WLAN_BSSID_LEN);
 }
 
 void wlan_get_currssid(unsigned char huge * ssid){

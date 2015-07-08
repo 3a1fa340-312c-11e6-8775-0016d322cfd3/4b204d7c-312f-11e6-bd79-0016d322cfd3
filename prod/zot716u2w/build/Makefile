@@ -118,20 +118,20 @@ mtk7601:
 	
 PROD_LIBS =./lib/mac.a ./lib/usb_host.a  ./lib/psglobal.a ./lib/http_zot.a ./lib/ipxbeui.a ./lib/ntps.a ./lib/spooler.a ./lib/novell.a ./lib/nds.a \
     ./lib/lpd.a ./lib/rawtcpd.a  ./lib/ippd.a  ./lib/smbd.a ./lib/telnet.a ./lib/tftp_zot.a ./lib/tcpip.a ./lib/atalk.a ./lib/snmp.a ./lib/psutility.a ./lib/uart.a\
-    ./lib/rendezvous.a ./lib/realtek.a ./lib/wpa_supplicant.a
+    ./lib/rendezvous.a ./lib/mtk7601.a 
 
 #./lib/mtk7601.a
 #./lib/realtek.a ./lib/wpa_supplicant.a
 PROD_MODULES_MAK =$(MAC_MAK) $(USB_HOST_MAK) $(PSGLOBAL_MAK) $(NTPS_MAK) $(SPOOLER_MAK) $(NOVELL_MAK) $(NDS_MAK) $(IPPD_MAK) $(HTTP_ZOT_MAK) $(LPD_MAK) \
 	$(RAWTCPD_MAK) $(TELNET_MAK) $(SMBD_MAK) $(TFTP_ZOT_MAK) $(ATALK_MAK) $(SNMP_MAK) $(RENDEZVOUS_MAK) $(TCPIP_MAK) $(PSUTILITY_MAK) $(IPXBEUI_MAK) \
-	$(UART_MAK) $(REALTEK_MAK) $(WPA_SUPPLICANT_MAK)
+	$(UART_MAK) $(MTK7601_MAK) 
 
 #$(MTK7601_MAK)
 #$(REALTEK_MAK) $(WPA_SUPPLICANT_MAK) 
 
 
 PROD_MODULES = mac psutility usb_host ipxbeui ntps spooler psglobal novell nds ippd http_zot lpd rawtcpd\
-				 telnet smbd tftp_zot tcpip atalk snmp rendezvous uart realtek wpa_supplicant
+				 telnet smbd tftp_zot tcpip atalk snmp rendezvous uart mtk7601
 
 #realtek wpa_supplicant 
 prod: $(PROD_MODULES)

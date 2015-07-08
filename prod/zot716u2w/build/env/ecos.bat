@@ -5,13 +5,13 @@
 
 @REM Change to the cygwin/bin directory in your system
 C:
-chdir C:\cygwin\bin
+chdir D:\cygwin\bin
 
 @REM The root of the source tree.
-@SET ROOT_DIR=/cygdrive/C/ZOT716U2W_SDK_0.01
+@SET ROOT_DIR=/cygdrive/Z/ZOT716U2W_SDK_0.01
 
 @REM Global environment variables.
-@SET GCC_DIR=/cygdrive/C/cygwin/tools/H-i686-pc-cygwin/bin
+@SET GCC_DIR=/cygdrive/Z/cygwin/tools/H-i686-pc-cygwin/bin
 
 @REM eCos install folder.
 @SET PKG_INSTALL_DIR=%ROOT_DIR%/ecos/ecos_install

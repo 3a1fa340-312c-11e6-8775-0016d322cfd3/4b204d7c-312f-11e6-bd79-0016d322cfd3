@@ -117,11 +117,14 @@ void zotmain( void )
 	LanPktStart();
 	
 //Print Server module
+#ifdef USE_PS_LIBS
 	IPXInitialize();
 	NETBEUInit();
 	Spooler_init();
 	ps_init();
-
+#else
+    ps_init();
+#endif
 //LED
 	LED_Init();	
 

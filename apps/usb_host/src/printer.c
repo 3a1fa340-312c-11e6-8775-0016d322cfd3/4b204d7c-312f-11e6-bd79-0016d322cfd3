@@ -395,6 +395,7 @@ int usblp_open( struct usblp *usblp )
 	retval = 0;	
 #endif
 
+#ifdef USE_PS_LIBS
 	usblp->used = 1;
 //ZOT	file->private_data = usblp;
 
@@ -476,7 +477,7 @@ int usblp_open( struct usblp *usblp )
 
 	}
 
-	
+#endif /* USE_PS_LIBS */
 out:
 
 //ZOT	up (&usblp_sem);
@@ -1454,6 +1455,7 @@ MODULE_LICENSE("GPL");
 
 uint8 usbprn_read_status( int nPort )
 {
+#ifdef USE_PS_LIBS
 	if( PortIO[nPort].base && usblp_table[PortIO[nPort].base-1] )
 	{
 		struct usblp *usblp = usblp_table[PortIO[nPort].base-1];
@@ -1465,12 +1467,14 @@ uint8 usbprn_read_status( int nPort )
 //		}
 		return 0xD9;
 	}
+#endif /* USE_PS_LIBS */
 	// not connect
 	return 0x7F;
 }
 
 int usbprn_attach( int minor )
 {
+#ifdef USE_PS_LIBS
 	struct usblp *usblp = usblp_table[minor];
 //Jesse	int i1284 = NUM_OF_1284_PORT + usblp->dev->ttport;
 	int i1284 = NUM_OF_1284_PORT + usblp->dev->printer_port;
@@ -1509,11 +1513,13 @@ int usbprn_attach( int minor )
 	
 		return 1;
 	}
+#endif /* USE_PS_LIBS */
 	return 0;
 }
 
 int usbprn_unattach( int minor )
 {
+#ifdef USE_PS_LIBS
 	struct usblp *usblp = usblp_table[minor];
 	int i1284 = NUM_OF_1284_PORT + usblp->dev->ttport;
 
@@ -1528,33 +1534,42 @@ int usbprn_unattach( int minor )
 
 		return 1;
 	}
+#endif /* USE_PS_LIBS */
 	return 0;
 }
 
 int usbprn_open(int nPort)
 {
+#ifdef USE_PS_LIBS
 	if( PortIO[nPort].base && usblp_table[PortIO[nPort].base-1] )
 		usblp_open(	usblp_table[PortIO[nPort].base-1] );
+#endif /* USE_PS_LIBS */
 	return 0;
 }
 
 int usbprn_close(int nPort)
 {
+#ifdef USE_PS_LIBS
 	if( PortIO[nPort].base && usblp_table[PortIO[nPort].base-1] )
 		usblp_release( usblp_table[PortIO[nPort].base-1]->minor );
+#endif /* USE_PS_LIBS */
 	return 0;
 }
 
 int usbprn_write(int nPort, uint8 *pBuf, int nLength)
 {
+#ifdef USE_PS_LIBS
 	if( PortIO[nPort].base && usblp_table[PortIO[nPort].base-1] )
 		usblp_write( usblp_table[PortIO[nPort].base-1], pBuf, nLength, NULL );
+#endif /* USE_PS_LIBS */
 	return nLength;
 }
 
 int usbprn_read(int nPort, uint8 *pBuf, int nLength)
 {
+#ifdef USE_PS_LIBS
 	if( PortIO[nPort].base && usblp_table[PortIO[nPort].base-1] )
 		usblp_read( usblp_table[PortIO[nPort].base-1], pBuf, nLength, NULL );
+#endif
 	return nLength;
 }

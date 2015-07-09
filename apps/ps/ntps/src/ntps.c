@@ -13,6 +13,10 @@
 #endif
 #include "nps.h"
 
+#ifndef USE_PS_LIBS
+#undef NOVELL_PS
+#undef WINDOWS_PS
+#endif
 
 #if defined(WINDOWS_PS)
 #define MAX_U32_VALUE	4294967295
@@ -81,7 +85,9 @@ void NT3main(cyg_addrword_t data)
 #ifdef SUPPORT_JOB_LOG
 				JL_EndList(CurPortNumber, 3);	// Timeout. George Add February 26, 2007
 #if !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINS) && !defined(O_LS)
+#ifdef NOVELL_PS
 				SendEOF(CurPortNumber);	        // Send the EOF page. George Add January 10, 2008
+#endif
 #endif	// !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINS) && !defined(O_LS)
 #endif //SUPPORT_JOB_LOG				
 				

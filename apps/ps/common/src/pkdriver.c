@@ -17,6 +17,10 @@
 #include "netbeui.h"
 #include "at.h"
 
+#ifndef USE_PS_LIBS
+#undef ATALKD
+#endif /* USE_PS_LIBS */
+
 #ifdef WEBADMIN	 //6/26/2000
 uint32 IPXENIIRecv;
 uint32 IPX8023Recv;
@@ -529,15 +533,19 @@ int ProcessOtherPckt(unsigned char *pFrame, unsigned int lenFrame)
 			IPX8023Recv++;
 #endif WEBADMIN
 		case IPXENII:
+            #ifdef USE_PS_LIBS
 			if (lenFrame > 14)
 			    IPXInput(FrameType,eth->src,(IPXHeader *)&pFrame[14],(lenFrame-14));
+            #endif /* USE_PS_LIBS */
 			break;
 		case IPX8022:
 #ifdef WEBADMIN
 			IPX8022Recv++;
 #endif WEBADMIN
+            #ifdef USE_PS_LIBS
 			if (lenFrame > 17)
 			    IPXInput(FrameType,eth->src,(IPXHeader *)&pFrame[17],(lenFrame-17));
+            #endif /* USE_PS_LIBS */
 			break;
 		case IPXSNAP:
 #ifdef WEBADMIN
@@ -549,8 +557,10 @@ int ProcessOtherPckt(unsigned char *pFrame, unsigned int lenFrame)
 #ifdef ATALKD //2/23/99
 			switch(FrameType) {
 				case IPXENII:  //IPX SNAP frame
+                    #ifdef USE_PS_LIBS
 					if (lenFrame > 22)
 					    IPXInput(IPXSNAP,eth->src,(IPXHeader *)&pFrame[22],(lenFrame-22));
+                    #endif /* USE_PS_LIBS */
 					break;
 				case ETHERTYPE_AARP: //APPLE-TALK AARP
 					if (lenFrame > 22)
@@ -566,16 +576,20 @@ int ProcessOtherPckt(unsigned char *pFrame, unsigned int lenFrame)
 #else			
 			
 			if(FrameType == IPXENII) {
+                #ifdef USE_PS_LIBS
 				if (lenFrame > 22)
 				    IPXInput(IPXSNAP,eth->src,(IPXHeader *)&pFrame[22],(lenFrame-22));
+                #endif /*USE_PS_LIBS */
 			}
 #endif ATALKD //2/23/99				
 			break;
 #ifdef NETBEUI
 		case IPXBEUI:
 			if(!memcmp(eth->dest,NETBEUI_MULTICAST,6)){
+                #ifdef USE_PS_LIBS
 				if (lenFrame > 17)
 				    NT_NETBEUItoIPXInput(FrameType,eth->src,(NETBEUIHeader *)&pFrame[17],(lenFrame-17));
+                #endif /* USE_PS_LIBS */
 			}
 			else return -1;
 		break;

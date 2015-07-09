@@ -31,10 +31,13 @@ extern int morespace(struct papfile *pf,char *data,int len);
 //extern int recv(int s, void *buf, size_t len, int flags);
 extern int zot_fclose( ZOT_FILE* fp);
 extern char *zot_fgets(char *buf,int len,ZOT_FILE *fp);
+extern int zot_recv ( ZOT_FILE *fp , char *buf , int len, int flag );
+
 #define fclose(x)		 zot_fclose(x)
 #define fgets(x,y,z)	 zot_fgets(x,y,z)
 #define FILE	 		 ZOT_FILE
 
+#if 0
 /* Read a line from a stream into a buffer*/
 int zot_recv ( ZOT_FILE *fp , char *buf , int len, int flag )
 {
@@ -59,7 +62,7 @@ int zot_recv ( ZOT_FILE *fp , char *buf , int len, int flag )
 
 	return len;
 }
-
+#endif
 
 #ifdef IPPD
 

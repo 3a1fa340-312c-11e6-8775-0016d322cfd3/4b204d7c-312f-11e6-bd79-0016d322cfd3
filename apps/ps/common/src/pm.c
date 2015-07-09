@@ -13,6 +13,10 @@ static uint8 			ZOT_IDLE_Stack[ZOT_IDLE_TASK_STACK_SIZE];
 static cyg_thread       ZOT_IDLE_Task;
 static cyg_handle_t     ZOT_IDLE_TaskHdl;
 
+#ifndef USE_PS_LIBS
+#undef DO_STATUS_PRINT
+#endif /* USE_PS_LIBS */
+
 #ifdef WPSBUTTON_LEDFLASH_FLICK
 int flash_wps_led = 0;
 #endif	// WPSBUTTON_LEDFLASH_FLICK

@@ -230,9 +230,9 @@
 
 //--- CODE1 Start Address -------------------------------------------
 #define CODE1_START_ADDRESS		(0x30010000)	//ZOT716u2
-#define NUM_OF_CODE1_SECTOR		32
+#define NUM_OF_CODE1_SECTOR	    32	
 #define CODE1_START_ADDRESS		(0x30010000)
-#define CODE1_SIZE           	128
+#define CODE1_SIZE              128	
 #define SECTOR_CODE1_CONFIG		0
 
 //--- CODE2 Start Address ------------------------------------------------

@@ -34,6 +34,15 @@
 /*Ron Add 11/5/2004 */
 extern int	sendack(int s);
 
+#ifndef USE_PS_LIBS
+#undef IPPD
+#undef LPD_TXT
+#undef NOVELL_PS
+#undef NDS_PS
+#undef ATALKD
+#undef DEF_IEEE1284
+#endif
+
 #ifdef ATALKD
 /*Jesse
 #ifdef ATALKD
@@ -203,8 +212,10 @@ extern BYTE SearchObjectInit(void);
 extern BYTE SearchBinaryObjectName(BYTE *ObjectName,DWORD *LastObjectSeed,WORD ObjectType);
 
 //from lpd.c
+#ifdef LPD_TXT
 extern int CurJobQueueID[NUM_OF_PRN_PORT]; //6/4/98 added, 12/22/98 set as a global
 #define GetUnixJobID(x) CurJobQueueID[(x)]  //12/22/98
+#endif
 
 //from rwflash.c
 extern int ResetToDefalutFlash(int tmpip, int tmpkey, int nouse);
@@ -256,6 +267,31 @@ extern ipp_t *ippObjList[NUM_OF_PRN_PORT];
 extern BYTE  ippJobsNo[NUM_OF_PRN_PORT]; //How many Obj connected for print !
 
 #endif
+
+/* Read a line from a stream into a buffer*/
+int zot_recv ( ZOT_FILE *fp , char *buf , int len, int flag )
+{
+	if( fp->ibuf_cnt ==0 )
+	{
+		fp->ibuf = fp->ibuf_temp;
+//		memset(fp->ibuf ,0 , BLOCKSIZE);
+		memset(fp->ibuf ,0 , 1460);
+		
+//		fp->bufsize = recv( fp->fd , fp->ibuf , BLOCKSIZE , 0  );
+		fp->bufsize = recv( fp->fd , fp->ibuf , 1460 , 0  );
+		
+		fp->ibuf_cnt = fp->bufsize;
+		if( fp->bufsize <= 0 )
+			return -1;
+	}
+
+	len = min( len , fp->ibuf_cnt );	
+	memcpy(buf,fp->ibuf,len);
+	fp->ibuf +=len;
+	fp->ibuf_cnt = fp->ibuf_cnt - len;
+
+	return len;
+}
 
 int zot_fflush(ZOT_FILE *fp)
 {
@@ -2301,12 +2337,15 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 			fputs(OutBuf,network);
 			break;	
 		case ECHO_NETWARE_CONNECT:
+#ifdef NOVELL_PS
 			sprintf(OutBuf,NovellConnectFlag?WebMsg_NETWARE_CONNECTED:WebMsg_NETWARE_DISCONNECTED);
 			fputs(OutBuf,network);
+#endif
 			break;
 		case ECHO_PORT1_STATUS:
 		case ECHO_PORT2_STATUS:
 		case ECHO_PORT3_STATUS:
+#ifdef USE_PS_LIBS
 			PrintStatus = ReadPrintStatus();
 			PrintStatus >>=  ((i - ECHO_PORT1_STATUS) << 1);
 			switch(PrintStatus & 0x03) {
@@ -2323,6 +2362,7 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 					fputs(WebMsg_PRINTER_PRINTING,network);
 					break;
 			}
+#endif /* USE_PS_LIBS */
 			break;
 		case ECHO_DHCP_STATUS:
 			 fputs((EEPROM_Data.PrintServerMode & PS_DHCP_ON)?WebMsg_DHCP_ON:WebMsg_DHCP_OFF,network);
@@ -2719,6 +2759,7 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 			break;
 		case ECHO_PRINT_STATUS:
 {
+#ifdef USE_PS_LIBS
 			char JobNO[6];
 
 			for(i = 0 ; i < NUM_OF_PRN_PORT; i++) {
@@ -2726,11 +2767,13 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 				PrintStatus = PrnGetPrinterStatus(i);
 				switch(PrintStatus) {
 				case UnixUsed:
+#ifdef LPD_TXT
 					sprintf(JobNO,"%d",GetUnixJobID(i) );
 					sprintf(OutBuf,PrnUsedMessage[PrintStatus],
  						(GetUnixJobID(i) == -1?"unknow":JobNO) );
 					fputs(OutBuf,network);
 					fputs(" ",network);
+#endif
 					break;
 				case IppUsed:
 #ifdef IPPD
@@ -2746,9 +2789,11 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 					break;
 				}
 			}
+#endif /* USE_PS_LIBS */
 }
 			break;
 		case ECHO_PRINT_MODE:
+#ifdef USE_PS_LIBS
 			for(i = 0; i < NUM_OF_PRN_PORT; i++)
 			{
 				switch(PortIO[i].PrnMode)
@@ -2786,12 +2831,15 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 					break;
 				}
 			}
+#endif /* USE_PS_LIBS */
 			break;
 		case ECHO_QUEUE_STATUS:
+#ifdef USE_PS_LIBS
 			for(i = 0; i < NUM_OF_PRN_PORT; i++) {
 				sprintf(OutBuf,"queue%d: %d ",i+1,PrnGetAvailQueueNO(i));
 				fputs(OutBuf,network);
 			}
+#endif
 /*Jesse			sprintf(OutBuf,"\n NT3main: %d, %d, %d, %d, %d, %d, %02X, %d, %d, %d,To Longcnt = %lu, %d \n",nt3main_test[0],
 					 nt3main_test[1], nt3main_test[2], nt3main_test[3], nt3main_test[4],
 					 nt3main_test[5], nt3main_test[6], nt3main_test[7], nt3main_test[8],
@@ -3915,6 +3963,7 @@ void EchoSetFSName(FILE *network)
 
 	FSName[48] = '\0';
 
+#ifdef NOVELL_PS
 	if((rc = SearchObjectInit()) == 0) {
 		while(!SearchBinaryObjectName(FSName,&LastObjectSeed,FILE_SERVER_OBJECT)) {
 			FSCount++;
@@ -3928,6 +3977,7 @@ void EchoSetFSName(FILE *network)
 		fputs("<option>"FS_BOX_BUSY,network);
 		return;
 	}
+#endif
 
 	if(FSCount == 0) {
 		//fputs("<option>"FILE_SERVER_NOT_FOUND,network);
@@ -3992,6 +4042,7 @@ void EchoSetNDSTreeName(FILE *network, BYTE *TmpBuf)
 
 	TmpBuf[0] = '\0';
 
+#ifdef NOVELL_PS
 	if((rc = SearchObjectInit()) == 0) {
 		while(!SearchBinaryObjectName(DSName,&LastObjectSeed,DS_SERVER_OBJECT)) {
 			DSOffset = 32;
@@ -4012,6 +4063,7 @@ void EchoSetNDSTreeName(FILE *network, BYTE *TmpBuf)
 		fputs("<option>"FS_BOX_BUSY,network);
 		return;
 	}
+#endif
 
 	if(DSCount == 0) {
 		fputs("<option>",network);

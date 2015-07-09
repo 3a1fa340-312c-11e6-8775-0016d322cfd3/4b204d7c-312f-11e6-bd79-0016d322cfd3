@@ -7,6 +7,9 @@
 #include "ipx.h"
 #include "ntps.h"
 
+#ifndef USE_PS_LIBS
+#undef ATALKD
+#endif
 
 #ifdef ATALKD
 #include "at.h"

@@ -119,23 +119,30 @@ UART_MAK = $(APPS_DIR)/uart
 uart:
 	make -C $(UART_MAK)
 	
-ALL_LIBS =mac.a usb_host.a psglobal.a http_zot.a ipxbeui.a ntps.a spooler.a novell.a nds.a \
-    lpd.a rawtcpd.a  ippd.a smbd.a telnet.a tftp_zot.a tcpip.a atalk.a snmp.a psutility.a uart.a\
-    rendezvous.a mtk7601.a
-#realtek.a wpa_supplicant.a 
+# use this library must to define USE_SYS_LIBS
+SYS_LIBS	= mac.a usb_host.a psglobal.a http_zot.a rawtcpd.a tcpip.a psutility.a uart.a mtk7601.a
+
+ADMIN_LIBS 	= ntps.a ipxbeui.a
+
+# use this library must to define USE_PS_LIBS 
+PS_LIBS		= ipxbeui.a ntps.a spooler.a novell.a nds.a lpd.a ippd.a atalk.a snmp.a rendezvous.a
+
+# use htis library must to define USE_NETAPP_LIBS
+NETAPP_LIBS = telnet.a tftp_zot.a smbd.a
+
+ALL_LIBS = $(SYS_LIBS) $(ADMIN_LIBS) $(PS_LIBS) $(NETAPP_LIBS)
+
+
 
 PROD_LIBS = $(addprefix $(PROD_BUILD_DIR)/lib/, $(ALL_LIBS))
 
 PROD_MODULES_MAK =$(MAC_MAK) $(USB_HOST_MAK) $(PSGLOBAL_MAK) $(NTPS_MAK) $(SPOOLER_MAK) $(NOVELL_MAK) $(NDS_MAK) $(IPPD_MAK) $(HTTP_ZOT_MAK) $(LPD_MAK) \
 	$(RAWTCPD_MAK) $(TELNET_MAK) $(SMBD_MAK) $(TFTP_ZOT_MAK) $(ATALK_MAK) $(SNMP_MAK) $(RENDEZVOUS_MAK) $(TCPIP_MAK) $(PSUTILITY_MAK) $(IPXBEUI_MAK) \
-	$(UART_MAK) $(MTK7601_MAK)
+	$(UART_MAK) $(REALTEK_MAK) $(WPA_SUPPLICANT_MAK) $(MTK7601_MAK)
 
-#$(MTK7601_MAK)
-#$(REALTEK_MAK) $(WPA_SUPPLICANT_MAK)
 PROD_MODULES = mac psutility usb_host ipxbeui ntps spooler psglobal novell nds ippd http_zot lpd rawtcpd\
-				 telnet smbd tftp_zot tcpip atalk snmp rendezvous uart mtk7601
+				 telnet smbd tftp_zot tcpip atalk snmp rendezvous uart mtk7601 realtek wpa_supplicant
 
-#realtek wpa_supplicant
 prod: $(PROD_MODULES)
 
 prodclean:
@@ -190,7 +197,9 @@ OBJS=${SRCS:$(PROD_BUILD_DIR)/%.c=$(OBJ_DIR)/%.o}
 DST=./$(DST_NAME)
 
 $(DST_NAME): ${OBJS} prod
+	if [ -e $(PROD_NAME).axr ]; then rm $(PROD_NAME).axf; fi;
 	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(PROD_LIBS) 
+
 #	cp $(DST_NAME) zotdwp2020.bin
 #	$(STRIP) zotdwp2020.bin
 #	cp zotdwp2020.bin TEMP.bin

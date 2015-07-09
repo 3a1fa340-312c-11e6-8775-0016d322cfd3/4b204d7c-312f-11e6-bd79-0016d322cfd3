@@ -1026,11 +1026,13 @@ void wlan_site_survey(void){
 		return;
 
 #if defined(CODE2)
+#ifdef USE_PS_LIBS
 	for(Port = 0 ; Port < NUM_OF_PRN_PORT ; Port++) {
 		PrinterStatus = PrnGetPrinterStatus(Port);
 		if (PrinterStatus != PrnNoUsed)
 			return;
 	}
+#endif
 #endif //CODE2
 
     rt_ioctl_siwscan(g_wireless_dev, NULL, NULL, NULL);

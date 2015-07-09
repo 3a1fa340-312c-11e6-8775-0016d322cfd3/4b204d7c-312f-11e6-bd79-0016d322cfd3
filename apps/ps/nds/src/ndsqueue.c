@@ -16,13 +16,19 @@
 #include "ndsmacro.h"
 #include "prnqueue.h"
 
+#ifndef USE_PS_LIBS
+#undef NOVELL_PS
+#endif
+
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 extern WORD ServiceNetWareQueue (WORD Socket, PortPCB  *PortPCBPointer);
 static void kwait(int a){  cyg_thread_yield();}
+#ifdef NOVELL_PS
 extern PrnInfo          PortInfo[NUM_OF_PRN_PORT];
+#endif
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
@@ -97,6 +103,7 @@ BYTE *NDSReadGetEntryItem(BYTE **buf, uint32 *Level)
 
 void NDSAttachQueueServer(WORD Socket, PortPCB *PCBInfo)
 {
+#ifdef NOVELL_PS
 	WORD j, i = 0;
 
 	while(i < PCBInfo->TotalQueue)	{
@@ -117,6 +124,7 @@ void NDSAttachQueueServer(WORD Socket, PortPCB *PCBInfo)
 		}
 		i++;
 	}
+#endif /* NOVELL_PS */
 }
 
 uint32 NDSGetPrinterQueue(FSInfo *ConnInfo, uint32 PrintServerID)
@@ -435,13 +443,13 @@ uint32 NDSGetPrinterQueue(FSInfo *ConnInfo, uint32 PrintServerID)
 					continue;
 				}
 
-
+#ifdef NOVELL_PS
 				if(QueueInfo[i][j].FSIndex == ActiveFSIndex) {
 					pPCBIndex =  &_NDSbActPort(i);
 				} else {
 					pPCBIndex =  &_NDSbFreePort(i);
 				}
-
+#endif
 				if(FileServerInfo[QueueInfo[i][j].FSIndex].PrePrnNO++ != 0) {
 					//Insert Q to exist PCB
 					while(*pPCBIndex != NULL_BYTE) {
@@ -473,7 +481,9 @@ uint32 NDSGetPrinterQueue(FSInfo *ConnInfo, uint32 PrintServerID)
 
 					*pPCBIndex = PCBCount[i];
 					NDSPCBInfo[i][*pPCBIndex].pFSInfo = &NDSFSInfo[QueueInfo[i][j].FSIndex];
+#ifdef NOVELL_PS
 					NDSPCBInfo[i][*pPCBIndex].ProcessRoutine = ServiceNetWareQueue;
+#endif
 				}
 #ifdef PC_OUTPUT
 				memcpy(NDSPCBInfo[i][*pPCBIndex].PCBQueueInfo[_NDSvPCB(i,*pPCBIndex).TotalQueue].QueueName,QueueInfo[i][j].QueueName,MAX_NAME_LEN);
@@ -496,7 +506,9 @@ uint32 NDSGetPrinterQueue(FSInfo *ConnInfo, uint32 PrintServerID)
 				printf("(NDS) PCB Count design error  (2) !\n");
 			}
 #endif PC_OUTPUT
+#ifdef NOVELL_PS 
 			_NDSbCurPort(i) = _NDSbActPort(i);
+#endif
 		}
 
 		if(ActiveFSIndex != NULL_BYTE) {
@@ -522,17 +534,21 @@ uint32 NDSGetPrinterQueue(FSInfo *ConnInfo, uint32 PrintServerID)
 #endif PC_OUTPUT
 			NDSFSInfo[ActiveFSIndex].PCBFileServerName = 0xFFFFFFFF;
 
+#ifdef NOVELL_PS
 			//Attach Active PCB to this server ///////
 			for(i = 0 ; i < NUM_OF_PRN_PORT; i++) {
 				if(_NDSbActPort(i) != NULL_BYTE) {
 					NDSAttachQueueServer(NDSPsSocket,&NDSPCBInfo[i][_NDSbActPort(i)]);
 				}
 			}
+#endif
 			//Connect Flag ON
 			NDSConnectFlag = 1;
 		} else {
+#ifdef NOVELL_PS
 			//No any queue need service on Attach's FS !
 			DisConnection(NDSPsSocket,ConnInfo);
+#endif
 		}
 
 		rc = OKAY;
@@ -547,8 +563,9 @@ uint32 NDSGetPrinterQueue(FSInfo *ConnInfo, uint32 PrintServerID)
 	rc = NDS_NO_QUEUE_ATTACH;
 
 GetQErrExit:
-
+#ifdef NOVELL_PS
 	DisConnection(NDSPsSocket,ConnInfo); //Fail
+#endif
 	if(NDSFSInfo) free(NDSFSInfo);
 	for(i = 0 ; i < NUM_OF_PRN_PORT; i++) {
 		if(NDSPCBInfo[i]) free(NDSPCBInfo[i]);
@@ -606,6 +623,7 @@ void NDSMoveFreePortToActivePort(FSInfo *NDSpCurrentFSInfo)
 
 	BYTE NDSbPreFreePCB, NDSbCurFreePCB,NDSbTmpFreePCB;
 
+#ifdef NOVELL_PS
 	for(i = 0 ; i < NUM_OF_PRN_PORT; i++) {
 		NDSbPreFreePCB = NULL_BYTE;
 		NDSbCurFreePCB = _NDSbFreePort(i);
@@ -648,7 +666,7 @@ void NDSMoveFreePortToActivePort(FSInfo *NDSpCurrentFSInfo)
 			NDSbPreFreePCB = NDSbTmpFreePCB;
 		} //while(NDSbCurFreePCB != NULL_BYTE) .......
 	} //for(i = 0 ; i < NUM ......
-
+#endif /* NOVELL_PS */
 	NDSpCurrentFSInfo->PCBFileServerName  = 0xFFFFFFFF;
 }
 
@@ -665,10 +683,12 @@ WORD NDSHasAnyFileServerConnect(void)
 
 	NDSConnectFlag = 0;
 	for (i=0 ; i < NUM_OF_PRN_PORT ; i++) {
+#ifdef NOVELL_PS
 		if(_NDSbActPort(i) != NULL_BYTE) {
 			NDSConnectFlag = 1;
 			break;
 		}
+#endif
 	}
 
 	return i;
@@ -799,6 +819,7 @@ void NDSMoveActivePortToFreePort (FSInfo *NDSpTimeOutFSInfo)
 
 	SearchPortOk = 0;
 
+#ifdef NOVELL_PS
 	for(nPort=0 ; nPort<NUM_OF_PRN_PORT ; nPort++) {
 		NDSbPrePortPCB = NULL_BYTE;
 		NDSbCurPortPCB = _NDSbActPort(nPort);
@@ -850,6 +871,7 @@ void NDSMoveActivePortToFreePort (FSInfo *NDSpTimeOutFSInfo)
 			NDSbCurPortPCB = NDSpCurPortPCB->NextPortPCB;
 		}//while( )...
 	}//for(nPort= .....
+#endif /* NOVELL_PS */
 
 	//---------- Add TimeOut's FS to NoActiveFS ---------------------
 	if( SearchPortOk != 0 ) {

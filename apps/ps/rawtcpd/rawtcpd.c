@@ -11,6 +11,9 @@
 #include "prnport.h"
 #include "joblog.h"
 
+#ifndef USE_PS_LIBS
+#undef NOVELL_PS
+#endif
 
 //#if defined(RAWTCPD)
 
@@ -57,6 +60,7 @@ void rawtcpd(cyg_addrword_t data)
 			continue;
 		}
 
+#ifdef USE_PS_LIBS
 		if( ReadPortStatus(port) != PORT_OFF_LINE )
 		{
 			cyg_scheduler_lock();	//615wu::No PSMain
@@ -165,7 +169,9 @@ void rawtcpd(cyg_addrword_t data)
  			{
 				JL_EndList(port, 3);	// Timeout. George Add February 1, 2007
 #if !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINS) && !defined(O_LS)
+#ifdef NOVELL_PS
 				SendEOF(port);	        // Send the EOF page. George Add Junuary 10, 2008
+#endif
 #endif	// !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINS) && !defined(O_LS)
 			}
 			else
@@ -173,6 +179,7 @@ void rawtcpd(cyg_addrword_t data)
 #endif SUPPORT_JOB_LOG		
 		}
 		else
+#endif /* USE_PS_LIBS */
 			cyg_scheduler_unlock();	//615wu::No PSMain
  		close( s );
 	}

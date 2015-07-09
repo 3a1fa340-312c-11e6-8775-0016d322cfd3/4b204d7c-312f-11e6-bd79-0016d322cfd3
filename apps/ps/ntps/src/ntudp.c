@@ -13,6 +13,10 @@
 #include "nps.h"
 #include "joblog.h"
 
+#ifndef USE_PS_LIBS
+#undef NOVELL_PS
+#endif
+
 extern BYTE ReadPortStatus(BYTE port);
 extern int urandom(unsigned int n);
 extern uint16 NGET16( uint8 *pSrc );
@@ -72,6 +76,7 @@ extern cyg_sem_t NT_SIGNAL_PORT_1;
 
 void NTStartPrintUDP(BYTE Version, struct sockaddr_in *fromsock, BYTE MaxPackets)
 {
+#ifdef USE_PS_LIBS
 	BYTE NTUDPStatus, PortStatus;
 	BYTE PortNumber;
 	BYTE *PortName;
@@ -194,10 +199,12 @@ void NTStartPrintUDP(BYTE Version, struct sockaddr_in *fromsock, BYTE MaxPackets
 //615wu::No PSMain	
 	if(NTUDPStatus == PrnNoUsed)
 		cyg_semaphore_post( &NT_SIGNAL_PORT_1 );
+#endif /* USE_PS_LIBS */
 }
 
 int16 NTUDPOpenDataPort(BYTE PortNumber,struct sockaddr_in * fromsock)
 {
+#ifdef USE_PS_LIBS 
 	struct timeval rcv_timeout;
 	
 	if(peer_socket[PortNumber] != 0)
@@ -215,11 +222,13 @@ int16 NTUDPOpenDataPort(BYTE PortNumber,struct sockaddr_in * fromsock)
 				sizeof(struct timeval));
 				
 	memcpy(&printsock, fromsock, sizeof(struct sockaddr_in));			
+#endif
 	return 0;
 }
 
 void NTEndPrintUDP (BYTE Version, struct sockaddr_in *fromsock)
 {
+#ifdef USE_PS_LIBS
 	BYTE PrinterID;
 
 //ZOTIPS	armond_printf("UDP Printing end\n");
@@ -249,11 +258,12 @@ void NTEndPrintUDP (BYTE Version, struct sockaddr_in *fromsock)
 #ifdef SUPPORT_JOB_LOG
 	JL_EndList(PrinterID-1, 0);		// Completed. George Add January 26, 2007
 #endif //SUPPORT_JOB_LOG
-
+#endif /* USE_PS_LIBS */
 }
 
 BYTE NTRequestUDP (BYTE PortNumber,BYTE *Data,int16 *DataLength)
 {
+#ifdef USE_PS_LIBS
 	int16 RecvBytes;
 	BYTE  RecvRetryCount,i;
 	WORD  RecvLen; //6/25/99 ONE PACKET ONLY
@@ -353,12 +363,13 @@ BYTE NTRequestUDP (BYTE PortNumber,BYTE *Data,int16 *DataLength)
 		}
 
 	} while(*DataLength == 0);
-
+#endif /* USE_PS_LIBS */
 	return (PRN_Q_NORMAL);
 }
 
 void NTQueryAckUDP (BYTE PortNumber,BYTE BlockCount,struct sockaddr_in * fromsock)
 {
+#ifdef USE_PS_LIBS
 	if(NTPortInfo[PortNumber].Version == NT_VERSION_4) {
 		memcpy(NTUDPSendAckData.Nt2.Mark,NT_CHECK_MARK2, NT_CHECK_MARK2_LEN);
 		NTUDPSendAckData.Nt2.Cmd[0]  = 0x8B;
@@ -379,10 +390,12 @@ void NTQueryAckUDP (BYTE PortNumber,BYTE BlockCount,struct sockaddr_in * fromsoc
 
 	sendto(peer_socket[PortNumber],&NTUDPSendAckData,sizeof(NTUDPSendAckData), 0, 
 		(struct sockaddr *)fromsock,sizeof(struct sockaddr));
+#endif /* USE_PS_LIBS */
 }
 
 void NTSendAckStartPrintUDP (BYTE Version, BYTE PrinterID, BYTE NTStatus,int16 SocketNumber, struct sockaddr_in *fromsock)
 {
+#ifdef USE_PS_LIBS
 	NTStartRespData	*RespData;
 
 	if(Version == NT_VERSION_4) {
@@ -414,6 +427,7 @@ void NTSendAckStartPrintUDP (BYTE Version, BYTE PrinterID, BYTE NTStatus,int16 S
 
 	sendto(SocketNumber,&NTUDPUtilData,sizeof(NEW_NT_Utility_Rec), 0, 
 		(struct sockaddr *)fromsock,sizeof(struct sockaddr));
+#endif /* USE_PS_LIBS */
 }
 
 void NTSendAckEndPrintUDP (BYTE Version, BYTE PrinterID, struct sockaddr_in *fromsock)
@@ -630,6 +644,7 @@ void UtilViewBoxUDP (BYTE BroadCastMode, struct sockaddr_in *fromsock)
 //(88) Send Print HW Status.
 void UtilPrintStatusUDP (struct sockaddr_in *fromsock)
 {
+#ifdef USE_PS_LIBS
 	BYTE PortNumber;
 
 	NTUDPUtilData.Nt2.Cmd[0] = 0x88;
@@ -640,9 +655,9 @@ void UtilPrintStatusUDP (struct sockaddr_in *fromsock)
 	NTUDPUtilData.Nt2.Data[0] = ReadPrintStatus();	//HW status
 
 	UtilRemoveBusyStatus(&NTUDPUtilData.Nt2.Data[0]);
-
+#ifdef NOVELL_PS
 	NTUDPUtilData.Nt2.Data[1] = NovellConnectFlag;
-
+#endif
 	//Using Status
 	for(PortNumber = 0; PortNumber < NUM_OF_PRN_PORT; PortNumber++) {
 		NTUDPUtilData.Nt2.Data[PortNumber+2] = PrnGetPrinterStatus(PortNumber);
@@ -650,12 +665,14 @@ void UtilPrintStatusUDP (struct sockaddr_in *fromsock)
 	}
 	sendto(util_socket,&NTUDPUtilData,sizeof(NEW_NT_Utility_Rec), 0, 
 			(struct sockaddr *)fromsock,sizeof(struct sockaddr));
+#endif /* USE_PS_LIBS */
 }
 
 //-------------------------------------------------------------------
 //(90) Send Device Info. 4/18/2000 added
 void UtilSendDeviceInfoUDP (BYTE PrinterID,struct sockaddr_in *fromsock)
 {
+#ifdef USE_PS_LIBS
 	BYTE *p;
 	WORD len;
 
@@ -709,12 +726,14 @@ void UtilSendDeviceInfoUDP (BYTE PrinterID,struct sockaddr_in *fromsock)
 
 	sendto(util_socket,&NTUDPUtilData,sizeof(NEW_NT_Utility_Rec), 0, 
 			(struct sockaddr *)fromsock,sizeof(struct sockaddr));
+#endif /* USE_PS_LIBS */
 }
 
 //-------------------------------------------------------------------
 //(91) Read Printer Data. 2001/06/27 added
 void UtilReadPrinterDataUDP( BYTE PrinterID, WORD DataSize ,struct sockaddr_in *fromsock)
 {
+#ifdef USE_PS_LIBS
 	uint8  PrnPort = PrinterID - 1;
 	uint16 ReadSize = 0;
 
@@ -737,12 +756,14 @@ void UtilReadPrinterDataUDP( BYTE PrinterID, WORD DataSize ,struct sockaddr_in *
 
 	sendto(util_socket,&NTUDPUtilData,sizeof(NEW_NT_Utility_Rec), 0, 
 			(struct sockaddr *)fromsock,sizeof(struct sockaddr));
+#endif
 }
 
 //-------------------------------------------------------------------
 //(92) Write Printer Data. 2001/06/27 added
 void UtilWritePrinterDataUDP( BYTE PrinterID, WORD DataSize ,struct sockaddr_in *fromsock)
 {
+#ifdef USE_PS_LIBS
 	uint16 WriteSize = 0;
 	uint8 result;
 
@@ -757,6 +778,7 @@ void UtilWritePrinterDataUDP( BYTE PrinterID, WORD DataSize ,struct sockaddr_in 
 
 	sendto(util_socket,&NTUDPUtilData,sizeof(NEW_NT_Utility_Rec), 0, 
 			(struct sockaddr *)fromsock,sizeof(struct sockaddr));
+#endif
 }
 
 //-------------------------------------------------------------------

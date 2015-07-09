@@ -9,6 +9,23 @@
 #include "nps.h"
 #include "star_timer.h"
 
+#ifndef USE_NETAPP_LIBS
+#undef SMBD
+#undef UNIXUTIL_TFTP
+#undef TELNETD
+#endif /* !NETAPP_LIBS */
+
+#ifndef USE_PS_LIBS
+#undef LPD_TXT
+#undef NOVELL_PS
+#undef NDS_PS
+#undef ATALKD
+#undef Mail_ALERT
+#undef Print_ALERT
+#undef RENDEZVOUS
+#undef SNMPD
+#endif /* !USE_PS_LIBS */
+
 /////////////////////////Utility/////////////////////////////////////////
 inline void sti(void)
 {
@@ -566,6 +583,7 @@ void ps_init(void)
 //...........Add Supported Function Here...........//
 
 //////// Supported Windows Print Server
+#ifdef USE_PS_LIBS
 	NTPrinterServerInit();
 	
 	//Create NT3main Thread :: for port 1
@@ -580,7 +598,7 @@ void ps_init(void)
 	
 	//Start NT3main Thread :: for port 1
 	cyg_thread_resume(NT3MAIN_TaskHdl);
-
+#endif
 //////// Supported Windows Print Server <UDP>
 	//Create NTUDP Thread
     cyg_thread_create(NTUDP_TASK_PRI,

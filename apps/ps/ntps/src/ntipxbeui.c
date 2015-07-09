@@ -15,6 +15,9 @@
 #include "led.h"
 #include "joblog.h"
 
+#ifndef USE_PS_LIBS
+#undef NOVELL_PS
+#endif
 
 //IPXUpgrade Thread initiation information
 #define IPXUpgrade_TASK_PRI         	20	//ZOT716u2
@@ -198,14 +201,14 @@ int32 ipx_recvfrom(struct ipx_usock *ipx_usock, void *Data, int PortNumber)
 	}
 	
 	RecvReqData = (NTReqData *) &(buf->data)->Nt2.Cmd;	//queue ipx
-	
+#ifdef USE_PS_LIBS	
 	if(RecvReqData->BlockNumber != NTPortInfo[PortNumber].BlockNumber)
 	{
 		free(buf->data);
 		free(buf);
 		return -2;	//Block Number error
 	}
-	
+#endif /* USE_PS_LIBS */	
 	if((BYTE)RecvReqData->DataLength)
 		len = RecvReqData->DataLength - 0x100;
 	else
@@ -224,6 +227,7 @@ int32 ipx_recvfrom(struct ipx_usock *ipx_usock, void *Data, int PortNumber)
 
 BYTE NTRequestECB (BYTE PortNumber,BYTE *Data,int *DataLength)
 {
+#ifdef USE_PS_LIBS
 	BYTE   ReceivePacket;
 	BYTE  i;
 	int  EmptyDataCount = 0;
@@ -288,7 +292,7 @@ BYTE NTRequestECB (BYTE PortNumber,BYTE *Data,int *DataLength)
 
 	} while(*DataLength == 0);
 	NTPortInfo[PortNumber].IsFirst = 1;		//10/27/99
-
+#endif /* USE_PS_LIBS */
 	return (PRN_Q_NORMAL);
 }
 
@@ -511,6 +515,7 @@ void IPXUpgrade(cyg_addrword_t data)
 //(8A).2 Send Start Printing data.
 void NTSendAckStartPrintECB(BYTE Version, BYTE PrinterID, BYTE NTStatus)
 {
+#ifdef USE_PS_LIBS
 	NTStartRespData	*RespData;
 
 	if(Version == NT_VERSION_4) {
@@ -542,10 +547,12 @@ void NTSendAckStartPrintECB(BYTE Version, BYTE PrinterID, BYTE NTStatus)
 	cli();    //11/25/99
 	SendUtilityPacket();
 	sti();   //11/25/99
+#endif /* USE_PS_LIBS */
 }
 //(8A).1 Start Printing.
 void NTStartPrint(BYTE Version, BYTE PrinterID, BYTE MaxPackets)
 {
+#ifdef USE_PS_LIBS
 	BYTE NTStatus, PortStatus = 0;
 	BYTE PortNumber = PrinterID-1;
 
@@ -647,12 +654,14 @@ void NTStartPrint(BYTE Version, BYTE PrinterID, BYTE MaxPackets)
 //615wu::No PSMain	
 	if(NTStatus == PrnNoUsed)
 		cyg_semaphore_post( &NT_SIGNAL_PORT_1 );
+#endif /* USE_PS_LIBS */
 }
 
 //(8B) Send Request Printer data. (6060)
 uint32 ruery_ecb=0;
 void NTQueryAckECB (BYTE PortNumber,BYTE BlockCount)
 {
+#ifdef USE_PS_LIBS
 	NTSendPsECB.ESRAddress   = 0x00;
 	NTSendPsECB.inUseFlag    = 0;
 	NTSendPsECB.socketNumber = NTDataSocket;
@@ -707,6 +716,7 @@ void NTQueryAckECB (BYTE PortNumber,BYTE BlockCount)
 		IPXSendPacket(&NTSendPsECB);
 	} while(NTSendPsECB.inUseFlag);
 	ruery_ecb = 0;
+#endif /* USE_PS_LIBS */
 }
 
 //(8C).2 Send End Printing data.
@@ -729,6 +739,7 @@ void NTSendAckEndPrintECB (BYTE Version, BYTE PrinterID)
 //(8C).1 End Printing.
 void NTEndPrint (BYTE Version, BYTE PrinterID)
 {
+#ifdef USE_PS_LIBS
 //ZOTIPS	armond_printf("IPX Printing end\n");
 	if(PrinterID > NUM_OF_PRN_PORT) {
 		return;
@@ -748,7 +759,7 @@ void NTEndPrint (BYTE Version, BYTE PrinterID)
 #ifdef SUPPORT_JOB_LOG
 	JL_EndList(PrinterID, 0);		// Completed. George Add January 26, 2007
 #endif //SUPPORT_JOB_LOG
-	
+#endif /* USE_PS_LIBS */	
 }
 
 //(80) Send EEPROM data.
@@ -840,6 +851,7 @@ void UtilStartUpgrade(void)
 //(88) Send Print HW Status.
 void UtilPrintStatus(void)
 {
+#ifdef USE_PS_LIBS
 	uint8 PortNumber;
 
 	SendUtilData.Nt2.Cmd[0] = 0x88;
@@ -851,7 +863,9 @@ void UtilPrintStatus(void)
 	UtilRemoveBusyStatus(&SendUtilData.Nt2.Data[0]);
 
 	//4/26/2000 changed
+#ifdef NOVELL_PS 
 	SendUtilData.Nt2.Data[1] = NovellConnectFlag & (NDSConnectFlag << 1);
+#endif
 
 	//Using Status
 	for(PortNumber = 0; PortNumber < NUM_OF_PRN_PORT; PortNumber++) {
@@ -860,6 +874,7 @@ void UtilPrintStatus(void)
 	}
 
 	SendUtilityPacket();
+#endif /* USE_PS_LIBS */
 }
 
 //(8D) Receive EEPROM Data.
@@ -909,6 +924,7 @@ void UtilRecvEEPROM(void)
 //(8E) QC -- Output pattern to print port
 void UtilPrintPattern(void)
 {
+#ifdef USE_PS_LIBS
 	uint8 Result = PrnPrintPattern(ReceiveUtilData.Nt2.Cmd[1],ReceiveUtilData.Nt2.Data, 256 );
 
 	// Setup Utility Protocol
@@ -916,11 +932,13 @@ void UtilPrintPattern(void)
 	SendUtilData.Nt2.Cmd[1] = Result;
 
 	SendUtilityPacket();
+#endif /* USE_PS_LIBS */
 }
 
 //(90) Send Device Info. 4/18/2000 added
 void UtilSendDeviceInfo(uint8 PrinterID)
 {
+#ifdef USE_PS_LIBS
 	uint16 len;
 	uint8  *p;
 
@@ -974,11 +992,13 @@ void UtilSendDeviceInfo(uint8 PrinterID)
 	}
 
 	SendUtilityPacket();
+#endif /* USE_PS_LIBS */
 }
 
 //(91) Read Printer Data
 void UtilReadPrinterData( BYTE PrinterID, WORD DataSize )
 {
+#ifdef USE_PS_LIBS
 	uint8  PrnPort = PrinterID - 1;
 	uint16 ReadSize = 0;
 
@@ -1004,11 +1024,13 @@ void UtilReadPrinterData( BYTE PrinterID, WORD DataSize )
 	NSET16( &SendUtilData.Nt2.Data[1], ReadSize );
 
 	SendUtilityPacket();
+#endif /* USE_PS_LIBS */
 }
 
 //(92) Write Printer Data
 void UtilWritePrinterData( BYTE PrinterID, WORD DataSize )
 {
+#ifdef USE_PS_LIBS
 	uint16 WriteSize = 0;
 	uint8  result;
 
@@ -1022,6 +1044,7 @@ void UtilWritePrinterData( BYTE PrinterID, WORD DataSize )
 	NSET16( &SendUtilData.Nt2.Data[1], WriteSize );
 
 	SendUtilityPacket();
+#endif /* USE_PS_LIBS */
 }
 
 //(98) Get Firmwave Data
@@ -1569,6 +1592,7 @@ void NTReceiveData (void)
 
 	PortNumber = RecvReqData->PrinterID-1;
 	
+#ifdef USE_PS_LIBS
 	if(PortNumber < NUM_OF_PRN_PORT                                       &&
 	   NTReceivePsECB.IPXFrameType == NTPortInfo[PortNumber].IPXFrameType &&
 	   Version == NTPortInfo[PortNumber].Version                          &&
@@ -1579,6 +1603,7 @@ void NTReceiveData (void)
 		cyg_semaphore_post(&(IPXUSOCK.sem_f));
 	}
 	else
+#endif /* USE_PS_LIBS */
 	{	
 		free(mbuf);
 	 	free(NTReceiveRequestData);				//drop packet

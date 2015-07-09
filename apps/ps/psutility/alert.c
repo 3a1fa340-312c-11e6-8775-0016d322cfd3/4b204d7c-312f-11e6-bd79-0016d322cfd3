@@ -36,6 +36,10 @@
 
 extern int Network_TCPIP_ON;
 
+#ifndef USE_PS_LIBS
+#undef Print_ALERT
+#endif
+
 //for Email Alert
 #ifdef Print_ALERT
 uint8 	alertType[NUM_OF_PRN_PORT] = {0};		//1:recover,2:offline

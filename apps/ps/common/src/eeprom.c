@@ -83,8 +83,9 @@ UINT8    mvATPortName[ATALK_PORT_NAME];
 UINT8    mvRENVEnable;
 UINT8    mvRENVServiceName[64];
 
-
-
+#ifndef USE_PS_LIBS
+uint16 ServiceFSCount;
+#endif /* !USE_PS_LIBS */
 
 uint32 clock()
 {

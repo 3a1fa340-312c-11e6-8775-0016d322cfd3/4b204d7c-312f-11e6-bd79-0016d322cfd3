@@ -16,6 +16,9 @@
 #include "paprint.h"
 #include "joblog.h"
 
+#ifndef USE_PS_LIBS
+#undef NOVELL_PS
+#endif
 int SendATickle(uint8 connid,ATP atp,struct sockaddr_at  *sat);
 
 #if defined(DEF_IEEE1284) && defined(BI_ATALKD)
@@ -222,7 +225,9 @@ void pap_session(cyg_addrword_t data)
 #ifdef SUPPORT_JOB_LOG
 					JL_EndList(PrnPort, 3);	// Abort or Timeout. George Add February 12, 2007
 #if !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINS) && !defined(O_LS)
+#ifdef NOVELL_PS
 					SendEOF(PrnPort);	    // Send the EOF page. George Add January 10, 2008
+#endif
 #endif	// !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINS) && !defined(O_LS)
 					HadLoggedA = 0;			// George Add April 10, 2007
 #endif SUPPORT_JOB_LOG

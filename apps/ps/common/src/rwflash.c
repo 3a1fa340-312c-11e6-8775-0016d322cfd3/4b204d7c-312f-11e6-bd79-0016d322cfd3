@@ -102,6 +102,7 @@ int vAllocCode2Memory()
 	uint8 PrintStatus;
 	int i;
 
+#ifdef USE_PS_LIBS
 	// check print port is busy or not
 	PrintStatus = ReadPrintStatus();
 	for( i = 0; i < NUM_OF_1284_PORT; i++ )
@@ -117,6 +118,7 @@ int vAllocCode2Memory()
 	}
 	for( i = 0; i < NUM_OF_PRN_PORT; i++ )
 		PrnSetUpgradeInUse(i);
+#endif
 
 	memset( UPGRADE_TEMP_ADDRESS, 0, PROGRAM_CODE2_KSIZE * 1024 );
 	return 1;
@@ -124,11 +126,13 @@ int vAllocCode2Memory()
 
 int vReleaseCode2Memory()
 {
+#ifdef USE_PS_LIBS
 	int i;
 	for( i = 0; i < NUM_OF_PRN_PORT; i++ ){
 		if (PrnGetPrinterStatus(i) == UpgradeUsed)
 		PrnSetNoUse(i);
 	}
+#endif
 }
 
 int ReadFromFlash(EEPROM *RomData)

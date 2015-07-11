@@ -8,6 +8,9 @@ MAKE_OBJ_DIR:
 MAKE_LIB_DIR:
 	@-if !(test -d $(LIB_DIR)); then mkdir $(LIB_DIR); fi;
 
+RM_AXF_FILE:
+	@-if (test -f $(PROD_NAME).axf); then rm $(PROD_NAME).axf; fi;
+
 clean:
 	-rm -f $(OBJS)
 	-rm -f ${DST}

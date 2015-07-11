@@ -51,19 +51,27 @@
 #define NTUDP
 #define IPX
 #define NETBEUI
+
+#ifdef USE_PS_LIBS
 #define NOVELL_PS
 #define NDS_PS
+#endif /* USE_PS_LIBS */
 
 //Application
 #define HTTPD
+#define RAWTCPD
+
+#ifdef USE_PS_LIBS
 #define IPPD
 #define LPD_TXT
 #define ATALKD
 #define SNMPD
-#define TELNETD
+#endif /* USE_PS_LIBS */
 
-#define RAWTCPD
+#ifdef USE_NETAPP_LIBS
+#define TELNETD
 #define UNIXUTIL_TFTP
+#endif /* USE_NETAPP_LIBS */
 //ZOT716u2 Not Yet #define RENDEZVOUS //Ron Add 11/24/04
 
 #ifdef RENDEZVOUS 
@@ -71,7 +79,9 @@
 #endif
 
 //IEEE1284
+#ifdef USE_PS_LIBS
 #define DEF_IEEE1284
+#endif
 
 #define FULL_FIRMWARE_VERSION	// Version + Bulid Number
 
@@ -97,18 +107,25 @@
 #define USB_LED
 
 //for send mail
+#ifdef USE_PS_LIBS
 #define Print_ALERT				//check printer is "out of paper"
 #define Mail_ALERT			//depend on Print_ALERT
 
 //for printting job log
 #define SUPPORT_JOB_LOG
+
+#endif /* USE_PS_LIBS */
+
 //#define SUPPORT_PRN_COUNT
 
 //#define DEBUG_AUSU
 
 //#ifdef O_ZOT
 //#if !defined(O_TPLINK)
+#ifdef USE_NETAPP_LIBS
 #define SMBD
+#endif /* USE_NETAPP_LIBS */
+
 //#endif	// !defined(O_TPLINK)
 
 //for HP webadmin

@@ -19,6 +19,7 @@
 
 #ifndef USE_PS_LIBS
 #undef ATALKD
+#undef NETBEUI
 #endif /* USE_PS_LIBS */
 
 #ifdef WEBADMIN	 //6/26/2000
@@ -586,10 +587,8 @@ int ProcessOtherPckt(unsigned char *pFrame, unsigned int lenFrame)
 #ifdef NETBEUI
 		case IPXBEUI:
 			if(!memcmp(eth->dest,NETBEUI_MULTICAST,6)){
-                #ifdef USE_PS_LIBS
 				if (lenFrame > 17)
 				    NT_NETBEUItoIPXInput(FrameType,eth->src,(NETBEUIHeader *)&pFrame[17],(lenFrame-17));
-                #endif /* USE_PS_LIBS */
 			}
 			else return -1;
 		break;

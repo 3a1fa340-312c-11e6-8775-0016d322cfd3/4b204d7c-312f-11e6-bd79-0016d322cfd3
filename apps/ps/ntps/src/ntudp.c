@@ -13,10 +13,6 @@
 #include "nps.h"
 #include "joblog.h"
 
-#ifndef USE_PS_LIBS
-#undef NOVELL_PS
-#endif
-
 extern BYTE ReadPortStatus(BYTE port);
 extern int urandom(unsigned int n);
 extern uint16 NGET16( uint8 *pSrc );

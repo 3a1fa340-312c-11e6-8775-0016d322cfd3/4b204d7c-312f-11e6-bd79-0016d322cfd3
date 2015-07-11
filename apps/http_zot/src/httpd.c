@@ -34,6 +34,7 @@
 /*Ron Add 11/5/2004 */
 extern int	sendack(int s);
 
+
 #ifndef USE_PS_LIBS
 #undef IPPD
 #undef LPD_TXT
@@ -41,6 +42,10 @@ extern int	sendack(int s);
 #undef NDS_PS
 #undef ATALKD
 #undef DEF_IEEE1284
+#undef Mail_ALERT
+#undef SUPPORT_JOB_LOG
+#undef WIRELESS_STATUS_PRINT
+#undef WIRELESS_CARD
 #endif
 
 #ifdef ATALKD
@@ -65,7 +70,7 @@ static uint8 ATPortName[ATALK_NAME_LEN+1];
 static uint8 ATPortNameLength;
 extern uint8 *GetATPortName(int i);
 
-#endif
+#endif /* ATALKD */
 
 #ifdef NDS_PS
 #include "ndsqueue.h"
@@ -117,12 +122,14 @@ typedef struct u_sock {
 };
 struct u_sock Usedsock[SOCKSUM]={0};
 
+#ifdef IPPD
 //IPPD_Start Thread initiation information
 #define IPPD_Start_TASK_PRI         	20	//ZOT716u2
 #define IPPD_Start_TASK_STACK_SIZE  	 4096
 static	uint8			IPPD_Start_Stack[IPPD_Start_TASK_STACK_SIZE];
 static  cyg_thread		IPPD_Start_Task;
 static  cyg_handle_t	IPPD_Start_TaskHdl;
+#endif
 
 //Http_Start Thread initiation information
 #define Http_Start_TASK_PRI         	20	//ZOT716u2
@@ -674,8 +681,8 @@ BYTE IsSeedPassword(int8 *buf, int8 *pwd);
 
 //BYTE WebLangVersion; //4/26/2000
 
-int8 HttpNeedWriteEEPROM, HttpNeedLoadDefault;
-int8 HttpNeedReboot, HttpNeedReset;
+int8 HttpNeedWriteEEPROM = 0, HttpNeedLoadDefault = 0;
+int8 HttpNeedReboot = 0, HttpNeedReset = 0;
 int8 WlanNeedServey = 0;
 const int8 *Cgi_Error;
 int8 errorstr[] = "[SSI error]" ;
@@ -1073,7 +1080,6 @@ void httpd_init()
 						Http_Start_TASK_STACK_SIZE,
 						&Http_Start_TaskHdl,
 						&Http_Start_Task);
-			
 	//Start Httpstart Thread
 	cyg_thread_resume(Http_Start_TaskHdl);
 
@@ -1098,7 +1104,6 @@ void httpd_init()
 }
 
 extern int Network_TCPIP_ON;
-
 // Start up http service
 // Usage: "start http [port#] [drive_letter] [root_directory]
 void httpstart (cyg_addrword_t data)
@@ -1112,7 +1117,7 @@ void httpstart (cyg_addrword_t data)
 	
 	while( Network_TCPIP_ON == 0 )
 		ppause(100);
-	
+
 	cli();
 	HttpGetMessage();  //9/20/99 added
 	sti();
@@ -1139,7 +1144,6 @@ void httpstart (cyg_addrword_t data)
 //	wndsize(sd,500); //8/4/2000
 //Jesse	wndsize(sd,1460); //09/18/2000 fix bug
 	                  //for win95 client print mentos.ppt P.7- P.9 ???
-
 	while(1) {
 		clen=sizeof(sa_client);
 		memset(&sa_client, 0, clen);
@@ -1182,7 +1186,6 @@ void httpstart (cyg_addrword_t data)
 				if(Usedsock[i].flag == 0 )
 				{
 					HttpUsers++;
-					
 					Usedsock[i].num = csd;
 					Usedsock[i].flag = 1;
 					
@@ -1646,11 +1649,9 @@ if (!((EEPROM_Data.SPECIAL_OEM == 0x02) && (diag_flag == 1))) {
 		free(rq.url);
 		rq.url = strdup("ipp.htm");
 	}
-	
 #endif IPPD
 	
 	fp = PFSopen(rq.url);
-	
 	if(fp != NULL)	{
 		if((cp = strrchr(rq.url , '.')) != NULL) {
 			cp++;
@@ -1680,10 +1681,10 @@ if (!((EEPROM_Data.SPECIAL_OEM == 0x02) && (diag_flag == 1))) {
 				}	
 			}
 		}
-		
+
 		httpHeaders(network,Outline,RESP_200,&rq);
 		httpFileInfo(network,Outline, fp, rq.version, thetype);
-
+        
 		if(rq.method)	{
 			if(thetype != T_htm) {// if not .htm, just send
 				fflush(network);
@@ -1719,15 +1720,24 @@ quit0:
 
 	if(fp) PFSclose(fp);
 //      free(rq.myname);
-	free(rq.url);
-	free(rq.query);
-	free(rq.newcheck);
-	free(rq.from);
-	free(rq.referer);
-	free(rq.agent);
-	free(rq.passwd);   // never free rq.arg & rq.file
-	free(rq.boundary);
-	free(rq.binbuf);
+    if (rq.url)
+	    free(rq.url);
+    if (rq.query)
+	    free(rq.query);
+    if (rq.newcheck)
+	    free(rq.newcheck);
+    if (rq.from)
+	    free(rq.from);
+    if (rq.referer)
+	    free(rq.referer);
+    if (rq.agent)
+	    free(rq.agent);
+    if (rq.passwd)
+	    free(rq.passwd);   // never free rq.arg & rq.file
+    if (rq.boundary)
+	    free(rq.boundary);
+    if (rq.binbuf)
+	    free(rq.binbuf);
 
 #ifdef IPPD
 	if(Inline) free(Inline);
@@ -1742,7 +1752,8 @@ quit0:
 //			shutdown(s,2);
 //		} else {
 #endif IPPD
-		fclose(network);
+        if (network)
+		    fclose(network);
 #ifdef IPPD
 //		}
 		free(ippObj);
@@ -1907,10 +1918,9 @@ void httpHeaders(FILE *s,int8 *buf,int16 resp,struct reqInfo *rq)
 	fputs(buf,s);
 }
 
-#ifdef IPPD
 void ippSendResp(ipp_t *ippObj)
 {
-
+#ifdef IPPD
 	uint16 MaxBufSize, UnSupportSize, RespGroupSize;
 //Jesse	struct mbuf *bp;
 	char *bp;
@@ -2010,9 +2020,8 @@ FreeIppObj:
 	free(ippObj->RespGroup.pf_buf);
 	free(ippObj->job_name);
 	free(ippObj->user_name);
-
-}
 #endif IPPD
+}
 
 void httpError(FILE *network,int8 *OutBuf, int16 resp, int16 msg,const int8 *str, struct reqInfo *rq)
 {
@@ -2232,10 +2241,12 @@ sendhtml (PFS_FILE *fp, FILE *network, int8 *inbuf,int16 inbuflen,int8 *outbuf, 
 	int8 *bufptr;
 	
 	// Headers already created, we will use this in exec and mkwelcome now
-	rq->method = METHOD_HTML;
-	fmode(network, STREAM_BINARY);
+    if (rq)
+	    rq->method = METHOD_HTML;
+    if (network)
+	    fmode(network, STREAM_BINARY);
 
-	while((PFSgets(inbuf, inbuflen, fp)) != 0) {
+    while((PFSgets(inbuf, inbuflen, fp)) != 0) {
 //os	kwait(NULL);
 		bufptr = inbuf;
 		while(bufptr && (cp1 = strstr (bufptr, "<!--#")) != NULL) {
@@ -2273,6 +2284,7 @@ sendhtml (PFS_FILE *fp, FILE *network, int8 *inbuf,int16 inbuflen,int8 *outbuf, 
 		}
 		if(bufptr != NULL)
 			fputs(bufptr,network);
+        
 	}
 }
 
@@ -2312,6 +2324,7 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 				fputs(OutBuf,network);
 			break;
 		case ECHO_VERSION:
+#ifdef USE_ADMIN_LIBS
 			UtilGetVersionString(OutBuf); //4/26/2000
 			fputs(OutBuf,network);
 			
@@ -2330,7 +2343,7 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 			strcpy(OutBuf,")" ); // 2001/07/19
 			
 			fputs(OutBuf,network);
-
+#endif /* USE_ADMIN_LIBS */           
 			break;
 		case ECHO_VERSION_SHORT:
 			sprintf(OutBuf,"%d.%02x.%02d",CURRENT_MAJOR_VER, CURRENT_MINOR_VER, CURRENT_PS_MODEL);

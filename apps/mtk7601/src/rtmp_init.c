@@ -195,6 +195,7 @@ NDIS_SPIN_LOCK TimerSemLock;
 */
 #ifndef _LINUX_SOURCE_
 static struct _RTMP_ADAPTER g_rtmp_adapter;
+//static myfilldata[34200];
 #endif /* _LINUX_SOURCE_ */
 
 NDIS_STATUS	RTMPAllocAdapterBlock(
@@ -205,7 +206,6 @@ NDIS_STATUS	RTMPAllocAdapterBlock(
 	NDIS_STATUS		Status;
 	INT 			index;
 	UCHAR			*pBeaconBuf = NULL;
-
 
 #ifdef OS_ABL_FUNC_SUPPORT
 	/* must put the function before any print message */
@@ -233,7 +233,7 @@ NDIS_STATUS	RTMPAllocAdapterBlock(
 		}
 		NdisZeroMemory(pBeaconBuf, MAX_BEACON_SIZE);
 
-        #ifdef _LINUX_SOURCE_
+        #if 1//def _LINUX_SOURCE_
 		Status = AdapterBlockAllocateMemory(handle, (PVOID *)&pAd, sizeof(RTMP_ADAPTER));
 		if (Status != NDIS_STATUS_SUCCESS)
 		{

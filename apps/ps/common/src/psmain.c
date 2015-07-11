@@ -23,7 +23,10 @@
 #undef Mail_ALERT
 #undef Print_ALERT
 #undef RENDEZVOUS
+#undef RAWTCPD
 #undef SNMPD
+#undef UNIXUTIL_TFTP
+#undef TELNETD
 #endif /* !USE_PS_LIBS */
 
 /////////////////////////Utility/////////////////////////////////////////
@@ -601,6 +604,7 @@ void ps_init(void)
 #endif
 //////// Supported Windows Print Server <UDP>
 	//Create NTUDP Thread
+#ifdef USE_ADMIN_LIBS
     cyg_thread_create(NTUDP_TASK_PRI,
                   NTUtilityUDP,
                   0,
@@ -617,6 +621,7 @@ void ps_init(void)
 	IPXUtilityInit();
 	IPXReceiveInit();
 	UpgradeSocketInit();
+#endif
 //////// Supported Windows Print Server <NetBEUI>
 	//Supported NetBEUI protocol depend on IPX protocol
 

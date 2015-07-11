@@ -15,10 +15,6 @@
 #include "led.h"
 #include "joblog.h"
 
-#ifndef USE_PS_LIBS
-#undef NOVELL_PS
-#endif
-
 //IPXUpgrade Thread initiation information
 #define IPXUpgrade_TASK_PRI         	20	//ZOT716u2
 #define IPXUpgrade_TASK_STACK_SIZE  	2048 //ZOT716u2 3072

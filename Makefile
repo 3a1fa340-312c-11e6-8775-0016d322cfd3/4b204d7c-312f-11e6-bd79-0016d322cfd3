@@ -18,7 +18,8 @@ TOOLS_DIR = ./prod/$(PROD_NAME)/build/tools
 
 DST_NAME = zot716u2w.axf
 
-all: DIR_CHECK $(DST_NAME) 
+
+all: DIR_CHECK RM_AXF_FILE $(DST_NAME) 
 
 DIR_CHECK: MAKE_LIB_DIR MAKE_OBJ_DIR
 
@@ -120,12 +121,12 @@ uart:
 	make -C $(UART_MAK)
 	
 # use this library must to define USE_SYS_LIBS
-SYS_LIBS	= mac.a usb_host.a psglobal.a http_zot.a rawtcpd.a tcpip.a psutility.a uart.a mtk7601.a
+SYS_LIBS	= mac.a usb_host.a psglobal.a http_zot.a tcpip.a psutility.a uart.a mtk7601.a
 
 ADMIN_LIBS 	= ntps.a ipxbeui.a
 
 # use this library must to define USE_PS_LIBS 
-PS_LIBS		= ipxbeui.a ntps.a spooler.a novell.a nds.a lpd.a ippd.a atalk.a snmp.a rendezvous.a
+PS_LIBS		= spooler.a novell.a nds.a lpd.a ippd.a atalk.a rawtcpd.a snmp.a rendezvous.a
 
 # use htis library must to define USE_NETAPP_LIBS
 NETAPP_LIBS = telnet.a tftp_zot.a smbd.a
@@ -197,7 +198,6 @@ OBJS=${SRCS:$(PROD_BUILD_DIR)/%.c=$(OBJ_DIR)/%.o}
 DST=./$(DST_NAME)
 
 $(DST_NAME): ${OBJS} prod
-	if [ -e $(PROD_NAME).axr ]; then rm $(PROD_NAME).axf; fi;
 	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(PROD_LIBS) 
 
 #	cp $(DST_NAME) zotdwp2020.bin

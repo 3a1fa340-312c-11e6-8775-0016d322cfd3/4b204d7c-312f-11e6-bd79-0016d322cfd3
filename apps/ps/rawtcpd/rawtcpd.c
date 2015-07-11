@@ -179,8 +179,8 @@ void rawtcpd(cyg_addrword_t data)
 #endif SUPPORT_JOB_LOG		
 		}
 		else
-#endif /* USE_PS_LIBS */
 			cyg_scheduler_unlock();	//615wu::No PSMain
+#endif /* USE_PS_LIBS */
  		close( s );
 	}
 }

@@ -11,7 +11,7 @@
  *	this notice is retained.
  */
  
- #include <cyg/kernel/kapi.h>
+#include <cyg/kernel/kapi.h>
 #include <network.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,6 +38,7 @@ extern int Network_TCPIP_ON;
 
 #ifndef USE_PS_LIBS
 #undef Print_ALERT
+#undef Mail_ALERT
 #endif
 
 //for Email Alert
@@ -64,8 +65,6 @@ cyg_sem_t alertSignal;
 uint8 	MailPort = 0;
 uint8 	Is_Constraint = 0;	//constraint sent error mail
 #endif //Mail_ALERT
-
-
 
 void PrnPortAlert( BYTE port, BYTE status)
 {

@@ -359,9 +359,10 @@ unsigned char AR_M207_STATUS_OK[16] =  { 0x81, 0x31, 0x49, 0x00, 0x00, 0x00, 0x0
 //ZOT static int usblp_open(struct inode *inode, struct file *file)
 int usblp_open( struct usblp *usblp )
 {
+	int retval = 0,len = 0;
+#ifdef USE_PS_LIBS
 //ZOT	int minor = MINOR(inode->i_rdev) - USBLP_MINOR_BASE;
 //ZOT	struct usblp *usblp;
-	int retval,len = 0;
 	char write_gdi[512]={0};
 	char *pBuf;
 	int total_len = 0, loop_cnt = 0;
@@ -395,7 +396,6 @@ int usblp_open( struct usblp *usblp )
 	retval = 0;	
 #endif
 
-#ifdef USE_PS_LIBS
 	usblp->used = 1;
 //ZOT	file->private_data = usblp;
 
@@ -477,9 +477,8 @@ int usblp_open( struct usblp *usblp )
 
 	}
 
-#endif /* USE_PS_LIBS */
 out:
-
+#endif /* USE_PS_LIBS */
 //ZOT	up (&usblp_sem);
 	return retval;
 }

@@ -44,8 +44,6 @@ extern int	sendack(int s);
 #undef DEF_IEEE1284
 #undef Mail_ALERT
 #undef SUPPORT_JOB_LOG
-#undef WIRELESS_STATUS_PRINT
-#undef WIRELESS_CARD
 #endif
 
 #ifdef ATALKD
@@ -81,6 +79,9 @@ extern uint8 *GetATPortName(int i);
 extern int diag_flag;
 #endif
 
+#ifndef USE_PS_LIBS
+char ANYESS[] = "< ANY >";
+#endif
 extern uint8    rxStatsRSSI;             /* RF Signal Strength Indicator */
 extern uint8    linkQuality;              /* Link Quality */
 
@@ -1225,16 +1226,15 @@ httpd (cyg_addrword_t data)
 	
 	int32  tsize = 0;
 	int32  bsize = 0;
+	int32  qsize = 0;
 
 #ifdef IPPD
 	int8 *Inline, *Outline, *cp;
-	int32  qsize = 0;
 
 	BYTE port;
 	ipp_t *ippObj;
 #else
 	int8 Inline[HLINELEN], Outline[HLINELEN], *cp;
-	int16  qsize = 0;
 #endif IPPD
 	int8 *tquery, *queryp = NULL;
 //Jesse	struct stat sb;
@@ -1404,10 +1404,16 @@ httpd (cyg_addrword_t data)
 #endif IPPD
 				if(qsize && rq.method == METHOD_POST)
 				{
+                    #ifdef IPPD
 					if( rq.boundary )
+                    #else
+                    if(1)
+                    #endif
 					{
 						if( !vAllocCode2Memory() ) reject = 1;
+                        #ifdef IPPD
 						qsize -= ( strlen( rq.boundary ) + 4 + 4);
+                        #endif
 						
 //						CurTempAddress = mallocw(qsize + 1024);
 						CurTempAddress = UPGRADE_TEMP_ADDRESS;
@@ -1570,7 +1576,7 @@ httpd (cyg_addrword_t data)
 				qsize = atol(&Inline[strlen(wHdrs[HDR_LEN])]);
 #else
 //Jesse				qsize = atoi(Inline[strlen(&wHdrs[HDR_LEN])+1]);
-				qsize = atoi(&Inline[strlen(&wHdrs[HDR_LEN])]);
+				qsize = atoi(&Inline[strlen(wHdrs[HDR_LEN])+1]);
 #endif IPPD
 			} else if(!strnicmp(Inline,wHdrs[HDR_SINCE],strlen(wHdrs[HDR_SINCE]))) {
 				//"If-Modified-Since:"

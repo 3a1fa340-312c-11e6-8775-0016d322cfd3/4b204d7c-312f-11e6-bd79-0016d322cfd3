@@ -631,7 +631,7 @@ char* WLan_config ()
     
     offset += sprintf(config_buf+offset, "ChannelGeography=1\n");
     /* SSID */
-    #if 0
+    #if 1
     offset += sprintf(config_buf+offset, "SSID=%s\n", mvESSID);
     #else
     offset += sprintf(config_buf+offset, "SSID=TStudio\n");
@@ -643,8 +643,8 @@ char* WLan_config ()
     //		Infra: infrastructure mode
     //     	Adhoc: adhoc mode
     
-    #if 0
-    if (mvBSSType == 2)
+    #if 1
+    if (mvBSSType == 1)
         offset += sprintf(config_buf+offset, "NetworkType=Infra\n");
     else
         offset += sprintf(config_buf+offset, "NetworkType=Adhoc\n");
@@ -730,7 +730,7 @@ char* WLan_config ()
 
     //      mvWEPType : 1 -> 64-bit  , key at mvWEPKEY1-4
     //      mvWEPType : 2 -> 128-bit , key at mvWEP128KEY1-4
-    #if 0
+    #if 1
     switch(mvAuthenticationType) {
         case 1 : /* open */
         default:
@@ -791,7 +791,7 @@ char* WLan_config ()
     offset += sprintf(config_buf+offset, "Key3Type=1\n");
     offset += sprintf(config_buf+offset, "Key4Type=1\n");
 
-    #if 0
+    #if 1
     if ((mvAuthenticationType == 1) || (mvAuthenticationType == 2)) {
         if (mvWEPType == 1) {
             offset += sprintf(config_buf+offset, "Key1Str=%s\n", mvWEPKey1);
@@ -1017,6 +1017,29 @@ int Wlan_Diagonse(void){
 	return 1;
 }
 
+void do_wireless_close(void) {
+
+    RTMP_ADAPTER *pAd;
+	GET_PAD_FROM_NET_DEV(pAd, g_wireless_dev);
+
+    if (WirelessInitFailed)
+        return;
+#if 0
+    printk("enter do_wireless_close\n");
+    //RT28xxUsbAsicRadioOff (pAd);
+    //MT7601UsbAsicRadioOff (pAd, DOT11_RADIO_OFF);
+    printk("WLAN_ChipOff\n");
+    MT7601_WLAN_ChipOnOff(pAd, FALSE, FALSE);
+
+    printk("rt28xx_close\n");
+    rt28xx_close(g_wireless_dev);
+
+    printk("MT7601UsbAsicRadioOff \n");
+    MT7601UsbAsicRadioOff (pAd, DOT11_RADIO_OFF);
+
+    printk("exit do_wireless_close\n");
+#endif
+}
 
 void wlan_site_survey(void){
 	int Port = 0;
@@ -1040,47 +1063,67 @@ void wlan_site_survey(void){
 	
 }
 
-extern knownbss_t* APList;
+knownbss_t* APList = NULL;
 knownbss_t *wlan_get_scanlist(void){
 		
 	if( WirelessInitFailed )
 		return NULL;
-
-    #if 0
-    struct iw_point iw_p;
-    struct iw_event* iwe;
-    knownbss_t *pNext;
+#if 1
+    RTMP_ADAPTER *pAd;
+    knownbss_t *pKnown_bss = NULL;
     int i;
 
-	char* user_data = malloc(4096);
-    iw_p.pointer = NULL;
-    iw_p.length = 4096;
+	GET_PAD_FROM_NET_DEV(pAd, g_wireless_dev);
 
-    /* clear APList */
-    for (; APList != NULL; APList = pNext) {
-        pNext = APList->next;
-        free (APList);
-    } 
+	// Clean APList
+	for ( ; APList != NULL; APList = pKnown_bss) {
+		pKnown_bss = APList->next;
+		free(APList);
+	}
 
-    rt_ioctl_giwscan(g_wireless_dev, NULL, &iw_p, user_data);
-    iwe = (struct iw_event *)user_data;
+	// Put all list to APList
+	for (i = 0; i < MAX_LEN_OF_BSS_TABLE; i++) {
+		
+		if (pAd->ScanTab.BssEntry[i].Channel == 0)
+			break;
+		
+		pKnown_bss = malloc(sizeof(knownbss_t));
 
-    for (i = 0; i < MAX_LEN_OF_BSS_TABLE; i++) {
-        
-    }
+		if (pKnown_bss == NULL)
+			continue;
+		memset(pKnown_bss, 0, sizeof(knownbss_t));
 
-    while( iwe->len != 0) {
+		memcpy(pKnown_bss->bssid, pAd->ScanTab.BssEntry[i].Bssid, MAC_ADDR_LEN);
+		pKnown_bss->channel = pAd->ScanTab.BssEntry[i].Channel;
 
-    }
-    
-    free(user_data);
-    #endif
+		pKnown_bss->cap_info = pAd->ScanTab.BssEntry[i].BssType;	// 0:Ad-Hoc 1:Infra
 
-/*
-int rt_ioctl_giwscan(struct net_device *dev,
-			struct iw_request_info *info,
-			struct iw_point *data, char *extra)
-*/
+		if(pAd->ScanTab.BssEntry[i].Privacy) {
+			
+			pKnown_bss->cap_info |= 1 << 4;
+			if(pAd->ScanTab.BssEntry[i].AuthMode > 2)
+				pKnown_bss->cap_info |= 1 << 8;
+		}
+		
+		memset(pKnown_bss->ssid,0,WLAN_SSID_MAXLEN+2+1);
+		memcpy(pKnown_bss->ssid, pAd->ScanTab.BssEntry[i].Ssid, pAd->ScanTab.BssEntry[i].SsidLen); 
+		pKnown_bss->rssi = pAd->ScanTab.BssEntry[i].Rssi;
+
+
+		if (APList == NULL)
+			APList = pKnown_bss;
+		else {
+			pKnown_bss->next = APList;
+			APList = pKnown_bss;
+		}        
+		
+	}		
+
+	return APList;
+#else
+    return NULL;
+#endif
+
 #if 0
 	VOID *pAd = NULL;
 
@@ -1104,7 +1147,7 @@ int rt_ioctl_giwscan(struct net_device *dev,
 
     free(user_data);
 #endif
-    return NULL;
+    return APList;
 }
 
 void wlan_get_currbssid(unsigned char huge * bssid){

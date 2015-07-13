@@ -79,7 +79,7 @@ extern uint8 *GetATPortName(int i);
 extern int diag_flag;
 #endif
 
-#ifndef USE_PS_LIBS
+#ifndef USE_ADMIN_LIBS
 char ANYESS[] = "< ANY >";
 #endif
 extern uint8    rxStatsRSSI;             /* RF Signal Strength Indicator */

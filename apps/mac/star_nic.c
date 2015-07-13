@@ -1771,17 +1771,9 @@ void star_nic_receive_packet(int mode, int work_to_do)
 				return;
 			}
 #else	//ZOT
-			if (skb_ptr != NULL) {
-				star_nic_get_rfd_buff(rxring.cur_index);
-				rxdesc_ptr->length	= MAX_PACKET_LEN;	
-				rxdesc_ptr->cown	= 0; // set cbit to 0 for CPU Transfer	
-			} else {
-				// TODO:
-				// I will add dev->lp.stats->rx_dropped, it will effect the performance
-				DBG_PRINT("%s: Alloc sk_buff fail, reuse the buffer\n", __FUNCTION__);
-				rxdesc_ptr->cown	= 0; // set cbit to 0 for CPU Transfer	
-				return;
-			}
+		    star_nic_get_rfd_buff(rxring.cur_index);
+		    rxdesc_ptr->length	= MAX_PACKET_LEN;	
+		    rxdesc_ptr->cown	= 0; // set cbit to 0 for CPU Transfer	
 #endif	//ZOT			
 		} else {
 			//printk("[KC_DEBUG] star_nic_receive_packet() encounter COWN==0 BUG\n");

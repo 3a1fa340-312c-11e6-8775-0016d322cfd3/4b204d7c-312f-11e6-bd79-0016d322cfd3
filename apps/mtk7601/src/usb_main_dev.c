@@ -40,6 +40,13 @@ MODULE_AUTHOR("Paul Lin <paul_lin@ralinktech.com>");
 MODULE_DESCRIPTION("RT2870 Wireless Lan Linux Driver");
 
 
+#define EMI_TASK_PRI         	20
+#define EMI_TASK_STACK_SIZE  	8192
+static	uint8			EMI_Stack[EMI_TASK_STACK_SIZE];
+static  cyg_thread		EMI_Task;
+static  cyg_handle_t	EMI_TaskHdl;
+extern void emi_task(cyg_addrword_t data);
+
 #ifdef CONFIG_STA_SUPPORT
 #ifdef MODULE_VERSION
 MODULE_VERSION(STA_DRIVER_VERSION);
@@ -816,6 +823,22 @@ static int rt2870_probe(
 
 	WirelessInitFailed = 0;	
     
+	//for EMI 	
+	if( mvCTX != 0 || mvCRX != 0)	
+    {	//eason 2010730 EMI task	
+    	cyg_thread_create(EMI_TASK_PRI,
+			emi_task,
+			0,
+			"EMI_Task",
+			(void *) (EMI_Stack),
+			EMI_TASK_STACK_SIZE,
+			&EMI_TaskHdl,
+			&EMI_Task);
+					
+		//Start EMI Thread
+		cyg_thread_resume(EMI_TaskHdl);
+     }
+
 #endif /* _LINUX_SOURCE_ */
 
 	DBGPRINT(RT_DEBUG_TRACE, ("<===rt2870_probe()!\n"));

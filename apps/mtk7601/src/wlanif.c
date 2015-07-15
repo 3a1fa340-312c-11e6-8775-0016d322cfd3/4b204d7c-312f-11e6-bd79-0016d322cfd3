@@ -54,6 +54,8 @@ UINT8   mvWDomain;          //0x0010 USA    1-11
                             //0x0040 Japan  14
                             //0x0041 Japan  1-14
 
+UINT8   mt7601_countryRegionABand;
+
 UINT8   mvWEPKey[32];   	// cannot be NULL
 UINT8   mvWEPKey1[6];
 UINT8   mvWEPKey2[6];
@@ -416,37 +418,44 @@ void WLan_get_EEPData(void)
 			mvWDomain = 0x0010;
 			mvChannel_start =1;
 			mvChannel_end =11;
+            mt7601_countryRegionABand = 0;
 			break;
 		case 0xA2:  // ETSI   1-13
 			mvWDomain = 0x0030;
 			mvChannel_start =1;
 			mvChannel_end =13;		
+            mt7601_countryRegionABand = 1;
 			break;
 		case 0xA3:  // France 10-13
 			mvWDomain = 0x0032;
 			mvChannel_start =10;
 			mvChannel_end =13;		
+            mt7601_countryRegionABand = 3;
 			break;
 		case 0xA4:  // Japan  1-14
 			mvWDomain = 0x0041;
 			mvChannel_start =1;
 			mvChannel_end =14;		
+            mt7601_countryRegionABand = 5;
 			break;
 		case 0xA5:  // SPAIN  10-11
 			mvWDomain = 0x0031;
 			mvChannel_start =10;
 			mvChannel_end =11;		
+            mt7601_countryRegionABand = 2;
 			break;
 		case 0xA6:  // Japan  14
 			mvWDomain = 0x0040;
 			mvChannel_start =14;
 			mvChannel_end =14;		
+            mt7601_countryRegionABand = 4;
 			break;
 		default:
 			mvWDomain = 0x0010; //USA    1-11
 			mvChannel_start =1;
 			mvChannel_end =11;		
-			break;
+            mt7601_countryRegionABand = 0;
+		    break;
 		}
 		
 		if( mvChannel < mvChannel_start )
@@ -567,6 +576,7 @@ char* WLan_config ()
     char* config_buf = malloc (4096);
     char  str_buf[14];
     int   offset = 0, i;
+    int   wirelessMode = 9;
 
     /* MAC address */
     if (config_buf) {
@@ -605,11 +615,25 @@ char* WLan_config ()
     //	   10: 11AGN mixed	
     //
     //	    mvTxMode;		            // 0x00: B-G mixed  0x01: B only  0x02: G only 0x03:B-G-N mixed 
-    offset += sprintf(config_buf+offset, "WirelessMode=9\n");
+    switch (mvTxMode) {
+        case 0:
+            wirelessMode = 0;
+            break;
+        case 1:
+            wirelessMode = 1;
+            break;
+        case 2:
+            wirelessMode = 4;
+            break;
+        default:
+            wirelessMode = 9;
+            break;
+    }
+    offset += sprintf(config_buf+offset, "WirelessMode=%d\n", wirelessMode);
 
     offset += sprintf(config_buf+offset, "CountryCode=TW\n");
     /* country region */
-    offset += sprintf(config_buf+offset, "CountryRegion=1\n");
+    offset += sprintf(config_buf+offset, "CountryRegion=%d\n", mvWDomain);
 
     /* country region aband */
     //@> CountryRegionABand=value      							
@@ -627,7 +651,7 @@ char* WLan_config ()
     //	   10: use 36, 40, 44, 48, 149, 153, 157, 161, 165 Channel
     //	   11: use 36, 40, 44, 48, 52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 149, 153, 157, 161 Channel
 
-    offset += sprintf(config_buf+offset, "CountryRegionABand=7\n");
+    offset += sprintf(config_buf+offset, "CountryRegionABand=%d\n", mt7601_countryRegionABand);
     
     offset += sprintf(config_buf+offset, "ChannelGeography=1\n");
     /* SSID */
@@ -653,10 +677,10 @@ char* WLan_config ()
     #endif
 
     /* beacon period */
-    offset += sprintf(config_buf+offset, "BeaconPeriod=100\n");
+    offset += sprintf(config_buf+offset, "BeaconPeriod=%d\n", mvBeaconinterval);
 
     /* tx power default 100*/
-    #if 0
+    #if 1
     offset += sprintf(config_buf+offset, "TxPower=%d\n", mvTxPower);
     #else
     offset += sprintf(config_buf+offset, "TxPower=100\n");
@@ -877,7 +901,7 @@ char* WLan_config ()
     //	value
     //		0				20MHz
     //		1				40MHz
-    offset += sprintf(config_buf+offset, "HT_BW=1\n");
+    offset += sprintf(config_buf+offset, "HT_BW=%d\n", mvBandWidth);
 
     //@> HT_AutoBA=value
     //	value
@@ -971,6 +995,13 @@ char* WLan_config ()
     //		0				Disabled
     //		1				Enabled
     offset += sprintf(config_buf+offset, "CarrierDetect=0\n");
+
+    if (mvDataRate <= 3)
+        offset += sprintf(config_buf+offset, "FixedTxMode=CCK\n");
+    if (mvDataRate >= 4 && mvDataRate <= 11)
+        offset += sprintf(config_buf+offset, "FixedTxMode=OFDM\n");
+    if (mvDataRate >= 12 && mvDataRate <= 27)
+        offset += sprintf(config_buf+offset,"FixedTxMode=HT\n");
 
     offset += sprintf(config_buf+offset, "BeaconLostTime=4\n");
     offset += sprintf(config_buf+offset, "RaidoOn=1\n");

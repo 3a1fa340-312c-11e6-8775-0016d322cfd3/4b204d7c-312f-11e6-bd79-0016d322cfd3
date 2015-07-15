@@ -534,10 +534,12 @@ void SetAnySsid(IN	PRTMP_ADAPTER	pAd)
 	pAd->MlmeAux.SsidLen = pAd->CommonCfg.SsidLen;
 }
 
+extern PNET_DEV    g_wireless_dev; /* global wireless device */
 void emi_task(cyg_addrword_t data)
 {
-	RTMP_ADAPTER *pAd = (RTMP_ADAPTER *)Global_pAd;	//ZOT
-	
+	RTMP_ADAPTER *pAd;	
+    GET_PAD_FROM_NET_DEV(pAd, g_wireless_dev);
+
 	if (mvCTX) {
 		RTMPStartEMITx (pAd, mvTxPower, mvChannel, mvTxMode, mvDataRate);
 	}else if (mvCRX) {

@@ -631,7 +631,7 @@ char* WLan_config ()
     
     offset += sprintf(config_buf+offset, "ChannelGeography=1\n");
     /* SSID */
-    #if 1
+    #if 0
     offset += sprintf(config_buf+offset, "SSID=%s\n", mvESSID);
     #else
     offset += sprintf(config_buf+offset, "SSID=TStudio\n");
@@ -643,7 +643,7 @@ char* WLan_config ()
     //		Infra: infrastructure mode
     //     	Adhoc: adhoc mode
     
-    #if 1
+    #if 0
     if (mvBSSType == 1)
         offset += sprintf(config_buf+offset, "NetworkType=Infra\n");
     else
@@ -656,7 +656,11 @@ char* WLan_config ()
     offset += sprintf(config_buf+offset, "BeaconPeriod=100\n");
 
     /* tx power default 100*/
+    #if 0
     offset += sprintf(config_buf+offset, "TxPower=%d\n", mvTxPower);
+    #else
+    offset += sprintf(config_buf+offset, "TxPower=100\n");
+    #endif
 
     /* bg protection */
     //@> BGProtection=value
@@ -678,7 +682,7 @@ char* WLan_config ()
     //@> RTSThreshold=value
     //	value
     //		1~2347 
-    offset += sprintf(config_buf+offset, "RTSThreshold=2347\n");
+    offset += sprintf(config_buf+offset, "RTSThreshold=2346\n");
 
     /* frag threshold */
     //@> FragThreshold=value
@@ -732,7 +736,8 @@ char* WLan_config ()
     //      mvWEPType : 2 -> 128-bit , key at mvWEP128KEY1-4
     #if 1
     switch(mvAuthenticationType) {
-        case 1 : /* open */
+        case 1: /* open */
+        case 2: /* shared */
         default:
             if (mvWEPType == 0) {
                 offset += sprintf(config_buf+offset, "AuthMode=OPEN\n");
@@ -743,12 +748,15 @@ char* WLan_config ()
                 offset += sprintf(config_buf+offset, "EncryType=WEP\n");
             }
             break;
-        case 2: /* shared */
-            break;
         case 3: /* both */
             break;
         case 4: /* WPA PSK */
-                offset += sprintf(config_buf+offset, "AuthMode=WPAPSK\n");
+            if (mvWPAType == 0)
+                offset += sprintf(config_buf+offset, "EncrypType=TKIP\n");
+            else
+                offset += sprintf(config_buf+offset, "EncrypType=AES\n");
+
+            offset += sprintf(config_buf+offset, "AuthMode=WPAPSK\n");
             break;
         case 5: /* WPA2 PSK */
             if (mvWPAType == 0)
@@ -760,8 +768,12 @@ char* WLan_config ()
             break;
     }
     #else
+    /*
     offset += sprintf(config_buf+offset, "AuthMode=WEPAUTO\n");
     offset += sprintf(config_buf+offset, "EncryType=WEP\n");
+    */
+    offset += sprintf(config_buf+offset, "AuthMode=WPA2PSK\n");
+    offset += sprintf(config_buf+offset, "EncrypType=TKIP\n");
     #endif
 
     /* default key index */
@@ -810,6 +822,7 @@ char* WLan_config ()
 
     #else
     offset += sprintf(config_buf+offset, "Key1Str=termy22688953\n");
+    offset += sprintf(config_buf+offset, "WPAPSK=termy22688953\n");
     #endif
 
     //@> PSMode=value

@@ -655,7 +655,7 @@ char* WLan_config ()
     
     offset += sprintf(config_buf+offset, "ChannelGeography=1\n");
     /* SSID */
-    #if 1
+    #if 0
     offset += sprintf(config_buf+offset, "SSID=%s\n", mvESSID);
     #else
     offset += sprintf(config_buf+offset, "SSID=TStudio\n");
@@ -667,7 +667,7 @@ char* WLan_config ()
     //		Infra: infrastructure mode
     //     	Adhoc: adhoc mode
     
-    #if 1
+    #if 0
     if (mvBSSType == 1)
         offset += sprintf(config_buf+offset, "NetworkType=Infra\n");
     else

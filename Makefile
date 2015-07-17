@@ -126,12 +126,12 @@ SYS_LIBS	= mac.a usb_host.a psglobal.a http_zot.a tcpip.a psutility.a uart.a mtk
 ADMIN_LIBS 	= ntps.a ipxbeui.a
 
 # use this library must to define USE_PS_LIBS 
-PS_LIBS		= spooler.a novell.a nds.a lpd.a ippd.a atalk.a rawtcpd.a snmp.a rendezvous.a
+PS_LIBS		= spooler.a novell.a nds.a lpd.a ippd.a atalk.a rawtcpd.a rendezvous.a
 
 # use htis library must to define USE_NETAPP_LIBS
-NETAPP_LIBS = telnet.a tftp_zot.a smbd.a
+NETAPP_LIBS = telnet.a tftp_zot.a smbd.a snmp.a
 
-ALL_LIBS = $(SYS_LIBS) $(ADMIN_LIBS) $(PS_LIBS) $(NETAPP_LIBS)
+ALL_LIBS = $(SYS_LIBS) $(ADMIN_LIBS) $(PS_LIBS)
 
 
 

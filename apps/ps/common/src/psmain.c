@@ -13,6 +13,7 @@
 #undef SMBD
 #undef UNIXUTIL_TFTP
 #undef TELNETD
+#undef SNMPD
 #endif /* !NETAPP_LIBS */
 
 #ifndef USE_PS_LIBS
@@ -24,7 +25,6 @@
 #undef Print_ALERT
 #undef RENDEZVOUS
 #undef RAWTCPD
-#undef SNMPD
 #undef UNIXUTIL_TFTP
 #undef TELNETD
 #endif /* !USE_PS_LIBS */

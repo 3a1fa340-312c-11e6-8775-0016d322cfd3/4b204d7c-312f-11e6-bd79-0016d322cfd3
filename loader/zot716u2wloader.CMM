@@ -33,9 +33,9 @@
  D.S SD:0x76000000 %LE %LONG 0x1 		;re-map
  
  REGISTER.RESET
- d.load.elf C:\ZOT716U2W_SDK_0.01\loader\bin\zot716u2w.axf /spath /lpath
+ d.load.elf Z:\ZOT716U2W_SDK_0.01\loader\bin\zot716u2w.axf /spath /lpath
 
- y.spath + C:\ZOT716U2W_SDK_0.01\loader\src
+ y.spath + Z:\ZOT716U2W_SDK_0.01\loader\src
 
  winpos 0% 0% 100% 50%
  w.d.l

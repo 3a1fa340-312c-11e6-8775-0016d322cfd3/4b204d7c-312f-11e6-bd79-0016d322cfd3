@@ -11,7 +11,7 @@ TARGET = zot716u2w
 #############################################################################
 # Setting Pathes
 
-ROOT_DIR			= C:\ZOT716U2W_SDK_0.01\loader
+ROOT_DIR			= Z:\ZOT716U2W_SDK_0.01\loader
 SRC_DIR				= $(ROOT_DIR)\src
 BIN_DIR				= $(ROOT_DIR)\bin
 OBJ_DIR				= $(ROOT_DIR)\obj

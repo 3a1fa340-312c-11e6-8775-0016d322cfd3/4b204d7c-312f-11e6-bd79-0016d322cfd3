@@ -8,10 +8,10 @@
 
 !INCLUDE PATH.DEF
 
-CC					= @C:\ARM251\BIN\ARMCC
-ASM					= @C:\ARM251\BIN\ARMASM
-LIB					= @C:\ARM251\BIN\ARMLIB
-LINK				= @C:\ARM251\BIN\ARMLINK
+CC					= @D:\ARM251\BIN\ARMCC
+ASM					= @D:\ARM251\BIN\ARMASM
+LIB					= @D:\ARM251\BIN\ARMLIB
+LINK				= @D:\ARM251\BIN\ARMLINK
 
 !IF "$(OS)" == "Windows_NT"
 NULL=
@@ -29,7 +29,7 @@ NULL=nul
 
 CPU_OPTIONS			= -processor ARM922 -arch 4T
 
-ARMLIB				= C:\ARM251\LIB
+ARMLIB				= D:\ARM251\LIB
 
 #if you take off -DCONST_DATA, you must be check httpd.c diefin 
 
@@ -93,6 +93,8 @@ $(BIN_DIR)\$(TARGET).BIN : $(BIN_DIR) $(MAIN_LIBS)
 	-Symbols $*.SYM
 	-map -list $*.LST
 	-Output $@ 
+    -verbose
+    -libpath $(ARMLIB)
 	$(MAIN_LIBS)
 <<
 
@@ -102,6 +104,7 @@ $(BIN_DIR)\$(TARGET).AXF : $(BIN_DIR) $(CFG_FILE) $(MAIN_LIBS)
 	-first INIT.o(Init) -elf -debug -nozeropad $(MEM_OPTIONS)
 	-Errors E
 	-Output $@ 
+    -libpath $(ARMLIB) 
 	$(MAIN_LIBS)
 <<
 

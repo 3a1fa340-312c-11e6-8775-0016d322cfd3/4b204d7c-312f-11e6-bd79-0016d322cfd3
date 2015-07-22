@@ -258,7 +258,7 @@ int ZOT716U2CODE2Checksum( void )
 #ifdef SPI_FLASH
 	read_flash(FL_ZOT716U2_CODE2_LEN, &LengthOrg , 4);
 	Length = NGET32( &LengthOrg );
-	if (Length > 0xB0000)	//704KB
+	if (Length > 0xC0000)	//704KB
 		return 0;
 	read_flash(FL_ZOT716U2_CODE2_START, ZOT716U2_SDRAM_COPY_START, Length + sizeof(HEADER_VER1) );	
 #endif	
@@ -268,7 +268,7 @@ int ZOT716U2CODE2Checksum( void )
 	
 	Length = NGET32( &LengthOrg );
 
-	if (Length > 0xB0000)	//704KB
+	if (Length > 0xC0000)	//704KB
 		return 0;
 		
 	CheckSum2 = crc32( ZOT716U2_SDRAM_COPY_START + 4, Length + (sizeof(HEADER_VER1) - 4), 0xFFFFFFFFL );		//ZOT716u2 SPI Flash :: 4Bytes read once.

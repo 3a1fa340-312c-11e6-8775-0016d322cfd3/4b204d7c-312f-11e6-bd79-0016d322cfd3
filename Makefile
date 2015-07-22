@@ -131,15 +131,14 @@ PS_LIBS		= spooler.a novell.a nds.a lpd.a ippd.a atalk.a rawtcpd.a rendezvous.a
 # use htis library must to define USE_NETAPP_LIBS
 NETAPP_LIBS = telnet.a tftp_zot.a smbd.a snmp.a
 
-ALL_LIBS = $(SYS_LIBS) $(ADMIN_LIBS) $(PS_LIBS)
-
+ALL_LIBS = $(SYS_LIBS) $(ADMIN_LIBS) $(PS_LIBS) $(NETAPP_LIBS)
 
 
 PROD_LIBS = $(addprefix $(PROD_BUILD_DIR)/lib/, $(ALL_LIBS))
 
 PROD_MODULES_MAK =$(MAC_MAK) $(USB_HOST_MAK) $(PSGLOBAL_MAK) $(NTPS_MAK) $(SPOOLER_MAK) $(NOVELL_MAK) $(NDS_MAK) $(IPPD_MAK) $(HTTP_ZOT_MAK) $(LPD_MAK) \
 	$(RAWTCPD_MAK) $(TELNET_MAK) $(SMBD_MAK) $(TFTP_ZOT_MAK) $(ATALK_MAK) $(SNMP_MAK) $(RENDEZVOUS_MAK) $(TCPIP_MAK) $(PSUTILITY_MAK) $(IPXBEUI_MAK) \
-	$(UART_MAK) $(REALTEK_MAK) $(WPA_SUPPLICANT_MAK) $(MTK7601_MAK)
+	$(UART_MAK) $(REALTEK_MAK) $(WPA_SUPPLICANT_MAK) $(MTK7601_MAK) 
 
 PROD_MODULES = mac psutility usb_host ipxbeui ntps spooler psglobal novell nds ippd http_zot lpd rawtcpd\
 				 telnet smbd tftp_zot tcpip atalk snmp rendezvous uart mtk7601 realtek wpa_supplicant

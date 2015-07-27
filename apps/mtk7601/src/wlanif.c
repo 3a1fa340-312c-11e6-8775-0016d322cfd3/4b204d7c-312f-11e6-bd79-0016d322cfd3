@@ -596,7 +596,6 @@ char* WLan_config ()
     
     /* channel */
 
-    mvChannel = 0;
     offset += sprintf(config_buf+offset, "Channel=%s\n", mvChannel);
  
     /* wireless mode */

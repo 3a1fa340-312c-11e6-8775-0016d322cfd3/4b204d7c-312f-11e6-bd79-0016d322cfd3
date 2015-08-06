@@ -1,4 +1,6 @@
 
+#include "stdio.h"
+#include "stdlib.h"
 #include "mtk7601_dep.h"
 #include "rt_config.h"
 #include "pstarget.h"
@@ -244,7 +246,7 @@ struct sk_buff* dev_alloc_skb (unsigned int length)
 	int i_state;
 
 	i_state = dirps();
-	skb = (struct sk_buff *)malloc(sizeof(struct sk_buff),0);
+	skb = (struct sk_buff *)malloc(sizeof(struct sk_buff));
 
 	if(skb != NULL) {
     	/* Clear just the header portion */
@@ -566,6 +568,7 @@ VOID RTMPStartEMITx (PRTMP_ADAPTER pAdapter, UCHAR txPower, UCHAR channel, UCHAR
 	 UCHAR	wlMode = 0;
 	 UCHAR  TxMode = 0;
 	 int ratevalue = 0;
+     char str_buffer[32];
 	 
 	 Set_ATE_Proc(pAdapter, "ATESTART");
 	 
@@ -617,6 +620,23 @@ VOID RTMPStartEMITx (PRTMP_ADAPTER pAdapter, UCHAR txPower, UCHAR channel, UCHAR
 	   	ratevalue = tx_rate - 12;
 	 }	 
 		
+    /* wireless mode */
+    //@> WirelessMode=value
+	//value	
+    //		0: legacy 11b/g mixed 
+    //		1: legacy 11B only 
+    //		2: legacy 11A only          //Not support in RfIcType=1(id=RFIC_5225) and RfIcType=2(id=RFIC_5325)
+    //		3: legacy 11a/b/g mixed     //Not support in RfIcType=1(id=RFIC_5225) and RfIcType=2(id=RFIC_5325)
+    //		4: legacy 11G only
+    //		5: 11ABGN mixed
+    //		6: 11N only
+    //		7: 11GN mixed
+    //		8: 11AN mixed
+    //		9: 11BGN mixed
+    //	   10: 11AGN mixed	
+    //
+    //	    mvTxMode;		            // 0x00: B-G mixed  0x01: B only  0x02: G only 0x03:B-G-N mixed 
+
 	 if (wireless_mode == 0){
 	 	wlMode = PHY_11BG_MIXED;
 	 	if(tx_rate > 3)
@@ -648,21 +668,32 @@ VOID RTMPStartEMITx (PRTMP_ADAPTER pAdapter, UCHAR txPower, UCHAR channel, UCHAR
 	 		TxMode = 0;
 	}
 	 	
-	 Set_WirelessMode_Proc (pAdapter, wlMode);
+    /*
+    sprintf(str_buffer, "%d\0", wlMode);
+    Set_WirelessMode_Proc (pAdapter, str_buffer);
+    */
 	 	 
-	 Set_ATE_DA_Proc (pAdapter, "00:11:22:33:44:55");
-	 Set_ATE_SA_Proc (pAdapter, "00:aa:bb:cc:dd:ee");
-	 Set_ATE_BSSID_Proc (pAdapter, "00-11-22-33-44-55");
+    Set_ATE_DA_Proc (pAdapter, "00:11:22:33:44:55");
+    Set_ATE_SA_Proc (pAdapter, "00:aa:bb:cc:dd:ee");
+    Set_ATE_BSSID_Proc (pAdapter, "00-11-22-33-44-55");
 
-	 Set_ATE_TX_MODE_Proc(pAdapter, TxMode);
-	 Set_ATE_CHANNEL_Proc (pAdapter, channel);
-	 Set_ATE_TX_BW_Proc(pAdapter, mvBandWidth);
-	 Set_ATE_TX_MCS_Proc (pAdapter, ratevalue);	 	 
+    sprintf(str_buffer, "%d\0", TxMode);
+    Set_ATE_TX_MODE_Proc(pAdapter, str_buffer);
+    sprintf(str_buffer, "%d\0", channel);
+    Set_ATE_CHANNEL_Proc (pAdapter, str_buffer);
+    sprintf(str_buffer, "%d\0", mvBandWidth);
+    Set_ATE_TX_BW_Proc(pAdapter, str_buffer);
+    /*
+    sprintf(str_buffer, "%d\0", ratevalue);
+    Set_ATE_TX_MCS_Proc (pAdapter, str_buffer);	 	 
+    */
 	 
-	 Set_ATE_TX_LENGTH_Proc (pAdapter, "1024");
-	 Set_ATE_TX_POWER0_Proc (pAdapter, txPower);
-	 Set_ATE_TX_COUNT_Proc (pAdapter, "1000000");
-	 Set_ATE_Proc(pAdapter, "TXFRAME");		
+    Set_ATE_TX_LENGTH_Proc (pAdapter, "1024");
+    if (txPower > 10) txPower = 10;
+    sprintf(str_buffer, "%d\0", txPower);
+    Set_ATE_TX_POWER0_Proc (pAdapter, str_buffer);
+    Set_ATE_TX_COUNT_Proc (pAdapter, "1000000");
+    Set_ATE_Proc(pAdapter, "TXFRAME");		
 	 
 	Set_ATE_Proc (pAdapter, "TXCONT");
 	
@@ -676,11 +707,61 @@ VOID RTMPStartEMIRx (PRTMP_ADAPTER pAdapter, UCHAR tx_rate)
 	 * set	ATETXRATE		= 11;
 	 * set	ATE				= RXFRAME;
 	 */
+    char str_buffer[32];
+    int ratevalue;
 	
 	Set_ATE_Proc(pAdapter, "ATESTART");
 	Set_ResetStatCounter_Proc (pAdapter, 0);
-	Set_ATE_TX_MCS_Proc (pAdapter, tx_rate);
-	
+
+	 if(tx_rate < 12)
+	 {
+		 switch(tx_rate)
+		 {
+			case 0:  //bit0 (1M)
+		        ratevalue = 0;
+				break;
+			case 1:  //bit1 (2M)
+		        ratevalue = 1;
+				break;
+			case 2:  //bit2 (5.5M)
+		        ratevalue = 2;
+				break;
+			case 3:  //bit3 (11M)
+		        ratevalue = 3;
+				break;				
+			case 4:  //bit0 (6M)
+				ratevalue = 0;
+				break;
+			case 5:  //bit1 (9M)
+				ratevalue = 1;
+				break;
+			case 6:  //bit1 (12M)
+				ratevalue = 2;
+				break;
+			case 7:  //bit1 (18M)
+				ratevalue = 3;
+				break;
+			case 8:  //bit1 (24M)
+				ratevalue = 4;
+				break;	
+			case 9:  //bit1 (36M)
+				ratevalue = 5;
+				break;
+			case 10:  //bit1 (48M)
+				ratevalue = 6;
+				break;
+			case 11:  //bit1 (54M)
+				ratevalue = 7;
+				break;						
+			default:
+		        ratevalue = 11;
+				break;
+		  }
+    }else{
+	   	ratevalue = tx_rate - 12;
+    }	
+    sprintf(str_buffer, "%d\n", ratevalue);
+	Set_ATE_TX_MCS_Proc (pAdapter, str_buffer);
 	Set_ATE_Proc (pAdapter, "RXFRAME");
 
 }

@@ -92,7 +92,7 @@ UINT    mvNonModulate =0; //0 or 1
 UINT	mvConfigMode;	//isl3890, 2:INL_MODE_AP, 1:INL_MODE_CLIENT(default)
 UINT	mvExtRate;		//isl3890, for 6~54Mb
 UINT 	mvWPAauth;		// 0:Open/WEP 1:WPA-PSK 2:WPA2-PSK
-UINT8	mvTxMode;		// 0x00: B-G mixed  0x01: B only  0x02: G only 0x03:B-G-N mixed 
+UINT8	mvTxMode;		// 0x00: B-G mixed  0x01: B only  0x02: G only 0x03:B-G-N mixed 0x04: N only
 UINT	mvBandWidth;	// 0:20MHz 1:40MHz
 UINT    mvDataRate;		//0~3:CCK 4~11:OFDM 12~27:MCS0~15
 
@@ -418,43 +418,43 @@ void WLan_get_EEPData(void)
 			mvWDomain = 0x0010;
 			mvChannel_start =1;
 			mvChannel_end =11;
-            mt7601_countryRegionABand = 0;
+            mt7601_countryRegionABand = 7;//0;
 			break;
 		case 0xA2:  // ETSI   1-13
 			mvWDomain = 0x0030;
 			mvChannel_start =1;
 			mvChannel_end =13;		
-            mt7601_countryRegionABand = 1;
+            mt7601_countryRegionABand = 7;//1;
 			break;
 		case 0xA3:  // France 10-13
 			mvWDomain = 0x0032;
 			mvChannel_start =10;
 			mvChannel_end =13;		
-            mt7601_countryRegionABand = 3;
+            mt7601_countryRegionABand = 7;//3;
 			break;
 		case 0xA4:  // Japan  1-14
 			mvWDomain = 0x0041;
 			mvChannel_start =1;
 			mvChannel_end =14;		
-            mt7601_countryRegionABand = 5;
+            mt7601_countryRegionABand = 7;//5;
 			break;
 		case 0xA5:  // SPAIN  10-11
 			mvWDomain = 0x0031;
 			mvChannel_start =10;
 			mvChannel_end =11;		
-            mt7601_countryRegionABand = 2;
+            mt7601_countryRegionABand = 7;//2;
 			break;
 		case 0xA6:  // Japan  14
 			mvWDomain = 0x0040;
 			mvChannel_start =14;
 			mvChannel_end =14;		
-            mt7601_countryRegionABand = 4;
+            mt7601_countryRegionABand = 7;//4;
 			break;
 		default:
 			mvWDomain = 0x0010; //USA    1-11
 			mvChannel_start =1;
 			mvChannel_end =11;		
-            mt7601_countryRegionABand = 0;
+            mt7601_countryRegionABand = 7;//0;
 		    break;
 		}
 		
@@ -623,6 +623,10 @@ char* WLan_config ()
         case 2:
             wirelessMode = 4;
             break;
+        case 4:
+            wirelessMode = 6;
+            break;
+        case 3:
         default:
             wirelessMode = 9;
             break;
@@ -631,7 +635,8 @@ char* WLan_config ()
 
     offset += sprintf(config_buf+offset, "CountryCode=TW\n");
     /* country region */
-    offset += sprintf(config_buf+offset, "CountryRegion=%d\n", mvWDomain);
+    //offset += sprintf(config_buf+offset, "CountryRegion=%d\n", mvWDomain);
+    offset += sprintf(config_buf+offset, "CountryRegion=\n");
 
     /* country region aband */
     //@> CountryRegionABand=value      							
@@ -679,6 +684,7 @@ char* WLan_config ()
 
     /* tx power default 100*/
     #if 1
+    if (mvTxPower > 70) mvTxPower = 70;
     offset += sprintf(config_buf+offset, "TxPower=%d\n", mvTxPower);
     #else
     offset += sprintf(config_buf+offset, "TxPower=100\n");
@@ -790,12 +796,12 @@ char* WLan_config ()
             break;
     }
     #else
-    /*
     offset += sprintf(config_buf+offset, "AuthMode=WEPAUTO\n");
     offset += sprintf(config_buf+offset, "EncryType=WEP\n");
-    */
+    /*
     offset += sprintf(config_buf+offset, "AuthMode=WPA2PSK\n");
     offset += sprintf(config_buf+offset, "EncrypType=TKIP\n");
+    */
     #endif
 
     /* default key index */
@@ -994,12 +1000,18 @@ char* WLan_config ()
     //		1				Enabled
     offset += sprintf(config_buf+offset, "CarrierDetect=0\n");
 
-    if (mvDataRate <= 3)
+    if (mvDataRate <= 3) {
         offset += sprintf(config_buf+offset, "FixedTxMode=CCK\n");
-    if (mvDataRate >= 4 && mvDataRate <= 11)
+        offset += sprintf(config_buf+offset, "HT_MCS=%d\n", mvDataRate);
+    }
+    if (mvDataRate >= 4 && mvDataRate <= 11) {
         offset += sprintf(config_buf+offset, "FixedTxMode=OFDM\n");
-    if (mvDataRate >= 12 && mvDataRate <= 27)
+        offset += sprintf(config_buf+offset, "HT_MCS=%d\n", mvDataRate - 4);
+    }
+    if (mvDataRate >= 12 && mvDataRate <= 27) {
         offset += sprintf(config_buf+offset,"FixedTxMode=HT\n");
+        offset += sprintf(config_buf+offset,"HT_MCS=%d\n", mvDataRate - 12);
+    }
 
     offset += sprintf(config_buf+offset, "BeaconLostTime=4\n");
     offset += sprintf(config_buf+offset, "RaidoOn=1\n");
@@ -1066,6 +1078,11 @@ void do_wireless_close(void) {
 
     if (WirelessInitFailed)
         return;
+
+    //MT7601_WLAN_ChipOnOff(pAd, FALSE, TRUE);
+	//RTMPFreeAdapter(pAd);
+
+    //RTMPDrvClose(pAd, g_wireless_dev);
 #if 0
     printk("enter do_wireless_close\n");
     //RT28xxUsbAsicRadioOff (pAd);

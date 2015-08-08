@@ -72,8 +72,8 @@ copy_from_pbuf(struct pbuf *p, u16_t * offset,
   return p;
 }
 
-#define IP_REASS_BUFSIZE 5760
-#define IP_REASS_MAXAGE 30
+#define IP_REASS_BUFSIZE 16*1024 //5760
+#define IP_REASS_MAXAGE 5 
 #define IP_REASS_TMO 1000
 
 static u8_t ip_reassbuf[IP_HLEN + IP_REASS_BUFSIZE];

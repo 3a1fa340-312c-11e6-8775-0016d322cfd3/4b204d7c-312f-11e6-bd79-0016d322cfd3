@@ -225,15 +225,15 @@ pbuf_alloc(pbuf_layer l, u16_t length, pbuf_flag flag)
   switch (l) {
   case PBUF_TRANSPORT:
     /* add room for transport (often TCP) layer header */
-    offset += PBUF_TRANSPORT_HLEN;
+    offset += MEM_ALIGN_SIZE(PBUF_TRANSPORT_HLEN);
     /* FALLTHROUGH */
   case PBUF_IP:
     /* add room for IP layer header */
-    offset += PBUF_IP_HLEN;
+    offset += MEM_ALIGN_SIZE(PBUF_IP_HLEN);
     /* FALLTHROUGH */
   case PBUF_LINK:
     /* add room for link layer header */
-    offset += PBUF_LINK_HLEN;
+    offset += MEM_ALIGN_SIZE(PBUF_LINK_HLEN);
     break;
   case PBUF_RAW:
     break;

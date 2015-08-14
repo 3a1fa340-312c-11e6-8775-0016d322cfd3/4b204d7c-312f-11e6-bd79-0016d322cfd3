@@ -98,6 +98,7 @@ void zotmain( void )
 //UART
 	serial_init();
 	serial_puts("ZOT 716u2W...\n");
+    Wlan_reset();
 	
 //SPI FLASH INIT	
 	AT91F_SpiInit();

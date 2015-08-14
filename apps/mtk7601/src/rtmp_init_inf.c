@@ -354,6 +354,7 @@ int rt28xx_init(VOID *pAdSrc, PSTRING pDefaultMac, PSTRING pHostName)
 #else
     char* config_buffer = WLan_config();
     RTMPSetProfileParameters (pAd, config_buffer);
+    free (config_buffer);
 #endif /* _LINUX_SOURCE_ */
 
 #ifdef CONFIG_STA_SUPPORT

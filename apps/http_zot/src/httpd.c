@@ -1410,7 +1410,7 @@ httpd (cyg_addrword_t data)
                     if(1)
                     #endif
 					{
-						if( !vAllocCode2Memory() ) reject = 1;
+						if( !vAllocCode2Memory() ) {reject = 1; printk("allocCode2Memery Failure\n");}
                         #ifdef IPPD
 						qsize -= ( strlen( rq.boundary ) + 4 + 4);
                         #endif
@@ -5719,9 +5719,11 @@ void HttpGetMessage(void)	//9/20/99 added
 
 	WebMsgCount = *(WebFlash++);
 	ErrMsgCount = *WebFlash;
+   
 	if(WebMsgCount != MAX_WEB_MESSAGE || ErrMsgCount != MAX_ERR_MESSAGE) {
 		return;
 	}
+    
 	CurCount = 0;
 	for(i = 0 ; i < WebMsgCount; i++) {
 		WebMsg[CurCount++] = ++WebFlash;
@@ -5732,7 +5734,7 @@ void HttpGetMessage(void)	//9/20/99 added
 		CGI_Msg[CurCount++] = ++WebFlash;
 		while(*WebFlash != '\0') WebFlash++;
 	}
-	if( *(++WebFlash) != 0xFF) return;	//end mark error
+    if( *(++WebFlash) != 0xFF) return;//end mark error
 
 	pDirList = (PFS_DIR_LIST*)(++WebFlash);
 }

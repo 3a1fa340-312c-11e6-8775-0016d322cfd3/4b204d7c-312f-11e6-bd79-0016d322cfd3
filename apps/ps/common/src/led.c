@@ -44,9 +44,13 @@ void LED_Init(void)
 	W81_REGS32(0x8000A878) = val & ~0x20000;	
 #endif		
 #endif	//ZOT716u2
+    int value;
 
 	//LED (GPIO 16) Light on	
-	GPIOA_DATA_OUTPUT_REG = 0x0000C000;
+	value = GPIOA_DATA_INPUT_REG;
+    value |= (GPIO_14_MASK|GPIO_15_MASK);
+
+	GPIOA_DATA_OUTPUT_REG = value;
 
 		//Create LED Task Thread
 	    cyg_thread_create(LED_TASK_PRI,
@@ -212,7 +216,6 @@ void LightToggleProc(cyg_addrword_t data)
 			if( WirelessLightToggle > 5 ) WirelessLightToggle = 5;
 		}
 #endif
-#if (WLANMAC == RT8188) //eason 20100809		
 		if( LANLightToggle )
 		{
 			nLEDValue |= (1 << Status_Lite);
@@ -229,8 +232,12 @@ void LightToggleProc(cyg_addrword_t data)
 			
 			LANLightToggle_down--;
 			if( LANLightToggle_down > 5 ) LANLightToggle_down = 5;
+            wlan_connect();
 		}
-#endif		
+        else {
+            // LAN link up
+            wlan_disconnec();
+        }
 #ifdef  USB_LED		
 #if 0	//ZOT716u2
 		if (USBLightToggle){

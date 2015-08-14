@@ -7455,6 +7455,10 @@ VOID	WscWriteSsidToDatFile(
 		{
 			UINT profile_idx = pAd->StaCfg.WscControl.WscProfile.ApplyProfileIdx;
 			PWSC_CREDENTIAL pCredential = &pAd->StaCfg.WscControl.WscProfile.Profile[profile_idx];
+
+            memcpy(EEPROM_Data.WLESSID, pCredential->SSID.Ssid, pCredential->SSID.SsidLength); 
+            memcpy(mvESSID, pCredential->SSID.Ssid, pCredential->SSID.SsidLength);
+
 			NdisMoveMemory(pTempStr, "SSID=", strlen("SSID="));
 			offset = strlen(pTempStr);
 			NdisMoveMemory(pTempStr + offset, pCredential->SSID.Ssid, pCredential->SSID.SsidLength);
@@ -7524,9 +7528,12 @@ VOID	WscWriteWpaPskToDatFile(
 		IF_DEV_CONFIG_OPMODE_ON_STA(pAd)
 		{
 			pWscControl = &pAd->StaCfg.WscControl;
+
 			NdisMoveMemory(pTempStr, "WPAPSK=", strlen("WPAPSK="));
+
 			if (pWscControl->WpaPskLen)
 			{
+                memcpy(EEPROM_Data.WPA_Pass, pWscControl->WpaPsk, pWscControl->WpaPskLen);
 				offset = strlen(pTempStr);				
 				NdisMoveMemory(pTempStr + offset, pWscControl->WpaPsk, pWscControl->WpaPskLen);
 			}
@@ -7800,23 +7807,41 @@ INT	WscSetAuthMode(
 #ifdef CONFIG_STA_SUPPORT
 	if (CurOpMode == STA_MODE)
 	{
-		if (strcmp(arg, "WEPAUTO") == 0)
+		if (strcmp(arg, "WEPAUTO") == 0) {
 			pAd->StaCfg.AuthMode = Ndis802_11AuthModeAutoSwitch;
-		else if (strcmp(arg, "OPEN") == 0)
+            EEPROM_Data.WLAuthType = 3;
+            mvAuthenticationType = 3;
+        }
+		else if (strcmp(arg, "OPEN") == 0) {
 			pAd->StaCfg.AuthMode = Ndis802_11AuthModeOpen;
-		else if (strcmp(arg, "SHARED") == 0)
+            EEPROM_Data.WLAuthType = 1;
+            mvAuthenticationType = 1;
+        }
+		else if (strcmp(arg, "SHARED") == 0) {
 			pAd->StaCfg.AuthMode = Ndis802_11AuthModeShared;
-		else if (strcmp(arg, "WPAPSK") == 0)
+            EEPROM_Data.WLAuthType = 2;
+            mvAuthenticationType = 2;
+        }
+		else if (strcmp(arg, "WPAPSK") == 0) {
 			pAd->StaCfg.AuthMode = Ndis802_11AuthModeWPAPSK;
-		else if (strcmp(arg, "WPANONE") == 0)
+            EEPROM_Data.WLAuthType = 4;
+            mvAuthenticationType = 4;
+        }
+		else if (strcmp(arg, "WPANONE") == 0) {
 			pAd->StaCfg.AuthMode = Ndis802_11AuthModeWPANone;
-		else if ((strcmp(arg, "WPA2PSK") == 0) || (strcmp(arg, "WPAPSKWPA2PSK") == 0))
+        }
+		else if ((strcmp(arg, "WPA2PSK") == 0) || (strcmp(arg, "WPAPSKWPA2PSK") == 0)) {
 			pAd->StaCfg.AuthMode = Ndis802_11AuthModeWPA2PSK;    
+            EEPROM_Data.WLAuthType = 5;
+            mvAuthenticationType = 5;
+        }
 #ifdef WPA_SUPPLICANT_SUPPORT
-		else if (strcmp(arg, "WPA") == 0)
+		else if (strcmp(arg, "WPA") == 0) {
 			pAd->StaCfg.AuthMode = Ndis802_11AuthModeWPA;    
-		else if ((strcmp(arg, "WPA2") == 0) || (strcmp(arg, "WPA1WPA2") == 0))
+        }
+		else if ((strcmp(arg, "WPA2") == 0) || (strcmp(arg, "WPA1WPA2") == 0)) {
 			pAd->StaCfg.AuthMode = Ndis802_11AuthModeWPA2;
+        }
 #endif /* WPA_SUPPLICANT_SUPPORT */
 		else
 			return FALSE;  
@@ -7845,19 +7870,21 @@ INT	WscSetEncrypType(
 	if (CurOpMode == AP_MODE)
 	{
 
-	if ((strcmp(arg, "NONE") == 0) || (strcmp(arg, "none") == 0))
+	if ((strcmp(arg, "NONE") == 0) || (strcmp(arg, "none") == 0)) 
 		pAd->ApCfg.MBSSID[apidx].WepStatus = Ndis802_11WEPDisabled;
-	else if ((strcmp(arg, "WEP") == 0) || (strcmp(arg, "wep") == 0))
+	else if ((strcmp(arg, "WEP") == 0) || (strcmp(arg, "wep") == 0)) {
 		pAd->ApCfg.MBSSID[apidx].WepStatus = Ndis802_11WEPEnabled;
-	else if ((strcmp(arg, "TKIP") == 0) || (strcmp(arg, "tkip") == 0))
+    }
+	else if ((strcmp(arg, "TKIP") == 0) || (strcmp(arg, "tkip") == 0)) 
 		pAd->ApCfg.MBSSID[apidx].WepStatus = Ndis802_11Encryption2Enabled;
-	else if ((strcmp(arg, "AES") == 0) || (strcmp(arg, "aes") == 0))
+	else if ((strcmp(arg, "AES") == 0) || (strcmp(arg, "aes") == 0)) 
 		pAd->ApCfg.MBSSID[apidx].WepStatus = Ndis802_11Encryption3Enabled;
-	else if ((strcmp(arg, "TKIPAES") == 0) || (strcmp(arg, "tkipaes") == 0))
+	else if ((strcmp(arg, "TKIPAES") == 0) || (strcmp(arg, "tkipaes") == 0)) 
 		pAd->ApCfg.MBSSID[apidx].WepStatus = Ndis802_11Encryption4Enabled;
 	else
     	{
 		pAd->ApCfg.MBSSID[apidx].WepStatus = Ndis802_11WEPDisabled;
+        EEPROM_Data.WLWEPType = 0;
 		DBGPRINT(RT_DEBUG_TRACE, ("%s: Unknow EncrypType (%s), set EncrypType to NONE\n", __FUNCTION__, arg));
 	}
 
@@ -7882,6 +7909,9 @@ INT	WscSetEncrypType(
 			pAd->StaCfg.WepStatus     = Ndis802_11WEPDisabled;
 			pAd->StaCfg.PairCipher    = Ndis802_11WEPDisabled;
 			pAd->StaCfg.GroupCipher   = Ndis802_11WEPDisabled;
+            EEPROM_Data.WLWEPType = 0;
+            mvWEPType = 0;
+
 		}
 		else if (strcmp(arg, "WEP") == 0)
 		{
@@ -7891,6 +7921,8 @@ INT	WscSetEncrypType(
 			pAd->StaCfg.WepStatus     = Ndis802_11WEPEnabled;
 			pAd->StaCfg.PairCipher    = Ndis802_11WEPEnabled;
 			pAd->StaCfg.GroupCipher   = Ndis802_11WEPEnabled;
+            EEPROM_Data.WLWEPType = 1;
+            mvWEPType = 1;
 		}
 		else if (strcmp(arg, "TKIP") == 0)
 		{
@@ -7900,6 +7932,8 @@ INT	WscSetEncrypType(
 			pAd->StaCfg.WepStatus     = Ndis802_11Encryption2Enabled;
 			pAd->StaCfg.PairCipher    = Ndis802_11Encryption2Enabled;
 			pAd->StaCfg.GroupCipher   = Ndis802_11Encryption2Enabled;
+            EEPROM_Data.WLWPAType = 0;
+            mvWPAType = 0;
 		}
 		else if ((strcmp(arg, "AES") == 0) || (strcmp(arg, "TKIPAES") == 0))
 		{
@@ -7909,6 +7943,8 @@ INT	WscSetEncrypType(
 			pAd->StaCfg.WepStatus     = Ndis802_11Encryption3Enabled;
 			pAd->StaCfg.PairCipher    = Ndis802_11Encryption3Enabled;
 			pAd->StaCfg.GroupCipher   = Ndis802_11Encryption3Enabled;
+            EEPROM_Data.WLWPAType = 1;
+            mvWPAType = 1;
 		}
 		else
 			return FALSE;
@@ -9831,11 +9867,11 @@ VOID WscPBC_DPID_FromSTA(
 	}
 }
 
+#ifdef _LINUX_SOURCE_
 void    WscWriteConfToDatFile(
     IN  PRTMP_ADAPTER 	pAd,
     IN  UCHAR			CurOpMode)
 {
-#ifdef _LINUX_SOURCE_
 	char	*cfgData = 0;
 	PSTRING			fileName = NULL;
 	RTMP_OS_FD		file_r, file_w;
@@ -9965,10 +10001,14 @@ void    WscWriteConfToDatFile(
 				else if (strncmp(pTempStr, "NetworkType=", strlen("NetworkType=")) == 0)
 				{
 					NdisZeroMemory(pTempStr, 512);					
-					if (pAd->StaCfg.BssType == BSS_ADHOC)
+					if (pAd->StaCfg.BssType == BSS_ADHOC) {
 						snprintf(pTempStr, 512, "NetworkType=Adhoc");
-					else
+                        EEPROM_Data.WLMode = 2;
+                    }
+					else {
 						snprintf(pTempStr, 512, "NetworkType=Infra");
+                        EEPROM_Data.WLMode = 1;
+                    }
 				}
 #endif /* CONFIG_STA_SUPPORT */
 				else if (strncmp(pTempStr, "AuthMode=", strlen("AuthMode=")) == 0)
@@ -10218,9 +10258,191 @@ out:
 
 
 	DBGPRINT(RT_DEBUG_TRACE, ("<----- WscWriteConfToDatFile\n"));
-#endif /* _LINUX_SOURCE */
 	return;
 }
+
+#else
+void    WscWriteConfToDatFile(
+    IN  PRTMP_ADAPTER 	pAd,
+    IN  UCHAR			CurOpMode)
+{
+	PWSC_CTRL		pWscControl = NULL;
+	PWSC_CREDENTIAL	pCredentail = NULL;
+    //UCHAR*          config_buf;
+
+    char            temp_buf[3] = {0};
+    int             i;
+
+	DBGPRINT(RT_DEBUG_TRACE, ("-----> WscWriteConfToDatFile(CurOpMode = %d)\n", CurOpMode));
+
+#ifdef CONFIG_STA_SUPPORT
+	if (CurOpMode == STA_MODE)
+	{
+		pWscControl = &pAd->StaCfg.WscControl;
+        
+        // ssid
+        UINT profile_idx = pAd->StaCfg.WscControl.WscProfile.ApplyProfileIdx;
+		PWSC_CREDENTIAL pCredential = &pAd->StaCfg.WscControl.WscProfile.Profile[profile_idx];
+
+        memset(EEPROM_Data.WLESSID, 0, 33);
+        memcpy(EEPROM_Data.WLESSID, pCredential->SSID.Ssid, pCredential->SSID.SsidLength); 
+        memset(mvESSID, 0, 33);
+        memcpy(mvESSID, pCredential->SSID.Ssid, pCredential->SSID.SsidLength);
+
+        // network type
+        //
+        EEPROM_Data.WLMode = 0;
+        mvBSSType = 0;
+
+        mvTxMode 	= 9;
+        EEPROM_Data.WLTxMode = 9;
+
+        // auth mode
+        
+        // encryption type 
+
+        // WPAPSK
+	    if (pWscControl->WpaPskLen)
+		{
+            memset(EEPROM_Data.WPA_Pass, 0, 65);
+            memcpy(EEPROM_Data.WPA_Pass, pWscControl->WpaPsk, pWscControl->WpaPskLen);
+            memset(mvWPAPass, 0, 65);
+            memcpy(mvWPAPass, pWscControl->WpaPsk, pWscControl->WpaPskLen);
+		}
+
+ 		pCredentail = &pWscControl->WscProfile.Profile[pWscControl->WscProfile.ApplyProfileIdx];
+		if (pAd->StaCfg.WepStatus == Ndis802_11WEPEnabled)                           
+		{
+		    if (pCredentail->KeyLength)
+			{
+                if (pCredentail->KeyLength == 5) {
+                    mvWEPType = 1;
+                    EEPROM_Data.WLWEPType = 1;
+
+                    switch (pAd->StaCfg.DefaultKeyId+1) {
+                        case 1:
+                            memcpy(EEPROM_Data.WLWEPKey1, pCredentail->Key, pCredentail->KeyLength);
+                            memcpy(mvWEPKey1, pCredentail->Key, pCredentail->KeyLength);
+                            break;
+                        case 2:
+                            memcpy(EEPROM_Data.WLWEPKey2, pCredentail->Key, pCredentail->KeyLength);
+                            memcpy(mvWEPKey2, pCredentail->Key, pCredentail->KeyLength);
+                           break;
+                        case 3:
+                            memcpy(EEPROM_Data.WLWEPKey3, pCredentail->Key, pCredentail->KeyLength);
+                            memcpy(mvWEPKey3, pCredentail->Key, pCredentail->KeyLength);
+                           break;
+                        case 4:
+                            memcpy(EEPROM_Data.WLWEPKey4, pCredentail->Key, pCredentail->KeyLength);
+                            memcpy(mvWEPKey4, pCredentail->Key, pCredentail->KeyLength);
+                           break;
+
+                    }
+                }
+
+                if (pCredentail->KeyLength == 13) {
+                    mvWEPType = 2;
+                    EEPROM_Data.WLWEPType = 2;
+
+                    switch (pAd->StaCfg.DefaultKeyId+1) {
+                        case 1:
+                            memcpy(EEPROM_Data.WLWEP128Key, pCredentail->Key, pCredentail->KeyLength);
+                            memcpy(mvWEP128Key, pCredentail->Key, pCredentail->KeyLength);
+                           break;
+                        case 2:
+                            memcpy(EEPROM_Data.WLWEP128Key2, pCredentail->Key, pCredentail->KeyLength);
+                            memcpy(mvWEP128Key2, pCredentail->Key, pCredentail->KeyLength);
+                           break;
+                        case 3:
+                            memcpy(EEPROM_Data.WLWEP128Key3, pCredentail->Key, pCredentail->KeyLength);
+                            memcpy(mvWEP128Key3, pCredentail->Key, pCredentail->KeyLength);
+                           break;
+                        case 4:
+                            memcpy(EEPROM_Data.WLWEP128Key4, pCredentail->Key, pCredentail->KeyLength);
+                            memcpy(mvWEP128Key4, pCredentail->Key, pCredentail->KeyLength);
+                           break;
+
+                    }
+
+                }
+
+                if (pCredentail->KeyLength == 10) {
+                    UCHAR key_buf[5] = {0};
+
+                    mvWEPType = 1;
+                    EEPROM_Data.WLWEPType = 1;
+
+                    for (i = 0; i < 5; i ++) {
+                        memcpy(temp_buf, &pCredentail->Key[i*2], 2);
+                        key_buf[i] = simple_strtol(temp_buf, 0, 16);
+                    }
+
+                    switch (pAd->StaCfg.DefaultKeyId+1) {
+                        case 1:
+                            memcpy(EEPROM_Data.WLWEPKey1, pCredentail->Key, pCredentail->KeyLength);
+                            memcpy(mvWEPKey1, key_buf, 5);
+                            break;
+                        case 2:
+                            memcpy(EEPROM_Data.WLWEPKey2, pCredentail->Key, pCredentail->KeyLength);
+                            memcpy(mvWEPKey2, key_buf, 5);
+                           break;
+                        case 3:
+                            memcpy(EEPROM_Data.WLWEPKey3, pCredentail->Key, pCredentail->KeyLength);
+                            memcpy(mvWEPKey3, key_buf, 5);
+                           break;
+                        case 4:
+                            memcpy(EEPROM_Data.WLWEPKey4, pCredentail->Key, pCredentail->KeyLength);
+                            memcpy(mvWEPKey4, key_buf, 5);
+                           break;
+                    }
+                }
+
+                if (pCredentail->KeyLength == 26) {
+                    UCHAR key_buf[13] = {0};
+
+                    mvWEPType = 2;
+                    EEPROM_Data.WLWEPType = 2;
+
+                    for (i = 0; i < 13; i ++) {
+                        memcpy(temp_buf, &pCredentail->Key[i*2], 2);
+                        key_buf[i] = simple_strtol(temp_buf, 0, 16);
+                    }
+
+                    switch (pAd->StaCfg.DefaultKeyId+1) {
+                        case 1:
+                            memcpy(EEPROM_Data.WLWEP128Key, pCredentail->Key, pCredentail->KeyLength);
+                            memcpy(mvWEP128Key, key_buf, 13);
+                           break;
+                        case 2:
+                            memcpy(EEPROM_Data.WLWEP128Key2, pCredentail->Key, pCredentail->KeyLength);
+                            memcpy(mvWEP128Key2, key_buf, 13);
+                           break;
+                        case 3:
+                            memcpy(EEPROM_Data.WLWEP128Key3, pCredentail->Key, pCredentail->KeyLength);
+                            memcpy(mvWEP128Key3, key_buf, 13);
+                           break;
+                        case 4:
+                            memcpy(EEPROM_Data.WLWEP128Key4, pCredentail->Key, pCredentail->KeyLength);
+                            memcpy(mvWEP128Key4, key_buf, 13);
+                           break;
+
+                    }
+
+                }
+
+			}
+		}
+
+        WriteToEEPROM(&EEPROM_Data);
+        //config_buf = WLan_config();
+        //RTMPSetProfileParameters (pAd, config_buf);
+        //free(config_buf);
+	}
+#endif /* CONFIG_STA_SUPPORT */
+
+	DBGPRINT(RT_DEBUG_TRACE, ("<----- WscWriteConfToDatFile\n"));
+}
+#endif /* _LINUX_SOURCE */
 
 #ifdef CONFIG_AP_SUPPORT
 void    WscWriteConfToAR9File(

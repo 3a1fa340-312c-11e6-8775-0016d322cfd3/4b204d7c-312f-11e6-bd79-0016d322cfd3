@@ -14,6 +14,7 @@
 #include "wlanif.h"
 #include "eeprom.h"
 #include "wireless.h"
+#include "star_gpio.h"
 //#include "8021X\eapnet.h"
 
 extern EEPROM EEPROM_Data;
@@ -254,9 +255,9 @@ void WLan_get_EEPData(void)
 #elif 	(WLANMAC == MTK7601) //eason 20110315
 
 	if(EEPROM_Data.WLMode == 2)	// 0:AUTO 1:Infrastructure 2:Ad-Hoc
-			mvBSSType = 2;//DOT11_BSSTYPE_IBSS
+			mvBSSType = 1;//DOT11_BSSTYPE_IBSS
 		else
-			mvBSSType = 1;//DOT11_BSSTYPE_INFRA	
+			mvBSSType = 0;//DOT11_BSSTYPE_INFRA	
 
 #endif	/*WLANMAC == RT2561*/		
 		
@@ -662,6 +663,8 @@ char* WLan_config ()
     offset += sprintf(config_buf+offset, "SSID=%s\n", mvESSID);
     #else
     offset += sprintf(config_buf+offset, "SSID=TStudio\n");
+    //offset += sprintf(config_buf+offset, "SSID=TOTOLINK iPuppy III\n");
+    //offset += sprintf(config_buf+offset, "SSID= \n");
     #endif
 
     /* network type */
@@ -671,7 +674,7 @@ char* WLan_config ()
     //     	Adhoc: adhoc mode
     
     #if 1
-    if (mvBSSType == 1)
+    if (mvBSSType == 0)
         offset += sprintf(config_buf+offset, "NetworkType=Infra\n");
     else
         offset += sprintf(config_buf+offset, "NetworkType=Adhoc\n");
@@ -799,8 +802,8 @@ char* WLan_config ()
     offset += sprintf(config_buf+offset, "AuthMode=WEPAUTO\n");
     offset += sprintf(config_buf+offset, "EncryType=WEP\n");
     /*
-    offset += sprintf(config_buf+offset, "AuthMode=WPA2PSK\n");
-    offset += sprintf(config_buf+offset, "EncrypType=TKIP\n");
+    offset += sprintf(config_buf+offset, "AuthMode=\n");
+    offset += sprintf(config_buf+offset, "EncrypType=\n");
     */
     #endif
 
@@ -850,7 +853,8 @@ char* WLan_config ()
 
     #else
     offset += sprintf(config_buf+offset, "Key1Str=termy22688953\n");
-    offset += sprintf(config_buf+offset, "WPAPSK=termy22688953\n");
+    //offset += sprintf(config_buf+offset, "WPAPSK=termy22688953\n");
+    //offset += sprintf(config_buf+offset, "WPAPSK=d4607bd36975b7c5272d4cf498cd95acac31e90134b9da663342bf8bdf0f62fb\n");
     #endif
 
     //@> PSMode=value
@@ -1037,7 +1041,21 @@ void Wlan_MacInit(void){
 }
 
 void Wlan_reset(void){
-    return;
+    
+	unsigned int value;
+    int i;
+
+	value = GPIOA_DATA_INPUT_REG;
+	value &= ~GPIO_13_MASK;
+	GPIOA_DATA_OUTPUT_REG = value;
+
+    cyg_thread_delay(20000);
+    for (i = 0; i < 0x1ffffff; i++);
+
+	value = GPIOA_DATA_INPUT_REG;
+	value |= GPIO_13_MASK;
+	GPIOA_DATA_OUTPUT_REG = value;
+    
 }
 
 //extern PRTMP_ADAPTER       Global_pAd;
@@ -1067,37 +1085,8 @@ int Wlan_Diagonse(void){
 
 	if( WirelessInitFailed )
 		return 1;
-
+    printk("%s\n", __FUNCTION__);
 	return 1;
-}
-
-void do_wireless_close(void) {
-
-    RTMP_ADAPTER *pAd;
-	GET_PAD_FROM_NET_DEV(pAd, g_wireless_dev);
-
-    if (WirelessInitFailed)
-        return;
-
-    //MT7601_WLAN_ChipOnOff(pAd, FALSE, TRUE);
-	//RTMPFreeAdapter(pAd);
-
-    //RTMPDrvClose(pAd, g_wireless_dev);
-#if 0
-    printk("enter do_wireless_close\n");
-    //RT28xxUsbAsicRadioOff (pAd);
-    //MT7601UsbAsicRadioOff (pAd, DOT11_RADIO_OFF);
-    printk("WLAN_ChipOff\n");
-    MT7601_WLAN_ChipOnOff(pAd, FALSE, FALSE);
-
-    printk("rt28xx_close\n");
-    rt28xx_close(g_wireless_dev);
-
-    printk("MT7601UsbAsicRadioOff \n");
-    MT7601UsbAsicRadioOff (pAd, DOT11_RADIO_OFF);
-
-    printk("exit do_wireless_close\n");
-#endif
 }
 
 void wlan_site_survey(void){
@@ -1106,6 +1095,8 @@ void wlan_site_survey(void){
 	
 	if( WirelessInitFailed )
 		return;
+
+    printk("%s\n", __FUNCTION__);
 
 #if defined(CODE2)
 #ifdef USE_PS_LIBS
@@ -1117,7 +1108,7 @@ void wlan_site_survey(void){
 #endif
 #endif //CODE2
 
-    rt_ioctl_siwscan(g_wireless_dev, NULL, NULL, NULL);
+    //rt_ioctl_siwscan(g_wireless_dev, NULL, NULL, NULL);
 	return;
 	
 }
@@ -1237,44 +1228,54 @@ void wlan_get_currssid(unsigned char huge * ssid){
 
 int wlan_get_channel(void){
 	
-    struct iw_freq freq;
+    RTMP_ADAPTER *pAd = NULL;
 
 	if( WirelessInitFailed )
 		return -1;
 
-    return rt_ioctl_giwfreq(g_wireless_dev, NULL, &freq, NULL);	
+	GET_PAD_FROM_NET_DEV(pAd, g_wireless_dev);
+
+    if (pAd)
+        return pAd->MlmeAux.CentralChannel;
+    else
+        return -1;
 }
 
 int wlan_get_currrate(void){
-	
+	union iwreq_data wrqu;
+
 	if( WirelessInitFailed )
 		return -1;
 
-	//return rt_ioctl_giwrate();
-	return -1;
+    rt_ioctl_giwrate(g_wireless_dev, NULL, &wrqu, NULL);
+	return wrqu.bitrate.value/1000000;
 }
 
 int wlan_get_rssi(void) {
-	
+
+    RTMP_ADAPTER *pAd = NULL;
+    CHAR AvgRssi0;
+
 	if( WirelessInitFailed )
 		return -1;
 
-    /*
-	rt_ioctl_rssi();
-    */
-	return -1;
+	GET_PAD_FROM_NET_DEV(pAd, g_wireless_dev);
+    RtmpIoctl_rt_ioctl_rssi(pAd, (void *)&AvgRssi0, 0);
+
+	return (int)AvgRssi0;
 }
 
 int wlan_get_linkquality(void) {
 	
+    RTMP_ADAPTER *pAd = NULL;
+
 	if( WirelessInitFailed )
 		return -1;
 
-    // CMD_RTPRIV_IOCTL_INF_IW_STATUS_GET
-    /*
-	return rt_ioctl_linkquality();
-    */
-    return -1;
+	GET_PAD_FROM_NET_DEV(pAd, g_wireless_dev);
+    if (pAd)
+        return pAd->Mlme.ChannelQuality;
+    else return -1;
 }
 
 //eason 20110314	extern int rtl871x_get_linkup();
@@ -1282,11 +1283,30 @@ int wlan_get_linkquality(void) {
 //1:link up 0: link down
 int wlan_get_linkup ()
 {
+	PWSC_CTRL    pWscControl;
+    RTMP_ADAPTER *pAd;
 	int state = 0;
+
+	if( WirelessInitFailed )
+		return -1;
+
+	GET_PAD_FROM_NET_DEV(pAd, g_wireless_dev);
+
+    pWscControl = &pAd->StaCfg.WscControl;
+
     /*
 	state = rtl871x_get_linkup();
     */
-	
+	if ((pAd->StaCfg.WscControl.WscConfMode != WSC_DISABLE) &&
+	    (pAd->StaCfg.WscControl.bWscTrigger
+	    )) {
+        if (pWscControl->WscStatus == STATUS_WSC_LINK_UP)
+            state = 1;
+    } else {
+        if (pAd->ExtraInfo == GENERAL_LINK_UP)
+            state = 1;
+    } 
+
 	return state;
 }
 
@@ -1322,5 +1342,53 @@ void wlan_request_key(int req)
 {
 }
 #endif /* WPA_PSK_TKIP */
+
+void wlan_set_wps_on()
+{
+    char* config_buffer = NULL; 
+
+ 	if( WirelessInitFailed )
+		return NULL;
+
+    RTMP_ADAPTER *pAd;
+	GET_PAD_FROM_NET_DEV(pAd, g_wireless_dev);
+   
+    mvBSSType = 0;
+    EEPROM_Data.WLMode = 0;
+    mvTxMode 	= 9;
+    EEPROM_Data.WLTxMode = 9;
+
+    config_buffer = WLan_config();
+    if (config_buffer)
+        RTMPSetProfileParameters (pAd, config_buffer);
+
+    printk("wps on\n");
+    //pAd->StaCfg.WscControl.WscDriverAutoConnect = 0x01;
+    Set_WscConfMode_Proc(pAd, "1");  /* enrollee */
+    Set_WscMode_Proc(pAd, "2");      /* PBC Mode */
+    Set_WscGetConf_Proc(pAd, "1");   /* wsc_start */
+
+    if (config_buffer)
+        free(config_buffer);
+}
+
+void wlan_connect()
+{
+
+}
+
+void wlan_disconnect()
+{
+    /*
+ 	if( WirelessInitFailed )
+		return NULL;
+
+    RTMP_ADAPTER *pAd;
+	GET_PAD_FROM_NET_DEV(pAd, g_wireless_dev);
+
+    Set_LinkDown_Proc(pAd, 0);
+    */
+}
+
 
 

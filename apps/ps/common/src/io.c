@@ -296,5 +296,5 @@ void IOInit(void)
 	//LED init (GPIO 16, GPIO 15(green)+GPIO 14(yellow))
 	//===================================================		
 	//Output
-	GPIOA_DIRECTION_REG = 0x0001c000;
+	GPIOA_DIRECTION_REG = 0x0001e000;
 }

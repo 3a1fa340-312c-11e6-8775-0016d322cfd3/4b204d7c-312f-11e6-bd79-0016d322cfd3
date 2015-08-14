@@ -58,7 +58,6 @@ void zot_idle_task(cyg_addrword_t data)
 		}
 		else if(value1 == 0)
 		{
-#if	(WLANMAC == RT8188)
 			if (start == 0)
 			{
 				start = cyg_current_time();	
@@ -76,7 +75,6 @@ void zot_idle_task(cyg_addrword_t data)
 #endif	// WPSBUTTON_LEDFLASH_FLICK
 				}
 			}							
-#endif	
 		}
 		else
 		{
@@ -87,6 +85,7 @@ void zot_idle_task(cyg_addrword_t data)
                 #ifndef MTK7601 
 				set_realtek_wps(1);
                 #endif 
+                wlan_set_wps_on();
 				needwps = 0;
 			}
 			

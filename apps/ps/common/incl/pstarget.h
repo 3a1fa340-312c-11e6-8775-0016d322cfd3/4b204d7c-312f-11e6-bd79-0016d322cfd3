@@ -160,8 +160,8 @@
 #endif
 #endif	//ZOT716u2
 //ZOT716u2 LED
-#define LED_MASK	   0x0001C000	//GPIO 14,15,16
-#define Status_Lite	0	//GPIO 16; Yellow; Low active
+#define LED_MASK	   0x0001E000	//GPIO 13,14,15,16
+#define Status_Lite	   0	//GPIO 16; Yellow; Low active
 #define Usb11_Lite	   1	//GPIO 15; Green; Low active
 #define Usb20_Lite	   2	//GPIO 15; Green; Low active
 #define Wireless_Lite  3	//GPIO 14; Yellow; Low active

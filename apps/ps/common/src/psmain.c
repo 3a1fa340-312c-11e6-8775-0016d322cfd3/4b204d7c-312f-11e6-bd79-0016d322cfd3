@@ -993,7 +993,6 @@ void sysreboot(cyg_handle_t handle, cyg_addrword_t ptr){
 }
 
 int ROOT_flag = 0;
-extern void do_wireless_close();
 
 void REBOOT(void){
 	
@@ -1008,8 +1007,6 @@ void REBOOT(void){
 	//Init Rest time function one time    
     if( ROOT_flag == 1)
     	return;
-
-    do_wireless_close();
 
     ROOT_flag = 1;
     

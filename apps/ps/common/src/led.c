@@ -232,12 +232,8 @@ void LightToggleProc(cyg_addrword_t data)
 			
 			LANLightToggle_down--;
 			if( LANLightToggle_down > 5 ) LANLightToggle_down = 5;
-            wlan_connect();
 		}
-        else {
-            // LAN link up
-            wlan_disconnec();
-        }
+
 #ifdef  USB_LED		
 #if 0	//ZOT716u2
 		if (USBLightToggle){

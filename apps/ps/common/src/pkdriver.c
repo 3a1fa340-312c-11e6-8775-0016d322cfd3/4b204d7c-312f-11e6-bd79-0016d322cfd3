@@ -600,6 +600,7 @@ int ProcessOtherPckt(unsigned char *pFrame, unsigned int lenFrame)
 }
 #define UBDG_DROP	( (struct netif *)4 )
 extern unsigned char LANLightToggle;	//eason 20100809
+extern int wlan_route_onoff;
 void LanRecv(unsigned char *data, unsigned int len)
 {
 	struct pbuf *p,*q;
@@ -609,7 +610,7 @@ void LanRecv(unsigned char *data, unsigned int len)
 	unsigned short etherType;
 	struct netif *ifp;
     
-    if ((data == NULL) || (len == NULL))
+    if ((data == NULL) || (len == NULL) || (wlan_route_onoff == 1))
 	{
 		return ;
 	}

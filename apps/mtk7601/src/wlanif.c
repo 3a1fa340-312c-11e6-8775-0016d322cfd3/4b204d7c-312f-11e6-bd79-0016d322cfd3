@@ -125,6 +125,8 @@ extern VOID RTMPStartEMIRx (PRTMP_ADAPTER pAdapter, UCHAR tx_rate);
 extern RTMP_ADAPTER _FAR_* 	pAd;
 #endif
 
+int wlan_route_onoff = 1;
+
 /* wlan interface functions */
 void WLan_get_EEPData(void)
 {
@@ -713,7 +715,7 @@ char* WLan_config ()
     //@> RTSThreshold=value
     //	value
     //		1~2347 
-    offset += sprintf(config_buf+offset, "RTSThreshold=2346\n");
+    offset += sprintf(config_buf+offset, "RTSThreshold=2347\n");
 
     /* frag threshold */
     //@> FragThreshold=value
@@ -772,11 +774,11 @@ char* WLan_config ()
         default:
             if (mvWEPType == 0) {
                 offset += sprintf(config_buf+offset, "AuthMode=OPEN\n");
-                offset += sprintf(config_buf+offset, "EncryType=NONE\n");
+                offset += sprintf(config_buf+offset, "EncrypType=NONE\n");
             }
             else {
                 offset += sprintf(config_buf+offset, "AuthMode=WEPAUTO\n");
-                offset += sprintf(config_buf+offset, "EncryType=WEP\n");
+                offset += sprintf(config_buf+offset, "EncrypType=WEP\n");
             }
             break;
         case 3: /* both */
@@ -799,8 +801,10 @@ char* WLan_config ()
             break;
     }
     #else
-    offset += sprintf(config_buf+offset, "AuthMode=WEPAUTO\n");
-    offset += sprintf(config_buf+offset, "EncryType=WEP\n");
+    //offset += sprintf(config_buf+offset, "AuthMode=WEPAUTO\n");
+    //offset += sprintf(config_buf+offset, "EncrypType=WEP\n");
+    offset += sprintf(config_buf+offset, "AuthMode=OPEN\n");
+    offset += sprintf(config_buf+offset, "EncrypType=NONE\n");
     /*
     offset += sprintf(config_buf+offset, "AuthMode=\n");
     offset += sprintf(config_buf+offset, "EncrypType=\n");
@@ -829,10 +833,12 @@ char* WLan_config ()
     //		10 or 26 characters (key type=0)
     //		5 or 13 characters  (key type=1)
     //    (usage : reading profile only)	
+    /*
     offset += sprintf(config_buf+offset, "Key1Type=1\n");
     offset += sprintf(config_buf+offset, "Key2Type=1\n");
     offset += sprintf(config_buf+offset, "Key3Type=1\n");
     offset += sprintf(config_buf+offset, "Key4Type=1\n");
+    */
 
     #if 1
     if ((mvAuthenticationType == 1) || (mvAuthenticationType == 2)) {
@@ -852,9 +858,10 @@ char* WLan_config ()
     }
 
     #else
-    offset += sprintf(config_buf+offset, "Key1Str=termy22688953\n");
+    //offset += sprintf(config_buf+offset, "Key1Str=termy22688953\n");
     //offset += sprintf(config_buf+offset, "WPAPSK=termy22688953\n");
     //offset += sprintf(config_buf+offset, "WPAPSK=d4607bd36975b7c5272d4cf498cd95acac31e90134b9da663342bf8bdf0f62fb\n");
+    offset += sprintf(config_buf+offset, "WPAPSK= \n");
     #endif
 
     //@> PSMode=value
@@ -1021,6 +1028,7 @@ char* WLan_config ()
     offset += sprintf(config_buf+offset, "RaidoOn=1\n");
     offset += sprintf(config_buf+offset, "WIDIEnable=1\n");
     offset += sprintf(config_buf+offset, "PktAggregate=0");
+
     return config_buf;
 }
 //#endif
@@ -1075,8 +1083,12 @@ int Wlan_SendPacket(struct sk_buff* pSkb){
     return 0;
     */
         
-	rt28xx_send_packets(pSkb, g_wireless_dev);
-	WirelessLightToggle++;	
+    if (wlan_route_onoff) {
+	    rt28xx_send_packets(pSkb, g_wireless_dev);
+	    WirelessLightToggle++;	
+    }
+    else
+        dev_kfree_skb_any(pSkb);
 
     return 0;	
 }
@@ -1300,10 +1312,10 @@ int wlan_get_linkup ()
 	if ((pAd->StaCfg.WscControl.WscConfMode != WSC_DISABLE) &&
 	    (pAd->StaCfg.WscControl.bWscTrigger
 	    )) {
-        if (pWscControl->WscStatus == STATUS_WSC_LINK_UP)
+        if ((pWscControl->WscStatus == STATUS_WSC_LINK_UP) && wlan_route_onoff)
             state = 1;
     } else {
-        if (pAd->ExtraInfo == GENERAL_LINK_UP)
+        if ((pAd->ExtraInfo == GENERAL_LINK_UP) && wlan_route_onoff)
             state = 1;
     } 
 
@@ -1372,22 +1384,42 @@ void wlan_set_wps_on()
         free(config_buffer);
 }
 
+
 void wlan_connect()
 {
+  	if( WirelessInitFailed )
+		return NULL;
 
+    if (wlan_route_onoff)
+        return;
+
+    RTMP_ADAPTER *pAd;
+    GET_PAD_FROM_NET_DEV(pAd, g_wireless_dev);
+
+    printk("wlan_connect\n");
+    //RT28xxUsbMlmeRadioOn(pAd);
+    //RTMP_COM_IoctlHandle(pAd, NULL, CMD_RTPRIV_IOCTL_ADAPTER_SUSPEND_SET, 0, NULL, 0);
+
+    wlan_route_onoff = 1;
 }
 
 void wlan_disconnect()
 {
-    /*
+    
  	if( WirelessInitFailed )
 		return NULL;
+
+    if (wlan_route_onoff == 0)
+        return;
 
     RTMP_ADAPTER *pAd;
 	GET_PAD_FROM_NET_DEV(pAd, g_wireless_dev);
 
-    Set_LinkDown_Proc(pAd, 0);
-    */
+    printk("wlan_disconnect\n");
+    //RT28xxUsbMlmeRadioOFF(pAd);
+    //RTMP_COM_IoctlHandle(pAd, NULL, CMD_RTPRIV_IOCTL_ADAPTER_SUSPEND_CLEAR, 0, NULL, 0);
+
+    wlan_route_onoff = 0;
 }
 
 

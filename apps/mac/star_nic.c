@@ -3094,7 +3094,13 @@ static void internal_phy_patch_check(int init)
 				star_nic_write_phy(NIC_PHY_ADDRESS, ii, long_cable_local_reg[ii]);
 			}
 		}
+
+        wlan_connect();
 	}
+    else {
+        // LAN link up
+        wlan_disconnect();
+    }
 }
 
 #endif	/* CONFIG_INTERNEL_PHY_PATCH */

@@ -140,8 +140,8 @@
 #define PROGRAM_CODE2_KSIZE		4
 #define CODE2_START_ADDRESS		(0x30030000)	//ZOT716u2
 #define SECTOR_CODE2_CONFIG		0
-#define NUM_OF_CODE2_SECTOR		176//144	//128	eason 20100608
-#define CODE2_MAX_SIZE        	704//576	//512	eason 20100608
+#define NUM_OF_CODE2_SECTOR		192//176//144	//128	eason 20100608
+#define CODE2_MAX_SIZE        	768//704//576	//512	eason 20100608
 
 //--- WEB Start Address ------------------------------------------------
 #define PROGRAM_WEB_KSIZE		4

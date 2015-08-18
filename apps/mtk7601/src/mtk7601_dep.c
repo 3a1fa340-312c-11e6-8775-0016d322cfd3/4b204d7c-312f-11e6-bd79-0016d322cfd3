@@ -339,8 +339,6 @@ void EAP_input(char *data, int length)
 	
 }
 
-extern int wlan_route_onoff;
-
 void WLanRecv(unsigned char *data, unsigned int len)
 {
 	struct pbuf *p,*q;
@@ -350,7 +348,7 @@ void WLanRecv(unsigned char *data, unsigned int len)
 	unsigned short etherType;
 	struct netif *ifp;
     
-    if ((data == NULL) || (len == NULL) || (wlan_route_onoff == 0))
+    if ((data == NULL) || (len == NULL))
 	{
 		return ;
 	}

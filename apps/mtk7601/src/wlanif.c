@@ -678,8 +678,10 @@ char* WLan_config ()
     #if 1
     if (mvBSSType == 0)
         offset += sprintf(config_buf+offset, "NetworkType=Infra\n");
-    else
+    else {
         offset += sprintf(config_buf+offset, "NetworkType=Adhoc\n");
+        wlan_route_onoff = 2;
+    }
     #else
     offset += sprintf(config_buf+offset, "NetworkType=Infra\n");
     #endif
@@ -801,10 +803,10 @@ char* WLan_config ()
             break;
     }
     #else
-    //offset += sprintf(config_buf+offset, "AuthMode=WEPAUTO\n");
-    //offset += sprintf(config_buf+offset, "EncrypType=WEP\n");
     offset += sprintf(config_buf+offset, "AuthMode=OPEN\n");
-    offset += sprintf(config_buf+offset, "EncrypType=NONE\n");
+    offset += sprintf(config_buf+offset, "EncrypType=WEP\n");
+    //offset += sprintf(config_buf+offset, "AuthMode=WPANONE\n");
+    //offset += sprintf(config_buf+offset, "EncrypType=AES\n");
     /*
     offset += sprintf(config_buf+offset, "AuthMode=\n");
     offset += sprintf(config_buf+offset, "EncrypType=\n");
@@ -858,10 +860,10 @@ char* WLan_config ()
     }
 
     #else
-    //offset += sprintf(config_buf+offset, "Key1Str=termy22688953\n");
-    //offset += sprintf(config_buf+offset, "WPAPSK=termy22688953\n");
+    offset += sprintf(config_buf+offset, "Key1Str=termy22688953\n");
+    offset += sprintf(config_buf+offset, "WPAPSK=termy22688953\n");
     //offset += sprintf(config_buf+offset, "WPAPSK=d4607bd36975b7c5272d4cf498cd95acac31e90134b9da663342bf8bdf0f62fb\n");
-    offset += sprintf(config_buf+offset, "WPAPSK= \n");
+    //offset += sprintf(config_buf+offset, "Key1Str=termy22688953\n");
     #endif
 
     //@> PSMode=value
@@ -1029,6 +1031,7 @@ char* WLan_config ()
     offset += sprintf(config_buf+offset, "WIDIEnable=1\n");
     offset += sprintf(config_buf+offset, "PktAggregate=0");
 
+    printk("%s\n", config_buf);
     return config_buf;
 }
 //#endif
@@ -1387,8 +1390,9 @@ void wlan_set_wps_on()
 
 void wlan_connect()
 {
+    
   	if( WirelessInitFailed )
-		return NULL;
+		return;
 
     if (wlan_route_onoff)
         return;
@@ -1397,29 +1401,28 @@ void wlan_connect()
     GET_PAD_FROM_NET_DEV(pAd, g_wireless_dev);
 
     printk("wlan_connect\n");
-    //RT28xxUsbMlmeRadioOn(pAd);
-    //RTMP_COM_IoctlHandle(pAd, NULL, CMD_RTPRIV_IOCTL_ADAPTER_SUSPEND_SET, 0, NULL, 0);
 
     wlan_route_onoff = 1;
+   
 }
 
 void wlan_disconnect()
 {
     
  	if( WirelessInitFailed )
-		return NULL;
+		return;
 
-    if (wlan_route_onoff == 0)
+    
+    if ((wlan_route_onoff == 0) || (wlan_route_onoff == 2))
         return;
 
     RTMP_ADAPTER *pAd;
 	GET_PAD_FROM_NET_DEV(pAd, g_wireless_dev);
 
     printk("wlan_disconnect\n");
-    //RT28xxUsbMlmeRadioOFF(pAd);
-    //RTMP_COM_IoctlHandle(pAd, NULL, CMD_RTPRIV_IOCTL_ADAPTER_SUSPEND_CLEAR, 0, NULL, 0);
 
     wlan_route_onoff = 0;
+    
 }
 
 

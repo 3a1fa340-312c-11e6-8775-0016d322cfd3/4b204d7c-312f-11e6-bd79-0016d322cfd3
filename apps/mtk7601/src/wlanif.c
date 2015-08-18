@@ -835,12 +835,12 @@ char* WLan_config ()
     //		10 or 26 characters (key type=0)
     //		5 or 13 characters  (key type=1)
     //    (usage : reading profile only)	
-    /*
+    
     offset += sprintf(config_buf+offset, "Key1Type=1\n");
     offset += sprintf(config_buf+offset, "Key2Type=1\n");
     offset += sprintf(config_buf+offset, "Key3Type=1\n");
     offset += sprintf(config_buf+offset, "Key4Type=1\n");
-    */
+    
 
     #if 1
     if ((mvAuthenticationType == 1) || (mvAuthenticationType == 2)) {

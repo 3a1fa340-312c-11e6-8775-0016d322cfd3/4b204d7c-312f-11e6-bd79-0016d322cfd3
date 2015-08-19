@@ -201,8 +201,19 @@ VOID RTMPHandleRadarInterrupt(PRTMP_ADAPTER  pAd)
 
 	DBGPRINT(RT_DEBUG_TRACE, ("RTMPHandleRadarInterrupt()\n"));
 	RTMP_IO_READ32(pAd, PBF_LIFE_TIMER, &value);
-	RTMP_IO_READ32(pAd, CH_IDLE_STA, &pCarrierDetect->idle_time);
-	RTMP_IO_READ32(pAd, CH_BUSY_STA, &pCarrierDetect->busy_time);
+	//no needed
+#if 0 //def ED_MONITOR
+		if (pAd->ed_chk == TRUE)
+		{
+			DBGPRINT(RT_DEBUG_TRACE, ("%s(): FixMe, unexpected reading of CH_IDLE_STA\n", __FUNCTION__));
+		}
+		else
+#endif /* ED_MONITOR  */
+		{
+			RTMP_IO_READ32(pAd, CH_IDLE_STA, &pCarrierDetect->idle_time);
+			RTMP_IO_READ32(pAd, CH_BUSY_STA, &pCarrierDetect->busy_time);
+		}
+
 	delta = (value >> 4) - pCarrierDetect->TimeStamp;
 	pCarrierDetect->TimeStamp = value >> 4;
 	pCarrierDetect->OneSecIntCount++;

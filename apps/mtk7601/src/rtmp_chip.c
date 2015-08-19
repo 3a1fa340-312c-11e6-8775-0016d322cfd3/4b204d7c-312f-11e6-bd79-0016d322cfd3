@@ -1034,6 +1034,10 @@ VOID RtmpChipOpsHook(VOID *pCB)
 	RtmpChipBcnInit(pAd);
 
 	pChipOps->RxSensitivityTuning = RxSensitivityTuning;
+
+	/* EDCCA */
+	pChipOps->ChipSetEDCCA= NULL;
+
 #ifdef CONFIG_STA_SUPPORT
 	pChipOps->ChipAGCAdjust = ChipAGCAdjust;
 #endif /* CONFIG_STA_SUPPORT */

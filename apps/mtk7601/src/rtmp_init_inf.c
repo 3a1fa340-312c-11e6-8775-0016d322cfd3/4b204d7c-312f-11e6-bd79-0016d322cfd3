@@ -967,6 +967,18 @@ VOID RTMPDrvOpen(
 		MultiChannelThreadInit(pAd);
 #endif /* CONFIG_MULTI_CHANNEL */
 
+#ifdef ED_MONITOR
+{
+	BOOLEAN bEdcca = FALSE;
+
+	bEdcca = GetEDCCASupport(pAd);
+
+	if (bEdcca)
+	{
+		ed_monitor_init(pAd);
+	}
+}
+#endif /* ED_MONITOR */
 
 }
 
@@ -1221,6 +1233,14 @@ VOID RTMPDrvClose(
 #ifdef CONFIG_MULTI_CHANNEL
 		MultiChannelThreadExit(pAd);
 #endif /* CONFIG_MULTI_CHANNEL */
+
+#ifdef ED_MONITOR
+	if (pAd->ed_chk)
+	{
+		DBGPRINT(RT_DEBUG_ERROR, ("@@@ %s: go to ed_monitor_exit()!!\n", __FUNCTION__));		
+		ed_monitor_exit(pAd);
+	}
+#endif /* ED_MONITOR */
 
 #ifdef RTMP_TIMER_TASK_SUPPORT
 	NdisFreeSpinLock(&pAd->TimerQLock);

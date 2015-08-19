@@ -160,6 +160,10 @@ BUILD_TIMER_FUNCTION(P2pCliReConnectTimeOut);
 BUILD_TIMER_FUNCTION(ATEPeriodicExec);
 #endif /* RALINK_ATE */
 
+#if defined (ED_MONITOR) && defined (ED_SMART)
+BUILD_TIMER_FUNCTION(ed_testing_timeout);
+#endif /*defined (ED_MONITOR) && defined (ED_SMART)*/
+
 #ifdef RTMP_TIMER_TASK_SUPPORT
 static void RtmpTimerQHandle(RTMP_ADAPTER *pAd)
 {

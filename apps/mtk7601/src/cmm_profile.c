@@ -3216,6 +3216,99 @@ NDIS_STATUS	RTMPSetProfileParameters(
 		}
 #endif /* CONFIG_AP_SUPPORT */
 
+#ifdef ED_MONITOR
+		
+#ifdef CONFIG_AP_SUPPORT
+				/*For AP connected client's count*/
+				if (RTMPGetKeyParameter("EDCCA_AP_STA_TH", tmpbuf, 32, pBuffer, TRUE))
+				{
+					UINT8 count = simple_strtol(tmpbuf, 0, 10);
+					pAd->ed_sta_threshold = count;
+					DBGPRINT(RT_DEBUG_TRACE, ("pAd->ed_sta_threshold = %u\n", count));
+				}
+		
+				/*For APs found in working channel*/
+				if (RTMPGetKeyParameter("EDCCA_AP_AP_TH", tmpbuf, 32, pBuffer, TRUE))
+				{
+					UINT8 count = simple_strtol(tmpbuf, 0, 10);
+					pAd->ed_ap_threshold = count;
+					DBGPRINT(RT_DEBUG_TRACE, ("pAd->ed_ap_threshold = %u\n", count));
+				}
+
+		
+		/*For APs RSSI found in working channel*/
+		if (RTMPGetKeyParameter("EDCCA_AP_RSSI_TH", tmpbuf, 32, pBuffer, TRUE))
+		{
+			CHAR count = simple_strtol(tmpbuf, 0, 10);
+			pAd->ed_rssi_threshold = count;
+			DBGPRINT(RT_DEBUG_TRACE, ("pAd->ed_rssi_threshold = %u\n", count));
+		}		
+#endif /* CONFIG_AP_SUPPORT */
+		
+#ifdef CONFIG_STA_SUPPORT
+				/*For STA site survey AP counts*/
+				if (RTMPGetKeyParameter("EDCCA_STA_SCANED_AP_TH", tmpbuf, 32, pBuffer, TRUE))
+				{
+					UINT8 count = simple_strtol(tmpbuf, 0, 10);
+					pAd->ed_ap_scaned = count;
+					DBGPRINT(RT_DEBUG_TRACE, ("pAd->ed_ap_scaned = %u\n", count));
+				}
+		
+				/*For STA found APs in working channel*/
+				if (RTMPGetKeyParameter("EDCCA_STA_CURRENT_CH_APS_TH", tmpbuf, 32, pBuffer, TRUE))
+				{
+					UINT8 count = simple_strtol(tmpbuf, 0, 10);
+					pAd->ed_current_ch_aps = count;
+					DBGPRINT(RT_DEBUG_TRACE, ("pAd->ed_current_ch_aps = %u\n", count));
+				}
+		
+				/*For STA RSSI threhold when linkup*/
+				if (RTMPGetKeyParameter("EDCCA_STA_RSSI_TH", tmpbuf, 32, pBuffer, TRUE))
+				{
+					CHAR count = simple_strtol(tmpbuf, 0, 10);
+					pAd->ed_rssi_threshold = count;
+					DBGPRINT(RT_DEBUG_TRACE, ("pAd->ed_rssi_threshold = %u\n", count));
+				}
+#endif /* CONFIG_STA_SUPPORT */
+		
+		/* common part for EDCCA config */
+		if (RTMPGetKeyParameter("EDCCA_ED_TH", tmpbuf, 32, pBuffer, TRUE))
+		{
+			UINT8 count = simple_strtol(tmpbuf, 0, 10);
+			pAd->ed_threshold = count;
+			DBGPRINT(RT_DEBUG_TRACE, ("pAd->ed_threshold = %u\n", count));
+		}
+		
+		if (RTMPGetKeyParameter("ED_MODE", tmpbuf, 32, pBuffer, TRUE))
+        {
+            UINT8 mode = simple_strtol(tmpbuf, 0, 10);
+            pAd->ed_chk = mode;
+            DBGPRINT(RT_DEBUG_OFF, ("pAd->ed_chk = %u\n", mode));
+        }
+
+
+		if (RTMPGetKeyParameter("EDCCA_FALSE_CCA_TH", tmpbuf, 32, pBuffer, TRUE))
+		{
+			ULONG count = simple_strtol(tmpbuf, 0, 10);
+			pAd->ed_false_cca_threshold = count;
+			DBGPRINT(RT_DEBUG_TRACE, ("pAd->false_cca_threshold = %u\n", count));
+		}
+
+		if (RTMPGetKeyParameter("EDCCA_BLOCK_CHECK_TH", tmpbuf, 32, pBuffer, TRUE))
+		{
+			UINT8 count = simple_strtol(tmpbuf, 0, 10);
+			pAd->ed_block_tx_threshold = count;
+			DBGPRINT(RT_DEBUG_TRACE, ("pAd->ed_block_tx_threshold = %u\n", count));
+		}
+
+		if (RTMPGetKeyParameter("ED_LEARN_TH", tmpbuf, 32, pBuffer, TRUE))
+		{
+			INT count = simple_strtol(tmpbuf, 0, 10);			
+			pAd->ed_learning_time_threshold = count;
+			DBGPRINT(RT_DEBUG_TRACE, ("pAd->ed_learning_time_threshold = %u\n", count));
+		}		
+#endif /* ED_MONITOR */			
+
 		/*ShortSlot*/
 		if(RTMPGetKeyParameter("ShortSlot", tmpbuf, 10, pBuffer, TRUE))
 		{

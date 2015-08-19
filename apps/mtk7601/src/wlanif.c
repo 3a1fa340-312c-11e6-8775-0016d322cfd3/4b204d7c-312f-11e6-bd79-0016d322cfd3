@@ -1031,7 +1031,14 @@ char* WLan_config ()
     offset += sprintf(config_buf+offset, "WIDIEnable=1\n");
     offset += sprintf(config_buf+offset, "PktAggregate=0");
 
-    printk("%s\n", config_buf);
+    /* for EDCCA */
+    offset += sprintf(config_buf+offset, "EDCCA_ED_TH=90\n");
+    offset += sprintf(config_buf+offset, "EDCCA_FALSE_CCA_TH=200\n");
+    offset += sprintf(config_buf+offset, "EDCCA_BLOCK_CHECK_TH=2\n");
+    offset += sprintf(config_buf+offset, "ED_MODE=1\n");
+    offset += sprintf(config_buf+offset, "ED_LEARN_TH=50\n");
+    offset += sprintf(config_buf+offset, "EDCCA_STA_RSSI_TH=-80\n");
+
     return config_buf;
 }
 //#endif

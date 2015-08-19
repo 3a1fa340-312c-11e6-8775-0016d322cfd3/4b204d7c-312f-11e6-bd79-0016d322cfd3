@@ -1129,7 +1129,11 @@ VOID MlmePeriodicExec(
 
 #ifdef VCORECAL_SUPPORT
 		{
-			if ((pAd->Mlme.OneSecPeriodicRound % 10) == 0)
+			if ((pAd->Mlme.OneSecPeriodicRound % 10) == 0 
+#ifdef ED_MONITOR
+				&& !pAd->ed_tx_stoped
+#endif /* ED_MONITOR */
+			)
 				AsicVCORecalibration(pAd);
 		}
 #endif /* VCORECAL_SUPPORT */
@@ -1148,6 +1152,9 @@ VOID MlmePeriodicExec(
 #ifdef CARRIER_DETECTION_SUPPORT
 				&& (isCarrierDetectExist(pAd) == FALSE)
 #endif /* CARRIER_DETECTION_SUPPORT */
+#ifdef ED_MONITOR
+				&& (pAd->ed_chk == FALSE)
+#endif /* ED_MONITOR */
 				)
 				pAd->macwd ++;
 			else
@@ -1263,6 +1270,15 @@ VOID MlmePeriodicExec(
 	if (P2P_INF_ON(pAd))
 		P2pPeriodicExec(SystemSpecific1, FunctionContext, SystemSpecific2, SystemSpecific3);
 #endif /* P2P_SUPPORT */
+
+#ifdef ED_MONITOR
+	if(pAd->ed_chk != EDCCA_OFF)
+		ed_status_read(pAd);
+#ifdef ED_SMART
+	if(pAd->ed_chk == EDCCA_SMART)
+		ed_state_judge(pAd);
+#endif /* ED_SMART */
+#endif /* ED_MONITOR */
 
 	pAd->bUpdateBcnCntDone = FALSE;
 }
@@ -3420,6 +3436,31 @@ ULONG BssTableSearch(
 	}
 	return (ULONG)BSS_NOT_FOUND;
 }
+
+//edcca same channel ap count
+/* get ap counts from some channel*/
+#ifdef ED_MONITOR
+ULONG BssChannelAPCount(
+	IN PRTMP_ADAPTER pAd,
+	IN BSS_TABLE *Tab, 
+	IN UCHAR	 Channel) 
+{
+	UCHAR i;
+	ULONG ap_count = 0;
+	
+	for (i = 0; i < Tab->BssNr; i++) 
+	{
+		//change to also check rssi threshold
+		if ((Tab->BssEntry[i].Channel == Channel) && 
+		(Tab->BssEntry[i].Rssi > pAd->ed_rssi_threshold))		
+		{
+			ap_count ++; 
+		}
+	}
+	return ap_count;
+}
+#endif /* ED_MONITOR */
+
 
 ULONG BssSsidTableSearch(
 	IN BSS_TABLE *Tab, 

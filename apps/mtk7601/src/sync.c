@@ -2020,7 +2020,16 @@ VOID PeerBeacon(
 
 		/* ignore BEACON not for my SSID */
 		if ((!is_my_ssid) && (!is_my_bssid))
+		{
+#ifdef ED_MONITOR
+			if (pAd->ed_chk && INFRA_ON(pAd))
+			{
+				;  //also update my scan table, even this not for me
+			}
+			else
+#endif /* ED_MONITOR */
 			goto LabelOK;
+        }
 
 		/* It means STA waits disassoc completely from this AP, ignores this beacon. */
 		if (pAd->Mlme.CntlMachine.CurrState == CNTL_WAIT_DISASSOC)
@@ -2078,10 +2087,36 @@ VOID PeerBeacon(
 				pAd->ScanTab.BssEntry[Bssidx].MinSNR = -5;
 			
 			NdisMoveMemory(pAd->ScanTab.BssEntry[Bssidx].MacAddr, ie_list->Addr2, MAC_ADDR_LEN);
-			
-			
-			
 		}
+
+#if 0//def ED_MONITOR // move from upper case to here!
+		if (pAd->ed_chk && INFRA_ON(pAd))
+		{
+			ULONG ap_count;
+			if ((ap_count = BssChannelAPCount(&pAd->ScanTab, pAd->CommonCfg.Channel)) > pAd->ed_current_ch_aps)
+			{
+				DBGPRINT(RT_DEBUG_ERROR, ("@@@ %s : BssChannelAPCount=%u, ed_current_ch_aps=%u,  go to ed_monitor_exit()!!\n", __FUNCTION__, ap_count, pAd->ed_current_ch_aps));
+				ed_monitor_exit(pAd);
+			}
+			else
+			{
+				if (is_my_bssid || is_my_ssid)
+				{
+					//DBGPRINT(RT_DEBUG_ERROR, ("@@@ 000 %s : RealRssi=%d, pAd->ed_rssi_threshold=%d\n", __FUNCTION__, RealRssi, pAd->ed_rssi_threshold));
+					if (RealRssi < pAd->ed_rssi_threshold)
+					{
+						DBGPRINT(RT_DEBUG_ERROR, ("@@@ %s : RealRssi=%d, pAd->ed_rssi_threshold=%d,  go to ed_monitor_exit()!!\n", __FUNCTION__, RealRssi, pAd->ed_rssi_threshold));
+						ed_monitor_exit(pAd);
+					}
+				}
+			}
+		}
+
+		if ((!is_my_ssid) && (!is_my_bssid))
+		{
+			goto LabelOK;			
+		}
+#endif /* ED_MONITOR */
 
 		/* 
 		    if the ssid matched & bssid unmatched, we should select the bssid with large value.

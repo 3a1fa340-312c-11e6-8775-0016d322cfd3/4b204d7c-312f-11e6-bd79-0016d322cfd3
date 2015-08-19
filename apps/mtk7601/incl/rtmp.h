@@ -3543,8 +3543,13 @@ typedef enum{
 	PKT_RX = 1 << 31,
 }PKT_DROP_DIECTION;
 
-
-
+#ifdef ED_MONITOR
+enum ed_state
+{
+	ED_OFF_AND_LEARNING=0,
+	ED_TESTING=1
+};
+#endif /* ED_MONITOR */
 
 typedef struct _BBP_RESET_CTL
 {
@@ -4312,8 +4317,55 @@ struct _RTMP_ADAPTER {
 	PNET_DEV				p2p_dev;
 #endif /* P2P_SUPPORT */
 
+#ifdef ED_MONITOR
+	BOOLEAN ed_chk;
+	BOOLEAN ed_debug;	
+	BOOLEAN	ed_vga_at_lowest_gain;	
+	UINT ed_learning_time_threshold; //50 * 100ms = 5 sec
+//for AP Mode's threshold
+#ifdef CONFIG_AP_SUPPORT
+	UCHAR ed_sta_threshold;
+	UCHAR ed_ap_threshold;
+#endif /* CONFIG_AP_SUPPORT */
 
+//for STA Mode's threshold
+#ifdef CONFIG_STA_SUPPORT
+	UCHAR ed_ap_scaned;
+	UCHAR ed_current_ch_aps;
+#endif /* CONFIG_STA_SUPPORT */
+	//move to common part!
+	CHAR ed_rssi_threshold;
 
+	UCHAR ed_threshold;
+	UINT ed_false_cca_threshold;
+	UINT ed_block_tx_threshold;
+	INT ed_chk_period;  // in unit of ms
+
+	UCHAR ed_stat_sidx;
+	UCHAR ed_stat_lidx;
+	BOOLEAN ed_tx_stoped;
+	UINT ed_trigger_cnt;
+	UINT ed_silent_cnt;
+	UINT ed_false_cca_cnt;
+
+#define ED_STAT_CNT 20
+	UINT32 ed_stat[ED_STAT_CNT];
+	UINT32 ed_trigger_stat[ED_STAT_CNT];
+	UINT32 ed_silent_stat[ED_STAT_CNT];
+	UINT32 ed_2nd_stat[ED_STAT_CNT];
+	UINT32 ch_idle_stat[ED_STAT_CNT];
+	UINT32 ch_busy_stat[ED_STAT_CNT];
+	UINT32 false_cca_stat[ED_STAT_CNT];
+	ULONG chk_time[ED_STAT_CNT];
+	RALINK_TIMER_STRUCT ed_timer;
+	BOOLEAN ed_timer_inited;
+	enum ed_state ed_current_state;
+#define EDCCA_OFF 0
+#define EDCCA_ON  1
+#ifdef ED_SMART
+#define EDCCA_SMART 2
+#endif /* ED_SMART */
+#endif /* ED_MONITOR */
 
 #if (defined(WOW_SUPPORT) && defined(RTMP_MAC_USB)) || defined(NEW_WOW_SUPPORT)
 	WOW_CFG_STRUCT WOW_Cfg; /* data structure for wake on wireless */
@@ -4360,6 +4412,20 @@ struct _RTMP_ADAPTER {
 #endif /* SINGLE_SKU_V2 */
 
 };
+
+#ifdef ED_MONITOR
+INT ed_status_read(RTMP_ADAPTER *pAd);
+INT ed_monitor_init(RTMP_ADAPTER *pAd);
+INT ed_monitor_exit(RTMP_ADAPTER *pAd);
+#ifdef ED_SMART
+INT ed_state_judge(RTMP_ADAPTER *pAd);
+VOID ed_testing_timeout(
+	IN PVOID SystemSpecific1, 
+	IN PVOID FunctionContext, 
+	IN PVOID SystemSpecific2, 
+	IN PVOID SystemSpecific3);
+#endif /* ED_SMART  */
+#endif /* ED_MONITOR */
 
 #if defined(RTMP_INTERNAL_TX_ALC) || defined(RTMP_TEMPERATURE_COMPENSATION) 
 /* The offset of the Tx power tuning entry (zero-based array) */
@@ -5906,6 +5972,13 @@ ULONG BssTableSearch(
 	IN BSS_TABLE *Tab, 
 	IN PUCHAR pBssid,
 	IN UCHAR Channel);
+
+#ifdef ED_MONITOR
+ULONG BssChannelAPCount(
+	IN PRTMP_ADAPTER pAd,
+	IN BSS_TABLE *Tab, 
+	IN UCHAR Channel);
+#endif /* ED_MONITOR */
 
 ULONG BssSsidTableSearch(
 	IN BSS_TABLE *Tab, 

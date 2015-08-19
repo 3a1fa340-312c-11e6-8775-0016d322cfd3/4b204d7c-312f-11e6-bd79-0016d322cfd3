@@ -111,6 +111,28 @@ INT	Set_IWscSinglePIN_Proc(
 	IN	PSTRING			arg);
 #endif /* IWSC_SUPPORT */
 
+#ifdef ED_MONITOR
+//let run-time turn on/off
+INT set_ed_chk_proc(RTMP_ADAPTER *pAd, PSTRING arg);
+
+#ifdef CONFIG_AP_SUPPORT
+INT set_ed_sta_count_proc(RTMP_ADAPTER *pAd, PSTRING arg);
+INT set_ed_ap_count_proc(RTMP_ADAPTER *pAd, PSTRING arg);
+#endif /* CONFIG_AP_SUPPORT */
+
+#ifdef CONFIG_STA_SUPPORT
+INT set_ed_ap_scaned_count_proc(RTMP_ADAPTER *pAd, PSTRING arg);
+INT set_ed_current_ch_ap_proc(RTMP_ADAPTER *pAd, PSTRING arg);
+INT set_ed_current_rssi_threhold_proc(RTMP_ADAPTER *pAd, PSTRING arg);
+#endif /* CONFIG_STA_SUPPORT */
+
+INT set_ed_block_tx_thresh(RTMP_ADAPTER *pAd, PSTRING arg);
+INT set_ed_false_cca_threshold(RTMP_ADAPTER *pAd, PSTRING arg);
+INT set_ed_threshold(RTMP_ADAPTER *pAd, PSTRING arg);
+INT show_ed_stat_proc(RTMP_ADAPTER *pAd, PSTRING arg);
+INT set_ed_debug_proc(RTMP_ADAPTER *pAd, PSTRING arg);
+
+#endif /* ED_MONITOR */
 
 static struct {
 	PSTRING name;
@@ -477,6 +499,27 @@ static struct {
 #ifdef MICROWAVE_OVEN_SUPPORT
 	{"MO_FalseCCATh",               Set_MO_FalseCCATh_Proc},
 #endif /* MICROWAVE_OVEN_SUPPORT */
+
+#ifdef ED_MONITOR
+	//let run-time turn on/off
+	{"ed_chk", set_ed_chk_proc},
+
+#ifdef CONFIG_AP_SUPPORT
+	{"ed_sta_th", set_ed_sta_count_proc},
+	{"ed_ap_th", set_ed_ap_count_proc},
+#endif /* CONFIG_AP_SUPPORT */
+
+#ifdef CONFIG_STA_SUPPORT
+	{"ed_ap_scaned_th", set_ed_ap_scaned_count_proc},
+	{"ed_current_ch_ap_th", set_ed_current_ch_ap_proc},
+	{"ed_current_rssi_th", set_ed_current_rssi_threhold_proc},	
+#endif /* CONFIG_STA_SUPPORT */
+	{"ed_debug", set_ed_debug_proc},
+	{"ed_th", set_ed_threshold},
+	{"ed_false_cca_th", set_ed_false_cca_threshold},
+	{"ed_blk_cnt", set_ed_block_tx_thresh},
+	{"ed_stat", show_ed_stat_proc},
+#endif /* ED_MONITOR */
 
 	{NULL,}
 };

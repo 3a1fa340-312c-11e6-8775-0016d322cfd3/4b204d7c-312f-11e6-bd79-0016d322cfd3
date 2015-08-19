@@ -279,6 +279,17 @@ VOID MlmeCntlMachinePerformAction(
 				RTMP_MLME_HANDLER(pAd);
 			}
 #endif /* IWSC_SUPPORT */
+            
+#if 0 //def ED_MONITOR 	//20141225 disable dynamic EDCCA, only decide by country region
+		if (pAd->ed_chk)
+		{
+			if (pAd->ScanTab.BssNr > pAd->ed_ap_scaned)
+			{
+				DBGPRINT(RT_DEBUG_ERROR, ("@@@ %s : pAd->ScanTab.BssNr =%u, pAd->ed_ap_scaned=%u, go to ed_monitor_exit()!! \n", __FUNCTION__,pAd->ScanTab.BssNr, pAd->ed_ap_scaned));
+				ed_monitor_exit(pAd);
+			}
+		}
+#endif
 		}
 		break;
 

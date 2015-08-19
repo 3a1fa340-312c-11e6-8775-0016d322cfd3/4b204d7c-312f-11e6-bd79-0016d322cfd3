@@ -3276,7 +3276,7 @@ VOID MT7601_Init(RTMP_ADAPTER *pAd)
 	pChipOps->ChipBBPAdjust = MT7601_ChipBBPAdjust;
 	
 #ifdef CONFIG_STA_SUPPORT
-	pChipOps->ChipAGCAdjust = MT7601_ChipAGCAdjust;
+    pChipOps->ChipAGCAdjust = NULL;//MT7601_ChipAGCAdjust;
 #endif /* CONFIG_STA_SUPPORT */
 
 	/* Channel */
@@ -3457,6 +3457,50 @@ VOID MT7601_AsicMitigateMicrowave(
 	
 }
 #endif /* MICROWAVE_OVEN_SUPPORT */
+
+#ifdef ED_MONITOR
+INT MT7601_set_ed_cca(RTMP_ADAPTER *pAd, BOOLEAN enable)
+{
+	UINT32 mac_val;
+	UCHAR bbp_val;
+
+	if (enable) {
+		RTMP_IO_READ32(pAd, CH_TIME_CFG, &mac_val);
+		mac_val |= 0x05; // enable channel status check
+		RTMP_IO_WRITE32(pAd, CH_TIME_CFG, mac_val);
+
+		// BBP: enable ED_CCA and high/low threshold
+		bbp_val = 0x18; /* 0x08 *//*0x0B*/ /* 0x2e */ // bit 0~7 for high threshold
+		RTMP_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R61, bbp_val);
+
+		RTMP_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R87, 0x87);
+		RTMP_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R123, 0x03);
+
+		// MAC: enable ED_CCA/ED_2nd_CCA
+		RTMP_IO_READ32(pAd, TXOP_CTRL_CFG, &mac_val);
+		mac_val |= ((1<<20) | (1<<7));
+		RTMP_IO_WRITE32(pAd, TXOP_CTRL_CFG, mac_val);
+	}
+	else
+	{
+    	RTMP_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R87, &bbp_val);
+		bbp_val &= (~0x80); // bit 7 for enable/disable ED_CCA
+		RTMP_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R87, bbp_val);
+
+		RTMP_IO_READ32(pAd, TXOP_CTRL_CFG, &mac_val);
+		mac_val &= (~((1<<20) | (1<<7)));
+		RTMP_IO_WRITE32(pAd, TXOP_CTRL_CFG, mac_val);         
+	}
+
+	/* Clear previous status */
+	RTMP_IO_READ32(pAd, CH_IDLE_STA, &mac_val);
+	RTMP_IO_READ32(pAd, CH_BUSY_STA, &mac_val);
+    RTMP_IO_READ32(pAd, CH_BUSY_STA_SEC, &mac_val);
+	RTMP_IO_READ32(pAd, 0x1140, &mac_val);
+
+	return TRUE;
+}
+#endif /* ED_MONITOR */
 
 #endif /* MT7601 */
 

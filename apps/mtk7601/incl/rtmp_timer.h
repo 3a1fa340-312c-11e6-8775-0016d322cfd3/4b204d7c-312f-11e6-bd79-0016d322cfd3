@@ -223,4 +223,8 @@ DECLARE_TIMER_FUNCTION(P2pCliReConnectTimeOut);
 DECLARE_TIMER_FUNCTION(ATEPeriodicExec);
 #endif /* RALINK_ATE */
 
+#if defined (ED_MONITOR) && defined (ED_SMART)
+DECLARE_TIMER_FUNCTION(ed_testing_timeout);
+#endif /*defined (ED_MONITOR) && defined (ED_SMART)*/
+
 #endif /* __RTMP_TIMER_H__ */

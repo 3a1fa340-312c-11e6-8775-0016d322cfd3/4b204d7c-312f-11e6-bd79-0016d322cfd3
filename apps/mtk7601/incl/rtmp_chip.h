@@ -740,6 +740,11 @@ struct _RTMP_CHIP_OP_ {
 	/* Channel */
 	VOID (*ChipSwitchChannel)(struct _RTMP_ADAPTER *pAd, UCHAR ch, BOOLEAN bScan);
 
+	/* EDCCA */
+	VOID (*ChipSetEDCCA)(
+				IN struct _RTMP_ADAPTER *pAd,
+				IN BOOLEAN				bOn);
+
 	/* IQ Calibration */
 	VOID (*ChipIQCalibration)(struct _RTMP_ADAPTER *pAd, UCHAR Channel);
 
@@ -857,6 +862,10 @@ do {	\
 #define RTMP_CHIP_ASIC_AGC_ADJUST(__pAd, __Rssi, __R66)					\
 		if (__pAd->chipOps.ChipAGCAdjust != NULL)						\
 			__R66 = __pAd->chipOps.ChipAGCAdjust(__pAd, __Rssi, __R66)
+
+#define RTMP_CHIP_ASIC_SET_EDCCA(__pAd, __bOn)			\
+		if (__pAd->chipOps.ChipSetEDCCA != NULL)						\
+			__pAd->chipOps.ChipSetEDCCA(__pAd, __bOn);	\
 
 #define RTMP_CHIP_ASIC_TSSI_TABLE_INIT(__pAd)								\
 		if (__pAd->chipOps.InitDesiredTSSITable != NULL)					\

@@ -229,6 +229,11 @@ typedef struct _RT6590_RF_SWITCH_ITEM {
 } RT6590_RF_SWITCH_ITEM, *PRT6590_RF_SWITCH_ITEM;
 
 VOID MT7601_Init(struct _RTMP_ADAPTER *pAd);
+
+#ifdef ED_MONITOR
+INT MT7601_set_ed_cca(IN struct _RTMP_ADAPTER *pAd, BOOLEAN enable);
+#endif /* ED_MONITOR */
+
 VOID MT7601_RXDC_CAL(struct _RTMP_ADAPTER *pAd);
 INT MT7601_ReadChannelPwr(struct _RTMP_ADAPTER *pAd);
 VOID MT7601_ReadTxPwrPerRate(struct _RTMP_ADAPTER *pAd);

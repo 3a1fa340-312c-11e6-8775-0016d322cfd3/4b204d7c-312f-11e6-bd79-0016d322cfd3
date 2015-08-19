@@ -2185,6 +2185,10 @@ VOID NICUpdateRawCounters(
 		pAd->RalinkCounters.FalseCCACnt += RxStaCnt1.field.FalseCca;
 		
 #endif /* MICROWAVE_OVEN_SUPPORT */
+#ifdef ED_MONITOR
+		if (pAd->ed_chk /*&& pAd->ed_timer_inited == TRUE*/) //no timer now, and the data may not correct before.
+			pAd->false_cca_stat[pAd->ed_stat_lidx] += RxStaCnt1.field.FalseCca;
+#endif /* ED_MONITOR */
 	}
 
 #ifdef STATS_COUNT_SUPPORT
@@ -3399,6 +3403,28 @@ VOID UserCfgInit(RTMP_ADAPTER *pAd)
 		pAd->CommonCfg.MO_Cfg.bEnable = FALSE;
 	pAd->CommonCfg.MO_Cfg.nFalseCCATh = MO_FALSE_CCA_TH;
 #endif /* MICROWAVE_OVEN_SUPPORT */
+
+#ifdef ED_MONITOR
+	pAd->ed_chk = FALSE; //let country region to turn on
+	pAd->ed_debug = FALSE;
+	pAd->ed_learning_time_threshold = 50; //5 sec
+#ifdef CONFIG_AP_SUPPORT
+	pAd->ed_sta_threshold = 1;
+	pAd->ed_ap_threshold = 1;
+#endif /* CONFIG_AP_SUPPORT */
+
+#ifdef CONFIG_STA_SUPPORT
+	pAd->ed_ap_scaned = 5;
+	pAd->ed_current_ch_aps = 1;
+#endif /* CONFIG_STA_SUPPORT */
+	//change to common part
+	pAd->ed_rssi_threshold = -80;
+
+	pAd->ed_chk_period = 100;
+	pAd->ed_threshold = 90;
+	pAd->ed_false_cca_threshold = 150;
+	pAd->ed_block_tx_threshold = 2;
+#endif /* ED_MONITOR */
 
 	DBGPRINT(RT_DEBUG_TRACE, ("<-- UserCfgInit\n"));
 }

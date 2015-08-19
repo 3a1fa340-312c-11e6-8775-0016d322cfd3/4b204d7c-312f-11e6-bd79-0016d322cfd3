@@ -173,6 +173,7 @@ int trim_mbuf2(struct ambuf **bpp,uint length)
 	 */
 	if ( (*bpp)->cnt > length )
 		(*bpp)->cnt = length;
+    return 0;
 }
 
 /* Copy user data into an mbuf */

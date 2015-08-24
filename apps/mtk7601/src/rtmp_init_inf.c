@@ -355,6 +355,10 @@ int rt28xx_init(VOID *pAdSrc, PSTRING pDefaultMac, PSTRING pHostName)
     char* config_buffer = WLan_config();
     RTMPSetProfileParameters (pAd, config_buffer);
     free (config_buffer);
+#ifdef ED_MONITOR
+    set_ed_chk_proc(pAd, "1");
+    //MT7601_set_ed_cca(pAd, TRUE);
+#endif
 #endif /* _LINUX_SOURCE_ */
 
 #ifdef CONFIG_STA_SUPPORT

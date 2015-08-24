@@ -1032,7 +1032,7 @@ char* WLan_config ()
     offset += sprintf(config_buf+offset, "PktAggregate=0");
 
     /* for EDCCA */
-    offset += sprintf(config_buf+offset, "EDCCA_ED_TH=90\n");
+    offset += sprintf(config_buf+offset, "EDCCA_ED_TH=95\n");
     offset += sprintf(config_buf+offset, "EDCCA_FALSE_CCA_TH=200\n");
     offset += sprintf(config_buf+offset, "EDCCA_BLOCK_CHECK_TH=2\n");
     offset += sprintf(config_buf+offset, "ED_MODE=1\n");
@@ -1430,6 +1430,26 @@ void wlan_disconnect()
 
     wlan_route_onoff = 0;
     
+}
+
+void wlan_check_edcca()
+{
+#if 1
+ 	if( WirelessInitFailed )
+		return;
+
+    RTMP_ADAPTER *pAd;
+	GET_PAD_FROM_NET_DEV(pAd, g_wireless_dev);
+
+#ifdef ED_MONITOR
+	if(pAd->ed_chk != EDCCA_OFF)
+		ed_status_read(pAd);
+#ifdef ED_SMART
+	if(pAd->ed_chk == EDCCA_SMART)
+		ed_state_judge(pAd);
+#endif /* ED_SMART */
+#endif /* ED_MONITOR */
+#endif
 }
 
 

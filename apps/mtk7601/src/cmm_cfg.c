@@ -1670,7 +1670,9 @@ INT edcca_tx_stop_start(RTMP_ADAPTER *pAd, BOOLEAN stop)
 	ULONG stTime, mt_time, mr_time;
 
 	/* Disable MAC Tx and wait MAC Tx/Rx status in idle state or direcyl enable tx */
+    /*
 	NdisGetSystemUpTime(&stTime);
+    */
 	RTMP_IO_READ32(pAd, MAC_SYS_CTRL, &macCfg);
 	
 #if 0 // gary suggestion to disable ACK / BA / CTS .....
@@ -1702,7 +1704,7 @@ INT edcca_tx_stop_start(RTMP_ADAPTER *pAd, BOOLEAN stop)
 	RTMP_IO_WRITE32(pAd, AUTO_RSP_CFG, macCfg_2);
 #endif
 
-			
+#if 0	
 	if (stop == TRUE)
 	{
 		for (MTxCycle = 0; MTxCycle < 10000; MTxCycle++)
@@ -1722,6 +1724,7 @@ INT edcca_tx_stop_start(RTMP_ADAPTER *pAd, BOOLEAN stop)
 		}
 	}
 
+#endif
 	DBGPRINT(RT_DEBUG_OFF, ("%s():%s tx\n", 
 				__FUNCTION__, ((stop == TRUE) ? "stop" : "start")));
 
@@ -1807,6 +1810,10 @@ INT ed_status_read(RTMP_ADAPTER *pAd)
 		if (percent > 100)
 			percent = 100;
 
+        /* 
+        if (percent)
+            printk("percent = %d\n", percent);
+        */ 
 
 		if (pAd->false_cca_stat[pAd->ed_stat_lidx] > pAd->ed_false_cca_threshold) 
 		{
@@ -1856,14 +1863,17 @@ INT ed_status_read(RTMP_ADAPTER *pAd)
 #endif /*ED_SMART*/
 	)
 	{
-		if (pAd->ed_trigger_cnt > pAd->ed_block_tx_threshold) {
+		if (pAd->ed_trigger_cnt >= pAd->ed_block_tx_threshold) {
 			if (pAd->ed_tx_stoped == FALSE) {
 				pAd->ed_tx_stoped = TRUE;
 				edcca_tx_stop_start(pAd, TRUE);				
 			}
 		}
 
+        /*
 		if (pAd->ed_silent_cnt > pAd->ed_block_tx_threshold) {
+        */
+		if (pAd->ed_silent_cnt > 150) {
 			if (pAd->ed_tx_stoped == TRUE) {
 				pAd->ed_tx_stoped = FALSE;
 				edcca_tx_stop_start(pAd, FALSE);				

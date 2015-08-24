@@ -3279,6 +3279,12 @@ VOID MT7601_Init(RTMP_ADAPTER *pAd)
     pChipOps->ChipAGCAdjust = NULL;//MT7601_ChipAGCAdjust;
 #endif /* CONFIG_STA_SUPPORT */
 
+#ifdef ED_MONITOR
+    pChipOps->ChipSetEDCCA = MT7601_set_ed_cca;
+#else
+    pChipOps->ChipSetEDCCA = NULL;
+#endif
+
 	/* Channel */
 	pChipOps->ChipSwitchChannel = MT7601_ChipSwitchChannel;
 	pChipOps->ChipAGCInit = MT7601_ChipAGCInit;

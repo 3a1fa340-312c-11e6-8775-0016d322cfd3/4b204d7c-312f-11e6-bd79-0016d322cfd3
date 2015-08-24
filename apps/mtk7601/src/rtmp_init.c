@@ -3421,6 +3421,10 @@ VOID UserCfgInit(RTMP_ADAPTER *pAd)
 	pAd->ed_rssi_threshold = -80;
 
 	pAd->ed_chk_period = 100;
+    /*
+    // for emi test of wifi adaptive
+	pAd->ed_chk_period = 8;
+    */
 	pAd->ed_threshold = 90;
 	pAd->ed_false_cca_threshold = 150;
 	pAd->ed_block_tx_threshold = 2;

@@ -55,6 +55,7 @@ UINT8   mvWDomain;          //0x0010 USA    1-11
                             //0x0040 Japan  14
                             //0x0041 Japan  1-14
 
+UINT8   mt7601_countryRegion;
 UINT8   mt7601_countryRegionABand;
 
 UINT8   mvWEPKey[32];   	// cannot be NULL
@@ -125,7 +126,7 @@ extern VOID RTMPStartEMIRx (PRTMP_ADAPTER pAdapter, UCHAR tx_rate);
 extern RTMP_ADAPTER _FAR_* 	pAd;
 #endif
 
-int wlan_route_onoff = 1;
+//int wlan_route_onoff = 1;
 
 /* wlan interface functions */
 void WLan_get_EEPData(void)
@@ -421,42 +422,49 @@ void WLan_get_EEPData(void)
 			mvWDomain = 0x0010;
 			mvChannel_start =1;
 			mvChannel_end =11;
+            mt7601_countryRegion = 0;
             mt7601_countryRegionABand = 7;//0;
 			break;
 		case 0xA2:  // ETSI   1-13
 			mvWDomain = 0x0030;
 			mvChannel_start =1;
 			mvChannel_end =13;		
+            mt7601_countryRegion = 1;
             mt7601_countryRegionABand = 7;//1;
 			break;
 		case 0xA3:  // France 10-13
 			mvWDomain = 0x0032;
 			mvChannel_start =10;
 			mvChannel_end =13;		
+            mt7601_countryRegion = 3;
             mt7601_countryRegionABand = 7;//3;
 			break;
 		case 0xA4:  // Japan  1-14
 			mvWDomain = 0x0041;
 			mvChannel_start =1;
 			mvChannel_end =14;		
+            mt7601_countryRegion = 5;
             mt7601_countryRegionABand = 7;//5;
 			break;
 		case 0xA5:  // SPAIN  10-11
 			mvWDomain = 0x0031;
 			mvChannel_start =10;
 			mvChannel_end =11;		
+            mt7601_countryRegion = 2;
             mt7601_countryRegionABand = 7;//2;
 			break;
 		case 0xA6:  // Japan  14
 			mvWDomain = 0x0040;
 			mvChannel_start =14;
 			mvChannel_end =14;		
+            mt7601_countryRegion = 4;
             mt7601_countryRegionABand = 7;//4;
 			break;
 		default:
 			mvWDomain = 0x0010; //USA    1-11
 			mvChannel_start =1;
 			mvChannel_end =11;		
+            mt7601_countryRegion = 0;
             mt7601_countryRegionABand = 7;//0;
 		    break;
 		}
@@ -636,10 +644,10 @@ char* WLan_config ()
     }
     offset += sprintf(config_buf+offset, "WirelessMode=%d\n", wirelessMode);
 
-    offset += sprintf(config_buf+offset, "CountryCode=TW\n");
+    //offset += sprintf(config_buf+offset, "CountryCode=TW\n");
     /* country region */
     //offset += sprintf(config_buf+offset, "CountryRegion=%d\n", mvWDomain);
-    offset += sprintf(config_buf+offset, "CountryRegion=\n");
+    offset += sprintf(config_buf+offset, "CountryRegion=%d\n", mt7601_countryRegion);
 
     /* country region aband */
     //@> CountryRegionABand=value      							
@@ -680,7 +688,7 @@ char* WLan_config ()
         offset += sprintf(config_buf+offset, "NetworkType=Infra\n");
     else {
         offset += sprintf(config_buf+offset, "NetworkType=Adhoc\n");
-        wlan_route_onoff = 2;
+        //wlan_route_onoff = 2;
     }
     #else
     offset += sprintf(config_buf+offset, "NetworkType=Infra\n");
@@ -691,8 +699,9 @@ char* WLan_config ()
 
     /* tx power default 100*/
     #if 1
-    if (mvTxPower > 70) mvTxPower = 70;
-    offset += sprintf(config_buf+offset, "TxPower=%d\n", mvTxPower);
+    //if (mvTxPower > 70) mvTxPower = 70;
+    //offset += sprintf(config_buf+offset, "TxPower=%d\n", mvTxPower);
+    offset += sprintf(config_buf+offset, "TxPower=100\n");
     #else
     offset += sprintf(config_buf+offset, "TxPower=100\n");
     #endif
@@ -840,18 +849,20 @@ char* WLan_config ()
     offset += sprintf(config_buf+offset, "Key2Type=1\n");
     offset += sprintf(config_buf+offset, "Key3Type=1\n");
     offset += sprintf(config_buf+offset, "Key4Type=1\n");
-    
 
     #if 1
     if ((mvAuthenticationType == 1) || (mvAuthenticationType == 2)) {
         if (mvWEPType == 1) {
-            offset += sprintf(config_buf+offset, "Key1Str=%s\n", mvWEPKey1);
-            offset += sprintf(config_buf+offset, "Key2Str=%s\n", mvWEPKey2);
-            offset += sprintf(config_buf+offset, "Key3Str=%s\n", mvWEPKey3);
-            offset += sprintf(config_buf+offset, "Key4Str=%s\n", mvWEPKey4);
+                offset += sprintf(config_buf+offset, "Key1Str=%s\n", mvWEPKey1);
+                offset += sprintf(config_buf+offset, "Key2Str=%s\n", mvWEPKey2);
+                offset += sprintf(config_buf+offset, "Key3Str=%s\n", mvWEPKey3);
+                offset += sprintf(config_buf+offset, "Key4Str=%s\n", mvWEPKey4);
         } 
         if (mvWEPType == 2) {
-            offset += sprintf(config_buf+offset, "Key1Str=%s\n", mvWEP128Key);
+                offset += sprintf(config_buf+offset, "Key1Str=%s\n", mvWEP128Key);
+                offset += sprintf(config_buf+offset, "Key2Str=%s\n", mvWEP128Key2);
+                offset += sprintf(config_buf+offset, "Key3Str=%s\n", mvWEP128Key3);
+                offset += sprintf(config_buf+offset, "Key4Str=%s\n", mvWEP128Key4);
         }
     }
 
@@ -1039,6 +1050,7 @@ char* WLan_config ()
     offset += sprintf(config_buf+offset, "ED_LEARN_TH=50\n");
     offset += sprintf(config_buf+offset, "EDCCA_STA_RSSI_TH=-80\n");
 
+    printk("%s\n", config_buf);
     return config_buf;
 }
 //#endif
@@ -1093,12 +1105,16 @@ int Wlan_SendPacket(struct sk_buff* pSkb){
     return 0;
     */
         
+    /*
     if (wlan_route_onoff) {
 	    rt28xx_send_packets(pSkb, g_wireless_dev);
 	    WirelessLightToggle++;	
     }
     else
         dev_kfree_skb_any(pSkb);
+    */
+    rt28xx_send_packets(pSkb, g_wireless_dev);
+    WirelessLightToggle++;	
 
     return 0;	
 }
@@ -1145,6 +1161,8 @@ knownbss_t *wlan_get_scanlist(void){
     knownbss_t *pKnown_bss = NULL;
     int i;
 
+    printk("%s\n", __FUNCTION__);
+
 	GET_PAD_FROM_NET_DEV(pAd, g_wireless_dev);
 
 	// Clean APList
@@ -1180,7 +1198,6 @@ knownbss_t *wlan_get_scanlist(void){
 		memset(pKnown_bss->ssid,0,WLAN_SSID_MAXLEN+2+1);
 		memcpy(pKnown_bss->ssid, pAd->ScanTab.BssEntry[i].Ssid, pAd->ScanTab.BssEntry[i].SsidLen); 
 		pKnown_bss->rssi = pAd->ScanTab.BssEntry[i].Rssi;
-
 
 		if (APList == NULL)
 			APList = pKnown_bss;
@@ -1322,10 +1339,12 @@ int wlan_get_linkup ()
 	if ((pAd->StaCfg.WscControl.WscConfMode != WSC_DISABLE) &&
 	    (pAd->StaCfg.WscControl.bWscTrigger
 	    )) {
-        if ((pWscControl->WscStatus == STATUS_WSC_LINK_UP) && wlan_route_onoff)
+        //if ((pWscControl->WscStatus == STATUS_WSC_LINK_UP) && wlan_route_onoff)
+        if (pWscControl->WscStatus == STATUS_WSC_LINK_UP)
             state = 1;
     } else {
-        if ((pAd->ExtraInfo == GENERAL_LINK_UP) && wlan_route_onoff)
+        //if ((pAd->ExtraInfo == GENERAL_LINK_UP) && wlan_route_onoff)
+        if (pAd->ExtraInfo == GENERAL_LINK_UP)
             state = 1;
     } 
 
@@ -1394,7 +1413,7 @@ void wlan_set_wps_on()
         free(config_buffer);
 }
 
-
+/*
 void wlan_connect()
 {
     
@@ -1431,6 +1450,7 @@ void wlan_disconnect()
     wlan_route_onoff = 0;
     
 }
+*/
 
 void wlan_check_edcca()
 {

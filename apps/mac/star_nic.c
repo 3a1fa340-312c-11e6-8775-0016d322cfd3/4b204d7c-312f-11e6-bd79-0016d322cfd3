@@ -3095,11 +3095,11 @@ static void internal_phy_patch_check(int init)
 			}
 		}
 
-        wlan_connect();
+        //wlan_connect();
 	}
     else {
         // LAN link up
-        wlan_disconnect();
+        //wlan_disconnect();
     }
 }
 

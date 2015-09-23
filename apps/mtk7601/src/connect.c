@@ -2433,7 +2433,7 @@ VOID LinkUp(
 	if ((pAd->StaCfg.WscControl.WscConfMode != WSC_DISABLE) &&
 	    (pAd->StaCfg.WscControl.bWscTrigger
 	    )) {
-		RTMPusecDelay(100000);	/* 100 ms */
+		//RTMPusecDelay(100000);	/* 100 ms */
 		if (pAd->StaCfg.BssType == BSS_INFRA) {
 			NdisMoveMemory(pAd->StaCfg.WscControl.WscPeerMAC,
 				       pAd->CommonCfg.Bssid, MAC_ADDR_LEN);

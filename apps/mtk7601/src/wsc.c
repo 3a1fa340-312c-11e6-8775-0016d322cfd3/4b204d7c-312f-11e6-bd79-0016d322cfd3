@@ -1665,7 +1665,10 @@ VOID WscEapEnrolleeAction(
 		case WSC_MSG_EAP_REQ_START:
 			if (MsgType == WSC_MSG_EAP_REQ_START)
 				DBGPRINT(RT_DEBUG_TRACE, ("WscEapEnrolleeAction : Rx Wsc_Start\n"));
-			
+
+            if (pWscControl->WscState >= WSC_STATE_SENT_M1)
+                break;
+
 			if (pWscControl->RegData.ReComputePke == 1)
 			{
 				INT idx;

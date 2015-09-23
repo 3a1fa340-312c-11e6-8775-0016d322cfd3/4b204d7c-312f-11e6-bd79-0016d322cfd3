@@ -29,8 +29,6 @@ CFLAGS    = -Wall $(INC_DIR) -ffunction-sections -fdata-sections
 CFLAGS   += -D__ECOS -DECOS \
 			-DMTK7601 \
 			-DTXRX_SW_ANTDIV_SUPPORT \
-			-DED_MONITOR \
-			-DED_SMART \
 			-DWPSBUTTON_LEDFLASH_FLICK \
 			-DUSE_SYS_LIBS \
 			-DUSE_ADMIN_LIBS \

@@ -40,7 +40,7 @@
 #include "rtmp_osabl.h"
 #include "rt_os_util.h"
 #include "wireless.h"
-#ifdef __LINUX_SOURCE_
+#ifdef _LINUX_SOURCE_
 #include <linux/rtnetlink.h>
 #endif
 

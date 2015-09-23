@@ -1275,7 +1275,7 @@ int wlan_get_channel(void){
 	GET_PAD_FROM_NET_DEV(pAd, g_wireless_dev);
 
     if (pAd)
-        return pAd->MlmeAux.CentralChannel;
+        return pAd->MlmeAux.Channel;
     else
         return -1;
 }

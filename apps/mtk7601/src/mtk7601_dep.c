@@ -1101,10 +1101,13 @@ end_parse:
 	return ret;
 }
 
+#ifdef UART_OUTPUT
 char printk_buf[1024];
+#endif
 
 int printk(const char *fmt, ...)
 {
+#ifdef UART_OUTPUT 
     int n;
 
     va_list args;
@@ -1113,6 +1116,7 @@ int printk(const char *fmt, ...)
     va_end(args);
 
     serial_puts(printk_buf); 
+#endif
     return 0;
 }
 

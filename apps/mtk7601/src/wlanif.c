@@ -597,7 +597,7 @@ char* WLan_config ()
                                                     mvEDDMAC[3],
                                                     mvEDDMAC[4],
                                                     mvEDDMAC[5]);
-        for (i = 0; i < 14; i++) {
+        for (i = 0; i < 17; i++) {
             if (str_buf[i] == 0x20)
                 str_buf[i] = 0x30;
         }

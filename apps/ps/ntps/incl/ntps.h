@@ -348,9 +348,11 @@ typedef struct LIST_VIEW_EXT
 	BYTE WLWEP128Key4[15];
 	
 // WPS (3) ------------------------------------------------------------------
+#if defined(N716U2W)
 	BYTE WPSLen;					// (2)
 	BYTE WPSButtonPressedCount;		// WPS button pressed count: 0 - 255
 	BYTE WPSStatusShownOnUtility;	// WPS status shown on utility. 0x00: Don't show. 0x01: Show
+#endif
 	                                
 //EndOfStruct ( 1 ) ---------------------------------------------------------
 	BYTE EOS;

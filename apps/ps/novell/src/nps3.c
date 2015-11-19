@@ -847,8 +847,12 @@ WORD QueueToPort (WORD Socket, PortPCB  *PortPCBPointer)
 #endif
 			return (SERVICE_NEXT_QUEUE); //this job delete by user ??
 		}
-		else
+		else {
+#ifdef SUPPORT_JOB_LOG 			
+ 			JL_EndList(CurServicePort, 3);	    // George Add January 26, 2007
+#endif 
 			return (TIME_OUT);
+       }
 	}
 
 #ifdef PC_OUTPUT
@@ -915,8 +919,12 @@ WORD QueueToPort (WORD Socket, PortPCB  *PortPCBPointer)
 
 				if(status == NO_QUEUE_JOB)
 					return (SERVICE_NEXT_QUEUE); //this job delete by user ??
-				else
+				else {
+#ifdef SUPPORT_JOB_LOG 			
+ 			        JL_EndList(CurServicePort, 3);		// George Add January 26, 2007
+#endif SUPPORT_JOB_LOG				
 					return (TIME_OUT);
+                }
 			}
 			PrnSetNoUse(CurServicePort);
 			
@@ -2489,6 +2497,7 @@ WORD NPS3main (BYTE nPort)
 			//(1) return from QueueToPort : Job not finish continue service it !
 			//(2) return from ServiceNetwareQueue : Get Queue Job OK !
 			CurPortPCB->ProcessRoutine = QueueToPort;
+            return (SERVICE_DATA);
 			break;
 		case SERVICE_NEXT_QUEUE:	//return from QueueToPort (Job finish)
 		case NO_QUEUE_JOB:		//return from ServiceNetwareQueue (This Queue No Job)
@@ -2740,7 +2749,7 @@ const BYTE PrintServerData[] ="\
      Firmware Version: %02X.%02X.%02d%s build %04x                             \r\n\
 \r\n\r\n%c";
 #else
-#if (WLANMAC == RT8188)
+#ifdef WIRELESS_CARD  // for wireless 
 const BYTE PrintServerData[] ="\
                   ****************************************                     \r\n\
                   *        Print Server Test Page        *                     \r\n\
@@ -2826,11 +2835,11 @@ BYTE SendStatusData (int Port)
 	BYTE szBoxName[LENGTH_OF_BOX_NAME+1];	// George added this at build0005 of DWP2020 on June 21, 2012.
 	BYTE szVersion[20];
 
-#if	(WLANMAC == RT8188)	
+#ifdef WIRELESS_CARD	 // for wireless
 	BYTE tempbuffer[64]={0};
 	unsigned char bssid[WLAN_BSSID_LEN]={0};
 	char *cp=NULL, *auth_type_str, *encryption_str;
-#endif //defined(RT8188)
+#endif 
 
 	memset(szBoxName, 0x00, sizeof(szBoxName));
 	memset(szVersion, 0x20, sizeof(szVersion));
@@ -2879,7 +2888,7 @@ BYTE SendStatusData (int Port)
 	sprintf(szVersion,"%d.%02X.%02d%s build %04d",
 			CURRENT_MAJOR_VER, CURRENT_MINOR_VER, CURRENT_PS_MODEL, &WebLangVersion, CURRENT_BUILD_VER);
 
-#if (WLANMAC == RT8188)
+#ifdef WIRELESS_CARD // for wireless
 	
 	wlan_get_currbssid(bssid);
 	//wlan_get_currssid(tempbuffer);
@@ -2954,7 +2963,7 @@ BYTE SendStatusData (int Port)
 			GatewayIP[0],GatewayIP[1],GatewayIP[2],GatewayIP[3],
 			((Protocol & PS_ATALK_MODE) == PS_ATALK_MODE)?TestPageStrings[1]:TestPageStrings[0],
 			_ATalkPortName,
-#if (WLANMAC == RT8188)
+#ifdef WIRELESS_CARD // for wireless 
 			(EEPROM_Data.WLMode == 0)?"Infrastructure":"Ad-Hoc",
 			tempbuffer,
 			wlan_get_channel(),
@@ -2962,7 +2971,7 @@ BYTE SendStatusData (int Port)
 			bssid[3], bssid[4], bssid[5],
 			auth_type_str,
 			encryption_str,
-#endif //defined(RT8188)			
+#endif 
 			0x0C);
 #endif	// defined(O_ELEC)
 
@@ -3417,7 +3426,7 @@ BYTE SendWirelessStatusData (int Port)
 		        (WLZone==0xA4)?"Channel 1-14, Japan":
 		        (WLZone==0xA5)?"Channel 10-13, Spain":"Channel 1-11, USA",
 		        wlan_get_channel(),
-		        ((mvTxMode == 1)?" B ONLY":((mvTxMode == 2)?" G ONLY":((mvTxMode == 3)?" B/G/N Mixed":" B/G Mixed"))),
+		        ((mvTxMode == 1)?" B ONLY":((mvTxMode == 2)?" G ONLY":((mvTxMode == 3)?" B/G/N Mixed":((mvTxMode == 4)?" N ONLY":" B/G Mixed")))),
 		        (((rxStatsRSSI*3)>=100)?100:(rxStatsRSSI*3)),
 		        linkQuality,												// Wireless channel
 		        (mvWEPType==0)?"Disabled":(mvWEPType==1)?"64 bit":"128 bit",		// WEP
@@ -3573,6 +3582,7 @@ BYTE SearchBinaryObjectName(BYTE *ObjectName,DWORD *LastObjectSeed,WORD ObjectTy
 	return(NCPRetCode);
 }
 
+#if defined(N716U2W) || defined(N716U2)
 //615wu::No PSMain
 void NovellPSmain(cyg_addrword_t data)
 {
@@ -3608,5 +3618,53 @@ void NovellPSmain(cyg_addrword_t data)
 		
 	}
 }
+#endif // defined(N716U2W)
+
+#if defined(NDWP2020)
+void NovellPSmain(cyg_addrword_t data)
+{
+	BYTE Port;
+	BYTE i,delay_type;
+	DWORD startime = rdclock();
+	WORD PrinterStatus;
+
+	while(1) {
+		for(Port = 0 ; Port < NUM_OF_PRN_PORT ; Port++) {
+			PrinterStatus = PrnGetPrinterStatus(Port);
+			for(i = 0 ; i < 3;i++) {
+			if(PrinterStatus == PrnNoUsed || PrinterStatus == NetwareUsed)
+			{
+				IntoNPS3main = 1;
+
+					if(NPS3main(Port) == SERVICE_DATA)	//eason
+						delay_type = 1;
+					else
+						delay_type = 0;		
+					//NPS3main(Port);
+
+				IntoNPS3main = 0;
+			}
+				cyg_thread_yield();
+			}	
+			if((PSMode & PS_NETWARE_MODE) &&
+#if defined(HTTPD) 
+				    !HttpdUsed && PrimaryConnectFinish &&
+#endif
+			(rdclock() - startime) > TICKS_PER_SEC*10 )
+			{
+				IntoAttachFS=1;
+		    	TryConnectNoAttachFS();
+				IntoAttachFS=0;
+				startime = rdclock();
+			}	
+			if(delay_type == 1)	//eason
+				cyg_thread_yield();
+			else	
+			ppause(PollingTime / 10);
+		}
+		
+	}
+}
+#endif // defined(DWP2020)
 
 #endif

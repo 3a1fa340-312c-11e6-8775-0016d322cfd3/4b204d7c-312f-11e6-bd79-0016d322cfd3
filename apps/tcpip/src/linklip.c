@@ -149,7 +149,12 @@ static uint32 set_netif_ip(struct netif *netif)
 }
 
 void Give_ip_by_myself(struct netif *netif){
-	
+#if 0 //defined(LINKLOCAL_IP) && defined(NDWP2020)
+	SetLinkLocalIP(netif ,0);
+	cyg_semaphore_init(&DhcpWaitLinklocal_sem,0);
+	cyg_semaphore_post(&linklocal_sem);	
+	cyg_semaphore_wait(&DhcpWaitLinklocal_sem);	
+#else
 	if(EEPROM_Data.RENVEnable == 1)
 	{
 		SetLinkLocalIP(netif ,0);
@@ -159,7 +164,7 @@ void Give_ip_by_myself(struct netif *netif){
 	}
 	else
 		set_factory_ip();
-
+#endif
 }
 
 int LinkLocal_get_current_state()

@@ -224,7 +224,7 @@ void pap_session(cyg_addrword_t data)
 					paprint(PrnPort,&infile,PRN_Q_ABORT);
 #ifdef SUPPORT_JOB_LOG
 					JL_EndList(PrnPort, 3);	// Abort or Timeout. George Add February 12, 2007
-#if !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINS) && !defined(O_LS)
+#if !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINS) && !defined(O_TPLINA) && !defined(O_LS)
 #ifdef NOVELL_PS
 					SendEOF(PrnPort);	    // Send the EOF page. George Add January 10, 2008
 #endif

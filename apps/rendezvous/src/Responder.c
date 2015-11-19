@@ -101,8 +101,8 @@ First checkin
 extern BYTE  PSMode; //Ron
 extern	uint8 PSMode2; //Ron
 extern struct parport PortIO[NUM_OF_PRN_PORT]; //Ron
-extern uint8 ether_port_down;  //Ron
-extern uint8 AssociatedFlag;
+uint8 ether_port_down = 0;
+uint8 AssociatedFlag = 0;
 #define	MIN(a,b) (((a)<(b))?(a):(b)) //Ron
 #define	MAX(a,b) (((a)>(b))?(a):(b)) //Ron
 
@@ -853,6 +853,9 @@ int8 EtherLinkReady(void){
 }
 
 int8 WlanLinkReady(void){
+    #if defined(NDWP2020)
+    AssociatedFlag = wlan_get_linkup();
+    #endif
 	return AssociatedFlag;
 }
 

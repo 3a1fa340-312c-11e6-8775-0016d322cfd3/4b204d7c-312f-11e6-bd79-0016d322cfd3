@@ -209,8 +209,13 @@ int16 NTUDPOpenDataPort(BYTE PortNumber,struct sockaddr_in * fromsock)
 	if((peer_socket[PortNumber] = socket( AF_INET, SOCK_DGRAM, 0 )) < 0) {
 			return -1;
 	}
+    #if defined(N716U2W) || defined(N716U2)
 	rcv_timeout.tv_usec = 500;
 	rcv_timeout.tv_sec = 1;
+    #else
+	rcv_timeout.tv_usec = 200;
+	rcv_timeout.tv_sec = 0;
+    #endif
 	setsockopt (peer_socket[PortNumber], 
 				SOL_SOCKET, 
 				SO_RCVTIMEO,

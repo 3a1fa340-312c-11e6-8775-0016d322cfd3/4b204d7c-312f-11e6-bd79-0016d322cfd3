@@ -1352,7 +1352,9 @@ static int star_nic_lan_open(void)	//ZOT
 //ZOT	star_nic_install_isr(dev);
 	star_nic_install_isr();	//ZOT
 //ZOT	star_nic_enable(dev);
+#if !defined(NDWP2020)
 	star_nic_enable();	//ZOT
+#endif
 	
 	cyg_semaphore_init(&send_frame_mutex, 1);;	//ZOT716u2
 	
@@ -3028,6 +3030,9 @@ static void eth3220_phycfg(int phyaddr)
 	star_nic_write_phy(phyaddr, 9, 0x7f);
 }
 
+#if defined(NDWP2020)
+extern uint8 ether_port_down;
+#endif
 extern unsigned char LANLightToggle_down;	//eason 20100809
 static void internal_phy_patch_check(int init)
 {
@@ -3039,6 +3044,9 @@ static void internal_phy_patch_check(int init)
 
 	star_nic_read_phy(STAR_NIC_PHY_ADDR, 1, &phy_data);
 	udelay(100);
+    #if defined(NDWP2020)
+    ether_port_down = 0;
+    #endif
 	star_nic_read_phy(STAR_NIC_PHY_ADDR, 1, &phy_data2);
 	if (((phy_data & 0x0004) != 0x0004) && ((phy_data2 & 0x0004) != 0x0004)) { // link down
 		short_cable_agc_detect_count = 0;
@@ -3083,6 +3091,9 @@ static void internal_phy_patch_check(int init)
 #endif
 			}
 		} else { // long cable
+            #if defined(NDWP2020)
+            ether_port_down = 1;
+            #endif
 			// set to global domain
 			star_nic_write_phy(NIC_PHY_ADDRESS, 31, 0x2f1a);
 			for (ii = 0; ii < 32; ii++) {
@@ -3097,10 +3108,12 @@ static void internal_phy_patch_check(int init)
 
         //wlan_connect();
 	}
+    /*
     else {
         // LAN link up
         //wlan_disconnect();
     }
+    */
 }
 
 #endif	/* CONFIG_INTERNEL_PHY_PATCH */

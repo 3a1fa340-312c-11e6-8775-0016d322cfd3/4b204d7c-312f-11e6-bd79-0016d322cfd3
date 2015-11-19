@@ -674,7 +674,7 @@ char* WLan_config ()
     #else
     offset += sprintf(config_buf+offset, "SSID=TStudio\n");
     //offset += sprintf(config_buf+offset, "SSID=TOTOLINK iPuppy III\n");
-    //offset += sprintf(config_buf+offset, "SSID= \n");
+    //offset += sprintf(config_buf+offset, "SSID=ADDAP\n");
     #endif
 
     /* network type */
@@ -699,9 +699,11 @@ char* WLan_config ()
 
     /* tx power default 100*/
     #if 1
-    //if (mvTxPower > 70) mvTxPower = 70;
-    //offset += sprintf(config_buf+offset, "TxPower=%d\n", mvTxPower);
-    offset += sprintf(config_buf+offset, "TxPower=100\n");
+    #ifdef WIFI_CERTIFICATION
+    if (mvTxPower > 70) mvTxPower = 70;
+    #endif
+    offset += sprintf(config_buf+offset, "TxPower=%d\n", mvTxPower);
+    //offset += sprintf(config_buf+offset, "TxPower=100\n");
     #else
     offset += sprintf(config_buf+offset, "TxPower=100\n");
     #endif
@@ -812,10 +814,12 @@ char* WLan_config ()
             break;
     }
     #else
-    offset += sprintf(config_buf+offset, "AuthMode=OPEN\n");
-    offset += sprintf(config_buf+offset, "EncrypType=WEP\n");
+    //offset += sprintf(config_buf+offset, "AuthMode=OPEN\n");
+    //offset += sprintf(config_buf+offset, "EncrypType=WEP\n");
     //offset += sprintf(config_buf+offset, "AuthMode=WPANONE\n");
     //offset += sprintf(config_buf+offset, "EncrypType=AES\n");
+    offset += sprintf(config_buf+offset, "AuthMode=WPAPSK\n");
+    offset += sprintf(config_buf+offset, "EncrypType=AES\n");
     /*
     offset += sprintf(config_buf+offset, "AuthMode=\n");
     offset += sprintf(config_buf+offset, "EncrypType=\n");
@@ -871,8 +875,9 @@ char* WLan_config ()
     }
 
     #else
-    offset += sprintf(config_buf+offset, "Key1Str=termy22688953\n");
     offset += sprintf(config_buf+offset, "WPAPSK=termy22688953\n");
+    //offset += sprintf(config_buf+offset, "Key1Str=termy22688953\n");
+    //offset += sprintf(config_buf+offset, "WPAPSK=0287971234\n");
     //offset += sprintf(config_buf+offset, "WPAPSK=d4607bd36975b7c5272d4cf498cd95acac31e90134b9da663342bf8bdf0f62fb\n");
     //offset += sprintf(config_buf+offset, "Key1Str=termy22688953\n");
     #endif

@@ -168,7 +168,7 @@ void rawtcpd(cyg_addrword_t data)
  			if( btTimeout == 1 )
  			{
 				JL_EndList(port, 3);	// Timeout. George Add February 1, 2007
-#if !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINS) && !defined(O_LS)
+#if !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINA) && !defined(O_TPLINS) && !defined(O_LS)
 #ifdef NOVELL_PS
 				SendEOF(port);	        // Send the EOF page. George Add Junuary 10, 2008
 #endif

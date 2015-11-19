@@ -71,15 +71,16 @@ void USB_init(cyg_addrword_t data)
 	ehci_hcd_init(0x6B, SYSPA_USB20_OPERATION_BASE_ADDR);	
 	//Printer Class
 	usblp_init();	
-	
+
+#ifdef WIRELESS_CARD
 	ZOT_Timer_init();	//eason 20100210
-	
 	// Wireless initialization
 	Wlan_MacInit();							// This line is important. wlanif.c
 #ifdef MTK7601
 	rtusb_init();	//rt3070
 #else
 	r8712u_drv_entry();
+#endif
 #endif
 	cyg_semaphore_wait(&sem);
 	cyg_semaphore_destroy(&sem);	
@@ -98,7 +99,9 @@ void zotmain( void )
 //UART
 	serial_init();
 	serial_puts("ZOT 716u2W...\n");
+#ifdef WIRELESS_CARD
     Wlan_reset();
+#endif
 	
 //SPI FLASH INIT	
 	AT91F_SpiInit();

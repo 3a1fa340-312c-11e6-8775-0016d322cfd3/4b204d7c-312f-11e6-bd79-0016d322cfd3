@@ -114,6 +114,9 @@ void conn_close_all(int threadid)
 		for ( i =0; i< 3 ; i++){
 			if (printing_conn_tid[i] == conn->cnum){
     			if (PrnGetPrinterStatus(conn->smbprnportid) == SMBUsed )
+                    #if defined(SUPPORT_JOB_LOG) && defined(NDWP2020)
+                    JL_EndList(conn->smbprnportid, 3);
+                    #endif
 				    PrnSetNoUse(conn->smbprnportid);
 			}	
 		}

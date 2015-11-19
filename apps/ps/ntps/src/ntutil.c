@@ -333,11 +333,11 @@ void UtilSetListViewData(LIST_VIEW *BoxInfo)
 	BoxInfo->SupportFunction.WLWEP128_4KEYS = 0;
 #endif	// WLWEP128_FOURKEYS
 
-#if	(WLANMAC == RT8188)					// WPS
+#if defined(N716U2W)	
 	BoxInfo->SupportFunction.WPS = 1;
 #else
 	BoxInfo->SupportFunction.WPS = 0;
-#endif	// (WLANMAC == RT8188)
+#endif
 
 	BoxInfo->SupportFunction.NoUsed3 = 0;
 
@@ -614,6 +614,7 @@ void UtilSetListViewData_Adv(LIST_VIEW_EXT *BoxInfo_E)
 #endif WLWEP128_FOURKEYS
 
 // WPS ----------------------------------------------------------------------
+#if defined(N716U2W)
 
 	BoxInfo_E->WPSLen = 2;
 	BoxInfo_E->WPSButtonPressedCount = EEPROM_Data.WPSButtonPressedCount;
@@ -623,6 +624,8 @@ void UtilSetListViewData_Adv(LIST_VIEW_EXT *BoxInfo_E)
 #else
 	BoxInfo_E->WPSStatusShownOnUtility = 0x00;	// Don't show WPS status on utility
 #endif	// defined(O_CONRAD)
+
+#endif // defined(N716U2W)
 
 //EndOfStruct ---------------------------------------------------------------
 	BoxInfo_E->EOS = 0xFF;
@@ -660,6 +663,7 @@ void UtilGetListViewData_Adv(LIST_VIEW_EXT *BoxInfo_E)
 	case 3:		// B/G/N 
 		EEPROM_Data.WLTxMode = 3;
 			break;		
+    case 4:     // N only
 	case 0:		// B/G
 	default:	// Auto
 		EEPROM_Data.WLTxMode = 0;

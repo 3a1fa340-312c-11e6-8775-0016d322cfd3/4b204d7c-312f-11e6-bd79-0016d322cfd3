@@ -745,7 +745,7 @@ int reply_close(connection_struct *conn, char *inbuf,char *outbuf, int size,
 			if(btTimeout_SMB == 1)
 			{
 				JL_EndList(conn->smbprnportid, 3);	// Timeout. George Add March 6, 2007
-#if !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINS) && !defined(O_LS)
+#if !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINS) && !defined(O_TPLINA) && !defined(O_LS)
 				SendEOF(conn->smbprnportid);	    // Send the EOF page. George Add Junuary 10, 2008
 #endif	// !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINS) && !defined(O_LS)
 			}
@@ -895,7 +895,7 @@ int reply_printclose(connection_struct *conn, char *inbuf,char *outbuf,
 			if(btTimeout_SMB == 1)
 			{
 				JL_EndList(conn->smbprnportid, 3);	// Timeout. George Add March 6, 2007
-#if !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINS) && !defined(O_LS)
+#if !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINS) && !defined(O_TPLINA) && !defined(O_LS)
 				SendEOF(conn->smbprnportid);	    // Send the EOF page. George Add Junuary 10, 2008
 #endif	// !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINS) && !defined(O_LS)
 			}

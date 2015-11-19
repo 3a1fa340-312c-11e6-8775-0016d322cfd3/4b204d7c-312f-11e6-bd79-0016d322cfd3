@@ -75,11 +75,14 @@ extern struct netif *WLanface;
 static	uint8			WLAN_TX_Stack[WLAN_TX_TASK_STACK_SIZE];
 static  cyg_thread		WLAN_TX_Task;
 static  cyg_handle_t	WLAN_TX_TaskHdl;
+#ifdef WIRELESS_CARD
 void WLAN_TX_Thread(cyg_addrword_t data);
 spinlock_t WLan_TX_lock;//ZOT==> static spinlock_t WLan_TX_lock = 0; //eason 20090828
 int WLan_queuecount = 0; //eason 20091008
 struct sk_buff *WLAN_READ_QUEUE = NULL; //eason 20091008
 cyg_sem_t wlan_tx_sem;
+#endif
+
 //ZOT
 struct ethernetif {
   struct eth_addr *ethaddr;
@@ -191,6 +194,7 @@ err_t SendPacket(struct netif *netif, struct pbuf *p)
 	if(usb_usb_send == 1)
 		dst = ULanface;
 
+#ifdef WIRELESS_CARD
 	if( dst == WLanface)
 	{
 		spin_lock_irqsave(&WLan_TX_lock, &flags);	//ZOT==> spin_lock_irqsave(&WLan_TX_lock, flags);//eason 20091008
@@ -216,42 +220,45 @@ err_t SendPacket(struct netif *netif, struct pbuf *p)
 		spin_unlock_irqrestore(&WLan_TX_lock, &flags);//ZOT==>			spin_unlock_irqrestore(&WLan_TX_lock, flags); //eason 20091008
 		return 0;
 	}
+#endif
 
 	if( dst == ULanface)
 	{
-#ifdef PreTest
+#if defined(PreTest) || defined(NDWP2020)
 		usbnet_start_xmit( p, p->tot_len, 1);
 #endif	
 		return 0;
 	}
 
 
-
-
-if( dst == Lanface){
-	if(STAR_MAC_Plugout == 0)
-	{
-#if 0
-		ptr = malloc(p->tot_len);
-		if(ptr == NULL)
-			return -1;
-		cur_prt = ptr;
-		for(q = p; q != NULL; q = q->next) {
-			/* Read enough bytes to fill this pbuf in the chain. The
-			* available data in the pbuf is given by the q->len
-			* variable. */
-			memcpy( cur_prt,q->payload, q->len);
-			cur_prt +=q->len;
-		}
+    if( dst == Lanface){
+	    if(STAR_MAC_Plugout == 0)
+	    {
+            #if 0
+		    ptr = malloc(p->tot_len);
+		    if(ptr == NULL)
+			    return -1;
+		    cur_prt = ptr;
+		    for(q = p; q != NULL; q = q->next) {
+			    /* Read enough bytes to fill this pbuf in the chain. The
+			    * available data in the pbuf is given by the q->len
+			    * variable. */
+			    memcpy( cur_prt,q->payload, q->len);
+			    cur_prt +=q->len;
+		    }
 	
-		send_frame(ptr, p->tot_len, 1);
-		free(ptr);
-#endif //0
-		send_frame(p, p->tot_len, 1);
-	}
-}	
+		    send_frame(ptr, p->tot_len, 1);
+		    free(ptr);
+            #endif //0
+		    send_frame(p, p->tot_len, 1);
+	    }
+    }	
+
+#ifdef WIRELESS_CARD
 	if( dst != WLanface && dst != Lanface && dst != ULanface){
+#if defined(N716U2W)
 		send_frame(p, p->tot_len, 1);
+#endif
 
 		spin_lock_irqsave(&WLan_TX_lock, &flags);	//ZOT==> spin_lock_irqsave(&WLan_TX_lock, flags);//eason 20091008
 		if(WLan_queuecount > 10)
@@ -275,6 +282,7 @@ if( dst == Lanface){
 		WLan_tx_enqueue(&WLAN_READ_QUEUE,&pSkb);
 		spin_unlock_irqrestore(&WLan_TX_lock, &flags);//ZOT==>			spin_unlock_irqrestore(&WLan_TX_lock, flags); //eason 20091008	
 	}
+#endif
 	return 0;
 }
 
@@ -300,12 +308,13 @@ int send_pkt(int intno,UINT8 *buffer,unsigned int length)
 
 	if( dst == ULanface)
 	{
-#ifdef PreTest
+#if defined(PreTest) || defined(NDWP2020)
 		 usbnet_start_xmit( buffer, length, 0);
 #endif
 		return 0;
 	}
 
+#ifdef WIRELESS_CARD
 	if( dst == WLanface)
 	{
 		spin_lock_irqsave(&WLan_TX_lock, &flags);	//ZOT==> spin_lock_irqsave(&WLan_TX_lock, flags);//eason 20091008
@@ -327,13 +336,18 @@ int send_pkt(int intno,UINT8 *buffer,unsigned int length)
 		spin_unlock_irqrestore(&WLan_TX_lock, &flags); //ZOT==> spin_unlock_irqrestore(&WLan_TX_lock, flags);//eason 20091008
 		return 0;
 	}
+#endif
+
 	if( dst == Lanface)
 	{
 		send_frame(buffer, length, 0);
 	}
 	
+#ifdef WIRELESS_CARD
 	if( dst != WLanface && dst != Lanface && dst != ULanface){
+#if defined(N716U2W)
 		send_frame(buffer, length, 0);
+#endif
 		spin_lock_irqsave(&WLan_TX_lock, &flags);	//ZOT==> spin_lock_irqsave(&WLan_TX_lock, flags);//eason 20091008
 		if(WLan_queuecount > 10)
 		{
@@ -352,6 +366,7 @@ int send_pkt(int intno,UINT8 *buffer,unsigned int length)
 		WLan_tx_enqueue(&WLAN_READ_QUEUE,&pSkb);
 		spin_unlock_irqrestore(&WLan_TX_lock, &flags); //ZOT==> spin_unlock_irqrestore(&WLan_TX_lock, flags);//eason 20091008
 	}
+#endif
 	return 0;
 }
 //ZOT
@@ -424,7 +439,9 @@ void LanPktInit()
 	struct netif *netif;
 	struct ip_addr ipaddr, netmask, gw;	
         
+    #ifdef WIRELESS_CARD
 	spin_lock_init(&WLan_TX_lock);//ZOT==>
+    #endif
         
 	netif_init();
 	
@@ -489,6 +506,7 @@ void LanPktInit()
                   &Process_Other_Pckt_TaskHdl,
                   &Process_Other_Pckt_Task);
 //---------------------------------------------------eason 20100210     
+#ifdef WIRELESS_CARD
 		//Create WLANNET_TX_ Thread
 		cyg_thread_create(WLAN_TX_TASK_PRI,
 							WLAN_TX_Thread,
@@ -498,6 +516,7 @@ void LanPktInit()
 							WLAN_TX_TASK_STACK_SIZE,
 							&WLAN_TX_TaskHdl,
 							&WLAN_TX_Task);
+#endif
 //---------------------------------------------------eason 20100210
 }
 
@@ -802,7 +821,9 @@ void OtherPckt_input(char *data, int length)
 
 void LanPktStart()
 {
+#if defined(N716U2W) || defined(N716U2)
 	cyg_thread_resume(BridgeTask_Pckt_TaskHdl);
+#endif
 	
 	cyg_thread_resume(Process_Other_Pckt_TaskHdl);
 	
@@ -818,6 +839,7 @@ void BridgeTask(cyg_addrword_t Data)
     }	
 }
 //----------------------------------------------WLAN eason 20100210
+#ifdef WIRELESS_CARD
 void WLAN_TX_Thread(cyg_addrword_t data)
 {
 	int ret = 0;
@@ -902,4 +924,5 @@ int send_eap_pkt(int intno,UINT8 *buffer,unsigned int length)
 	spin_unlock_irqrestore(&WLan_TX_lock, &flags); //ZOT==> spin_unlock_irqrestore(&WLan_TX_lock, flags);//eason 20091008
 	return 0;	
 }
+#endif
 //-----------------------------------------eason 20100210

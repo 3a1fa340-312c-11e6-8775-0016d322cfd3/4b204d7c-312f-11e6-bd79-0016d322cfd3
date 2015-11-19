@@ -689,7 +689,9 @@ VOID RTMPStartEMITx (PRTMP_ADAPTER pAdapter, UCHAR txPower, UCHAR channel, UCHAR
     */
 	 
     Set_ATE_TX_LENGTH_Proc (pAdapter, "1024");
-    //if (txPower > 9) txPower = 9;
+    #ifdef WIFI_CERTIFICATION
+    if (txPower > 9) txPower = 9;
+    #endif
     sprintf(str_buffer, "%d\0", txPower);
     Set_ATE_TX_POWER0_Proc (pAdapter, str_buffer);
     Set_ATE_TX_COUNT_Proc (pAdapter, "1000000");

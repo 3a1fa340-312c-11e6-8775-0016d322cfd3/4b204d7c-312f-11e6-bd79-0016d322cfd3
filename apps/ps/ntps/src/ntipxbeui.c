@@ -123,8 +123,10 @@ void UtilWritePrinterData(BYTE,WORD);	// (92)
 void UtilGetFirmwareData(void);			// (98)
 void UtilLoadDefault(void);				// (99)
 void UtilPrintLoopback(void);			// (9B)
+#ifdef WIRELESS_CARD
 void UtilWirelessLoopback1(void);		// (9C)
 void UtilWirelessLoopback2(void);		// (9D)
+#endif
 void UtilUSBLoopback(void);				// (9E)
 void UtilSendEEPROM_Adv(void);			// (A0)
 void UtilConfigBox_Adv(void);			// (21)
@@ -226,6 +228,9 @@ BYTE NTRequestECB (BYTE PortNumber,BYTE *Data,int *DataLength)
 #ifdef USE_PS_LIBS
 	BYTE   ReceivePacket;
 	BYTE  i;
+    #if defined(NDWP2020)
+    BYTE  j;
+    #endif
 	int  EmptyDataCount = 0;
 	BYTE  RecvRetryCount;
 	int32 RecvBytes;
@@ -248,13 +253,23 @@ BYTE NTRequestECB (BYTE PortNumber,BYTE *Data,int *DataLength)
 			RecvRetryCount = 0;
 			
 			do{
+                #if defined(NDWP2020)
+                for (j = 0; j < 30; j++) {
+                #endif
+
 				RecvBytes = ipx_recvfrom(&IPXUSOCK, Data, PortNumber); 
 					
 				if(IsNTEndPrint[PortNumber]) {
 					//end of printing
 					return (PRN_Q_EOF);
 				}
-	
+
+                #if defined(NDWP2020)
+                if(RecvBytes > 0)
+                    break;
+                }
+                #endif
+                
 //				if(RecvBytes ==-1 || ++RecvRetryCount > NTPortInfo[PortNumber].MaxRecvPackets ) {
 				if(RecvBytes ==-1  ) {
 					if(*DataLength)  return (PRN_Q_NORMAL); //7/05/99 ONE PACKET ONLY
@@ -1501,7 +1516,9 @@ void UtilityESR(void)
 				UtilLoadDefault();
 				break;
 			case CMD1A:
+                #ifdef WIRELESS_CARD
 				WirelessLightToggle = 5;
+                #endif
 				StatusLightToggle = 5;				
 //ZOT716u2				LanLightToggle = 5;
 #ifdef  USB_LED
@@ -1512,11 +1529,15 @@ void UtilityESR(void)
 //os				UtilPrintLoopback();
 				break;
 			case CMD1C:
+                #ifdef WIRELESS_CARD
 				UtilWirelessLoopback1();
+                #endif
 				break;
 			case CMD1D:
 			case CMD9D:
+                #ifdef WIRELESS_CARD
 				UtilWirelessLoopback2();
+                #endif
 				break;
 			case CMD1E:
 				UtilUSBLoopback();

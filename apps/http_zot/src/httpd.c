@@ -1410,7 +1410,7 @@ httpd (cyg_addrword_t data)
                     if(1)
                     #endif
 					{
-						if( !vAllocCode2Memory() ) {reject = 1; printk("allocCode2Memery Failure\n");}
+						if( !vAllocCode2Memory() ) {reject = 1;}
                         #ifdef IPPD
 						qsize -= ( strlen( rq.boundary ) + 4 + 4);
                         #endif
@@ -1924,9 +1924,9 @@ void httpHeaders(FILE *s,int8 *buf,int16 resp,struct reqInfo *rq)
 	fputs(buf,s);
 }
 
+#ifdef IPPD
 void ippSendResp(ipp_t *ippObj)
 {
-#ifdef IPPD
 	uint16 MaxBufSize, UnSupportSize, RespGroupSize;
 //Jesse	struct mbuf *bp;
 	char *bp;
@@ -2026,8 +2026,8 @@ FreeIppObj:
 	free(ippObj->RespGroup.pf_buf);
 	free(ippObj->job_name);
 	free(ippObj->user_name);
-#endif IPPD
 }
+#endif IPPD
 
 void httpError(FILE *network,int8 *OutBuf, int16 resp, int16 msg,const int8 *str, struct reqInfo *rq)
 {
@@ -2127,7 +2127,7 @@ forbid:
 			sprintf(buf,"%s Basic realm=\"DN-13014-3\"\n",wHdrs[HDR_AUTHEN]);
 #endif	// O_ASSMANN
 
-#if defined(O_TPLINK)
+#if defined(O_TPLINK) || defined(O_TPLINA) // O_TPLINA = O_TPLINK Thailand
 			sprintf(buf,"%s Basic realm=\"TL-WPS510U\"\n",wHdrs[HDR_AUTHEN]);
 #endif	// defined(O_TPLINK)
 
@@ -3091,14 +3091,6 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 			fputs(OutBuf,network);
 		break;
 #endif//RENDEZVOUS
-#ifdef RENDEZVOUS
-		case ECHO_Define_Randvous:
-			sprintf(OutBuf, "%d", 1);
-#else 		
-			sprintf(OutBuf, "%d", 0);
-			fputs(OutBuf,network);
-		break;
-#endif//RENDEZVOUS
 #ifdef ATALKD
 		case ECHO_ATALKSETTINGS:
 			sprintf(OutBuf, "%d", EEPROM_Data.APPTLKEn);
@@ -3254,7 +3246,7 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 		case ECHO_CURRSSID:
 			wlan_get_currssid(temp_ssid);
 			
-			if(strchr(temp_ssid, '"'))
+			if((strchr(temp_ssid, '"')) || (strchr(temp_ssid, '<')))	
 			{		
 				memset(temp_ssid1, 0, 161);
 				for(i=0,j=0;i<strlen(temp_ssid);i++,j++)
@@ -3267,6 +3259,14 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 						temp_ssid1[j+3] = '4';
 						temp_ssid1[j+4] = ';';
 						j = j+4;								
+					}else if(temp_ssid[i] == '<')
+					{
+						temp_ssid1[j] = '&';
+						temp_ssid1[j+1] = '#';
+						temp_ssid1[j+2] = '6';
+						temp_ssid1[j+3] = '0';
+						temp_ssid1[j+4] = ';';
+						j = j+4;
 					}else
 						temp_ssid1[j] = temp_ssid[i];
 				}	
@@ -3274,7 +3274,7 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 			}	
 			else
 				strcpy(OutBuf, temp_ssid);
-			
+
 			fputs(OutBuf,network);
 			break;
 		case ECHO_CURRRATE:
@@ -3647,7 +3647,7 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 				cp = curr->ssid;
 				
 				memset(temp_ssid1, 0, 161);
-				if(strchr(cp, '"'))				
+                if((strchr(cp, '"')) || (strchr(cp, '<')))				
 				{					
 					for(i=0,j=0;i<strlen(cp);i++,j++)
 					{
@@ -3657,6 +3657,14 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 							temp_ssid1[j+1] = '#';
 							temp_ssid1[j+2] = '3';
 							temp_ssid1[j+3] = '4';
+							temp_ssid1[j+4] = ';';
+							j = j+4;								
+                        } else if(cp[i] == '<')
+                        {
+							temp_ssid1[j] = '&';
+							temp_ssid1[j+1] = '#';
+							temp_ssid1[j+2] = '6';
+							temp_ssid1[j+3] = '0';
 							temp_ssid1[j+4] = ';';
 							j = j+4;								
 						}else
@@ -3757,7 +3765,7 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 				sprintf( OutBuf,"%d)'></TD>", value);
 #endif	// LOADING_MORE_WIRELESS_ENCRYPTION_INFORMATION
 				fputs(OutBuf,network);	itabindex++;
-				sprintf( OutBuf,"<TD>%-32s</TD>", cp);			// SSID
+				sprintf( OutBuf,"<TD>%-32s</TD>", temp_ssid1);			// SSID
 				fputs(OutBuf,network);
 				sprintf( OutBuf,"<TD>%02X:%02X:%02X:%02X:%02X:%02X</TD>", curr->bssid[0], curr->bssid[1],curr->bssid[2],curr->bssid[3],curr->bssid[4],curr->bssid[5]);
 				fputs(OutBuf,network);
@@ -4833,7 +4841,7 @@ int CGIBoxSetting(FILE *network,int8 *inbuf, int8 *outbuf, struct reqInfo *rq)
 			}
 
 			EEPROM_Data.WLWEPKeyType = atoi(p[ECHO_WLWEPFormat]);
-#if ((defined DWP2000 && defined O_TPLINK) || defined WIRELESS_SETTING_ONE_PAGE)
+#if ((defined DWP2000 && (defined O_TPLINK || defined O_TPLINA)) || defined WIRELESS_SETTING_ONE_PAGE)
 			wkeyformat = 0;	
 #else
 			wkeyformat = 1;	
@@ -5026,7 +5034,7 @@ int CGIBoxSetting(FILE *network,int8 *inbuf, int8 *outbuf, struct reqInfo *rq)
 		}
 #ifdef WLWEP128_FOURKEYS
 		if(p[ECHO_WLWEP_128KEY1]){
-#if (defined DWP2000 && defined O_TPLINK)			
+#if (defined DWP2000 && (defined O_TPLINK || defined O_TPLINA))			
 			if(EEPROM_Data.WLWEPType == 2)
 				memset(EEPROM_Data.WLWEP128Key, 0x00, 13);
 #endif
@@ -5065,7 +5073,7 @@ int CGIBoxSetting(FILE *network,int8 *inbuf, int8 *outbuf, struct reqInfo *rq)
 			}
 		}
 		if(p[ECHO_WLWEP_128KEY2]){
-#if (defined DWP2000 && defined O_TPLINK)			
+#if (defined DWP2000 && (defined O_TPLINK || defined O_TPLINA))			
 			if(EEPROM_Data.WLWEPType == 2)
 				memset(EEPROM_Data.WLWEP128Key2, 0x00, 13);
 #endif
@@ -5105,7 +5113,7 @@ int CGIBoxSetting(FILE *network,int8 *inbuf, int8 *outbuf, struct reqInfo *rq)
 			}
 		}
 		if(p[ECHO_WLWEP_128KEY3]){
-#if (defined DWP2000 && defined O_TPLINK)			
+#if (defined DWP2000 && (defined O_TPLINK || defined O_TPLINA))			
 			if(EEPROM_Data.WLWEPType == 2)
 				memset(EEPROM_Data.WLWEP128Key3, 0x00, 13);
 #endif
@@ -5145,7 +5153,7 @@ int CGIBoxSetting(FILE *network,int8 *inbuf, int8 *outbuf, struct reqInfo *rq)
 			}
 		}
 		if(p[ECHO_WLWEP_128KEY4]){
-#if (defined DWP2000 && defined O_TPLINK)			
+#if (defined DWP2000 && (defined O_TPLINK || defined O_TPLINA))			
 			if(EEPROM_Data.WLWEPType == 2)
 				memset(EEPROM_Data.WLWEP128Key4, 0x00, 13);
 #endif

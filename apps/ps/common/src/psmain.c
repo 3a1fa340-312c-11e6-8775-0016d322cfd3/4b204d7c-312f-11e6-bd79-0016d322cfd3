@@ -11,12 +11,11 @@
 
 #ifndef USE_NETAPP_LIBS
 #undef SMBD
-#undef UNIXUTIL_TFTP
 #undef TELNETD
-#undef SNMPD
 #endif /* !NETAPP_LIBS */
 
 #ifndef USE_PS_LIBS
+#undef SNMPD
 #undef LPD_TXT
 #undef NOVELL_PS
 #undef NDS_PS
@@ -133,6 +132,36 @@ void NCOPY32( uint8 *pDest, uint8 *pSrc )
 	pDest[2] = pSrc[2];
 	pDest[3] = pSrc[3];
 }
+
+#if 0 //defined(DWP2020)
+/* Convert Internet address in ascii dotted-decimal format (44.0.0.1) to
+ * binary IP address
+ */
+int32
+aton(char *s)
+{
+    int32 n;
+
+    register int i;
+
+    n = 0;
+    if(s == NULL)
+        return 0;
+    for(i=24;i>=0;i -= 8){
+    /* Skip any leading stuff (e.g., spaces, '[') */
+        while(*s != '\0' && !isdigit(*s))
+            s++;
+        if(*s == '\0')
+            break;
+        n |= (int32)atoi(s) << i;
+        if((s = strchr(s,'.')) == NULL)
+            break;
+        s++;
+    }
+    return n;
+}
+#endif // defined(DWP2020)
+
 //ZOT==>
 void __spin_lock_init(void *lock){
 	cyg_mutex_t * mut_t = lock;
@@ -692,7 +721,7 @@ void ps_init(void)
 //////// Supported Apple Mac Print Server <Apple Talk>
 #ifdef ATALKD
 #if !defined(N716U2S) && !defined(O_ELEC)
-#if defined(O_ZOTCH)
+#if defined(O_ZOTCH) || defined(O_AXIS)
 	if(EEPROM_Data.APPTLKEn)
 #else
 	if(PSMode & PS_ATALK_MODE)
@@ -988,8 +1017,21 @@ void starSAPThread(void)
 	cyg_thread_resume(NSAP_TaskHdl);
 }
 
+#if defined(NDWP2020)
+int disconnect_wireless = 1;
+extern void disassoc_cmd_sw(void);	//eason 20100608
+#endif
+
 void sysreboot(cyg_handle_t handle, cyg_addrword_t ptr){
-	Reset();
+    #if defined(NDWP2020)
+	if(disconnect_wireless == 1)
+	{
+		disassoc_cmd_sw();	//eason 20100608
+		disconnect_wireless = 0;
+	}
+	else
+    #endif
+	    Reset();
 }
 
 int ROOT_flag = 0;

@@ -3420,11 +3420,14 @@ VOID UserCfgInit(RTMP_ADAPTER *pAd)
 	//change to common part
 	pAd->ed_rssi_threshold = -80;
 
-	pAd->ed_chk_period = 100;
-    /*
+    #ifdef WIFI_CERTIFICATION 
     // for emi test of wifi adaptive
 	pAd->ed_chk_period = 8;
-    */
+    #else
+    // for normal case
+    pAd->ed_chk_period = 100;
+    #endif
+
 	pAd->ed_threshold = 90;
 	pAd->ed_false_cca_threshold = 150;
 	pAd->ed_block_tx_threshold = 2;

@@ -96,8 +96,8 @@ char SetPrinterMode(char *String);
 char *GetPrinterMode(char PrinterMode);
 #endif DEF_PRINTSPEED
 
-static char	buf[PKTSIZE];
-static char	ackbuf[PKTSIZE];
+static char	buf[PKTSIZE] __attribute__ ((aligned(4)));
+static char	ackbuf[PKTSIZE] __attribute__ ((aligned(4)));
 static struct	sockaddr_in fromsock;
 static int	    fromlen;
 static int     lsocket;
@@ -525,7 +525,6 @@ void SendZeroByteFile(void)
 		              (struct sockaddr *)&fromsock,
 		              &fromlen );
 	}while((n < 0 || ntohs(ap->th_opcode) != ACK) && TryCount++ < TFTPD_TRY_TIMES);
-
 }
 
 //*
@@ -648,7 +647,9 @@ void TftpSetEEPROM(void)
 void TftpEraseEE(void)
 {
 	cli();
+    #if defined(N716U2W)
 	vErase_QC0_Default();
+    #endif
 	vEraseEEP();
 	vEraseDefault();
 	sti();
@@ -1111,7 +1112,7 @@ void TftpDLFlash(void)
 				return;
 			}		  
 			//kwait(NULL);   //1/29/99 remarked
-			cyg_thread_yield();
+            cyg_thread_yield();
 			fromlen = sizeof(fromsock);
 			nRecvLen = recvfrom(lsocket,
     			          dp,

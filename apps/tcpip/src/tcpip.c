@@ -212,7 +212,12 @@ static cyg_thread       NETWORK_Task;
 static cyg_handle_t     NETWORK_TaskHdl;
 
 //DHCP Task create information definition
+#if defined(N716U2W) || defined(N716U2)
 #define DHCP_TASK_PRI         8
+#endif
+#if defined(NDWP2020)
+#define DHCP_TASK_PRI         6
+#endif
 #define DHCP_TASK_STACK_SIZE	 4096
 static u8_t 			DHCP_Stack[DHCP_TASK_STACK_SIZE];
 static cyg_thread       DHCP_Task;
@@ -260,6 +265,8 @@ void erase_netif_ipaddr()
 void updata_netif_ipaddr( struct netif *netif )
 {
 #if 1	//ZOTIPS
+    unsigned char show_addr[4];
+
 	if (netif == WLanface){ //Ron modified on 12/07/04
 	    Lanface->ip_addr.addr = netif->ip_addr.addr;
 	    Lanface->netmask.addr = netif->netmask.addr;
@@ -281,6 +288,15 @@ void updata_netif_ipaddr( struct netif *netif )
 	mib_DHCP_p->SubnetMask = DWordSwap(Lanface->netmask.addr);
 	mib_DHCP_p->GwyAddr = DWordSwap(Lanface->gw.addr);
 		
+#ifdef MTK7601
+    memcpy (show_addr, netif->ip_addr.addr, 1);
+    printk("ip_addr.addr = %X\n", netif->ip_addr.addr);
+    printk("Box IP : %d.%d.%d.%d\n", show_addr[0],
+                                     show_addr[1],
+                                     show_addr[2],
+                                     show_addr[3]);
+#endif
+
 	NSET32(EEPROM_Data.BoxIPAddress, netif->ip_addr.addr);
 	NSET32(EEPROM_Data.SubNetMask, netif->netmask.addr);
 	NSET32(EEPROM_Data.GetwayAddress, netif->gw.addr);
@@ -507,7 +523,9 @@ void zot_network_task(cyg_addrword_t arg)
 		{
 
 #ifdef LINKLOCAL_IP	
+            #if defined(N716U2W) || defined(N716U2)
 			if(EEPROM_Data.RENVEnable == 1)
+            #endif
 				Link_local_ip_init();	
 #endif
 			

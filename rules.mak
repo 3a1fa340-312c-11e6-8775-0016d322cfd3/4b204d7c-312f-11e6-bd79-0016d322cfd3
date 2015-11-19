@@ -1,10 +1,10 @@
 
 
 GCC_DIR = /opt/gnutools/arm-elf/bin
-PKG_INSTALL_DIR = $(ROOT_DIR)/ecos/ecos_install
+PKG_INSTALL_DIR = $(ROOT_DIR)/ecos/$(PROD_NAME)_ecos_install
 PROD_DIR= $(ROOT_DIR)/prod
 APPS_DIR = $(ROOT_DIR)/apps
-PROD_NAME = zot716u2w
+#PROD_NAME = zot716u2w
 PROD_BUILD_DIR = $(PROD_DIR)/$(PROD_NAME)/build
 #HDR_MAK = $(PROD_BUILD_DIR)/hdr.mak
 FTR_MAK = $(PROD_BUILD_DIR)/ftr.mak
@@ -27,13 +27,34 @@ C_DEFINED = -D$(HTML_FILE)
 INC_DIR   = -I$(PKG_INSTALL_DIR)/include
 CFLAGS    = -Wall $(INC_DIR) -ffunction-sections -fdata-sections
 CFLAGS   += -D__ECOS -DECOS \
-			-DMTK7601 \
-			-DTXRX_SW_ANTDIV_SUPPORT \
-			-DWPSBUTTON_LEDFLASH_FLICK \
+			-D$(TARGET) \
+			-DUART_OUTPUT \
 			-DUSE_SYS_LIBS \
 			-DUSE_ADMIN_LIBS \
 			-DUSE_PS_LIBS \
 			-DUSE_NETAPP_LIBS
+
+#-DWIRELESS_CARD for wireless function
+#-DMTK7601 to use mt7601 wifi module
+#-DMONITOR -DED_SMART for wifi adapative
+#-DWIFI_CERTIFICATION for wifi certification use (power limited)
+#			-DWIFI_CERTIFICATION \
+#			-DED_MONITOR \
+#			-DED_SMART \
+#			code package splitor
+#			-DUSE_SYS_LIBS
+#			-DUSE_ADMIN_LIBS
+#			-DUSE_WIRELESS_LIBS
+#			-DUSE_PS_LIBS
+#			-DUSE_NETAPP_LIBS
+
+ifeq ($(TARGET),N716U2W)
+CFLAGS 	 +=	-DWPSBUTTON_LEDFLASH_FLICK \
+			-DTXRX_SW_ANTDIV_SUPPORT \
+			-DMTK7601 \
+			-DUSE_WIRELSS_LIBS 
+endif
+
 CFLAGS   += -DVERSION=\"$(VERSION_STRING)\"
 
 #add include 

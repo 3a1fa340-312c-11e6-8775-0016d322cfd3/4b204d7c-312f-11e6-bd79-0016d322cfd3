@@ -198,6 +198,7 @@ int ReadFromFactory(EEPROM *Data){
 
 	Data->Version[0] = 0x00;  //Hardware version = Version[0] & 0xF
 	Data->Version[1] = 0x06;  //Software version = BYTE[1] * 0x10 + (BYTE[0] >> 4)
+#if defined(N716U2W)
 	Data->Model = 0x32; 	   //00:N6101EP    01:N6102EP		02:N6200EP
 							   //03:N6300EP    04:N6301EP		06:N6300II
 							   //07:737,6300+  08:7227			09:PCI520
@@ -210,6 +211,13 @@ int ReadFromFactory(EEPROM *Data){
 							   //28:           29:              30:
 							   //31:           32:615WU
 							   //50:716U2W								   
+#endif
+#if defined(N716U2)
+    Data->Model = 0x2F;
+#endif
+#if defined(NDWP2020)
+    Data->Model = 0x37;
+#endif
 	memset(Data->BoxName, 0x00, LENGTH_OF_BOX_NAME); //Device Name. (none zero string) 
 #ifdef O_AXIS
 	strcpy(Data->BoxName, "AXIS"); 
@@ -259,9 +267,14 @@ int ReadFromFactory(EEPROM *Data){
 #else
 	Data->BoxIPAddress[0] = 0xC0; //192, Box IP Address for TCP/IP only
 	Data->BoxIPAddress[1] = 0xA8; //168 
+#if defined(N716U2W) || defined(N716U2)
 	Data->BoxIPAddress[2] = 0x64; //100
 	Data->BoxIPAddress[3] = 0x05; //5
-	
+#endif
+#if defined(NDWP2020)
+	Data->BoxIPAddress[2] = 0x00; //0
+	Data->BoxIPAddress[3] = 0x0A; //10
+#endif	
 	Data->SubNetMask[0] = 0xFF;  //Subnet Mask for TCP/IP only
 	Data->SubNetMask[1] = 0xFF;
 	Data->SubNetMask[2] = 0xFF;
@@ -449,6 +462,247 @@ int ReadFromFactory(EEPROM *Data){
 // {
 // }
 // #endif	// defined(O_ZOTCH) || defined(O_ZOTCHW) || defined(O_ZOTCHS)
+#if defined(NDWP2020)
+#if defined(O_TPLINK)
+// Extra post-settings default from customer -- TP-Link
+int EEPROMInit_DEFAULT_O_TPLINK()
+{
+	int		iReturnValue = 0;
+
+	// TP-Link, new
+	uint8	Password_TPLINK[8] = {0x61, 0x64, 0x6D, 0x69, 0x6E, 0x00, 0x00, 0x00};	// admin
+	uint8	WLESSID_TPLINK_WPS510U[32] =
+	 {0x54, 0x4C, 0x2D, 0x57, 0x50, 0x53, 0x35, 0x31, 0x30, 0x55, 0x00};	// TL-WPS510U
+	 
+	// TP-Link, old
+	uint8	Password_TPLINK_old[8] = {0x30, 0x30, 0x30, 0x30, 0x00, 0x00, 0x00, 0x00};	// 0000
+	uint8	WLESSID_TPLINK_WPS510U_old[32] =
+	 {0x57, 0x4C, 0x41, 0x4E, 0x2D, 0x50, 0x53, 0x00, 0x00, 0x00, 0x00};	// WLAN-PS
+
+	// George added this at build0021 of DWP2010 on October 27, 2010.
+	// George modified this at build0022 of DWP2010 on March 23, 2011.
+	// George modified this at build0022 of DWP2010 on April 12, 2011.
+	// George modified this at build0003 of DWP2020 on October 19, 2011.
+	//	default password: 0000 --> admin (SR-10009003)
+	//if( memcmp(&DEFAULT_Data.Password, Password_TPLINK_old, sizeof(Password_TPLINK_old)) != 0 )
+	if( memcmp(&DEFAULT_Data.Password, Password_TPLINK, sizeof(Password_TPLINK)) != 0 )
+	{
+		//memcpy(&DEFAULT_Data.Password, Password_TPLINK_old, sizeof(Password_TPLINK_old));
+		memcpy(&DEFAULT_Data.Password, Password_TPLINK, sizeof(Password_TPLINK));
+		iReturnValue = 1;
+	}
+
+	if( memcmp(&DEFAULT_Data.WLESSID, WLESSID_TPLINK_WPS510U_old, sizeof(WLESSID_TPLINK_WPS510U_old)) != 0 )
+	{
+		memcpy(&DEFAULT_Data.WLESSID, WLESSID_TPLINK_WPS510U_old, sizeof(WLESSID_TPLINK_WPS510U_old));
+		iReturnValue = 1;
+	}
+	// George added this at build0021 on July 5, 2010.
+	//memcpy(&DEFAULT_Data.Password, Password_TPLINK, sizeof(Password_TPLINK));
+	//memcpy(&DEFAULT_Data.WLESSID, WLESSID_TPLINK_WPS510U, sizeof(WLESSID_TPLINK_WPS510U));
+
+	return iReturnValue;
+}
+#endif	// defined(O_TPLINK)
+
+// Extra post-settings from customer -- TP-Link Thailand
+// George created this sub-function at build0004 of DWP2020 on April 27, 2012.
+#if defined(O_TPLINA)
+
+// Extra post-settings default from customer -- TP-Link Thailand
+int EEPROMInit_DEFAULT_O_TPLINA()
+{
+	int		iReturnValue = 0;
+
+	// TP-Link Thailand
+	uint8	Password_TPLINK[8] = {0x61, 0x64, 0x6D, 0x69, 0x6E, 0x00, 0x00, 0x00};	// admin
+	uint8	WLWEPKeyType_TPLINA = 0x01;								// Hex
+	uint8	WLESSID_TPLINA_WPS510U[10] =
+	 {0x46, 0x61, 0x72, 0x6D, 0x68, 0x6F, 0x75, 0x73, 0x65, 0x5F};	// Farmhouse_
+	uint8	WLChannel_TPLINA = 0x07;										// 7
+	uint8	WLAuthType_TPLINA = 0x01;										// Open System 
+	uint8	WLWEPType_TPLINA = 0x01;										// WEP 64-bit
+	uint8	WLWEPKeySel_TPLINA = 0x00;										// Key 1
+	uint8	WLWEPKey1_TPLINA[6] = {0x12, 0x34, 0x56, 0x78, 0x90, 0x00};		// Hex 1234567890
+	
+	uint8	BoxIPAddress_TPLINA[4] = {0xC0, 0xA8, 0x01, 0x0A};		// 192.168.1.10
+	uint8	SubNetMask_TPLINA[4] = {0xFF, 0xFF, 0xFF, 0x00};		// 255.255.255.0
+	uint8	GetwayAddress_TPLINA[4] = {0xC0, 0xA8, 0x01, 0x01};		// 192.168.1.1
+	
+	uint8 	SSID_temp[32] = {0};
+	
+	// George added this at build0004 of DWP2020 on April 30, 2012.
+	uint8	*pTempNodeID;
+
+	pTempNodeID = (uint8 *)malloc(6);
+	
+	//if(pTempNodeID == NULL)
+	//	return 0;
+		
+	memset(pTempNodeID, 0x00, 6);
+	 
+	// George added this at build0021 of DWP2010 on October 27, 2010.
+	// George modified this at build0022 of DWP2010 on March 23, 2011.
+	// George modified this at build0022 of DWP2010 on April 12, 2011.
+	// George modified this at build0003 of DWP2020 on October 19, 2011.
+	//	default password: 0000 --> admin (SR-10009003)
+	// George added other settings at build0004 of DWP2020 on April 27, 2012. (AJ-10104001)
+	//if( memcmp(&DEFAULT_Data.Password, Password_TPLINK_old, sizeof(Password_TPLINK_old)) != 0 )
+	if( memcmp(&DEFAULT_Data.Password, Password_TPLINK, sizeof(Password_TPLINK)) != 0 )
+	{
+		//memcpy(&DEFAULT_Data.Password, Password_TPLINK_old, sizeof(Password_TPLINK_old));
+		memcpy(&DEFAULT_Data.Password, Password_TPLINK, sizeof(Password_TPLINK));
+		iReturnValue = 1;
+	}
+
+	// TP-Link Thailand
+	memcpy(SSID_temp, WLESSID_TPLINA_WPS510U, sizeof(WLESSID_TPLINA_WPS510U));
+	sprintf(pTempNodeID, "%02X%02X%02X", DEFAULT_Data.EthernetID[3], DEFAULT_Data.EthernetID[4], DEFAULT_Data.EthernetID[5]);
+	memcpy(SSID_temp + sizeof(WLESSID_TPLINA_WPS510U), pTempNodeID, 6);
+
+	if( memcmp(&DEFAULT_Data.WLESSID, SSID_temp, sizeof(SSID_temp)) != 0 )
+	{
+		memcpy(&DEFAULT_Data.WLESSID, SSID_temp, sizeof(SSID_temp));
+		
+		// Others
+		DEFAULT_Data.WLWEPKeyType = WLWEPKeyType_TPLINA;
+		DEFAULT_Data.WLChannel = WLChannel_TPLINA;
+		DEFAULT_Data.WLAuthType = WLAuthType_TPLINA;
+		DEFAULT_Data.WLWEPType = WLWEPType_TPLINA;
+		DEFAULT_Data.WLWEPKeySel = WLWEPKeySel_TPLINA;
+		memcpy(&DEFAULT_Data.WLWEPKey1, WLWEPKey1_TPLINA, sizeof(WLWEPKey1_TPLINA));
+		
+		DEFAULT_Data.PrintServerMode &= 0x7F;
+		memcpy(&DEFAULT_Data.BoxIPAddress, BoxIPAddress_TPLINA, 4);
+		memcpy(&DEFAULT_Data.SubNetMask, SubNetMask_TPLINA, 4);
+		memcpy(&DEFAULT_Data.GetwayAddress, GetwayAddress_TPLINA, 4);
+
+		iReturnValue = 1;
+	}
+	
+	free(pTempNodeID);
+	
+	// George added this at build0021 on July 5, 2010.
+	//memcpy(&DEFAULT_Data.Password, Password_TPLINK, sizeof(Password_TPLINK));
+	//memcpy(&DEFAULT_Data.WLESSID, WLESSID_TPLINK_WPS510U, sizeof(WLESSID_TPLINK_WPS510U));
+
+	return iReturnValue;
+}
+#endif	// defined(O_TPLINA)
+
+// Extra post-settings from customer -- ZO TECH
+// George created this sub-function at build0022 of 716U2 on April 6, 2011.
+#if defined(O_ZOTCH) || defined(O_ZOTCHW) || defined(O_ZOTCHS)
+
+// Extra post-settings default from customer -- ZO TECH
+int EEPROMInit_DEFAULT_O_ZOTCH()
+{
+	int		iReturnValue = 0;
+	
+	// ZO TECH
+	uint8	DeviceName_ZOTCH_PU201[6] = {0x50, 0x55, 0x32, 0x30, 0x31, 0x2D};			// PU201-
+	uint8	DeviceName_ZOTCH_PU201S[7] = {0x50, 0x55, 0x32, 0x30, 0x31, 0x53, 0x2D};	// PU201S-
+	
+	uint8 	Box_temp_Name[LENGTH_OF_BOX_NAME] = {0};
+	
+	// George added this at build0019 of 716U2 on December 7, 2010.
+	uint8	*pTempNodeID;
+
+	pTempNodeID = (uint8 *)malloc(6);
+	
+	//if(pTempNodeID == NULL)
+	//	return 0;
+		
+	memset(pTempNodeID, 0x00, 6);
+	
+	// George added this at build0019 in 716U2 on December 7, 2010.
+	#if defined(N716U2)
+		#if defined(N716U2S)
+			memcpy(Box_temp_Name, DeviceName_ZOTCH_PU201S, sizeof(DeviceName_ZOTCH_PU201S));
+			sprintf(pTempNodeID, "%02X%02X%02X", DEFAULT_Data.EthernetID[3], DEFAULT_Data.EthernetID[4], DEFAULT_Data.EthernetID[5]);
+			memcpy(Box_temp_Name + sizeof(DeviceName_ZOTCH_PU201S), pTempNodeID, 3);
+			if( memcmp(&DEFAULT_Data.BoxName, Box_temp_Name, LENGTH_OF_BOX_NAME) != 0 )
+			{
+				memcpy(&DEFAULT_Data.BoxName, Box_temp_Name, LENGTH_OF_BOX_NAME);
+	
+				iReturnValue = 1;
+			}
+			
+			if( (DEFAULT_Data.PrintServerMode2 & ( PS_RAWTCP_MODE | PS_FTP_MODE | PS_HTTP_MODE ) ) == 0 )
+			{
+				DEFAULT_Data.PrintServerMode2 |= ( PS_RAWTCP_MODE | PS_FTP_MODE | PS_HTTP_MODE );
+				iReturnValue = 1;
+			}
+
+		#else
+			memcpy(Box_temp_Name, DeviceName_ZOTCH_PU201, sizeof(DeviceName_ZOTCH_PU201));
+			sprintf(pTempNodeID, "%02X%02X%02X", DEFAULT_Data.EthernetID[3], DEFAULT_Data.EthernetID[4], DEFAULT_Data.EthernetID[5]);
+			memcpy(Box_temp_Name + sizeof(DeviceName_ZOTCH_PU201), pTempNodeID, 3);
+			if( memcmp(&DEFAULT_Data.BoxName, Box_temp_Name, LENGTH_OF_BOX_NAME) != 0 )
+			{
+				memcpy(&DEFAULT_Data.BoxName, Box_temp_Name, LENGTH_OF_BOX_NAME);
+	
+				iReturnValue = 1;
+			}
+			
+			if( (DEFAULT_Data.PrintServerMode2 & ( PS_RAWTCP_MODE | PS_FTP_MODE | PS_HTTP_MODE ) ) == 0 )
+			{
+				DEFAULT_Data.PrintServerMode2 |= ( PS_RAWTCP_MODE | PS_FTP_MODE | PS_HTTP_MODE );
+				iReturnValue = 1;
+			}
+
+		#endif	// defined(N716U2S)
+	#endif	// defined(N716U2)
+	
+	free(pTempNodeID);
+	
+	return iReturnValue;
+}
+
+// Extra post-settings current from customer -- ZO TECH
+int EEPROMInit_CURRENT_O_ZOTCH()
+{
+	// George modified this at build0021 of 716U2 on March 23, 2011.
+	if( (EEPROM_Data.PrintServerMode2 & ( PS_RAWTCP_MODE | PS_FTP_MODE ) ) == 0 )
+	{
+		EEPROM_Data.PrintServerMode2 |= ( PS_RAWTCP_MODE | PS_FTP_MODE );
+		return 1;
+	}
+	
+	return 0;
+}
+#endif	// defined(O_ZOTCH) || defined(O_ZOTCHW) || defined(O_ZOTCHS)
+
+// Extra post-settings from customer -- Logitec
+// George created this sub-function at build0022 of 716U2 on April 6, 2011.
+#if defined(O_ELEC)
+
+// Extra post-settings default from customer -- Logitec
+int EEPROMInit_DEFAULT_O_ELEC()
+{
+	if( (DEFAULT_Data.PrintServerMode & ( PS_UNIX_MODE | PS_WINDOWS_MODE | PS_IPP_MODE  ) ) == 0 )
+	{
+		DEFAULT_Data.PrintServerMode |= ( PS_UNIX_MODE | PS_WINDOWS_MODE | PS_IPP_MODE );
+		return 1;
+	}
+
+	return 0;
+}
+
+// Extra post-settings current from customer -- Logitec
+int EEPROMInit_CURRENT_O_ELEC()
+{
+	if( (EEPROM_Data.PrintServerMode & ( PS_UNIX_MODE | PS_WINDOWS_MODE | PS_IPP_MODE ) ) == 0 )
+	{
+		EEPROM_Data.PrintServerMode |= ( PS_UNIX_MODE | PS_WINDOWS_MODE | PS_IPP_MODE );
+		return 1;
+	}
+	
+	return 0;
+}
+#endif	// defined(O_ELEC)
+
+#endif // defined(NDWP2020)
 
 void EEPROMInit(void)
 {
@@ -527,6 +781,7 @@ void EEPROMInit(void)
 		NeedWriteDEFAULT = 1;
 	}
 	
+#if defined(N716U2W)
 	// WPS -- RT8188
 	if(EEPROM_Data.WLMode > 0)
 	{
@@ -535,26 +790,56 @@ void EEPROMInit(void)
 		
 		NeedWriteEEPROM = 1;
 	}
+#endif
 	
 	//======================================================================================//
 	// Extra post-settings from customer													//
 	//======================================================================================//
-	
-		// TP-Link
-// #if defined(O_TPLINK)
-//	if(EEPROMInit_DEFAULT_O_TPLINK())
-//		NeedWriteDEFAULT = 1;
-// #endif	// defined(O_TPLINK)
+#if defined(NDWP2020)
 
-		// ZO TECH
-//#if defined(O_ZOTCH) || defined(O_ZOTCHW) || defined(O_ZOTCHS)
+	// TP-Link
+#if defined(O_TPLINK)
+	if(EEPROMInit_DEFAULT_O_TPLINK())
+		NeedWriteDEFAULT = 1;
+#endif	// defined(O_TPLINK)
+
+	// TP-Link Thailand
+#if defined(O_TPLINA)
+	if(EEPROMInit_DEFAULT_O_TPLINA())
+		NeedWriteDEFAULT = 1;
+#endif	// defined(O_TPLINA)
+
+// ZO TECH
+#if defined(O_ZOTCH) || defined(O_ZOTCHW) || defined(O_ZOTCHS)
 		// George modified this at build0021 of 716U2 on March 23, 2011.
-//		if(EEPROMInit_CURRENT_O_ZOTCH())
-//			NeedWriteEEPROM = 1;
+		if(EEPROMInit_CURRENT_O_ZOTCH())
+			NeedWriteEEPROM = 1;
 
-//		if(EEPROMInit_DEFAULT_O_ZOTCH())
+		if(EEPROMInit_DEFAULT_O_ZOTCH())
+			NeedWriteDEFAULT = 1;
+//#else
+//		if( (EEPROM_Data.PrintServerMode2 & ( PS_RAWTCP_MODE | PS_FTP_MODE ) ) == 0 )
+//		{
+//			EEPROM_Data.PrintServerMode2 |= ( PS_RAWTCP_MODE | PS_FTP_MODE );
+//			NeedWriteEEPROM = 1;
+//		}	
+//		if( (DEFAULT_Data.PrintServerMode2 & ( PS_RAWTCP_MODE | PS_FTP_MODE  ) ) == 0 )
+//		{
+//			DEFAULT_Data.PrintServerMode2 |= ( PS_RAWTCP_MODE | PS_FTP_MODE );
 //			NeedWriteDEFAULT = 1;
-//#endif	// defined(O_ZOTCH) || defined(O_ZOTCHW) || defined(O_ZOTCHS)
+//		}
+#endif	// defined(O_ZOTCH) || defined(O_ZOTCHW) || defined(O_ZOTCHS)
+
+#if defined(O_ELEC)
+		if(EEPROMInit_CURRENT_O_ELEC())
+			NeedWriteEEPROM = 1;
+
+		if(EEPROMInit_DEFAULT_O_ELEC())
+			NeedWriteDEFAULT = 1;
+		
+#endif	// defined(O_ELEC)
+
+#endif  // defined(NDWP2020)
 
 	// Charles 2002/02/06
 	if( DEFAULT_Data.NumOfPort != NUM_OF_PRN_PORT

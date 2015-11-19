@@ -56,6 +56,7 @@ void zot_idle_task(cyg_addrword_t data)
 #endif	// defined(O_CONRAD)
 			}
 		}
+        #if defined(N716U2W) || defined(N716U2)
 		else if(value1 == 0)
 		{
 			if (start == 0)
@@ -69,17 +70,19 @@ void zot_idle_task(cyg_addrword_t data)
 				if( (current - start) > 50 )
 				{
 					needwps = 1;
-#ifdef WPSBUTTON_LEDFLASH_FLICK
+                    #ifdef WPSBUTTON_LEDFLASH_FLICK
 					// Lance
 					flash_wps_led = 1;
-#endif	// WPSBUTTON_LEDFLASH_FLICK
+                    #endif	// WPSBUTTON_LEDFLASH_FLICK
 				}
 			}							
 		}
+        #endif // defined(N716U2W)
 		else
 		{
 			start = 0;
 
+#ifdef WIRELESS_CARD
 			if(needwps)
 			{
                 #ifndef MTK7601 
@@ -88,6 +91,7 @@ void zot_idle_task(cyg_addrword_t data)
                 wlan_set_wps_on();
 				needwps = 0;
 			}
+#endif
 			
 			if (needprint){
 #ifdef DO_STATUS_PRINT

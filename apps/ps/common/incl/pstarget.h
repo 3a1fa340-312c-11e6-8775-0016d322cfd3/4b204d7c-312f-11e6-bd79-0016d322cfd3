@@ -24,7 +24,13 @@
 #define WIRELESS_SETTING_ONE_PAGE
 
 #define WPA_PSK_TKIP
+
+#ifdef USE_WIRELESS_LIBS
 #define WIRELESS_CARD
+#else
+#undef WIRELESS_CARD
+#endif
+
 #define PACK_DATA_EXT			//pack data extern
 #define WLWEP128_FOURKEYS
 #define ISL80211G_EXTRATE
@@ -66,13 +72,16 @@
 #define LPD_TXT
 #define ATALKD
 #define SNMPD
+#define UNIXUTIL_TFTP
 #endif /* USE_PS_LIBS */
 
 #ifdef USE_NETAPP_LIBS
 #define TELNETD
-#define UNIXUTIL_TFTP
 #endif /* USE_NETAPP_LIBS */
-//ZOT716u2 Not Yet #define RENDEZVOUS //Ron Add 11/24/04
+
+#if defined(NDWP2020) && defined(USE_PS_LIBS)
+#define RENDEZVOUS //Ron Add 11/24/04
+#endif
 
 #ifdef RENDEZVOUS 
 #define LINKLOCAL_IP //Ron Add 12/07/04
@@ -124,6 +133,9 @@
 //#if !defined(O_TPLINK)
 #ifdef USE_NETAPP_LIBS
 #define SMBD
+#if defined(NDWP2020) && (defined(O_TPLINK) || defined(O_TPLINA))
+#undef SMBD
+#endif
 #endif /* USE_NETAPP_LIBS */
 
 //#endif	// !defined(O_TPLINK)

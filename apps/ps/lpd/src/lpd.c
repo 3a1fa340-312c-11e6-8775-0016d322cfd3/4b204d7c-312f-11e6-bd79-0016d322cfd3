@@ -676,7 +676,7 @@ receive_job(cyg_addrword_t data)
 	if(rc == -3)
 	{
 		JL_EndList(PortNumber, 3);		// Timeout. George Add January 31, 2007
-#if !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINS) && !defined(O_LS)
+#if !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINS) && !defined(O_TPLINA) && !defined(O_LS)
 		SendEOF(PortNumber);			// Send the EOF page. George Add January 10, 2008
 #endif	// !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINS) && !defined(O_LS)
 	}
@@ -767,10 +767,10 @@ static int receive_data_file(int PortNumber, unsigned long filesize, int s, int 
 	}
 
 #if defined(IPPD) && defined(LPD_TXT)
-
-	if(TXTMode) return receive_txt_data_file(PortNumber,filesize, s);
-	else        return receive_bin_data_file(PortNumber,filesize, s);
-
+	if(TXTMode) 
+        return receive_txt_data_file(PortNumber,filesize, s);
+	else        
+        return receive_bin_data_file(PortNumber,filesize, s);
 #else
 
 	do {

@@ -47,8 +47,15 @@ void LED_Init(void)
     int value;
 
 	//LED (GPIO 16) Light on	
+#if defined(N716U2W) || defined(N716U2)
 	value = GPIOA_DATA_INPUT_REG;
     value |= (GPIO_14_MASK|GPIO_15_MASK);
+#endif
+#if defined(NDWP2020)
+    //value = 0x00014000;
+	value = GPIOA_DATA_INPUT_REG;
+    value |= (GPIO_14_MASK|GPIO_16_MASK);
+#endif
 
 	GPIOA_DATA_OUTPUT_REG = value;
 
@@ -76,13 +83,28 @@ void Light_On(unsigned char LED)
 	value &= LED_MASK;
 	switch(LED){
 		case Status_Lite:
+#if defined(N716U2W) || defined(N716U2)
 			value &= ~(GPIO_16_MASK);
+#endif
+#if defined(NDWP2020)
+            value &= ~(GPIO_15_MASK);
+#endif
 			break;
 		case Usb11_Lite:
+#if defined(N716U2W) || defined(N716U2)
 			value &= ~(GPIO_15_MASK);
+#endif
+#if defined(NDWP2020)
+			value &= ~(GPIO_16_MASK);
+#endif
 			break;
 		case Usb20_Lite:
+#if defined(N716U2W) || defined(N716U2)
 			value &= ~(GPIO_15_MASK);
+#endif
+#if defined(NDWP2020)
+			value &= ~(GPIO_16_MASK);
+#endif
 			break;			
 		case Wireless_Lite:
 			value &= ~(GPIO_14_MASK);
@@ -99,11 +121,21 @@ void Light_Off(unsigned char LED)
 	value &= LED_MASK;
 	switch(LED){
 		case Status_Lite:
+#if defined(N716U2W) || defined(N716U2)
 			value |= (GPIO_16_MASK);
+#endif
+#if defined(NDWP2020)
+			value |= (GPIO_15_MASK);
+#endif
 			break;
 		case Usb11_Lite:
 		case Usb20_Lite:			
+#if defined(N716U2W) || defined(N716U2)
 			value |= (GPIO_15_MASK);
+#endif
+#if defined(NDWP2020)
+			value |= (GPIO_16_MASK);
+#endif
 			break;			
 		case Wireless_Lite:
 			value |= (GPIO_14_MASK);
@@ -133,7 +165,9 @@ void LightOnForever(unsigned char LED)
 //ZOT716u2 extern uint32 usb_devices_per_port[0] ; 
 //ZOT716u2 extern uint8 AssociatedFlag;
 
+#ifdef WIRELESS_CARD
 extern int wlan_get_linkup ();
+#endif
 extern uint32 usb_devices_per_port[NUM_PORTS] ;
 
 #ifdef WPSBUTTON_LEDFLASH_FLICK
@@ -183,11 +217,12 @@ void LightToggleProc(cyg_addrword_t data)
       	{
 	      	flash_wps_led_count = 0;
 #endif	// WPSBUTTON_LEDFLASH_FLICK
-
+#ifdef WIRELESS_CARD
 	        if( wlan_get_linkup() == 1 )
 	        	Light_On( Wireless_Lite );
 	        else
 	        	Light_Off( Wireless_Lite );
+#endif
 
 #ifdef WPSBUTTON_LEDFLASH_FLICK
         }	// end of if(flash_wps_led == 1)
@@ -216,6 +251,7 @@ void LightToggleProc(cyg_addrword_t data)
 			if( WirelessLightToggle > 5 ) WirelessLightToggle = 5;
 		}
 #endif
+#if defined(N716U2W) || defined(N716U2)
 		if( LANLightToggle )
 		{
 			nLEDValue |= (1 << Status_Lite);
@@ -233,6 +269,7 @@ void LightToggleProc(cyg_addrword_t data)
 			LANLightToggle_down--;
 			if( LANLightToggle_down > 5 ) LANLightToggle_down = 5;
 		}
+#endif
 
 #ifdef  USB_LED		
 #if 0	//ZOT716u2
@@ -296,7 +333,12 @@ void LightToggleProc(cyg_addrword_t data)
 			
 			//Light off
 			if(nLEDValue & (1 << Status_Lite)){
+                #if defined(N716U2W) || defined(N716U2)
 				CurLEDvalue |= (GPIO_16_MASK);
+                #endif
+                #if defined(NDWP2020)
+				CurLEDvalue |= (GPIO_15_MASK);
+                #endif
 			}
 
 #if defined(WIRELESS_CARD)
@@ -306,7 +348,12 @@ void LightToggleProc(cyg_addrword_t data)
 #endif
 			
 			if((nLEDValue & (1 << Usb11_Lite)) || (nLEDValue & (1 << Usb20_Lite))){		
+                #if defined(N716U2W) || defined(N716U2)
 				CurLEDvalue |= (GPIO_15_MASK);
+                #endif
+                #if defined(NDWP2020)
+				CurLEDvalue |= (GPIO_16_MASK);
+                #endif
 			}				
 						
 			GPIOA_DATA_OUTPUT_REG = CurLEDvalue;		

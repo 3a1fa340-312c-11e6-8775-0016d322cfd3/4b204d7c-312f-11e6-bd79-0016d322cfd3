@@ -16,7 +16,7 @@ LOADERMARK      = 0xB4
 
 TOOLS_DIR = ./prod/$(PROD_NAME)/build/tools
 
-DST_NAME = zot716u2w.axf
+DST_NAME = $(PROD_NAME).axf
 
 
 all: DIR_CHECK RM_AXF_FILE $(DST_NAME) 
@@ -121,18 +121,19 @@ uart:
 	make -C $(UART_MAK)
 	
 # use this library must to define USE_SYS_LIBS
-SYS_LIBS	= mac.a usb_host.a psglobal.a http_zot.a tcpip.a psutility.a uart.a mtk7601.a
+SYS_LIBS	= mac.a usb_host.a psglobal.a http_zot.a tcpip.a psutility.a uart.a
 
 ADMIN_LIBS 	= ntps.a ipxbeui.a
 
+WIRELESS_LIBS = mtk7601.a
+
 # use this library must to define USE_PS_LIBS 
-PS_LIBS		= spooler.a novell.a nds.a lpd.a ippd.a atalk.a rawtcpd.a rendezvous.a
+PS_LIBS		= spooler.a novell.a nds.a lpd.a ippd.a atalk.a rawtcpd.a rendezvous.a snmp.a tftp_zot.a
 
 # use htis library must to define USE_NETAPP_LIBS
-NETAPP_LIBS = telnet.a tftp_zot.a smbd.a snmp.a
+NETAPP_LIBS = telnet.a smbd.a
 
-ALL_LIBS = $(SYS_LIBS) $(ADMIN_LIBS) $(PS_LIBS) $(NETAPP_LIBS)
-
+ALL_LIBS = $(SYS_LIBS) $(ADMIN_LIBS) $(WIRELESS_LIBS) $(PS_LIBS) $(NETAPP_LIBS)
 
 PROD_LIBS = $(addprefix $(PROD_BUILD_DIR)/lib/, $(ALL_LIBS))
 
@@ -141,7 +142,7 @@ PROD_MODULES_MAK =$(MAC_MAK) $(USB_HOST_MAK) $(PSGLOBAL_MAK) $(NTPS_MAK) $(SPOOL
 	$(UART_MAK) $(REALTEK_MAK) $(WPA_SUPPLICANT_MAK) $(MTK7601_MAK) 
 
 PROD_MODULES = mac psutility usb_host ipxbeui ntps spooler psglobal novell nds ippd http_zot lpd rawtcpd\
-				 telnet smbd tftp_zot tcpip atalk snmp rendezvous uart mtk7601 realtek wpa_supplicant
+				 telnet smbd tftp_zot tcpip atalk snmp rendezvous uart mtk7601
 
 prod: $(PROD_MODULES)
 
@@ -166,9 +167,17 @@ cleanall: clean
 	
 depend: proddep
 
+N716U2:
+	make package PROD_NAME=zot716u2
+
+N716U2W:
+	make package PROD_NAME=zot716u2w
+
+DWP2020:
+	make package PROD_NAME=zotdwp2020
 package:
 	make clean
-	make COPTFLAGS=-O2
+	make COPTFLAGS=-O2 
 	cp $(DST_NAME) $(PROD_NAME).bin
 	$(STRIP) $(PROD_NAME).bin
 	cp $(PROD_NAME).bin TEMP.bin

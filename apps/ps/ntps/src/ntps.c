@@ -27,7 +27,11 @@ cyg_sem_t NT_SIGNAL_PORT_1;
 NT_PORT_BLOCK	NTPortInfo[NUM_OF_PRN_PORT];
 BYTE			IsNTEndPrint[NUM_OF_PRN_PORT];
 BYTE			NTimeOutCount[NUM_OF_PRN_PORT];
+#if defined(NDWP2020)
 BYTE			NTimeOutRetryCount;  //1/25/99
+#else
+int             NTimeOutRetryCount;
+#endif
 uint32			NTHoldTimer[];
 uint32			NTHoldTimerOut = 10*60*1000; //about 10 Mins
 int 			CurPortNumber = 0;		//615WU //Only port 1 thread defined
@@ -60,12 +64,23 @@ void NT3main(cyg_addrword_t data)
 	BYTE    RecvFlag;
 	BYTE	i,hold_long_abort = 0;
 	uint32	ltimerdiff = 0;
+    #if defined(NDWP2020)
+    int     TimeOutRetryCount = 0;
+    #endif
 	
 	for(;;) {
 		cyg_semaphore_wait( &NT_SIGNAL_PORT_1 );
 //		PrnSetNTHold(CurPortNumber);        //615wu::No PSMain
 		
 //ZOTIPS		armond_printf("Start NT3main \n");
+        #if defined(NDWP2020)
+		//eason for DWP2020
+		if(NTPortInfo[CurPortNumber].IPXFrameType == TCPUDP)
+			TimeOutRetryCount = NTimeOutRetryCount*8;
+		else 
+			TimeOutRetryCount = NTimeOutRetryCount;
+        #endif
+
 		PrintBuffer = NULL;
 		NTimeOutCount[CurPortNumber] = 0;
 		for(;;) {
@@ -74,7 +89,11 @@ void NT3main(cyg_addrword_t data)
 				cyg_thread_yield();
 				continue;
 			}
+            #if defined(NDWP2020)
+			if ( (NTimeOutCount[CurPortNumber] > TimeOutRetryCount) || (hold_long_abort) ) {	//1/25/99
+            #else
 			if ( (NTimeOutCount[CurPortNumber] > NTimeOutRetryCount) || (hold_long_abort) ) {	//1/25/99
+            #endif
 				//TIME OUT
 				PrnAbortSpooler(CurPortNumber,PrintBuffer);	//4/26/99 changed
 				hold_long_abort = 0;
@@ -84,7 +103,7 @@ void NT3main(cyg_addrword_t data)
 
 #ifdef SUPPORT_JOB_LOG
 				JL_EndList(CurPortNumber, 3);	// Timeout. George Add February 26, 2007
-#if !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINS) && !defined(O_LS)
+#if !defined(O_TPLINK) && !defined(O_TPLINM) && !defined(O_TPLINA) && !defined(O_TPLINS) && !defined(O_LS)
 #ifdef NOVELL_PS
 				SendEOF(CurPortNumber);	        // Send the EOF page. George Add January 10, 2008
 #endif

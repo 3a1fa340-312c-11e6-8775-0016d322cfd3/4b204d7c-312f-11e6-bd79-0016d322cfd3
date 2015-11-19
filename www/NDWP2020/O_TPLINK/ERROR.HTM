@@ -1,0 +1,181 @@
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="basic_style.css"/>
+<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="font_style.css"/>
+<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="picture.css"/>
+</HEAD>
+<SCRIPT language="JavaScript1.2" src="top.js"></SCRIPT>
+<SCRIPT language="JavaScript1.2" src="setup.js"></SCRIPT>
+<SCRIPT language="JavaScript">
+	CharacterEncoding();
+</script>
+<SCRIPT LANGUAGE=JavaScript>
+function GoToLastPage() 
+{
+	if(navigator.appVersion.indexOf("Safari")!=-1)
+		window.history.go(-2);
+	else
+	window.history.go(-1);
+	return false;
+}
+</SCRIPT>
+<CENTER>
+<BODY TOPMARGIN=0 MARGINWIDTH=0 MARGINHEIGHT=0>
+<BR>
+<SCRIPT language="JavaScript">ShowTopBlock();</script>
+<!-- Button Tab start -->
+<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH=580>
+<TR>
+	<TD WIDTH=12 HEIGHT=24 ROWSPAN=3></TD>
+	<TD ROWSPAN=3 CLASS=BuLeftBlack3x24></TD>
+	<TD CLASS=BuLineBlack63x3></TD>
+	<TD ROWSPAN=3 CLASS=BuRightBlack3x24></TD>
+	<TD ROWSPAN=3 WIDTH="17" HEIGHT=24></TD>
+	<TD ROWSPAN=3 CLASS=BuLeftBlack3x24></TD>
+	<TD CLASS=BuLineBlack63x3></TD>
+	<TD ROWSPAN=3 CLASS=BuRightBlack3x24></TD>
+	<TD ROWSPAN=3 WIDTH=18 HEIGHT=24></TD>
+	<TD ROWSPAN=3 CLASS=BuLeftBlack3x24></TD>
+	<TD CLASS=BuLineBlack63x3></TD>
+	<TD ROWSPAN=3 CLASS=BuRightBlack3x24></TD>
+	<TD ROWSPAN=3 WIDTH=18 HEIGHT=24></TD>
+	<TD ROWSPAN=3 CLASS=BuLeftBlack3x24></TD>
+	<TD CLASS=BuLineBlack63x3></TD>
+	<TD ROWSPAN=3 CLASS=BuRightBlack3x24></TD>
+	<TD ROWSPAN=3 WIDTH=20 HEIGHT=24></TD>
+	<TD ROWSPAN=3 WIDTH=3 HEIGHT=24></TD>
+	<TD WIDTH=93 HEIGHT=3></TD>
+	<TD ROWSPAN=3 WIDTH=3 HEIGHT=24></TD>
+	<TD ROWSPAN=3 WIDTH=16 HEIGHT=24></TD>
+	<TD ROWSPAN=3 WIDTH=3 HEIGHT=24></TD>
+	<TD ROWSPAN=3 WIDTH=3 HEIGHT=24></TD>
+	<TD ROWSPAN=3 WIDTH=52 HEIGHT=24></TD>
+</TR>
+<TR ALIGN=center>
+	<TD CLASS=BuBlack93x18><A HREF="SYSTEM.HTM" CLASS=ActiveLinkG target=_top><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+	<TD CLASS=Bugray93x18><A HREF="CSYSTEM.HTM" CLASS=ActiveLinkB target=_top><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+	<TD CLASS=BuBlack93x18><A HREF="DEFAULT.HTM" CLASS=ActiveLinkG target=_top><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+	<TD CLASS=BuBlack93x18><A HREF="RESET.HTM" CLASS=ActiveLinkG target=_top><Script Language="JavaScript">showtab(tabindex++);</script></a></TD>
+	<TD WIDTH=93 HEIGHT=18></TD>
+	<TD WIDTH=93 HEIGHT=18></TD>
+</TR>
+<TR>
+	<TD CLASS=BuLineBlack63x3></TD>
+	<TD CLASS=BuLineBlack63x3></TD>
+	<TD CLASS=BuLineBlack63x3></TD>
+	<TD CLASS=BuLineBlack63x3></TD>
+	<TD WIDTH=93 HEIGHT=3></TD>
+	<TD WIDTH=93 HEIGHT=3></TD>
+</TR>
+</TABLE>
+<P>
+</TABLE>
+<!-- Button END -->
+<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0>
+<SCRIPT language="JavaScript">Showblank();</script>
+<TR>
+	<TD ROWSPAN=3 COLSPAN=3 class=FrameULeft11x27></TD>
+	<TD class=BGLine><IMG SRC="IMAGES/blank.gif" WIDTH=540 HEIGHT=2></TD>
+	<TD ROWSPAN=3 COLSPAN=3 class=FrameURight11x27></TD>
+</TR>
+<TR><TD WIDTH=540 HEIGHT=22 class=mu2color>
+	<TABLE WIDTH=540 BORDER=0 CELLSPACING=0 CELLPADDING=0 ALIGN=CENTER>
+	<TR><TD ALIGN=right><font CLASS=ActiveLinkSB>ERROR</font>&nbsp;</TD></TR>
+	</TABLE>
+	</TD>
+</TR>
+<TR><TD CLASS=FrameUlinegray560x3></TD></TR>
+<TR><TD CLASS=BGLine><IMG SRC="IMAGES/blank.gif" WIDTH=2 HEIGHT=315></TD>
+	<TD COLSPAN=5 bgcolor="#E2E2E2" valign="top" align=center>
+<!--Contents Start-->
+<FORM METHOD=GET NAME=SETUP ACTION=RESTART.HTM>
+<TABLE CELLSPACING=0 CELLPADDING=1 BORDER=0 WIDTH=560>
+<TR><TD ALIGN=CENTER>
+	<BR><BR>
+	    <P><Script Language="JavaScript">showtext7(textindex++);</script></P>
+		<BR>
+	    <P>
+	    <Script Language="JavaScript">
+	    var strErrMsg = "ZO__T-ErrMsg";
+	    
+	    switch(strErrMsg)
+	    {
+	    case "Invalid IP Address":
+	    	showtext7(textindex++);
+	    	textindex += 11;
+	    	break;
+	    case "Invalid Subnet Mask Address":
+	    	textindex += 1;
+	    	showtext7(textindex++);
+	    	textindex += 10;
+	    	break;
+	    case "Invalid Gateway Address":
+	    	textindex += 2;
+	    	showtext7(textindex++);
+	    	textindex += 9;
+	    	break;
+	    case "Invalid Polling Time Value":
+	    	textindex += 3;
+	    	showtext7(textindex++);
+	    	textindex += 8;
+	    	break;
+	    case "Invalid Print Server Name":
+	    	textindex += 4;
+	    	showtext7(textindex++);
+	    	textindex += 7;
+	    	break;
+	    case "Invalid File Server Name":
+	    	textindex += 5;
+	    	showtext7(textindex++);
+	    	textindex += 6;
+	    	break;
+	    case "DHCP/BOOTP Server not found":
+	    	textindex += 6;
+	    	showtext7(textindex++);
+	    	textindex += 5;
+	    	break;
+	    case "Invalid SNMP Trap IP Address":
+	    	textindex += 7;
+	    	showtext7(textindex++);
+	    	textindex += 4;
+	    	break;
+	    case "Setup password and confirmed do not match":
+	    	textindex += 8;
+	    	showtext7(textindex++);
+	    	textindex += 3;
+	    	break;
+	    case "Wrong firmware or upgrade failed":
+	    	textindex += 9;
+	    	showtext7(textindex++);
+	    	textindex += 2;
+	    	break;
+	    case "Failed in importing the CFG file":
+	    	textindex += 10;
+	    	showtext7(textindex++);
+	    	textindex += 1;
+	    	break;
+	    default:
+	    	textindex += 11;
+	    	showtext7(textindex++);
+	    	break;
+	    }
+	    </script>
+	    .
+	    </P>
+		<P><A HREF="#" onClick="return GoToLastPage()"><Script Language="JavaScript">showtext7(textindex++);</script></A>
+</TD></TR>
+</TABLE>
+</FORM>	  		
+<!--Contents END-->
+	</TD>
+	<TD CLASS=BGLine><IMG SRC="IMAGES/blank.gif" WIDTH=1 HEIGHT=315></TD>
+</TR>
+<TR><TD ROWSPAN=2 COLSPAN=2 CLASS=FrameDleft8x10></TD>
+	<TD COLSPAN=3 WIDTH=540 HEIGHT=8 bgcolor="#E2E2E2"></TD>
+	<TD ROWSPAN=2 COLSPAN=2 CLASS=FrameDright10x10></TD>
+</TR>
+<TR><TD COLSPAN=3 CLASS=BGLine><IMG SRC="IMAGES/blank.gif" WIDTH=540 HEIGHT=2></TD></TR>
+</TABLE>
+</BODY>
+</CENTER>
+</HTML>

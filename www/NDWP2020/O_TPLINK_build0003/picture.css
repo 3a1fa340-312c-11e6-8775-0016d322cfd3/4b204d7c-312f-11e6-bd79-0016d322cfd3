@@ -1,0 +1,115 @@
+/*==========================================================================*/
+/* picture.css                                                              */
+/* All picture                                                              */
+/*																		    */
+/*                                                                          */
+/* Angel			                                                        */
+/*==========================================================================*/
+   
+
+/*------------------------*/
+/* Menu button Tabs       */
+/*------------------------*/
+
+
+			
+	.BuLeftBlack3x24 {
+			background-image:url(images/bu_left_black3x24.gif);
+			background-repeat: repeat;
+			line-height: 0px;
+			width: 3px;	
+			height: 24px;
+			}	
+			
+	.BuRightBlack3x24 {
+			background-image:url(images/bu_right_black3x24.gif);
+			background-repeat: repeat;
+			line-height: 0px;
+			width: 3px;	
+			height: 24px;
+			}
+					
+	.BuLeftGray3x24 {
+			background-image:url(images/bu_left_gray3x24.gif);
+			background-repeat: repeat;
+			line-height: 0px;
+			width: 3px;	
+			height: 24px;
+			}	
+			
+	.BuRightGray3x24 {
+			background-image:url(images/bu_right_gray3x24.gif);
+			background-repeat: repeat;
+			line-height: 0px;
+			width: 3px;	
+			height: 24px;
+			}
+
+	.BuLineBlack63x3 {
+			background-image:url(images/bu_line_black63x3.gif);
+			background-repeat: repeat;
+			line-height: 0px;
+			width: 63px;	
+			height: 3px;
+			}	
+			
+	.BuLineGray93x3 {
+			background-image:url(images/bu_line_gray63x3.gif);
+			background-repeat: repeat;
+			line-height: 0px;
+			width: 93px;	
+			height: 3px;
+			}
+
+
+
+			
+/*------------------------*/
+/* frame Tabs             */
+/*------------------------*/
+		
+			
+	.FrameULeft11x27 {
+			background-image:url(images/frame_Uleft11x27.gif);
+			background-repeat: no-repeat;
+			line-height: 0px;
+			width: 11px;	
+			height: 27px;
+			}		
+
+
+	.FrameURight11x27 {
+			background-image:url(images/frame_Uright11x27.gif);
+			background-repeat: no-repeat;
+			line-height: 0px;
+			width: 11px;	
+			height: 27px;
+			}	
+
+
+	.FrameUlinegray560x3 {
+			background-image:url(images/frame_Ulinegray560x3.gif);
+			background-repeat: no-repeat;
+			line-height: 0px;
+			width: 560px;	
+			height: 3px;
+			}	
+			
+
+	.FrameDleft8x10 {
+			background-image:url(images/frame_Dleft8x10.gif);
+			background-repeat: no-repeat;
+			line-height: 0px;
+			width: 8px;	
+			height: 10px;
+			}				
+				
+	.FrameDright10x10 {
+			background-image:url(images/frame_Dright10x10.gif);
+			background-repeat: no-repeat;
+			line-height: 0px;
+			width: 10px;	
+			height: 10px;
+			}				
+
+									   

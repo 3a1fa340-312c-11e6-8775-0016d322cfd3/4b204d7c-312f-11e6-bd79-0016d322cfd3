@@ -1,0 +1,211 @@
+/cygdrive/C/ZOT716U2_SDK_0.01/ecos/ecos_install/lib/libtarget.a(infra_memcpy.o): In function `_memcpy':
+/ecos-c/ecos-1.3.1/packages/infra/v1_3_1/src/memcpy.c:85: multiple definition of `_memcpy'
+./lib/realtek.a(osdep_service.o)(.text._memcpy+0x0): first defined here
+/tools/H-i686-pc-cygwin/arm-elf/bin/ld: Warning: size of symbol `_memcpy' changed from 20 to 212 in infra_memcpy.o
+/cygdrive/C/ZOT716U2_SDK_0.01/ecos/ecos_install/lib/libtarget.a(infra_memset.o): In function `_memset':
+/ecos-c/ecos-1.3.1/packages/infra/v1_3_1/src/memset.c:101: multiple definition of `_memset'
+./lib/realtek.a(osdep_service.o)(.text._memset+0x0): first defined here
+/tools/H-i686-pc-cygwin/arm-elf/bin/ld: Warning: size of symbol `_memset' changed from 20 to 176 in infra_memset.o
+/cygdrive/C/ZOT716U2_SDK_0.01/ecos/ecos_install/lib/libtarget.a(language_c_libc_malloc.o): In function `global destructors keyed to 50000._malloc':
+/ecos-c/ecos-1.3.1/packages/language/c/libc/v1_3_1/src/stdlib/malloc.cxx:90: multiple definition of `_malloc'
+./lib/realtek.a(osdep_service.o)(.text._malloc+0x0): first defined here
+/tools/H-i686-pc-cygwin/arm-elf/bin/ld: Warning: size of symbol `_malloc' changed from 24 to 40 in language_c_libc_malloc.o
+/cygdrive/C/ZOT716U2_SDK_0.01/ecos/ecos_install/lib/libtarget.a(language_c_libc_memcmp.o): In function `_memcmp':
+/ecos-c/ecos-1.3.1/packages/language/c/libc/v1_3_1/src/string/memcmp.cxx:73: multiple definition of `_memcmp'
+./lib/realtek.a(osdep_service.o)(.text._memcmp+0x0): first defined here
+/tools/H-i686-pc-cygwin/arm-elf/bin/ld: Warning: size of symbol `_memcmp' changed from 32 to 256 in language_c_libc_memcmp.o
+./lib/realtek.a(usb_intf.o): In function `r871xu_drv_init':
+usb_intf.o(.text.r871xu_drv_init+0x18): undefined reference to `interface_to_usbdev'
+usb_intf.o(.text.r871xu_drv_init+0x1c): undefined reference to `usb_get_dev'
+usb_intf.o(.text.r871xu_drv_init+0x3c): undefined reference to `netdev_priv'
+usb_intf.o(.text.r871xu_drv_init+0x4c): undefined reference to `interface_to_usbdev'
+usb_intf.o(.text.r871xu_drv_init+0x5c): undefined reference to `usb_set_intfdata'
+usb_intf.o(.text.r871xu_drv_init+0x218): undefined reference to `register_netdev'
+usb_intf.o(.text.r871xu_drv_init+0x22c): undefined reference to `interface_to_usbdev'
+usb_intf.o(.text.r871xu_drv_init+0x230): undefined reference to `usb_put_dev'
+usb_intf.o(.text.r871xu_drv_init+0x23c): undefined reference to `usb_set_intfdata'
+usb_intf.o(.text.r871xu_drv_init+0x268): undefined reference to `free_netdev'
+./lib/realtek.a(usb_intf.o): In function `usb_dvobj_init':
+usb_intf.o(.text.usb_dvobj_init+0x64): undefined reference to `alloc_io_queue'
+./lib/realtek.a(usb_intf.o): In function `r871xu_dev_remove':
+usb_intf.o(.text.r871xu_dev_remove+0x10): undefined reference to `usb_get_intfdata'
+usb_intf.o(.text.r871xu_dev_remove+0x14): undefined reference to `netdev_priv'
+./lib/realtek.a(os_intfs.o): In function `init_drv_sw':
+os_intfs.o(.text.init_drv_sw+0x90): undefined reference to `init_timer'
+os_intfs.o(.text.init_drv_sw+0xd0): undefined reference to `mod_timer'
+os_intfs.o(.text.init_drv_sw+0xe8): undefined reference to `mp871xinit'
+./lib/realtek.a(os_intfs.o): In function `init_netdev':
+os_intfs.o(.text.init_netdev+0x24): undefined reference to `ether_setup'
+os_intfs.o(.text.init_netdev+0x2c): undefined reference to `netdev_priv'
+os_intfs.o(.text.init_netdev+0x44): undefined reference to `dev_alloc_name'
+os_intfs.o(.text.init_netdev+0x58): undefined reference to `netif_carrier_off'
+./lib/realtek.a(osdep_service.o): In function `_malloc':
+osdep_service.o(.text._malloc+0x10): undefined reference to `kmalloc'
+./lib/realtek.a(osdep_service.o): In function `_mfree':
+osdep_service.o(.text._mfree+0xc): undefined reference to `kfree'
+./lib/realtek.a(osdep_service.o): In function `_init_sema':
+osdep_service.o(.text._init_sema+0xc): undefined reference to `sema_init'
+./lib/realtek.a(osdep_service.o): In function `_down_sema':
+osdep_service.o(.text._down_sema+0xc): undefined reference to `down_interruptible'
+./lib/realtek.a(osdep_service.o): In function `msleep_os':
+osdep_service.o(.text.msleep_os+0xc): undefined reference to `msleep'
+./lib/realtek.a(rtl871x_pwrctrl.o): In function `init_pwrctrl_priv':
+rtl871x_pwrctrl.o(.text.init_pwrctrl_priv+0x68): undefined reference to `INIT_WORK'
+rtl871x_pwrctrl.o(.text.init_pwrctrl_priv+0x7c): undefined reference to `INIT_WORK'
+rtl871x_pwrctrl.o(.text.init_pwrctrl_priv+0x94): undefined reference to `init_timer'
+./lib/realtek.a(rtl871x_pwrctrl.o): In function `cpwm_int_hdl':
+rtl871x_pwrctrl.o(.text.cpwm_int_hdl+0x40): undefined reference to `del_timer_sync'
+./lib/realtek.a(rtl871x_pwrctrl.o): In function `set_ps_mode':
+rtl871x_pwrctrl.o(.text.set_ps_mode+0x68): undefined reference to `schedule_work'
+./lib/realtek.a(rtl871x_pwrctrl.o): In function `rpwm_check_handler':
+rtl871x_pwrctrl.o(.text.rpwm_check_handler+0x48): undefined reference to `schedule_work'
+./lib/realtek.a(mlme_linux.o): In function `os_indicate_disconnect':
+mlme_linux.o(.text.os_indicate_disconnect+0x1c): undefined reference to `netif_carrier_off'
+mlme_linux.o(.text.os_indicate_disconnect+0x8c): undefined reference to `init_timer'
+./lib/realtek.a(mlme_linux.o): In function `sitesurvey_ctrl_handler':
+mlme_linux.o(.text.sitesurvey_ctrl_handler+0x30): undefined reference to `mod_timer'
+./lib/realtek.a(mlme_linux.o): In function `init_mlme_timer':
+mlme_linux.o(.text.init_mlme_timer+0x2c): undefined reference to `init_timer'
+mlme_linux.o(.text.init_mlme_timer+0x48): undefined reference to `init_timer'
+mlme_linux.o(.text.init_mlme_timer+0x64): undefined reference to `init_timer'
+mlme_linux.o(.text.init_mlme_timer+0x80): undefined reference to `init_timer'
+./lib/realtek.a(mlme_linux.o): In function `os_indicate_connect':
+mlme_linux.o(.text.os_indicate_connect+0x1c): undefined reference to `netif_carrier_on'
+./lib/realtek.a(mlme_linux.o): In function `report_sec_ie':
+mlme_linux.o(.text.report_sec_ie+0xdc): undefined reference to `wireless_send_event'
+./lib/realtek.a(rtl871x_xmit.o): In function `_init_xmit_priv':
+rtl871x_xmit.o(.text._init_xmit_priv+0x27c): undefined reference to `tasklet_init'
+./lib/realtek.a(rtl871x_xmit.o): In function `free_xmitframe_queue':
+rtl871x_xmit.o(.text.free_xmitframe_queue+0xb0): undefined reference to `netif_queue_stopped'
+rtl871x_xmit.o(.text.free_xmitframe_queue+0xc0): undefined reference to `netif_wake_queue'
+./lib/realtek.a(rtl871x_xmit.o): In function `update_protection':
+rtl871x_xmit.o(.text.update_protection+0x54): undefined reference to `get_ie'
+./lib/realtek.a(rtl871x_xmit.o): In function `free_xmitframe_ex':
+rtl871x_xmit.o(.text.free_xmitframe_ex+0x90): undefined reference to `netif_queue_stopped'
+rtl871x_xmit.o(.text.free_xmitframe_ex+0x9c): undefined reference to `netif_wake_queue'
+./lib/realtek.a(rtl871x_sta_mgt.o): In function `free_stainfo':
+rtl871x_sta_mgt.o(.text.free_stainfo+0x190): undefined reference to `del_timer_sync'
+./lib/realtek.a(rtl871x_mlme.o): In function `update_scanned_network':
+rtl871x_mlme.o(.text.update_scanned_network+0xe0): undefined reference to `time_after'
+./lib/realtek.a(rtl871x_mlme.o): In function `survey_event_callback':
+rtl871x_mlme.o(.text.survey_event_callback+0x1c): undefined reference to `le32_to_cpu'
+rtl871x_mlme.o(.text.survey_event_callback+0x28): undefined reference to `le32_to_cpu'
+rtl871x_mlme.o(.text.survey_event_callback+0x34): undefined reference to `le32_to_cpu'
+rtl871x_mlme.o(.text.survey_event_callback+0x40): undefined reference to `le32_to_cpu'
+rtl871x_mlme.o(.text.survey_event_callback+0x4c): undefined reference to `le32_to_cpu'
+./lib/realtek.a(rtl871x_mlme.o)(.text.survey_event_callback+0x58): more undefined references to `le32_to_cpu' follow
+./lib/realtek.a(rtl871x_mlme.o): In function `surveydone_event_callback':
+rtl871x_mlme.o(.text.surveydone_event_callback+0x38): undefined reference to `del_timer_sync'
+rtl871x_mlme.o(.text.surveydone_event_callback+0x9c): undefined reference to `mod_timer'
+rtl871x_mlme.o(.text.surveydone_event_callback+0x170): undefined reference to `mod_timer'
+./lib/realtek.a(rtl871x_mlme.o): In function `joinbss_event_callback':
+rtl871x_mlme.o(.text.joinbss_event_callback+0x1c): undefined reference to `le32_to_cpu'
+rtl871x_mlme.o(.text.joinbss_event_callback+0x28): undefined reference to `le32_to_cpu'
+rtl871x_mlme.o(.text.joinbss_event_callback+0x34): undefined reference to `le32_to_cpu'
+rtl871x_mlme.o(.text.joinbss_event_callback+0x40): undefined reference to `le32_to_cpu'
+rtl871x_mlme.o(.text.joinbss_event_callback+0x4c): undefined reference to `le32_to_cpu'
+./lib/realtek.a(rtl871x_mlme.o)(.text.joinbss_event_callback+0x58): more undefined references to `le32_to_cpu' follow
+./lib/realtek.a(rtl871x_mlme.o): In function `joinbss_event_callback':
+rtl871x_mlme.o(.text.joinbss_event_callback+0x5d8): undefined reference to `mod_timer'
+rtl871x_mlme.o(.text.joinbss_event_callback+0x5e4): undefined reference to `del_timer_sync'
+rtl871x_mlme.o(.text.joinbss_event_callback+0x628): undefined reference to `mod_timer'
+./lib/realtek.a(rtl871x_mlme.o): In function `stassoc_event_callback':
+rtl871x_mlme.o(.text.stassoc_event_callback+0x68): undefined reference to `le32_to_cpu'
+rtl871x_mlme.o(.text.stassoc_event_callback+0xf8): undefined reference to `mod_timer'
+./lib/realtek.a(rtl871x_mlme.o): In function `stadel_event_callback':
+rtl871x_mlme.o(.text.stadel_event_callback+0x80): undefined reference to `del_timer_sync'
+rtl871x_mlme.o(.text.stadel_event_callback+0x12c): undefined reference to `del_timer_sync'
+./lib/realtek.a(rtl871x_mlme.o): In function `select_and_join_from_scanned_queue':
+rtl871x_mlme.o(.text.select_and_join_from_scanned_queue+0x19c): undefined reference to `mod_timer'
+rtl871x_mlme.o(.text.select_and_join_from_scanned_queue+0x1e8): undefined reference to `del_timer_sync'
+rtl871x_mlme.o(.text.select_and_join_from_scanned_queue+0x298): undefined reference to `get_wps_ie'
+./lib/realtek.a(rtl871x_mlme.o): In function `update_ht_cap':
+rtl871x_mlme.o(.text.update_ht_cap+0x74): undefined reference to `get_ie'
+rtl871x_mlme.o(.text.update_ht_cap+0x130): undefined reference to `get_ie'
+./lib/realtek.a(rtl871x_mlme.o): In function `update_registrypriv_dev_network':
+rtl871x_mlme.o(.text.update_registrypriv_dev_network+0x94): undefined reference to `generate_ie'
+./lib/realtek.a(rtl871x_mlme.o): In function `restructure_ht_ie':
+rtl871x_mlme.o(.text.restructure_ht_ie+0x50): undefined reference to `get_ie'
+rtl871x_mlme.o(.text.restructure_ht_ie+0x94): undefined reference to `set_ie'
+rtl871x_mlme.o(.text.restructure_ht_ie+0xdc): undefined reference to `set_ie'
+./lib/realtek.a(rtl8712_cmd.o): In function `event_handle':
+rtl8712_cmd.o(.text.event_handle+0x20): undefined reference to `le32_to_cpu'
+rtl8712_cmd.o(.text.event_handle+0x30): undefined reference to `le32_to_cpu'
+rtl8712_cmd.o(.text.event_handle+0x40): undefined reference to `le32_to_cpu'
+./lib/realtek.a(usb_ops_linux.o): In function `usb_read_port_complete':
+usb_ops_linux.o(.text.usb_read_port_complete+0xb0): undefined reference to `le32_to_cpu'
+usb_ops_linux.o(.text.usb_read_port_complete+0xe0): undefined reference to `skb_put'
+usb_ops_linux.o(.text.usb_read_port_complete+0xec): undefined reference to `skb_queue_tail'
+usb_ops_linux.o(.text.usb_read_port_complete+0xf4): undefined reference to `tasklet_hi_schedule'
+./lib/realtek.a(usb_ops_linux.o): In function `usb_read_port':
+usb_ops_linux.o(.text.usb_read_port+0x84): undefined reference to `skb_dequeue'
+usb_ops_linux.o(.text.usb_read_port+0xc4): undefined reference to `dev_alloc_skb'
+usb_ops_linux.o(.text.usb_read_port+0xe4): undefined reference to `skb_reserve'
+usb_ops_linux.o(.text.usb_read_port+0x170): undefined reference to `usb_fill_bulk_urb'
+./lib/realtek.a(rtl871x_ioctl_linux.o): In function `indicate_wx_assoc_event':
+rtl871x_ioctl_linux.o(.text.indicate_wx_assoc_event+0x44): undefined reference to `wireless_send_event'
+./lib/realtek.a(rtl871x_ioctl_linux.o): In function `indicate_wx_disassoc_event':
+rtl871x_ioctl_linux.o(.text.indicate_wx_disassoc_event+0x40): undefined reference to `wireless_send_event'
+./lib/realtek.a(xmit_linux.o): In function `_pktfile_read':
+xmit_linux.o(.text._pktfile_read+0x48): undefined reference to `skb_copy_bits'
+./lib/realtek.a(xmit_linux.o): In function `os_xmit_complete':
+xmit_linux.o(.text.os_xmit_complete+0x1c): undefined reference to `dev_kfree_skb_any'
+./lib/realtek.a(recv_linux.o): In function `recv_indicatepkt':
+recv_linux.o(.text.recv_indicatepkt+0x3c): undefined reference to `netif_rx'
+./lib/realtek.a(recv_linux.o): In function `init_recv_timer':
+recv_linux.o(.text.init_recv_timer+0x20): undefined reference to `init_timer'
+./lib/realtek.a(rtl8712_recv.o): In function `init_recv_priv':
+rtl8712_recv.o(.text.init_recv_priv+0xf4): undefined reference to `tasklet_init'
+rtl8712_recv.o(.text.init_recv_priv+0xfc): undefined reference to `skb_queue_head_init'
+rtl8712_recv.o(.text.init_recv_priv+0x104): undefined reference to `skb_queue_head_init'
+rtl8712_recv.o(.text.init_recv_priv+0x110): undefined reference to `dev_alloc_skb'
+rtl8712_recv.o(.text.init_recv_priv+0x130): undefined reference to `skb_reserve'
+rtl8712_recv.o(.text.init_recv_priv+0x13c): undefined reference to `skb_queue_tail'
+./lib/realtek.a(rtl8712_recv.o): In function `update_recvframe_attrib_from_recvstat':
+rtl8712_recv.o(.text.update_recvframe_attrib_from_recvstat+0x18): undefined reference to `le32_to_cpu'
+rtl8712_recv.o(.text.update_recvframe_attrib_from_recvstat+0x20): undefined reference to `le32_to_cpu'
+rtl8712_recv.o(.text.update_recvframe_attrib_from_recvstat+0x38): undefined reference to `le32_to_cpu'
+rtl8712_recv.o(.text.update_recvframe_attrib_from_recvstat+0x4c): undefined reference to `le32_to_cpu'
+rtl8712_recv.o(.text.update_recvframe_attrib_from_recvstat+0x64): undefined reference to `le32_to_cpu'
+./lib/realtek.a(rtl8712_recv.o)(.text.update_recvframe_attrib_from_recvstat+0x78): more undefined references to `le32_to_cpu' follow
+./lib/realtek.a(rtl8712_recv.o): In function `recvframe_defrag':
+rtl8712_recv.o(.text.recvframe_defrag+0x5c): undefined reference to `dev_kfree_skb_any'
+rtl8712_recv.o(.text.recvframe_defrag+0x108): undefined reference to `dev_kfree_skb_any'
+./lib/realtek.a(rtl8712_recv.o): In function `recvframe_chk_defrag':
+rtl8712_recv.o(.text.recvframe_chk_defrag+0xb4): undefined reference to `dev_kfree_skb_any'
+rtl8712_recv.o(.text.recvframe_chk_defrag+0x174): undefined reference to `dev_kfree_skb_any'
+rtl8712_recv.o(.text.recvframe_chk_defrag+0x218): undefined reference to `dev_kfree_skb_any'
+./lib/realtek.a(rtl8712_recv.o)(.text.amsdu_to_msdu+0x170): more undefined references to `dev_kfree_skb_any' follow
+./lib/realtek.a(rtl8712_recv.o): In function `amsdu_to_msdu':
+rtl8712_recv.o(.text.amsdu_to_msdu+0x418): undefined reference to `skb_clone'
+rtl8712_recv.o(.text.amsdu_to_msdu+0x4a4): undefined reference to `dev_kfree_skb_any'
+./lib/realtek.a(rtl8712_recv.o): In function `recv_indicatepkts_in_order':
+rtl8712_recv.o(.text.recv_indicatepkts_in_order+0x134): undefined reference to `dev_kfree_skb_any'
+./lib/realtek.a(rtl8712_recv.o): In function `recv_indicatepkt_reorder':
+rtl8712_recv.o(.text.recv_indicatepkt_reorder+0x14c): undefined reference to `mod_timer'
+rtl8712_recv.o(.text.recv_indicatepkt_reorder+0x180): undefined reference to `del_timer_sync'
+./lib/realtek.a(rtl8712_recv.o): In function `recv_func':
+rtl8712_recv.o(.text.recv_func+0x84): undefined reference to `dev_kfree_skb_any'
+rtl8712_recv.o(.text.recv_func+0xbc): undefined reference to `dev_kfree_skb_any'
+rtl8712_recv.o(.text.recv_func+0x214): undefined reference to `dev_kfree_skb_any'
+./lib/realtek.a(rtl8712_recv.o): In function `recvbuf2recvframe_u':
+rtl8712_recv.o(.text.recvbuf2recvframe_u+0x24): undefined reference to `le32_to_cpu'
+rtl8712_recv.o(.text.recvbuf2recvframe_u+0x40): undefined reference to `le32_to_cpu'
+rtl8712_recv.o(.text.recvbuf2recvframe_u+0x54): undefined reference to `le32_to_cpu'
+rtl8712_recv.o(.text.recvbuf2recvframe_u+0x64): undefined reference to `le32_to_cpu'
+rtl8712_recv.o(.text.recvbuf2recvframe_u+0xd8): undefined reference to `dev_alloc_skb'
+rtl8712_recv.o(.text.recvbuf2recvframe_u+0x11c): undefined reference to `skb_clone'
+./lib/realtek.a(rtl8712_recv.o): In function `rxcmd_event_hdl':
+rtl8712_recv.o(.text.rxcmd_event_hdl+0x18): undefined reference to `le32_to_cpu'
+rtl8712_recv.o(.text.rxcmd_event_hdl+0x20): undefined reference to `le32_to_cpu'
+rtl8712_recv.o(.text.rxcmd_event_hdl+0x3c): undefined reference to `le32_to_cpu'
+rtl8712_recv.o(.text.rxcmd_event_hdl+0x4c): undefined reference to `le32_to_cpu'
+rtl8712_recv.o(.text.rxcmd_event_hdl+0x54): undefined reference to `le32_to_cpu'
+./lib/realtek.a(rtl8712_recv.o)(.text.rxcmd_event_hdl+0x78): more undefined references to `le32_to_cpu' follow
+./lib/realtek.a(rtl8712_recv.o): In function `recv_tasklet':
+rtl8712_recv.o(.text.recv_tasklet+0x34): undefined reference to `skb_queue_tail'
+rtl8712_recv.o(.text.recv_tasklet+0x3c): undefined reference to `skb_dequeue'
+./lib/realtek.a(rtl8712_recv.o): In function `free_recvframe':
+rtl8712_recv.o(.text.free_recvframe+0x28): undefined reference to `dev_kfree_skb_any'
+collect2: ld returned 1 exit status
+make: *** [zot716u2.axf] Error 1

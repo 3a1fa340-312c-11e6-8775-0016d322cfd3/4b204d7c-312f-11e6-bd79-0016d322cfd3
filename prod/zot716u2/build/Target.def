@@ -1,0 +1,15 @@
+MAKER_AND_CPU   = STR8132
+HTML_FILE   = O_ZOT
+TARGET      = N716U2
+CODE_TYPE   = 2
+
+PSMODELINDEX  = 47
+MajorVer      = 9
+MinorVer      = 8
+ReleaseVer    = 114
+RDVersion     = 860
+BuildVer      = 9030
+FirmwareString = (STR8132-9.08.47.9030.00000860r-2015/11/10 12:31:55)
+
+#FLASH_SIZE UNIT Mbyte
+FLASH_SIZE    = 1

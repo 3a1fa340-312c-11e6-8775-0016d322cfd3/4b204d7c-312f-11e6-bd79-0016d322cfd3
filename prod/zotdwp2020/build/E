@@ -1,0 +1,43 @@
+make -C /cygdrive/C/ZOT716U2_SDK_0.01/apps/mac
+make[1]: Entering directory `/cygdrive/C/ZOT716U2_SDK_0.01/apps/mac'
+/cygdrive/C/cygwin/tools/H-i686-pc-cygwin/bin/arm-elf-ar rv /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/lib/mac.a /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/star_nic.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/star_nic.o
+make[1]: Leaving directory `/cygdrive/C/ZOT716U2_SDK_0.01/apps/mac'
+make -C /cygdrive/C/ZOT716U2_SDK_0.01/apps/ps/psutility	
+make[1]: Entering directory `/cygdrive/C/ZOT716U2_SDK_0.01/apps/ps/psutility'
+/cygdrive/C/cygwin/tools/H-i686-pc-cygwin/bin/arm-elf-ar rv /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/lib/psutility.a /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/joblog.o /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/alert.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/joblog.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/alert.o
+make[1]: Leaving directory `/cygdrive/C/ZOT716U2_SDK_0.01/apps/ps/psutility'
+make -C /cygdrive/C/ZOT716U2_SDK_0.01/apps/usb_host/src	
+make[1]: Entering directory `/cygdrive/C/ZOT716U2_SDK_0.01/apps/usb_host/src'
+/cygdrive/C/cygwin/tools/H-i686-pc-cygwin/bin/arm-elf-ar rv /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/lib/usb_host.a /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/usbapi.o /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/usb.o /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/hub.o /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/printer.o /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ehcihcd.o /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ehcihub.o /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ehcimem.o /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ehciq.o /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ehcische.o /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/u2hcd.o /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ohci.o /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/usbnet.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/usbapi.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/usb.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/hub.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/printer.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ehcihcd.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ehcihub.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ehcimem.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ehciq.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ehcische.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/u2hcd.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ohci.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/usbnet.o
+make[1]: Leaving directory `/cygdrive/C/ZOT716U2_SDK_0.01/apps/usb_host/src'
+make -C /cygdrive/C/ZOT716U2_SDK_0.01/apps/ipxbeui		
+make[1]: Entering directory `/cygdrive/C/ZOT716U2_SDK_0.01/apps/ipxbeui'
+/cygdrive/C/cygwin/tools/H-i686-pc-cygwin/bin/arm-elf-ar rv /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/lib/ipxbeui.a /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ipx.o /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/netbeui.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ipx.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/netbeui.o
+make[1]: Leaving directory `/cygdrive/C/ZOT716U2_SDK_0.01/apps/ipxbeui'
+make -C /cygdrive/C/ZOT716U2_SDK_0.01/apps/ps/ntps/src	
+make[1]: Entering directory `/cygdrive/C/ZOT716U2_SDK_0.01/apps/ps/ntps/src'
+/cygdrive/C/cygwin/tools/H-i686-pc-cygwin/bin/arm-elf-ar rv /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/lib/ntps.a /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ntps.o /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ntudp.o /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ntutil.o /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ntipxbeui.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ntps.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ntudp.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ntutil.o
+r - /cygdrive/C/ZOT716U2_SDK_0.01/prod/zot716u2/build/obj/ntipxbeui.o
+make[1]: Leaving directory `/cygdrive/C/ZOT716U2_SDK_0.01/apps/ps/ntps/src'
+make -C /cygdrive/C/ZOT716U2_SDK_0.01/apps/spooler/src
+make[1]: Entering directory `/cygdrive/C/ZOT716U2_SDK_0.01/apps/spooler/src'

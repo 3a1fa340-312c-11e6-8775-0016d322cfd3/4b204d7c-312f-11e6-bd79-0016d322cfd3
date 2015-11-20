@@ -133,7 +133,12 @@ PS_LIBS		= spooler.a novell.a nds.a lpd.a ippd.a atalk.a rawtcpd.a rendezvous.a 
 # use htis library must to define USE_NETAPP_LIBS
 NETAPP_LIBS = telnet.a smbd.a
 
-ALL_LIBS = $(SYS_LIBS) $(ADMIN_LIBS) $(WIRELESS_LIBS) $(PS_LIBS) $(NETAPP_LIBS)
+ALL_LIBS = $(SYS_LIBS) $(ADMIN_LIBS) $(PS_LIBS) $(NETAPP_LIBS)
+
+ifeq ($(TARGET),$(filter $(TARGET), N716U2W DWP2020))
+ALL_LIBS += $(WIRELESS_LIBS)
+endif
+
 
 PROD_LIBS = $(addprefix $(PROD_BUILD_DIR)/lib/, $(ALL_LIBS))
 

@@ -1,4 +1,5 @@
-
+#include <stdio.h>
+#include <stdlib.h>
 //=============================================================================
 //                               INCLUDE FILES
 //=============================================================================
@@ -99,3 +100,23 @@ int inbyte(void)
 extern void 
 setup_uart( void )
 {}
+
+#ifdef UART_OUTPUT
+char printk_buf[1024];
+#endif
+
+int printk(const char *fmt, ...)
+{
+#ifdef UART_OUTPUT 
+    int n;
+
+    va_list args;
+    va_start(args, fmt);
+    n = vsprintf(printk_buf, fmt, args);    
+    va_end(args);
+
+    serial_puts(printk_buf); 
+#endif
+    return 0;
+}
+

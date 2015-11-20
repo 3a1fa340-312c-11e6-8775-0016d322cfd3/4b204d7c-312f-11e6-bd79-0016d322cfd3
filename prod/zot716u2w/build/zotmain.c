@@ -72,7 +72,7 @@ void USB_init(cyg_addrword_t data)
 	//Printer Class
 	usblp_init();	
 
-#ifdef WIRELESS_CARD
+#if 0 //def WIRELESS_CARD
 	ZOT_Timer_init();	//eason 20100210
 	// Wireless initialization
 	Wlan_MacInit();							// This line is important. wlanif.c
@@ -125,10 +125,9 @@ void zotmain( void )
 	IPXInitialize();
 	NETBEUInit();
 	Spooler_init();
-	ps_init();
-#else
-    ps_init();
 #endif
+	ps_init();
+
 //LED
 	LED_Init();	
 

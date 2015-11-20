@@ -224,7 +224,9 @@ static cyg_thread       DHCP_Task;
 static cyg_handle_t     DHCP_TaskHdl;
 
 struct netif *Lanface;
+#if defined(WIRELESS_CARD)
 struct netif *WLanface = NULL;
+#endif
 struct netif *ULanface = NULL;
 
 cyg_sem_t dhcp_sem;
@@ -246,16 +248,11 @@ void erase_netif_ipaddr()
 	netmask.addr = 0;
 	gw.addr = 0;
 	
+    #if defined(WIRELESS_CARD)
 	if(WLanface != NULL)
- 	netif_set_addr( WLanface, &ipaddr, &netmask, &gw);
+ 	    netif_set_addr( WLanface, &ipaddr, &netmask, &gw);
+    #endif
 	netif_set_addr( Lanface, &ipaddr, &netmask, &gw);	
-//	SetIP(0x0, WLanface);
-//	SetNetmask(0x0, WLanface);
-//	SetGateway(0x0, WLanface);
-	
-//	SetIP(0x0, Lanface);
-//	SetNetmask(0x0, Lanface);
-//	SetGateway(0x0, Lanface);
 	
 	mib_DHCP_p->IPAddr = DWordSwap(Lanface->ip_addr.addr);
 	mib_DHCP_p->SubnetMask = DWordSwap(Lanface->netmask.addr);
@@ -264,8 +261,7 @@ void erase_netif_ipaddr()
 
 void updata_netif_ipaddr( struct netif *netif )
 {
-#if 1	//ZOTIPS
-
+#if defined(WIRELESS_CARD) 
 	if (netif == WLanface){ //Ron modified on 12/07/04
 	    Lanface->ip_addr.addr = netif->ip_addr.addr;
 	    Lanface->netmask.addr = netif->netmask.addr;
@@ -281,15 +277,13 @@ void updata_netif_ipaddr( struct netif *netif )
 	}else{
 //		LWIP_ASSERT("updata_netif_ipaddr :network interface does not exist");
 	}
-#endif //ZOTIPS
+#endif
 	
 	mib_DHCP_p->IPAddr = DWordSwap(Lanface->ip_addr.addr);
 	mib_DHCP_p->SubnetMask = DWordSwap(Lanface->netmask.addr);
 	mib_DHCP_p->GwyAddr = DWordSwap(Lanface->gw.addr);
 		
-#ifdef MTK7601
     printk("ip_addr.addr = %X\n", netif->ip_addr.addr);
-#endif
 
 	NSET32(EEPROM_Data.BoxIPAddress, netif->ip_addr.addr);
 	NSET32(EEPROM_Data.SubNetMask, netif->netmask.addr);
@@ -309,13 +303,13 @@ void set_factory_ip()
 	netmask.addr = NGET32( EEPROM_Data.SubNetMask );
 	gw.addr = NGET32( EEPROM_Data.GetwayAddress );
 
-#if 1	//ZOTIPS		
+#if defined(WIRELESS_CARD) 
 	if(WLanface != NULL){
 	netif_set_ipaddr(WLanface, &ipaddr);
 	netif_set_netmask(WLanface, &netmask);
 	netif_set_gw(WLanface, &gw);
 	}
-#endif //ZOTIPS
+#endif 
 	
 	netif_set_ipaddr(Lanface, &ipaddr);
 	netif_set_netmask(Lanface, &netmask);
@@ -334,13 +328,13 @@ void UseEEPROMIP(){
 	netmask.addr = NGET32( EEPROM_Data.SubNetMask );
 	gw.addr = NGET32( EEPROM_Data.GetwayAddress );
 
-#if 1	//ZOTIPS		
+#if defined(WIRELESS_CARD)
 	if(WLanface != NULL){
-	netif_set_ipaddr(WLanface, &ipaddr);
-	netif_set_netmask(WLanface, &netmask);
-	netif_set_gw(WLanface, &gw);
+	    netif_set_ipaddr(WLanface, &ipaddr);
+	    netif_set_netmask(WLanface, &netmask);
+	    netif_set_gw(WLanface, &gw);
 	}
-#endif //ZOTIPS
+#endif
 	
 	netif_set_ipaddr(Lanface, &ipaddr);
 	netif_set_netmask(Lanface, &netmask);

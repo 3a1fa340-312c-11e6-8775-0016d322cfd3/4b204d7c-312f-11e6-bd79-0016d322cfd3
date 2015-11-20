@@ -127,11 +127,9 @@ void zotmain( void )
 	IPXInitialize();
 	NETBEUInit();
 	Spooler_init();
+#endif
 	ps_init();
 
-#else
-    ps_init();
-#endif
 //LED
 	LED_Init();	
 

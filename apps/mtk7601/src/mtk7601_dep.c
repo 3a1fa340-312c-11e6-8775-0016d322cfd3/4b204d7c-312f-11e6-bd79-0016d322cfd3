@@ -1102,7 +1102,7 @@ end_parse:
 	if (*str_ptr == 0x0) ret = EOF;
 	return ret;
 }
-
+/*
 #ifdef UART_OUTPUT
 char printk_buf[1024];
 #endif
@@ -1121,4 +1121,4 @@ int printk(const char *fmt, ...)
 #endif
     return 0;
 }
-
+*/

@@ -91,8 +91,8 @@ void zotmain( void )
 	unsigned int i;
 	
 //Cache
-	CacheEnable();
-    //CacheDisable();
+	//CacheEnable();
+    CacheDisable();
 	
 //IO
 	IOInit();
@@ -126,10 +126,8 @@ void zotmain( void )
 	IPXInitialize();
 	NETBEUInit();
 	Spooler_init();
-	ps_init();
-#else
-    ps_init();
 #endif
+    ps_init();
 //LED
 	LED_Init();	
 

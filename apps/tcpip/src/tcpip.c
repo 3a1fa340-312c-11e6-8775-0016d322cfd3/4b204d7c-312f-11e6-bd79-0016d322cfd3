@@ -265,7 +265,6 @@ void erase_netif_ipaddr()
 void updata_netif_ipaddr( struct netif *netif )
 {
 #if 1	//ZOTIPS
-    unsigned char show_addr[4];
 
 	if (netif == WLanface){ //Ron modified on 12/07/04
 	    Lanface->ip_addr.addr = netif->ip_addr.addr;
@@ -289,12 +288,7 @@ void updata_netif_ipaddr( struct netif *netif )
 	mib_DHCP_p->GwyAddr = DWordSwap(Lanface->gw.addr);
 		
 #ifdef MTK7601
-    memcpy (show_addr, netif->ip_addr.addr, 1);
     printk("ip_addr.addr = %X\n", netif->ip_addr.addr);
-    printk("Box IP : %d.%d.%d.%d\n", show_addr[0],
-                                     show_addr[1],
-                                     show_addr[2],
-                                     show_addr[3]);
 #endif
 
 	NSET32(EEPROM_Data.BoxIPAddress, netif->ip_addr.addr);

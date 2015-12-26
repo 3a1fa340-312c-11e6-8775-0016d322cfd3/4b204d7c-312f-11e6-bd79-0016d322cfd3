@@ -1,4 +1,5 @@
 
+PROD_NAME ?= zot716u2w
 
 GCC_DIR = /opt/gnutools/arm-elf/bin
 PKG_INSTALL_DIR = $(ROOT_DIR)/ecos/$(PROD_NAME)_ecos_install

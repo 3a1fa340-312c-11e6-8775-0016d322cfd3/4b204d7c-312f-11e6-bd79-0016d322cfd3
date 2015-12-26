@@ -3,6 +3,8 @@
 export ROOT_DIR = $(PWD)
 export HDR_MAK = $(ROOT_DIR)/rules.mak
 
+PROD_NAME ?= zot716u2w
+
 include rules.mak
 include $(TARGET_DEF)
 

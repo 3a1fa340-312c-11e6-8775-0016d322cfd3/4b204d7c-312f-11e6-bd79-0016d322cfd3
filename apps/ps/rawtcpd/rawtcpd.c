@@ -69,6 +69,10 @@ void rawtcpd(cyg_addrword_t data)
 			while( (PrnGetPrinterStatus(port) != PrnNoUsed ) ||//&&
 					 (ReadPortStatus(port) != PORT_READY) )
 			{
+                if ((ReadPortStatus(port) == PORT_PRINTING) &&
+                    (PrnGetPrinterStatus(port) == PrnNoUsed))
+                    break;
+
 				cyg_scheduler_unlock();	//615wu::No PSMain
 				
 				if((( rdclock()-startime)  > ((uint32)TICKS_PER_SEC*10) )) {
@@ -77,13 +81,13 @@ void rawtcpd(cyg_addrword_t data)
 					startime = rdclock();
 				}
 				cyg_thread_yield();
-//				ppause(100);
+				//ppause(100);
 			
 				cyg_scheduler_lock();	//615wu::No PSMain
 			
 				continue;
 			}
-		
+	
 			PrnSetRawTcpInUse(port);
 			
 			cyg_scheduler_unlock();	//615wu::No PSMain
@@ -178,8 +182,10 @@ void rawtcpd(cyg_addrword_t data)
 				JL_EndList(port, 0);	// Completed. George Add January 26, 2007
 #endif SUPPORT_JOB_LOG		
 		}
-		else
+		else {
 			cyg_scheduler_unlock();	//615wu::No PSMain
+        }
+        
 #endif /* USE_PS_LIBS */
  		close( s );
 	}

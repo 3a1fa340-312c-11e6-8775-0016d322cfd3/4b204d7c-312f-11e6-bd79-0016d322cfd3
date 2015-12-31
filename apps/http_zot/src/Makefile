@@ -44,7 +44,7 @@ LIB_DIR       = $(PROD_BUILD_DIR)/lib
 EXTRACFLAGS += -DWEBS -DUEMF -DWEBS_PAGE_ROM -DOS="eCos" -D__NO_FCNTL=1
 
 EXTRACFLAGS +=  -I$(PROD_BUILD_DIR) -I../incl  -I$(APPS_DIR)/ps/common/incl \
-				-I$(APPS_DIR)/ps/psutility -I$(APPS_DIR)/ps/ntps/incl \
+				-I$(APPS_DIR)/ps/psutility/incl -I$(APPS_DIR)/ps/ntps/incl \
 			    -I$(APPS_DIR)/spooler/incl \
 			    -I$(APPS_DIR)/ps/ippd/incl \
 			    -I$(APPS_DIR)/ps/nds/incl \

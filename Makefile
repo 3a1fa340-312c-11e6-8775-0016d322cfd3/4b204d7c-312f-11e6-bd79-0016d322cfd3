@@ -1,9 +1,70 @@
 
+# arm9, mt7688
+ifeq ($(CHIP),)
+	CHIP = mt7688
+	CHIPSET = mt7628
+	export CHIP CHIPSET
+endif
 
-export ROOT_DIR = $(PWD)
-export HDR_MAK = $(ROOT_DIR)/rules.mak
-
+# zot716u2w, zot716u2, dwp2020
 PROD_NAME ?= zot716u2w
+
+ROOT_DIR = $(PWD)
+TOPDIR = $(ROOT_DIR)
+HDR_MAK = $(ROOT_DIR)/rules.mak
+
+PROD_DIR= $(ROOT_DIR)/prod
+APPS_DIR = $(ROOT_DIR)/apps
+PROD_BUILD_DIR = $(PROD_DIR)/$(PROD_NAME)/build
+FTR_MAK = $(PROD_BUILD_DIR)/ftr.mak
+TARGET_DEF = $(PROD_BUILD_DIR)/Target.def
+
+TARGET_OS = ECOS
+ECOS_REPOSITORY := $(ROOT_DIR)/ecos/packages
+ECOS_TOOL_PATH := $(ROOT_DIR)/tools/bin
+ECOS_MIPSTOOL_PATH := $(ROOT_DIR)/tools/mipsisa32-elf/bin
+
+ifeq ($(CHIP),arm9)
+PKG_INSTALL_DIR = $(ROOT_DIR)/ecos/$(PROD_NAME)_ecos_install
+endif
+
+ifeq ($(CHIP),mt7688)
+KERNEL_BUILD_DIR = $(ROOT_DIR)/ecos/$(CHIP)_ecos_install
+PKG_INSTALL_DIR = $(KERNEL_BUILD_DIR)/install
+ifeq (.config, $(wildcard .config))
+include .config
+DRVSUBDIRS =
+endif
+
+ifdef CONFIG_RA305X
+	DRVSUBDIRS += ./drivers/ra305x_drivers/eth_ra305x
+endif
+ifdef CONFIG_WIRELESS
+ifeq ($(CHIPSET),mt7628)
+	DRVSUBDIRS += ./drivers/ra305x_drivers/Jedi_7628/embedded
+endif	
+ifdef CONFIG_ATE_DAEMON
+	DRVSUBDIRS += ./drivers/ra305x_drivers/wireless_ate
+	CFLAGS += -DRALINK_ATE_SUPPORT
+endif # CONFIG_ATE_DAEMON
+ifdef CONFIG_80211X_DAEMON
+	DRVSUBDIRS += ./drivers/ra305x_drivers/wireless_rtdot1x
+	CFLAGS += -DRALINK_1X_SUPPORT
+endif # CONFIG_80211X_DAEMON
+ifdef CONFIG_LLTD_DAEMON
+	DRVSUBDIRS += ./drivers/ra305x_drivers/lltd
+	CFLAGS += -DRALINK_LLTD_SUPPORT
+endif # CONFIG_LLTD_DAEMON
+endif # CONFIG_WIRELESS
+endif
+
+ifeq ($(CHIP),arm9)
+GCC_DIR = /opt/gnutools/arm-elf/bin
+endif
+
+ifeq ($(CHIP),mt7688)
+GCC_DIR = $(ROOT_DIR)/tools/mipsisa32-elf/bin
+endif
 
 include rules.mak
 include $(TARGET_DEF)
@@ -20,110 +81,30 @@ TOOLS_DIR = ./prod/$(PROD_NAME)/build/tools
 
 DST_NAME = $(PROD_NAME).axf
 
+ifeq ($(CHIP),arm9)
+PATH := $(GCC_DIR):$(PATH)
+endif
 
+ifeq ($(CHIP),mt7688)
+PATH := $(ECOS_TOOL_PATH):$(ECOS_MIPSTOOL_PATH):$(PATH)
+endif
+
+export PATH ROOT_DIR TOPDIR PROD_DIR APPS_DIR HDR_MAK FTR_MAK GCC_DIR TARGET_DEF 
+export PKG_INSTALL_DIR ECOS_REPOSITORY ECOS_TOOL_PATH ECOS_MIPSTOOL_PATH TARGET_OS
+
+ifeq ($(CHIP),arm9)
 all: DIR_CHECK RM_AXF_FILE $(DST_NAME) 
+else
+all: mt7688_ecos.img
+endif
 
-DIR_CHECK: MAKE_LIB_DIR MAKE_OBJ_DIR
+$(warning DRVSUBDIRS is $(DRVSUBDIRS))
 
-# Modules ###################################
-MAC_MAK = $(APPS_DIR)/mac
-mac:
-	make -C $(MAC_MAK)
+DIR_CHECK: MAKE_KERNEL_DIR MAKE_LIB_DIR MAKE_OBJ_DIR
 
-HTTP_ZOT_MAK = $(APPS_DIR)/http_zot/src
-http_zot:
-	make -C $(HTTP_ZOT_MAK)
-	
-IPPD_MAK = $(APPS_DIR)/ps/ippd/src
-ippd:
-	make -C $(IPPD_MAK)
 
-SMBD_MAK = $(APPS_DIR)/ps/smbd/src
-smbd:
-	make -C $(SMBD_MAK)
-
-LPD_MAK = $(APPS_DIR)/ps/lpd/src
-lpd:
-	make -C $(LPD_MAK)
-		
-RAWTCPD_MAK = $(APPS_DIR)/ps/rawtcpd
-rawtcpd:
-	make -C $(RAWTCPD_MAK)
-	
-USB_HOST_MAK = $(APPS_DIR)/usb_host/src
-usb_host:
-	make -C $(USB_HOST_MAK)	
-	
-IPXBEUI_MAK = $(APPS_DIR)/ipxbeui
-ipxbeui:
-	make -C $(IPXBEUI_MAK)		
-
-PSGLOBAL_MAK = $(APPS_DIR)/ps/common/src
-psglobal:
-	make -C $(PSGLOBAL_MAK)	
-
-PSUTILITY_MAK = $(APPS_DIR)/ps/psutility
-psutility:
-	make -C $(PSUTILITY_MAK)	
-	
-NTPS_MAK = $(APPS_DIR)/ps/ntps/src
-ntps:
-	make -C $(NTPS_MAK)	
-
-SPOOLER_MAK = $(APPS_DIR)/spooler/src
-spooler:
-	make -C $(SPOOLER_MAK)
-	
-NOVELL_MAK = $(APPS_DIR)/ps/novell/src
-novell:
-	make -C $(NOVELL_MAK)
-
-NDS_MAK = $(APPS_DIR)/ps/nds/src
-nds:
-	make -C $(NDS_MAK)	
-
-ATALK_MAK = $(APPS_DIR)/ps/atalk/src
-atalk:
-	make -C $(ATALK_MAK)
-
-RENDEZVOUS_MAK = $(APPS_DIR)/rendezvous/src
-rendezvous:
-	make -C $(RENDEZVOUS_MAK)
-	
-SNMP_MAK = $(APPS_DIR)/snmp/src
-snmp:
-	make -C $(SNMP_MAK)
-	
-TFTP_ZOT_MAK =	$(APPS_DIR)/ps/tftp_zot/src
-tftp_zot:
-	make -C $(TFTP_ZOT_MAK)
-	
-TCPIP_MAK = $(APPS_DIR)/tcpip/src
-tcpip:
-	make -C $(TCPIP_MAK)	
-
-REALTEK_MAK = $(APPS_DIR)/realtek/src
-realtek:
-	make -C $(REALTEK_MAK)		
-
-WPA_SUPPLICANT_MAK = $(APPS_DIR)/realtek/src/wpa_supplicant
-wpa_supplicant:
-	make -C $(WPA_SUPPLICANT_MAK)		
-
-MTK7601_MAK = $(APPS_DIR)/mtk7601/src
-mtk7601:
-	make -C $(MTK7601_MAK)
-
-TELNET_MAK = $(APPS_DIR)/ps/telnet/src
-telnet:
-	make -C $(TELNET_MAK)	
-
-UART_MAK = $(APPS_DIR)/uart
-uart:
-	make -C $(UART_MAK)
-	
 # use this library must to define USE_SYS_LIBS
-SYS_LIBS	= mac.a usb_host.a psglobal.a http_zot.a tcpip.a psutility.a uart.a
+SYS_LIBS	= mac.a usb_host.a common.a http_zot.a tcpip.a psutility.a uart.a
 
 ADMIN_LIBS 	= ntps.a ipxbeui.a
 
@@ -137,42 +118,53 @@ NETAPP_LIBS = telnet.a smbd.a
 
 ALL_LIBS = $(SYS_LIBS) $(ADMIN_LIBS) $(PS_LIBS) $(NETAPP_LIBS)
 
-ifeq ($(TARGET),$(filter $(TARGET), N716U2W DWP2020))
+ifeq ($(TARGET),$(filter $(TARGET), N716U2W NDWP2020))
 ALL_LIBS += $(WIRELESS_LIBS)
 endif
 
 
+ifeq ($(CHIP),arm9)
 PROD_LIBS = $(addprefix $(PROD_BUILD_DIR)/lib/, $(ALL_LIBS))
 
-PROD_MODULES_MAK =$(MAC_MAK) $(USB_HOST_MAK) $(PSGLOBAL_MAK) $(NTPS_MAK) $(SPOOLER_MAK) $(NOVELL_MAK) $(NDS_MAK) $(IPPD_MAK) $(HTTP_ZOT_MAK) $(LPD_MAK) \
-	$(RAWTCPD_MAK) $(TELNET_MAK) $(SMBD_MAK) $(TFTP_ZOT_MAK) $(ATALK_MAK) $(SNMP_MAK) $(RENDEZVOUS_MAK) $(TCPIP_MAK) $(PSUTILITY_MAK) $(IPXBEUI_MAK) \
-	$(UART_MAK) $(REALTEK_MAK) $(WPA_SUPPLICANT_MAK) $(MTK7601_MAK) 
+PROD_MODULES = mac ps/psutility usb_host ipxbeui ps/ntps spooler ps/common ps/novell ps/nds ps/ippd http_zot ps/lpd ps/rawtcpd\
+				 ps/telnet ps/smbd ps/tftp_zot tcpip ps/atalk snmp rendezvous uart mtk7601
+else
+PROD_LIBS =
+PROD_MODULES =
+endif
 
-PROD_MODULES = mac psutility usb_host ipxbeui ntps spooler psglobal novell nds ippd http_zot lpd rawtcpd\
-				 telnet smbd tftp_zot tcpip atalk snmp rendezvous uart mtk7601
+DRV_OBJS = $(join $(DRVSUBDIRS), $(foreach n,$(DRVSUBDIRS), $(shell echo "/"$(shell echo /$(n).o | sed "s/.*\///"))))
 
-prod: $(PROD_MODULES)
+drvsubdirs: $(patsubst %, _dir_%, $(DRVSUBDIRS))
 
-prodclean:
-	@for M in $(PROD_MODULES_MAK); do\
-		echo ....Clean $$M;\
-		make -C $$M clean;\
-		done
-	rm -f $(basename $(DST_NAME)).map *.bin
-	rm -f ./obj/*.o
-		
+$(patsubst %, _dir_%, $(DRVSUBDIRS)) :
+	$(MAKE) CFLAGS="$(CFLAGS)" ENDIAN=$(ENDIAN) -C $(patsubst _dir_%, %, $@)
 
-proddep:
-	@for M in $(PROD_MODULES_MAK); do\
-		echo ....Make dependencies $$M;\
-		make -C $$M clean;\
-		done
+drivers.o: drvsubdirs $(DRV_OBJS)
+	$(LD) -r $(ENDIAN) -o drivers.o $(DRV_OBJS)
 
-clean: prodclean
+prod: $(patsubst %, _folder_%, $(PROD_MODULES))
+
+$(patsubst %, _folder_%, $(PROD_MODULES)) :
+	make -C $(patsubst _folder_%, $(APPS_DIR)/%/src, $@)
+
+prodclean: $(patsubst %, _clean_%, $(PROD_MODULES))
+
+$(patsubst %, _clean_%, $(PROD_MODULES)) :
+	make -C $(patsubst _clean_%, $(APPS_DIR)/%/src, $@) clean
+
+driver_clean: $(patsubst %, _drvclean_%, $(DRVSUBDIRS))
+
+$(patsubst %, _drvclean_%, $(DRVSUBDIRS)):
+	$(warning make -C $(patsubst _drvclean_%, %, $@) clean)
+	make -C $(patsubst _drvclean_%, %, $@) clean
+
+
+clean: prodclean driver_clean
 
 cleanall: clean 
 	
-depend: proddep
+depend: prodclean
 
 N716U2:
 	make package PROD_NAME=zot716u2
@@ -196,32 +188,48 @@ package:
 	cp MPS$(PSMODELINDEX).bin $(ROOT_DIR)/img/.
 	rm Target.def
 
+mt7688_ecos.img: DIR_CHECK RM_AXF_FILE $(DST_NAME) $(PROD_NAME).bin 
+	mkimage -A mips -T standalone -C none -a 0x80000400 -e 0x80000400 -n zot716u2w -d zot716u2w.bin $@ 
+	sudo cp $@ /tftpboot
+
 OBJ_DIR       = $(PROD_BUILD_DIR)/obj
 LIB_DIR       = $(PROD_BUILD_DIR)/lib
 
-EXTRACFLAGS += -I$(PROD_BUILD_DIR) \
+export PROD_BUILD_DIR OBJ_DIR LIB_DIR
+
+EXTRACFLAGS +=  -I. \
+				-I$(PROD_BUILD_DIR) \
 				-I$(APPS_DIR)/ps/common/incl -I$(APPS_DIR)/ps/ntps/incl \
-				-I$(APPS_DIR)/ipxbeui -I$(APPS_DIR)/usb_host/src -I$(APPS_DIR)/star
+				-I$(APPS_DIR)/ipxbeui/incl -I$(APPS_DIR)/usb_host/src -I$(APPS_DIR)/star/incl
+
 
 $(OBJ_DIR)/%.o: $(PROD_BUILD_DIR)/%.c
 	$(CC) -c -o $(OBJ_DIR)/$*.o $(CFLAGS) $(EXTRACFLAGS) $<
 
 SRCS=$(PROD_BUILD_DIR)/zotmain.c
-
 OBJS=${SRCS:$(PROD_BUILD_DIR)/%.c=$(OBJ_DIR)/%.o}
+
+#OBJS += $(PROD_BUILD_DIR)/start.o $(PROD_BUILD_DIR)/tcpip.o $(PROD_BUILD_DIR)/syslib.o
+ifeq ($(CHIP),mt7688)
+OBJS += $(PROD_BUILD_DIR)/start.o 
+endif
 
 DST=./$(DST_NAME)
 
-$(DST_NAME): ${OBJS} prod
-	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(PROD_LIBS) 
+$(DST_NAME): ${OBJS} prod drivers.o
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(PROD_LIBS) 
 
-#	cp $(DST_NAME) zotdwp2020.bin
-#	$(STRIP) zotdwp2020.bin
-#	cp zotdwp2020.bin TEMP.bin
-#	$(TOOLS_DIR)/GZIP -c TEMP.bin > zotdwp2020.gz
-#	rm TEMP.bin
-#	$(TOOLS_DIR)/maketarget 
-#	$(TOOLS_DIR)/makimage $(PSMODELINDEX) $(CODE2MARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersion) $(BuildVer) $(MAKER_AND_CPU) zotdwp2020.gz MPS$(PSMODELINDEX).bin
-#	cp MPS$(PSMODELINDEX).bin $(ROOT_DIR)/img/.
-
+#
+# build ecos kernel for mt7688
+#
+MAKE_KERNEL_DIR:
+ifeq ($(CHIP),mt7688)
+	if [ ! -d $(KERNEL_BUILD_DIR) ]; \
+		then mkdir $(KERNEL_BUILD_DIR); \
+		cd $(KERNEL_BUILD_DIR); \
+		cp ../\pkgconf/\mt7688_bsp.ecc .; \
+		ecosconfig --config=mt7688_bsp.ecc tree; \
+		make;\
+	   	fi
+endif
 include $(FTR_MAK)

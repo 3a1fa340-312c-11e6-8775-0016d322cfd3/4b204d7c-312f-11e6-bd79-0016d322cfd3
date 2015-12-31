@@ -23,7 +23,7 @@ LIB_DIR       = $(PROD_BUILD_DIR)/lib
 
 ###### FLAGS
 EXTRACFLAGS += -I../incl -I$(PROD_BUILD_DIR) -I$(APPS_DIR)/ps/common/incl \
-			   -I$(APPS_DIR)/spooler/incl -I$(APPS_DIR)/ipxbeui \
+			   -I$(APPS_DIR)/spooler/incl -I$(APPS_DIR)/ipxbeui/incl \
 			   -I$(APPS_DIR)/ps/ntps/incl -I$(APPS_DIR)/ps/nds/incl \
 			   -I$(APPS_DIR)/tcpip/incl
 

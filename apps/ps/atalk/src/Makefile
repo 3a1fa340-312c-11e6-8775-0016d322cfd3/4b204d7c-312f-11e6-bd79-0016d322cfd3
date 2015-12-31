@@ -24,7 +24,7 @@ LIB_DIR       = $(PROD_BUILD_DIR)/lib
 ###### FLAGS
 EXTRACFLAGS += -I../incl -I$(PROD_BUILD_DIR) -I$(APPS_DIR)/ps/common/incl \
 			   -I$(APPS_DIR)/spooler/incl \
-			   -I$(APPS_DIR)/ps/psutility -I$(APPS_DIR)/tcpip/incl
+			   -I$(APPS_DIR)/ps/psutility/incl -I$(APPS_DIR)/tcpip/incl
 
 ###### LOCAL BUILD RULES
 #

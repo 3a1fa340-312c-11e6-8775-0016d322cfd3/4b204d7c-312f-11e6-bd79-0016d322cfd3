@@ -1,5 +1,4 @@
 #                Copyright 2006, ZOT.
-
 # Rule to create $(OBJ_DIR) if $(OBJ_DIR) does not exist
 MAKE_OBJ_DIR:
 	@-if !(test -d $(OBJ_DIR)); then mkdir $(OBJ_DIR); fi;

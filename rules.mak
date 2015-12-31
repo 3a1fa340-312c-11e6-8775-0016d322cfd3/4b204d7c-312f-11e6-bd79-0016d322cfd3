@@ -1,31 +1,33 @@
 
-PROD_NAME ?= zot716u2w
-
-GCC_DIR = /opt/gnutools/arm-elf/bin
-PKG_INSTALL_DIR = $(ROOT_DIR)/ecos/$(PROD_NAME)_ecos_install
-PROD_DIR= $(ROOT_DIR)/prod
-APPS_DIR = $(ROOT_DIR)/apps
-#PROD_NAME = zot716u2w
-PROD_BUILD_DIR = $(PROD_DIR)/$(PROD_NAME)/build
-#HDR_MAK = $(PROD_BUILD_DIR)/hdr.mak
-FTR_MAK = $(PROD_BUILD_DIR)/ftr.mak
-TARGET_DEF = $(PROD_BUILD_DIR)/Target.def
-
-VERSION='ZOTDWP2020_SDK_0.01'
+VERSION='ZOT_SDK_0.01'
 VERSION_STRING=$(VERSION)
 PS1=$'\\033[32m\n$VERSION_STRING \\033[31m$PROD_NAME \\033[33m\\w\\033[0m\n$ '
 
 export VERSION_STRING
 
+ifeq ($(CHIP),arm9)
 CC   = $(GCC_DIR)/arm-elf-gcc -mcpu=arm9 -w
 LD   = $(GCC_DIR)/arm-elf-gcc
 AR   = $(GCC_DIR)/arm-elf-ar
 STRIP = $(GCC_DIR)/arm-elf-strip 
+endif
+
+ifeq ($(CHIP),mt7688)
+export COMMAND_PREFIX = mipsisa32-elf-
+export CC = $(COMMAND_PREFIX)gcc
+export XCC= $(CC)
+export LD = $(COMMAND_PREFIX)ld
+export XLD= $(LD)
+export AR = $(COMMAND_PREFIX)ar
+export OBJCOPY = $(COMMAND_PREFIX)objcopy
+export XOC = $(OBJCOPY)
+export XOD = $(COMMAND_PREFIX)objdump
+endif
 
 include $(TARGET_DEF)
 C_DEFINED = -D$(HTML_FILE)
 
-INC_DIR   = -I$(PKG_INSTALL_DIR)/include
+INC_DIR   = -I$(PKG_INSTALL_DIR)/include -I. -I./include
 CFLAGS    = -Wall $(INC_DIR) -ffunction-sections -fdata-sections
 CFLAGS   += -D__ECOS -DECOS \
 			-D$(TARGET) \
@@ -49,7 +51,7 @@ CFLAGS   += -D__ECOS -DECOS \
 #			-DUSE_PS_LIBS
 #			-DUSE_NETAPP_LIBS
 
-ifeq ($(TARGET),N716U2W)
+ifeq ($(TARGET),$(filter $(TARGET), N716U2W NDWP2020))
 CFLAGS 	 +=	-DWPSBUTTON_LEDFLASH_FLICK \
 			-DTXRX_SW_ANTDIV_SUPPORT \
 			-DMTK7601 \
@@ -61,17 +63,25 @@ CFLAGS   += -DVERSION=\"$(VERSION_STRING)\"
 #add include 
 CFLAGS   += $(C_DEFINED)
 
-LDFLAGS   = -nostartfiles -nostdlib -L$(PKG_INSTALL_DIR)/lib -Wl,--gc-sections\
+LDFLAGS   = -nostartfiles -nostdlib -L$(PKG_INSTALL_DIR)/lib \
     -Ttarget.ld  -Xlinker -Map -Xlinker $(basename $@).map
-ARFLAGS   = rv
-#COPTFLAGS     = -O2
-COPTFLAGS     := -g
+ARFLAGS   	 = rv
+#COPTFLAGS   = -O2
+COPTFLAGS    := -g
 DEPEND_FLAGS =  -Wp,-MD,$*.d
-EXTRACFLAGS   = $(COPTFLAGS) $(DEPEND_FLAGS)
-LIBS          = -Ttarget.ld -nostdlib
-SRC_DIR         = .
+EXTRACFLAGS  = $(COPTFLAGS) $(DEPEND_FLAGS)
+LIBS         = -Ttarget.ld -nostdlib
+SRC_DIR      = .
 
-#-nostdlib
+ifeq ($(CHIP),arm9)
+LDFLAGS += -Wl,--gc-sections
+endif
+
+ifeq ($(CHIP),mt7688)
+CFLAGS +=  -I$(TOPDIR)/include -I$(TOPDIR)/apps/tcpip/incl/ 
+CFLAGS += -EL -mips32 -msoft-float -gstabs -fno-rtti -fno-exceptions -G0 -DCONFIG_MT7628_ASIC
+LDFLAGS += -EL -mips32 -msoft-float -Wl,--gc-sections -Wl,-static
+endif
 
 .PHONY: depend all clean
 
@@ -80,3 +90,12 @@ SRC_DIR         = .
 
 %.d: %.c
 	$(CC) -E $(CFLAGS) $(EXTRACFLAGS) -Wp,-MD,$*.d $< >/dev/null
+
+%.o: %.S
+	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) -Wp,-MD,$*.d $<
+
+%.d: %.S
+	$(CC) -c -E $(CFLAGS) $(EXTRACFLAGS) -Wp,-MD,$*.d $< >/dev/null
+
+%.bin: %.axf
+	$(XOC) -O binary $(@:.bin=.axf) $@

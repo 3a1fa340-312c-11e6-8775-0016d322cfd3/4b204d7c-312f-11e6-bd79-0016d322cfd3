@@ -7,7 +7,7 @@
 include $(HDR_MAK)
 
 # Names
-DST_NAME = psglobal.a
+DST_NAME = common.a
 
 all: DIR_CHECK $(DST_NAME)
 
@@ -24,11 +24,11 @@ LIB_DIR       = $(PROD_BUILD_DIR)/lib
 ###### FLAGS
 EXTRACFLAGS += -I../incl -I$(PROD_BUILD_DIR) -I$(APPS_DIR)/ps/common/incl \
 				-I$(APPS_DIR)/spooler/incl -I$(APPS_DIR)/ps/ntps/incl\
-				-I$(APPS_DIR)/ipxbeui \
+				-I$(APPS_DIR)/ipxbeui/incl \
 				-I$(APPS_DIR)/ps/atalk/incl\
 				-I$(APPS_DIR)/tcpip/incl\
-				-I$(APPS_DIR)/mac	\
-				-I$(APPS_DIR)/star
+				-I$(APPS_DIR)/mac/incl	\
+				-I$(APPS_DIR)/star/incl
 				
 ###### LOCAL BUILD RULES
 #

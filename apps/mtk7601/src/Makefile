@@ -40,7 +40,7 @@ LIB_DIR       = $(PROD_BUILD_DIR)/lib
 ###### FLAGS
 EXTRACFLAGS += -I../incl -I$(PROD_BUILD_DIR) -I$(APPS_DIR)/ps/common/incl \
 				-I$(APPS_DIR)/spooler/incl -I$(APPS_DIR)/usb_host/incl -I$(APPS_DIR)/tcpip/incl	\
-				-I$(APPS_DIR)/star
+				-I$(APPS_DIR)/star/incl
 MCONFIG = 	LINUX \
 			RALINK_ATE \
 			CONFIG_RT2880_ATE_CMD_NEW \

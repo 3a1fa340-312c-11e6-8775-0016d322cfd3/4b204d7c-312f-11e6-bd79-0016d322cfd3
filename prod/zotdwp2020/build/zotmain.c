@@ -76,11 +76,12 @@ void USB_init(cyg_addrword_t data)
 	ehci_hcd_init(0x6B, SYSPA_USB20_OPERATION_BASE_ADDR);	
 	//Printer Class
 	usblp_init();	
-	
+#ifdef WIRELESS_CARD
 	ZOT_Timer_init();	//eason 20100210
 	
 	//wireless
 	Wlan_MacInit();
+#endif
 //	r8712u_drv_entry();	//eason 20100210 realtek
 	rtusb_init();	//rt3070
 	

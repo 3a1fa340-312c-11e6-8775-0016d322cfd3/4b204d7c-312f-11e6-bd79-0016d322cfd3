@@ -137,7 +137,7 @@ NETAPP_LIBS = telnet.a smbd.a
 
 ALL_LIBS = $(SYS_LIBS) $(ADMIN_LIBS) $(PS_LIBS) $(NETAPP_LIBS)
 
-ifeq ($(TARGET),$(filter $(TARGET), N716U2W DWP2020))
+ifeq ($(TARGET),$(filter $(TARGET), N716U2W NDWP2020))
 ALL_LIBS += $(WIRELESS_LIBS)
 endif
 

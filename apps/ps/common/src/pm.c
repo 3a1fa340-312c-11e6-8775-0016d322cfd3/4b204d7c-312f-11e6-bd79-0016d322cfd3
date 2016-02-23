@@ -47,6 +47,7 @@ void zot_idle_task(cyg_addrword_t data)
 				current = cyg_current_time();
 
 				// George updated this at build0008 of 716U2W on May 4, 2012.
+#if defined(N716U2W) || defined(N716U2)
 #if defined(O_CONRAD)
 				if( (current - start) > 950 ) needboot = 1;		// 10 seconds
 				if( (current - start) > 1425 ) needprint = 1;	// 15 seconds
@@ -54,6 +55,8 @@ void zot_idle_task(cyg_addrword_t data)
 				if( (current - start) > 10 ) needboot = 1;
 				if( (current - start) > 300 ) needprint = 1;
 #endif	// defined(O_CONRAD)
+#endif
+
 			}
 		}
         #if defined(N716U2W) || defined(N716U2)
@@ -80,6 +83,21 @@ void zot_idle_task(cyg_addrword_t data)
         #endif // defined(N716U2W)
 		else
 		{
+            #if defined(NDWP2020)
+            // use only one button, release time larger 5 secs for reset, 
+            // otherwirse for wps.
+            if (start) {
+                if ((current - start) > 500)
+                    needboot = 1;
+                else {
+                    needwps = 1;
+                    #ifdef WPSBUTTON_LEDFLASH_FLICK
+					flash_wps_led = 1;
+                    #endif	// WPSBUTTON_LEDFLASH_FLICK
+                }
+            }
+            #endif
+
 			start = 0;
 
 #ifdef WIRELESS_CARD

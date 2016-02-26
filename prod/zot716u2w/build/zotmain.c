@@ -3,6 +3,7 @@
 //	Copy Righti(2006) ZOT.
 //=========================================================================*/
 #include <stdio.h>
+#include <config.h>
 #include <cyg/infra/diag.h>
 
 int config_net_mbuf_usage = 200;

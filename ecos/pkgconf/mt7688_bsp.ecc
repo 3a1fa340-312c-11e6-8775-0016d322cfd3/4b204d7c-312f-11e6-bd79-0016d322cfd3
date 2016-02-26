@@ -3573,7 +3573,7 @@ cdl_component CYGPKG_IO_ETH_DRIVERS_LWIP {
 
     # Flavor: bool
     # No user value, uncomment the following line to provide one.
-    # user_value 1
+    user_value 1
     # value_source default
     # Default value: 1
     # Requires: !CYGPKG_NET

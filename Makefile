@@ -23,6 +23,7 @@ TARGET_OS = ECOS
 ECOS_REPOSITORY := $(ROOT_DIR)/ecos/packages
 ECOS_TOOL_PATH := $(ROOT_DIR)/tools/bin
 ECOS_MIPSTOOL_PATH := $(ROOT_DIR)/tools/mipsisa32-elf/bin
+DRIVERS =
 
 ifeq ($(CHIP),arm9)
 PKG_INSTALL_DIR = $(ROOT_DIR)/ecos/$(PROD_NAME)_ecos_install
@@ -56,6 +57,7 @@ ifdef CONFIG_LLTD_DAEMON
 	CFLAGS += -DRALINK_LLTD_SUPPORT
 endif # CONFIG_LLTD_DAEMON
 endif # CONFIG_WIRELESS
+DRIVERS += drivers.o
 endif
 
 ifeq ($(CHIP),arm9)
@@ -97,8 +99,6 @@ all: DIR_CHECK RM_AXF_FILE $(DST_NAME)
 else
 all: mt7688_ecos.img
 endif
-
-$(warning DRVSUBDIRS is $(DRVSUBDIRS))
 
 DIR_CHECK: MAKE_KERNEL_DIR MAKE_LIB_DIR MAKE_OBJ_DIR
 
@@ -216,7 +216,7 @@ endif
 
 DST=./$(DST_NAME)
 
-$(DST_NAME): ${OBJS} prod drivers.o
+$(DST_NAME): ${OBJS} prod $(DRIVERS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(PROD_LIBS) 
 
 #

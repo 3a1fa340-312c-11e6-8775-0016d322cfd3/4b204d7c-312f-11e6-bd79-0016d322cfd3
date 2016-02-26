@@ -65,6 +65,14 @@
  *  (set by the network interface driver) */
 #define NETIF_FLAG_LINK_UP 0x10U
 
+/*
+ * for mt7688 driver compatible
+ */
+struct if_data {
+    u32_t  ifi_ipackets;
+    u32_t  ifi_opackets;
+};
+
 /** Generic data structure used for all lwIP network interfaces.
  *  The following fields should be filled in by the initialization
  *  function for the device driver: hwaddr_len, hwaddr[], mtu, flags */
@@ -72,6 +80,9 @@
 struct netif {
   /** pointer to next in linked list */
   struct netif *next;
+  
+  /** for mt7688 driver compatible */
+  struct if_data if_data;
 
   /** IP address configuration in network byte order */
   struct ip_addr ip_addr;
@@ -115,6 +126,10 @@ struct netif {
   int dev;		/* Subdevice number to pass to send */
 					/* To device -- control */
 };
+
+#define if_ipackets if_data.ifi_ipackets
+#define if_opackets if_data.ifi_opackets
+#define ifnet netif 
 
 /** The list of network interfaces. */
 extern struct netif *netif_list;

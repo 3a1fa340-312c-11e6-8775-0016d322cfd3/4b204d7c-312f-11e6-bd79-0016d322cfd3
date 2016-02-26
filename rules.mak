@@ -16,6 +16,7 @@ ifeq ($(CHIP),mt7688)
 export COMMAND_PREFIX = mipsisa32-elf-
 export CC = $(COMMAND_PREFIX)gcc
 export XCC= $(CC)
+export XCXX = $(XCC)
 export LD = $(COMMAND_PREFIX)ld
 export XLD= $(LD)
 export AR = $(COMMAND_PREFIX)ar
@@ -78,24 +79,85 @@ LDFLAGS += -Wl,--gc-sections
 endif
 
 ifeq ($(CHIP),mt7688)
-CFLAGS +=  -I$(TOPDIR)/include -I$(TOPDIR)/apps/tcpip/incl/ 
+CFLAGS +=  -I$(TOPDIR)/include -I$(TOPDIR)/apps/tcpip/incl/ -I$(PKG_INSTALL_DIR)/include -include config.h
 CFLAGS += -EL -mips32 -msoft-float -gstabs -fno-rtti -fno-exceptions -G0 -DCONFIG_MT7628_ASIC
 LDFLAGS += -EL -mips32 -msoft-float -Wl,--gc-sections -Wl,-static
 endif
 
 .PHONY: depend all clean
 
-%.o: %.c
-	$(CC) -o $*.o $(CFLAGS) $(EXTRACFLAGS) -Wp,-MD,$*.d $<
+#%.o: %.c
+#	$(CC) -o $*.o $(CFLAGS) $(EXTRACFLAGS) -Wp,-MD,$*.d $<
+#
+#%.d: %.c
+#	$(CC) -E $(CFLAGS) $(EXTRACFLAGS) -Wp,-MD,$*.d $< >/dev/null
+#
+#%.o: %.S
+#	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) -Wp,-MD,$*.d $<
+#
+#%.d: %.S
+#	$(CC) -c -E $(CFLAGS) $(EXTRACFLAGS) -Wp,-MD,$*.d $< >/dev/null
+#
+#%.bin: %.axf
+#	$(XOC) -O binary $(@:.bin=.axf) $@
+##//////////////////////////////////////////////////////////////////////////
+%.o: %.o.gz
+	gzip -d -c $< > $*.o
 
-%.d: %.c
-	$(CC) -E $(CFLAGS) $(EXTRACFLAGS) -Wp,-MD,$*.d $< >/dev/null
+%.o: %.c
+	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) -Wp,-MD,$*.d $<
+
+%.o: %.cxx
+	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) -Wp,-MD,$*.d $<
+
+%.o: %.C
+	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) -Wp,-MD,$*.d $<
+
+%.o: %.cc
+	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) -Wp,-MD,$*.d $<
 
 %.o: %.S
-	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) -Wp,-MD,$*.d $<
+	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) -Wp,-MD,$*.d $<
 
-%.d: %.S
-	$(CC) -c -E $(CFLAGS) $(EXTRACFLAGS) -Wp,-MD,$*.d $< >/dev/null
+%.d: %.o.gz
+	@echo "$@ : $<" > $@
+	gzip -d -c $< > $*.o
+	
+%.d : %.c
+	$(CC) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
+	@sed -e '/^ *\\/d' -e "s#.*: #$@: #" $(@:.d=.tmp) > $@
+	@rm $(@:.d=.tmp)
+	
+%.d : %.cxx
+	$(CC) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
+	@sed -e '/^ *\\/d' -e "s#.*: #$@: #" $(@:.d=.tmp) > $@
+	@rm $(@:.d=.tmp)
+	
+%.d : %.C
+	$(CC) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
+	@sed -e '/^ *\\/d' -e "s#.*: #$@: #" $(@:.d=.tmp) > $@
+	@rm $(@:.d=.tmp)
+	
+%.d : %.cc
+	$(XCXX) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
+	@sed -e '/^ *\\/d' -e "s#.*: #$@: #" $(@:.d=.tmp) > $@
+	@rm $(@:.d=.tmp)
+	
+%.d : %.S
+	$(XCXX) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
+	@sed -e '/^ *\\/d' -e "s#.*: #$@: #" $(@:.d=.tmp) > $@
+	@rm $(@:.d=.tmp)
 
-%.bin: %.axf
-	$(XOC) -O binary $(@:.bin=.axf) $@
+%.i: %.c
+	$(XCC) -E -o $*.i $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) $< 
+		
+%.bin: %
+	$(XOC) -O binary $(@:.bin=) $@
+
+%.map: %
+	$(XNM) $(@:.map=) | grep -v '\(compiled\)\|\(\.o$$\)\|\( [aUw] \)\|\(\.\.ng$$\)\|\(LASH[RL]DI\)' | sort > $@
+
+%.dis: %
+	$(XOD) -S --show-raw-insn $(@:.dis=) > $@
+
+

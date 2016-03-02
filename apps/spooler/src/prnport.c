@@ -57,6 +57,8 @@ uint32			PageCount[NUM_OF_PRN_PORT] = {0};
 
 struct parport PortIO[NUM_OF_PRN_PORT];
 
+BYTE PrnReadPortStatus( BYTE port );
+
 extern uint32 rdclock();
 
 //ZOTIPS void PrnStartPrintNegotiate( int port )

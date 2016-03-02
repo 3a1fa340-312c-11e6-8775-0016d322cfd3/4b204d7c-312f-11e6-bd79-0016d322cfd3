@@ -57,6 +57,8 @@ extern char * strupr ( char * string );
 //form unistr.c
 extern char *skip_string(char *buf,uint32 n);
 
+extern struct subnet_record _subnetlist[MAX_SUBNETS];
+
 /****************************************************************************
   Broadcast an announcement.
   **************************************************************************/

@@ -567,7 +567,7 @@ struct packet_struct
 /* Macro's to enumerate subnets either with or without
    the UNICAST subnet. */
 
-//extern struct subnet_record *subnetlist;
+extern struct subnet_record *subnetlist;
 extern struct subnet_record *unicast_subnet;
 extern struct subnet_record *wins_server_subnet;
 extern struct subnet_record *remote_broadcast_subnet;

@@ -22,10 +22,10 @@ typedef unsigned short  __kernel_uid16_t;
 typedef unsigned short  __kernel_gid16_t;
 
 //Ron Add
-typedef unsigned long   size_t;
+//typedef unsigned long   size_t;
 #define ssize_t size_t
 typedef unsigned char u_char;
 typedef unsigned short u_short;
-typedef unsigned int socklen_t;
+//typedef unsigned int socklen_t;
 
 #endif

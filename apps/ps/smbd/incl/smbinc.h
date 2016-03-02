@@ -18,10 +18,10 @@ extern struct in_addr ipzero;
 extern struct in_addr allones_ip;
 extern struct in_addr loopback_ip;
 
-extern struct subnet_record _subnetlist[MAX_SUBNETS];
-extern struct subnet_record *unicast_subnet;
-extern struct subnet_record *remote_broadcast_subnet;
-extern struct subnet_record *wins_server_subnet;
+//extern struct subnet_record _subnetlist[MAX_SUBNETS];
+//extern struct subnet_record *unicast_subnet;
+//extern struct subnet_record *remote_broadcast_subnet;
+//extern struct subnet_record *wins_server_subnet;
 
 extern char Smbprinterserver[3][SERVICENAME_LENGTH];
 

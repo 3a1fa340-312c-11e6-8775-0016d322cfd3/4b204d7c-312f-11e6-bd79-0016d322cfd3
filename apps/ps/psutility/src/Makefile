@@ -40,7 +40,11 @@ $(OBJ_DIR)/%.o: %.c
 #    OBJS     :: list of object files
 #    DST      :: name of build product, like a library
 # You need only add new file to the list in SRCS
-SRCS=joblog.c  alert.c kmalloc.c
+SRCS=joblog.c alert.c
+
+ifeq ($(CHIP),arm9)
+SRCS += kmalloc.c
+endif
 
 # DO not edit OBJS and DST
 OBJS=${SRCS:%.c=$(OBJ_DIR)/%.o}

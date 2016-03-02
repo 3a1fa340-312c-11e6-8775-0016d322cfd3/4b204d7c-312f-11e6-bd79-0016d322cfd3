@@ -89,6 +89,8 @@ struct ethernetif {
   /* Add whatever per-interface state that is needed here. */
 };
 
+struct pbuf *WLan_tx_dequeue(struct sk_buff **q);
+
 //ZOT
 //ZOT716u2 static void
 void arp_timer(void *arg)

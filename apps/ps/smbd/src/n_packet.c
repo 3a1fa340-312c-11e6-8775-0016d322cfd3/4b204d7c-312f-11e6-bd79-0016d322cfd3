@@ -67,6 +67,8 @@ extern void process_node_status_request(struct subnet_record *subrec, struct pac
 extern int is_local_net(struct in_addr from);                                     
 extern int ismyip(struct in_addr ip);
 
+extern struct subnet_record _subnetlist[MAX_SUBNETS];
+
 /*******************************************************************
   The global packet linked-list. Incoming entries are 
   added to the end of this list. It is supposed to remain fairly 

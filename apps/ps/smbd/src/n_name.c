@@ -48,6 +48,8 @@ extern char * strupr ( char * string );
 //from nmblib.c
 extern void make_nmb_name( struct nmb_name *n, const char *name, int type );
 
+extern struct subnet_record _subnetlist[MAX_SUBNETS];
+
 /* ************************************************************************** **
  * Set Samba's NetBIOS name type.
  * ************************************************************************** **

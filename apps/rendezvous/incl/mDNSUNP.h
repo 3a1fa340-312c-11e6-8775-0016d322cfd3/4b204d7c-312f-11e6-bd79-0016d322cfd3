@@ -92,10 +92,10 @@ struct my_in_pktinfo {
     int                     ipi_ifindex;            /* received interface index */
     char                    ipi_ifname[IFI_NAME];   /* received interface name  */
 };
-
+/*
 extern ssize_t recvfrom_flags(int fd, void *ptr, size_t nbytes, int *flagsp,
                struct sockaddr *sa, socklen_t *salenptr, struct my_in_pktinfo *pktp);
-
+*/
 struct ifi_info {
   char    ifi_name[IFI_NAME];   /* interface name, null terminated */
   u_char  ifi_haddr[IFI_HADDR]; /* hardware address */

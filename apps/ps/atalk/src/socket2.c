@@ -13,7 +13,7 @@ unsigned Nsock = DEFNSOCK;	// Number of socket entries, move from config.c	3/24/
 static struct usock **Usock;		/* Socket entry array */	//eCos
 const char Inet_eol[] = "\r\n";
 #define	_fd_seq(fd)	((fd) & 8191)
-extern extern int send_pkt(int intno,uint8 *buffer,unsigned int length);
+extern int send_pkt(int intno,uint8 *buffer,unsigned int length);
 
 /* Socket-protocol interface table */
 struct socklink Socklink[] = {

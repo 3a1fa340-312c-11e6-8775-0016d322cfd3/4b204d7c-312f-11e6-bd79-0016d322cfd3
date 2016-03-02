@@ -34,7 +34,6 @@
 #include "psdefine.h"
 #include "eeprom.h"
 
-
 #include "smbinc.h"
 #include "smb.h"
 

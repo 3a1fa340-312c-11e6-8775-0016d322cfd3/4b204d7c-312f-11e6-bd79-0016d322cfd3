@@ -169,7 +169,7 @@ int16 nbp_rgstr(void)
 	return (0);
 }
 
-void nbp_input(cyg_addrword_t data)
+void nbp_input(cyg_addrword_t _data)
 {
 
 	uint8 nbp_data[NBP_INPUT_LEN];

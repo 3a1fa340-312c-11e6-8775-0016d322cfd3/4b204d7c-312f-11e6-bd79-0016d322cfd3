@@ -12,6 +12,7 @@ PROD_NAME ?= zot716u2w
 ROOT_DIR = $(PWD)
 TOPDIR = $(ROOT_DIR)
 HDR_MAK = $(ROOT_DIR)/rules.mak
+ENDIAN=$(shell echo $(ECOS_GLOBAL_CFLAGS) | sed -e "s/.*-EL.*/-EL/" )
 
 PROD_DIR= $(ROOT_DIR)/prod
 APPS_DIR = $(ROOT_DIR)/apps
@@ -102,36 +103,35 @@ endif
 
 DIR_CHECK: MAKE_KERNEL_DIR MAKE_LIB_DIR MAKE_OBJ_DIR
 
-
 # use this library must to define USE_SYS_LIBS
-SYS_LIBS	= mac.a usb_host.a common.a http_zot.a tcpip.a psutility.a uart.a
-
-ADMIN_LIBS 	= ntps.a ipxbeui.a
-
-WIRELESS_LIBS = mtk7601.a
-
+# SYS_LIBS		= mac.a usb_host.a common.a http_zot.a tcpip.a psutility.a uart.a
+# use this library must to define USE_ADMIN_LIBS
+# ADMIN_LIBS 	= ntps.a ipxbeui.a
 # use this library must to define USE_PS_LIBS 
-PS_LIBS		= spooler.a novell.a nds.a lpd.a ippd.a atalk.a rawtcpd.a rendezvous.a snmp.a tftp_zot.a
-
+# PS_LIBS		= spooler.a novell.a nds.a lpd.a ippd.a atalk.a rawtcpd.a rendezvous.a snmp.a tftp_zot.a
 # use htis library must to define USE_NETAPP_LIBS
-NETAPP_LIBS = telnet.a smbd.a
-
-ALL_LIBS = $(SYS_LIBS) $(ADMIN_LIBS) $(PS_LIBS) $(NETAPP_LIBS)
-
-ifeq ($(TARGET),$(filter $(TARGET), N716U2W NDWP2020))
-ALL_LIBS += $(WIRELESS_LIBS)
-endif
-
+# NETAPP_LIBS 	= telnet.a smbd.a
+# ALL_LIBS = $(SYS_LIBS) $(ADMIN_LIBS) $(PS_LIBS) $(NETAPP_LIBS)
 
 ifeq ($(CHIP),arm9)
-PROD_LIBS = $(addprefix $(PROD_BUILD_DIR)/lib/, $(ALL_LIBS))
-
 PROD_MODULES = mac ps/psutility usb_host ipxbeui ps/ntps spooler ps/common ps/novell ps/nds ps/ippd http_zot ps/lpd ps/rawtcpd\
 				 ps/telnet ps/smbd ps/tftp_zot tcpip ps/atalk snmp rendezvous uart mtk7601
-else
-PROD_LIBS =
-PROD_MODULES =
+#
+# wireless driver have realtek, rt3070, mtk7601
+#
+
+WIRELESS_LIBS = mtk7601
+
+ifdef $(WIRELESS_LIBS)
+PROD_MODULES += $(WIRELESS_LIBS)
 endif
+
+else #mt7688
+PROD_MODULES = ps/psutility ipxbeui ps/ntps spooler ps/common ps/novell ps/nds ps/ippd http_zot ps/lpd ps/rawtcpd\
+				 ps/telnet ps/smbd ps/tftp_zot tcpip ps/atalk snmp rendezvous
+endif
+
+PROD_LIBS = $(addprefix $(PROD_BUILD_DIR)/lib/, $(addsuffix .a, $(notdir $(PROD_MODULES))))
 
 DRV_OBJS = $(join $(DRVSUBDIRS), $(foreach n,$(DRVSUBDIRS), $(shell echo "/"$(shell echo /$(n).o | sed "s/.*\///"))))
 
@@ -188,9 +188,9 @@ package:
 	cp MPS$(PSMODELINDEX).bin $(ROOT_DIR)/img/.
 	rm Target.def
 
-mt7688_ecos.img: DIR_CHECK RM_AXF_FILE $(DST_NAME) $(PROD_NAME).bin 
-	mkimage -A mips -T standalone -C none -a 0x80000400 -e 0x80000400 -n zot716u2w -d zot716u2w.bin $@ 
-	sudo cp $@ /tftpboot
+mt7688_ecos.img: DIR_CHECK RM_AXF_FILE $(DST_NAME) 
+	mkimage -A mips -T standalone -C none -a 0x80000400 -e 0x80000400 -n zot716u2w -d $(DST_NAME) $@ 
+#	sudo cp $@ /tftpboot
 
 OBJ_DIR       = $(PROD_BUILD_DIR)/obj
 LIB_DIR       = $(PROD_BUILD_DIR)/lib
@@ -231,5 +231,6 @@ ifeq ($(CHIP),mt7688)
 		ecosconfig --config=mt7688_bsp.ecc tree; \
 		make;\
 	   	fi
+include $(PKG_INSTALL_DIR)/include/pkgconf/ecos.mak
 endif
 include $(FTR_MAK)

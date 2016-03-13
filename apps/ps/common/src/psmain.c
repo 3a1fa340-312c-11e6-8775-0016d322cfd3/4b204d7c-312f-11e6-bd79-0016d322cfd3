@@ -385,7 +385,9 @@ void udelay( int x )
 /////////////////////////PS Main/////////////////////////////////////////
 
 extern void NT3main(cyg_addrword_t data);
+#ifdef USE_ADMIN_LIBS
 extern void NTUtilityUDP(cyg_addrword_t data);
+#endif
 extern void IPXCounter_thread(cyg_addrword_t data);
 #ifdef SMBD	
 extern void SMBInit(cyg_addrword_t data);

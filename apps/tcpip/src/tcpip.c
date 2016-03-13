@@ -113,9 +113,21 @@ tcpip_thread(void *arg)
 #if LWIP_TCP
   tcp_init();
 #endif
+
+	Network_TCPIP_ON = 1;
+
+  diag_printf("ready to run tcpip_init_done\n");
   if (tcpip_init_done != NULL) {
+    diag_printf("mmmmmmmm go\n");
     tcpip_init_done(tcpip_init_done_arg);
+    diag_printf("mmmmmmmm back\n");
   }
+
+  diag_printf("tcpip check point\n");
+  diag_printf("tcpip check point\n");
+  diag_printf("tcpip check point\n");
+  diag_printf("tcpip check point\n");
+  diag_printf("tcpip check point\n");
 
 	sys_timeout(ARP_TMR_INTERVAL, arp_timer, NULL);	//ZOT716u2
 
@@ -283,7 +295,9 @@ void updata_netif_ipaddr( struct netif *netif )
 	mib_DHCP_p->SubnetMask = DWordSwap(Lanface->netmask.addr);
 	mib_DHCP_p->GwyAddr = DWordSwap(Lanface->gw.addr);
 		
+    /*
     printk("ip_addr.addr = %X\n", netif->ip_addr.addr);
+    */
 
 	NSET32(EEPROM_Data.BoxIPAddress, netif->ip_addr.addr);
 	NSET32(EEPROM_Data.SubNetMask, netif->netmask.addr);
@@ -490,6 +504,25 @@ void dhcp_init(cyg_addrword_t arg)
 	
 }
 
+#ifdef MT7688_MAC
+extern void ecosglue_init(void);
+#endif
+
+void tcpip_init_done_1(void * arg)
+{
+    diag_printf("%s\n", __FUNCTION__);
+#ifdef CYGPKG_LWIP_ETH
+    sys_timeout(ARP_TMR_INTERVAL, (sys_timeout_handler) arp_timer, NULL);
+#endif
+#ifdef CYGOPT_LWIP_DHCP_MANAGEMENT
+	sys_timeout(500, (sys_timeout_handler) lwip_dhcp_fine_tmr, NULL);
+	sys_timeout(60000, (sys_timeout_handler) lwip_dhcp_coarse_tmr, NULL);
+#endif
+	sys_sem_t *sem = arg;
+	sys_sem_signal(*sem);
+}
+
+
 void zot_network_task(cyg_addrword_t arg)
 {
 	sys_sem_t sem;
@@ -498,98 +531,67 @@ void zot_network_task(cyg_addrword_t arg)
 	mem_init();
 	memp_init();
 	pbuf_init();
+    netif_init();
 	
 	sem = sys_sem_new(0);
-	tcpip_init(tcpip_init_done, &sem);
+	tcpip_init(tcpip_init_done_1, &sem);
+	sys_sem_wait(sem);
+	sys_sem_free(sem);
 
-#ifdef PRINT_DIAGNOSTIC
-//	if( !diag_flag )
-	if( 1 )
-#endif
+    //
+    // initialize low level network dirver
+    //
+    #ifdef MT7688_MAC
+    ecosglue_init();
+    #endif
+
+    LanPktInit();
+    #ifdef STAR_MAC
+    star_nic_lan_init();
+    #endif
+    LanPktStart();
+
+	if(EEPROM_Data.PrintServerMode & PS_DHCP_ON)
 	{
-		if(EEPROM_Data.PrintServerMode & PS_DHCP_ON)
-		{
 
 #ifdef LINKLOCAL_IP	
-            #if defined(N716U2W) || defined(N716U2)
-			if(EEPROM_Data.RENVEnable == 1)
-            #endif
-				Link_local_ip_init();	
+        #if defined(N716U2W) || defined(N716U2)
+        if(EEPROM_Data.RENVEnable == 1)
+        #endif
+			Link_local_ip_init();	
 #endif
 			
-			mib_DHCP_p->IPAddr = 0;
-			mib_DHCP_p->SubnetMask = 0;
-			mib_DHCP_p->GwyAddr = 0;
+		mib_DHCP_p->IPAddr = 0;
+		mib_DHCP_p->SubnetMask = 0;
+		mib_DHCP_p->GwyAddr = 0;
 /*				
 			memset( EEPROM_Data.BoxIPAddress, 0, 4);
 			memset( EEPROM_Data.SubNetMask, 0, 4);
 			memset( EEPROM_Data.GetwayAddress, 0, 4);
 */			
-			//Create DHCP Thread
-		    cyg_thread_create(DHCP_TASK_PRI,
-		                  dhcp_init,
-		                  0,
-		                  "dhcp_init",
-		                  (void *) (DHCP_Stack),
-		                  DHCP_TASK_STACK_SIZE,
-		                  &DHCP_TaskHdl,
-		                  &DHCP_Task);
+		//Create DHCP Thread
+	    cyg_thread_create(DHCP_TASK_PRI,
+	                  dhcp_init,
+	                  0,
+	                  "dhcp_init",
+	                  (void *) (DHCP_Stack),
+	                  DHCP_TASK_STACK_SIZE,
+	                  &DHCP_TaskHdl,
+	                  &DHCP_Task);
 			
-			//Start DHCP Thread
-			cyg_thread_resume(DHCP_TaskHdl);
-
-		}
+		//Start DHCP Thread
+		cyg_thread_resume(DHCP_TaskHdl);
+	}
 #ifdef RENDEZVOUS
-		else
-		{
-			ppause(3000);
-			cyg_semaphore_post( &rendezvous_sem);
-		}
+	else
+	{
+		ppause(3000);
+		cyg_semaphore_post( &rendezvous_sem);
+	}
 #endif		
 		
-		
-	}
-	
-	sys_sem_wait(sem);
-	sys_sem_free(sem);
-}
-#if 0	//ZOT716u2
-uint32 TCP_HOLE_FLAG = 0;
-cyg_handle_t CloseTcpHole_SysClk;
-cyg_handle_t CloseTcpHole_Counter;
-cyg_handle_t CloseTcpHole_Alarm;  
-cyg_alarm    CloseTcpHole_timerAlarm;
-
-void CloseTcpHole (cyg_handle_t handle, cyg_addrword_t ptr)
-{
-		TCP_HOLE_FLAG = 0;
-		 
-		cyg_alarm_delete(CloseTcpHole_Alarm);				//eCos
-		cyg_clock_delete(CloseTcpHole_SysClk);			    //eCos
-		cyg_counter_delete(CloseTcpHole_Counter);			//eCos	
-		
 }
 
-void tcp_hole()
-{
-	int interval = 30000;
-	
-	TCP_HOLE_FLAG = 1;
-  	
-  	/* Attach the timer to the CloseTcpHole clock */
-    CloseTcpHole_SysClk = cyg_real_time_clock();
-
-    cyg_clock_to_counter(CloseTcpHole_SysClk, &CloseTcpHole_Counter);
-
-    cyg_alarm_create(CloseTcpHole_Counter, (cyg_alarm_t *)CloseTcpHole,
-                     0,
-                     &CloseTcpHole_Alarm, &CloseTcpHole_timerAlarm);
-
-    /* This creates a periodic timer */
-    cyg_alarm_initialize(CloseTcpHole_Alarm, cyg_current_time() + interval, 0); //only trigger once after 5 minutes   
-
-}
-#endif	//ZOT716u2
 void zot_network_init()
 {	
 	//Create NETWORK Thread
@@ -604,8 +606,4 @@ void zot_network_init()
 	
 	//Start NETWORK Thread
 	cyg_thread_resume(NETWORK_TaskHdl);
-	
-	//Open TCP/IP layer hole
-//ZOT716u2	tcp_hole(); 
-
 }

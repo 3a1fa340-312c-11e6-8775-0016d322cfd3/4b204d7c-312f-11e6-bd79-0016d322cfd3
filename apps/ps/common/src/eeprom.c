@@ -182,7 +182,7 @@ void get_randnodeid(char *nodeid){
 
 int ReadFromFactory(EEPROM *Data){
 	int i;
-	
+    diag_printf("%s\n", __FUNCTION__);	
 	memset(Data, 0x00, sizeof(EEPROM));
 	strcpy(Data->ZOT_Mark, "ZOT"); //ZOT mark "ZOT"
 	Data->EEPROM_Version = 0x0B; //for EEPROM upgrade
@@ -250,6 +250,7 @@ int ReadFromFactory(EEPROM *Data){
 
 //TCP/IP
 #ifdef O_AXIS
+    diag_printf("O_AXIS\n");
 	Data->BoxIPAddress[0] = 0x00; //Box IP Address for TCP/IP only
 	Data->BoxIPAddress[1] = 0x00; // 
 	Data->BoxIPAddress[2] = 0x00; //
@@ -268,6 +269,7 @@ int ReadFromFactory(EEPROM *Data){
 	Data->BoxIPAddress[0] = 0xC0; //192, Box IP Address for TCP/IP only
 	Data->BoxIPAddress[1] = 0xA8; //168 
 #if defined(N716U2W) || defined(N716U2)
+    diag_printf("192.168.100.5\n");
 	Data->BoxIPAddress[2] = 0x64; //100
 	Data->BoxIPAddress[3] = 0x05; //5
 #endif

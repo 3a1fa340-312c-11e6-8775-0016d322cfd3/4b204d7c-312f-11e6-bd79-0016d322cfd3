@@ -174,7 +174,7 @@ void WLan_get_EEPData(void)
 #else // !ifdef CODE1
 
 #ifdef PRINT_DIAGNOSTIC
-	if(print_diagnostic())
+    if(print_diagnostic())
 		diag_flag = 1;
 	else 	
 		diag_flag = 0;

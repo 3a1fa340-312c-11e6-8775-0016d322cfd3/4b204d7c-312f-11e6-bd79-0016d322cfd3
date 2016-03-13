@@ -12,7 +12,8 @@ PROD_NAME ?= zot716u2w
 ROOT_DIR = $(PWD)
 TOPDIR = $(ROOT_DIR)
 HDR_MAK = $(ROOT_DIR)/rules.mak
-ENDIAN=$(shell echo $(ECOS_GLOBAL_CFLAGS) | sed -e "s/.*-EL.*/-EL/" )
+#ENDIAN=$(shell echo $(ECOS_GLOBAL_CFLAGS) | sed -e "s/.*-EL.*/-EL/" )
+ENDIAN = -EL
 
 PROD_DIR= $(ROOT_DIR)/prod
 APPS_DIR = $(ROOT_DIR)/apps
@@ -36,6 +37,7 @@ PKG_INSTALL_DIR = $(KERNEL_BUILD_DIR)/install
 ifeq (.config, $(wildcard .config))
 include .config
 DRVSUBDIRS =
+CONFIG_ZLOAD_BUF = 0x80500000
 endif
 
 ifdef CONFIG_RA305X
@@ -58,6 +60,8 @@ ifdef CONFIG_LLTD_DAEMON
 	CFLAGS += -DRALINK_LLTD_SUPPORT
 endif # CONFIG_LLTD_DAEMON
 endif # CONFIG_WIRELESS
+
+DRVSUBDIRS += ./drivers/ra305x_drivers/flash
 DRIVERS += drivers.o
 endif
 
@@ -93,7 +97,7 @@ PATH := $(ECOS_TOOL_PATH):$(ECOS_MIPSTOOL_PATH):$(PATH)
 endif
 
 export PATH ROOT_DIR TOPDIR PROD_DIR APPS_DIR HDR_MAK FTR_MAK GCC_DIR TARGET_DEF 
-export PKG_INSTALL_DIR ECOS_REPOSITORY ECOS_TOOL_PATH ECOS_MIPSTOOL_PATH TARGET_OS
+export PKG_INSTALL_DIR ECOS_REPOSITORY ECOS_TOOL_PATH ECOS_MIPSTOOL_PATH TARGET_OS 
 
 ifeq ($(CHIP),arm9)
 all: DIR_CHECK RM_AXF_FILE $(DST_NAME) 
@@ -126,8 +130,10 @@ ifdef $(WIRELESS_LIBS)
 PROD_MODULES += $(WIRELESS_LIBS)
 endif
 
+DRV_OBJS =
+
 else #mt7688
-PROD_MODULES = ps/psutility ipxbeui ps/ntps spooler ps/common ps/novell ps/nds ps/ippd http_zot ps/lpd ps/rawtcpd\
+PROD_MODULES = ps/psutility ps/common ps/ntps usb_host ipxbeui spooler ps/novell ps/nds ps/ippd http_zot ps/lpd ps/rawtcpd\
 				 ps/telnet ps/smbd ps/tftp_zot tcpip ps/atalk snmp rendezvous
 endif
 
@@ -141,7 +147,7 @@ $(patsubst %, _dir_%, $(DRVSUBDIRS)) :
 	$(MAKE) CFLAGS="$(CFLAGS)" ENDIAN=$(ENDIAN) -C $(patsubst _dir_%, %, $@)
 
 drivers.o: drvsubdirs $(DRV_OBJS)
-	$(LD) -r $(ENDIAN) -o drivers.o $(DRV_OBJS)
+	$(LD) -r $(ENDIAN) -o $(OBJ_DIR)/drivers.o $(DRV_OBJS)
 
 prod: $(patsubst %, _folder_%, $(PROD_MODULES))
 
@@ -160,11 +166,6 @@ $(patsubst %, _drvclean_%, $(DRVSUBDIRS)):
 	make -C $(patsubst _drvclean_%, %, $@) clean
 
 
-clean: prodclean driver_clean
-
-cleanall: clean 
-	
-depend: prodclean
 
 N716U2:
 	make package PROD_NAME=zot716u2
@@ -188,9 +189,18 @@ package:
 	cp MPS$(PSMODELINDEX).bin $(ROOT_DIR)/img/.
 	rm Target.def
 
-mt7688_ecos.img: DIR_CHECK RM_AXF_FILE $(DST_NAME) 
-	mkimage -A mips -T standalone -C none -a 0x80000400 -e 0x80000400 -n zot716u2w -d $(DST_NAME) $@ 
-#	sudo cp $@ /tftpboot
+target.ld:
+	cp $(ROOT_DIR)/ecos/target.ld $(PKG_INSTALL_DIR)/lib/
+
+lzmaImage: DIR_CHECK RM_AXF_FILE target.ld $(DST_NAME) $(PROD_NAME).bin $(PROD_NAME).map
+	$(MAKE) CFAGS="$(CFLAGS)" ENDIAN=$(ENDIAN) -C zload
+	tools/bin/lzma e $(PROD_NAME).bin bin.gz	
+	$(XLD) $(ENDIAN) $(LD_EXTRA) -Ttext=$(CONFIG_ZLOAD_BUF) -Tzload/zload.ld -o $@ zload/zload.o -\( -bbinary bin.gz -\) -Map zload.map
+	$(XNM) $@ | grep -v '\(compiled\)\|\(\.o$$\)\|\( [aUw] \)\|\(\.\.ng$$\)\|\(LASH[RL]DI\)' | sort > $@.map
+
+mt7688_ecos.img: lzmaImage.bin 
+	mkimage -A mips -T standalone -C none -a $(CONFIG_ZLOAD_BUF) -e $(CONFIG_ZLOAD_BUF) -n $(PROD_NAME) -d $< $@ 
+	sudo cp $@ /tftpboot
 
 OBJ_DIR       = $(PROD_BUILD_DIR)/obj
 LIB_DIR       = $(PROD_BUILD_DIR)/lib
@@ -216,8 +226,11 @@ endif
 
 DST=./$(DST_NAME)
 
-$(DST_NAME): ${OBJS} prod $(DRIVERS)
-	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(PROD_LIBS) 
+#$(DST_NAME): ${OBJS} prod $(DRIVERS)
+#	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(OBJ_DIR)/drivers.o $(PROD_LIBS) 
+
+$(DST_NAME): ${OBJS} $(DRIVERS)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(OBJ_DIR)/drivers.o
 
 #
 # build ecos kernel for mt7688
@@ -231,6 +244,33 @@ ifeq ($(CHIP),mt7688)
 		ecosconfig --config=mt7688_bsp.ecc tree; \
 		make;\
 	   	fi
-include $(PKG_INSTALL_DIR)/include/pkgconf/ecos.mak
+-include $(PKG_INSTALL_DIR)/include/pkgconf/ecos.mak
 endif
-include $(FTR_MAK)
+
+#include $(FTR_MAK)
+
+MAKE_OBJ_DIR:
+	@-if !(test -d $(OBJ_DIR)); then mkdir $(OBJ_DIR); fi;
+
+# Rule to create $(LIB_DIR) if $(LIB_DIR) does not exist
+MAKE_LIB_DIR:
+	@-if !(test -d $(LIB_DIR)); then mkdir $(LIB_DIR); fi;
+
+RM_AXF_FILE:
+	@-if (test -f $(PROD_NAME).axf); then rm $(PROD_NAME).axf; fi;
+
+clean: prodclean driver_clean
+	make -C ./zload clean 
+	-rm lzmaImage lzmaImage.bin
+	-rm bin.gz
+	-rm $(OBJ_DIR)/drivers.o
+	-rm *.map *.img
+	-rm -f $(OBJS)
+	-rm -f ${DST}
+	-rm -f $(DEPEND_FILES)
+	-rm -f .depend
+
+cleanall: clean 
+	
+depend: prodclean
+

@@ -23,6 +23,7 @@ export AR = $(COMMAND_PREFIX)ar
 export OBJCOPY = $(COMMAND_PREFIX)objcopy
 export XOC = $(OBJCOPY)
 export XOD = $(COMMAND_PREFIX)objdump
+export XNM = $(COMMAND_PREFIX)nm
 endif
 
 include $(TARGET_DEF)
@@ -34,9 +35,9 @@ CFLAGS   += -D__ECOS -DECOS \
 			-D$(TARGET) \
 			-DUART_OUTPUT \
 			-DUSE_SYS_LIBS \
-			-DUSE_ADMIN_LIBS \
-			-DUSE_PS_LIBS \
-			-DUSE_NETAPP_LIBS
+			-DUSE_ADMIN_LIBS 
+#			-DUSE_PS_LIBS \
+#			-DUSE_NETAPP_LIBS
 
 #-DWIRELESS_CARD for wireless function
 #-DMTK7601 to use mt7601 wifi module
@@ -53,10 +54,10 @@ CFLAGS   += -D__ECOS -DECOS \
 #			-DUSE_NETAPP_LIBS
 
 ifeq ($(TARGET),$(filter $(TARGET), N716U2W NDWP2020))
-CFLAGS 	 +=	-DWPSBUTTON_LEDFLASH_FLICK \
-			-DTXRX_SW_ANTDIV_SUPPORT \
-			-DMTK7601 \
-			-DUSE_WIRELESS_LIBS 
+#CFLAGS 	 +=	-DWPSBUTTON_LEDFLASH_FLICK \
+#			-DTXRX_SW_ANTDIV_SUPPORT \
+#			-DMTK7601 \
+#			-DUSE_WIRELESS_LIBS 
 endif
 
 CFLAGS   += -DVERSION=\"$(VERSION_STRING)\"
@@ -65,7 +66,8 @@ CFLAGS   += -DVERSION=\"$(VERSION_STRING)\"
 CFLAGS   += $(C_DEFINED)
 
 LDFLAGS   = -nostartfiles -nostdlib -L$(PKG_INSTALL_DIR)/lib \
-    -Ttarget.ld  -Xlinker -Map -Xlinker $(basename $@).map
+    -Ttarget.ld  -Xlinker -Map -Xlinker $(basename $@)_linker.map
+
 ARFLAGS   	 = rv
 #COPTFLAGS   = -O2
 COPTFLAGS    := -g
@@ -75,10 +77,16 @@ LIBS         = -Ttarget.ld -nostdlib
 SRC_DIR      = .
 
 ifeq ($(CHIP),arm9)
+CFLAGS  += -DSTAR_MAC
 LDFLAGS += -Wl,--gc-sections
 endif
 
+#
+# use -DZOT_TCPIP to use zot tcpip stack (remove tcpip stack from ecos package first)
+#
+
 ifeq ($(CHIP),mt7688)
+CFLAGS += -DCYGPKG_NET_LWIP -DMT7688_MAC -DCYGPKG_LWIP_ETH
 CFLAGS +=  -I$(TOPDIR)/include -I$(TOPDIR)/apps/tcpip/incl/ -I$(PKG_INSTALL_DIR)/include -include config.h
 CFLAGS += -EL -mips32 -msoft-float -gstabs -fno-rtti -fno-exceptions -G0 -DCONFIG_MT7628_ASIC
 LDFLAGS += -EL -mips32 -msoft-float -Wl,--gc-sections -Wl,-static
@@ -151,11 +159,14 @@ endif
 %.i: %.c
 	$(XCC) -E -o $*.i $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) $< 
 		
+%.bin: %.axf
+	$(XOC) -O binary $(@:.bin=.axf) $@
+
 %.bin: %
 	$(XOC) -O binary $(@:.bin=) $@
 
-%.map: %
-	$(XNM) $(@:.map=) | grep -v '\(compiled\)\|\(\.o$$\)\|\( [aUw] \)\|\(\.\.ng$$\)\|\(LASH[RL]DI\)' | sort > $@
+%.map: %.axf
+	$(XNM) $(@:.map=.axf) | grep -v '\(compiled\)\|\(\.o$$\)\|\( [aUw] \)\|\(\.\.ng$$\)\|\(LASH[RL]DI\)' | sort > $@
 
 %.dis: %
 	$(XOD) -S --show-raw-insn $(@:.dis=) > $@

@@ -33,11 +33,13 @@ cyg_handle_t * Process_OthPkt_handle;
 cyg_mbox * Process_OthPkt_mbox;
 
 //BridgeTask Packet Task
+#ifdef STAR_MAC
 #define BridgeTask_TASK_STACK_SIZE		4096//2048
 #define BridgeTask_TASK_PRI     		20
 static 					cyg_thread BridgeTask_Pckt_Task;
 static 					cyg_handle_t BridgeTask_Pckt_TaskHdl;
 static UINT8 			BridgeTask_Stack[BridgeTask_TASK_STACK_SIZE];
+#endif
 
 //Process Other Packet Task
 #define sysinfo_TASK_NAME  "Process_Other_Pckt_Task"
@@ -50,7 +52,9 @@ static UINT8            Process_Other_Pckt_Stack[sysinfo_TASK_STACK_SIZE];
 int Lanrecvcnt = 0;
 int OtherPcktrecvcnt = 0;
 void OtherPckt_input(char *data, int length);
+#ifdef STAR_MAC
 void BridgeTask(cyg_addrword_t Data);
+#endif
 void ProcessOtherPcktTask(cyg_addrword_t Data);
 
 WORD MyIntNO;
@@ -60,7 +64,6 @@ extern void ddp_input2ambf(char *data,unsigned int len);
 
 //eason 20100210 extern int usbnet_start_xmit( char * data, unsigned int len, int flag);
 
-extern int STAR_MAC_Plugout;
 extern struct netif *Lanface;
 extern struct netif *ULanface;
 
@@ -177,6 +180,11 @@ struct sk_buff {
 
 //ZOT
 //for TCP/IP only
+#ifdef MT7688_MAC
+extern err_t
+low_level_output(struct netif *netif, struct pbuf *p);
+#endif
+
 err_t SendPacket(struct netif *netif, struct pbuf *p)
 {
 	struct pbuf *q;
@@ -234,32 +242,23 @@ err_t SendPacket(struct netif *netif, struct pbuf *p)
 
 
     if( dst == Lanface){
-	    if(STAR_MAC_Plugout == 0)
-	    {
-            #if 0
-		    ptr = malloc(p->tot_len);
-		    if(ptr == NULL)
-			    return -1;
-		    cur_prt = ptr;
-		    for(q = p; q != NULL; q = q->next) {
-			    /* Read enough bytes to fill this pbuf in the chain. The
-			    * available data in the pbuf is given by the q->len
-			    * variable. */
-			    memcpy( cur_prt,q->payload, q->len);
-			    cur_prt +=q->len;
-		    }
-	
-		    send_frame(ptr, p->tot_len, 1);
-		    free(ptr);
-            #endif //0
-		    send_frame(p, p->tot_len, 1);
-	    }
+        #ifdef STAR_MAC
+        send_frame(p, p->tot_len, 1);
+        #endif
+        #ifdef MT7688_MAC
+        low_level_output(netif, p);
+        #endif
     }	
 
 #ifdef WIRELESS_CARD
 	if( dst != WLanface && dst != Lanface && dst != ULanface){
 #if defined(N716U2W)
+        #ifdef STAR_MAC
 		send_frame(p, p->tot_len, 1);
+        #endif
+        #ifdef MT7688_MAC
+        low_level_output(netif, p);
+        #endif
 #endif
 
 		spin_lock_irqsave(&WLan_TX_lock, &flags);	//ZOT==> spin_lock_irqsave(&WLan_TX_lock, flags);//eason 20091008
@@ -342,13 +341,23 @@ int send_pkt(int intno,UINT8 *buffer,unsigned int length)
 
 	if( dst == Lanface)
 	{
+        #ifdef STAR_MAC
 		send_frame(buffer, length, 0);
+        #endif
+        #ifdef MT7688_MAC
+
+        #endif
 	}
 	
 #ifdef WIRELESS_CARD
 	if( dst != WLanface && dst != Lanface && dst != ULanface){
 #if defined(N716U2W)
+        #ifdef STAR_MAC
 		send_frame(buffer, length, 0);
+        #endif
+        #ifdef MT7688_MAC
+
+        #endif
 #endif
 		spin_lock_irqsave(&WLan_TX_lock, &flags);	//ZOT==> spin_lock_irqsave(&WLan_TX_lock, flags);//eason 20091008
 		if(WLan_queuecount > 10)
@@ -389,6 +398,7 @@ ethernetif_output(struct netif *netif, struct pbuf *p,
 err_t pk_attach( struct netif *netif)
 {
 	int i;
+    #ifdef STAR_MAC
 	struct ethernetif *ethernetif;
     
   	ethernetif = malloc(sizeof(struct ethernetif));
@@ -399,12 +409,15 @@ err_t pk_attach( struct netif *netif)
 	}
 	
 	netif->state = ethernetif;
+    #endif
 	netif->name[0] = IFNAME0;
 	netif->name[1] = IFNAME1;
 	netif->output = ethernetif_output;
 	netif->linkoutput = SendPacket;
 	
+    #ifdef STAR_MAC
 	ethernetif->ethaddr = (struct eth_addr *)&(netif->hwaddr[0]);
+    #endif
 	
 	/* set MAC hardware address length */
 	netif->hwaddr_len = 6;
@@ -445,7 +458,7 @@ void LanPktInit()
 	spin_lock_init(&WLan_TX_lock);//ZOT==>
     #endif
         
-	netif_init();
+	//netif_init();
 	
 	if(EEPROM_Data.PrintServerMode & PS_DHCP_ON)
 	{
@@ -455,10 +468,11 @@ void LanPktInit()
 		mib_DHCP.IPAddr = 0;
 		mib_DHCP.SubnetMask = 0;
 		mib_DHCP.GwyAddr = 0;
-		
+	    diag_printf("DHCP on \n");	
 	}
 	else
 	{
+        diag_printf("DHCP off \n");
 		ipaddr.addr = NGET32(EEPROM_Data.BoxIPAddress);
 		netmask.addr = NGET32(EEPROM_Data.SubNetMask);
 		gw.addr = NGET32(EEPROM_Data.GetwayAddress);
@@ -468,16 +482,23 @@ void LanPktInit()
 		mib_DHCP.GwyAddr = get32(EEPROM_Data.GetwayAddress);
 	}
 
+    diag_printf("check point 1\n");
+
+    #ifdef STAR_MAC
 	netif = malloc(sizeof(struct netif));
 	Lanface = netif_add( netif ,&ipaddr, &netmask, &gw, MyPhysNodeAddress, pk_attach, tcpip_input);
+    #endif
+    #ifdef MT7688_MAC
+    if (Lanface != NULL)
+    netif = netif_add (Lanface, &ipaddr, &netmask, &gw, Lanface->state, pk_attach, tcpip_input);
+    #endif
 	
+    diag_printf("check point 2\n");
+
 	Lanface->name[0] = 0x4C;	      
-//	pk_attach(0 , netif);
-//Jesse	netif = malloc(sizeof(struct netif));
 	netif_set_default(netif); 
 	
 	mib_DHCP_p = &mib_DHCP;
-
 
 	// enable bridge
 	bdginit();
@@ -485,6 +506,7 @@ void LanPktInit()
 
 	etharp_init();
 //ZOT716u2 	sys_timeout(ARP_TMR_INTERVAL, arp_timer, NULL);	//move to tcpip_thread
+    #ifdef STAR_MAC
     cyg_thread_create(BridgeTask_TASK_PRI,
                   BridgeTask,
                   0,
@@ -493,7 +515,7 @@ void LanPktInit()
                   BridgeTask_TASK_STACK_SIZE,
                   &BridgeTask_Pckt_TaskHdl,
                   &BridgeTask_Pckt_Task);
-	
+    #endif	
 	
 	Process_OthPkt_handle = malloc(sizeof(cyg_handle_t));	//ZOT716u2
 	Process_OthPkt_mbox = malloc(sizeof(cyg_mbox));	//ZOT716u2
@@ -823,15 +845,19 @@ void OtherPckt_input(char *data, int length)
 
 void LanPktStart()
 {
-#if defined(N716U2W) || defined(N716U2)
+    #ifdef STAR_MAC
+    #if defined(N716U2W) || defined(N716U2)
 	cyg_thread_resume(BridgeTask_Pckt_TaskHdl);
-#endif
+    #endif
+    #endif
 	
 	cyg_thread_resume(Process_Other_Pckt_TaskHdl);
-	
+	#ifdef WIRELESS_CARD
 	cyg_thread_resume(WLAN_TX_TaskHdl);   //eason 20091008 
+    #endif
 }
 
+#ifdef STAR_MAC
 void BridgeTask(cyg_addrword_t Data)
 {
 	while (1)
@@ -840,6 +866,8 @@ void BridgeTask(cyg_addrword_t Data)
     	star_nic_receive_packet(0, 8); // Receive Once
     }	
 }
+#endif
+
 //----------------------------------------------WLAN eason 20100210
 #ifdef WIRELESS_CARD
 void WLAN_TX_Thread(cyg_addrword_t data)

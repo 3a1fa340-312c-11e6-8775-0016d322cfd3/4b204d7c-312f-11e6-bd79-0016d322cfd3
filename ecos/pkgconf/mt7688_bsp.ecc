@@ -60,6 +60,7 @@ cdl_configuration eCos {
     package CYGPKG_IO_DISK v3_0 ;
     package CYGPKG_LINUX_COMPAT v3_0 ;
     package CYGPKG_BLOCK_LIB v3_0 ;
+    package CYGPKG_NET_LWIP v3_0 ;
 };
 
 # ---- conflicts -------------------------------------------------------

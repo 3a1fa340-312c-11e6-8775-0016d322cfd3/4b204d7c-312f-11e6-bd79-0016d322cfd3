@@ -32,6 +32,7 @@
 #ifndef __LWIP_INET_H__
 #define __LWIP_INET_H__
 
+#include <cyg/infra/cyg_type.h>
 #include "lwip/arch.h"
 
 #include "lwip/opt.h"
@@ -74,10 +75,10 @@ char *inet_ntoa(struct in_addr addr); /* returns ptr to static buffer; not reent
 #define htonl lwip_htonl
 #define ntohl lwip_ntohl
 #endif
-u16_t htons(u16_t x);
-u16_t ntohs(u16_t x);
-u32_t htonl(u32_t x);
-u32_t ntohl(u32_t x);
+externC u16_t htons(u16_t x);
+externC u16_t ntohs(u16_t x);
+externC u32_t htonl(u32_t x);
+externC u32_t ntohl(u32_t x);
 #endif
 
 #endif /* __LWIP_INET_H__ */

@@ -150,8 +150,13 @@ cyg_flash_block_info_t Sfl128p_blk[] = {
 cyg_flash_block_info_t Sfl128p2_blk[] = {
 	{ 256 * 1024, 64 }
 };
+
 cyg_flash_block_info_t gd25q32b_blk[] = {
 	{ 64 * 1024, 64 }
+};
+
+cyg_flash_block_info_t w25q128b_blk[] = {
+	{ 64 * 1024, 256 }
 };
 
 
@@ -214,6 +219,13 @@ static struct chip_info chips_data[] = {
 		block_info: gd25q32b_blk
 	},
 	{
+		name: "W25Q128BV",
+		jedec_id: 0x40180000,
+		id: 0xef,
+		num_block_info: 1,
+		block_info: w25q128b_blk
+	},
+	{
 		name: "Sfl128p",
 		jedec_id: 0x20180300,
 		id: 0x01,
@@ -226,7 +238,7 @@ static struct chip_info chips_data[] = {
 		id: 0xc8,
 		num_block_info: 1,
 		block_info: gd25q32b_blk
-   }
+    }
 };
 
 //==============================================================================
@@ -754,7 +766,7 @@ struct chip_info *chip_prob(void)
 #else
 			if (info->jedec_id == jedec)
 #endif
-				{
+			{
 				diag_printf("flash: %s\n", info->name);
 				return info;
 			}

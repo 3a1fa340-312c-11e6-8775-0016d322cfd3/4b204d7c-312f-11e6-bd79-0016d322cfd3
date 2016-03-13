@@ -309,8 +309,8 @@ static err_t dhcp_select(struct netif *netif)
  * The DHCP timer that checks for lease renewal/rebind timeouts.
  *
  */
-//void dhcp_coarse_tmr() //Ron modify to timer function
-void dhcp_coarse_tmr(cyg_handle_t handle, cyg_addrword_t ptr)
+void dhcp_coarse_tmr() //Ron modify to timer function
+//void dhcp_coarse_tmr(cyg_handle_t handle, cyg_addrword_t ptr)
 {
   struct netif *netif = netif_list;
   LWIP_DEBUGF(DHCP_DEBUG | DBG_TRACE, ("dhcp_coarse_tmr()\n"));

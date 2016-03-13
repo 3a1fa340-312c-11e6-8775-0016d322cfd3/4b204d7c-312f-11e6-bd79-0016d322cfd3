@@ -70,7 +70,7 @@ netif_add(struct netif *netif, struct ip_addr *ipaddr, struct ip_addr *netmask,
   err_t (* init)(struct netif *netif),
   err_t (* input)(struct pbuf *p, struct netif *netif))
 {
-    
+
 #if LWIP_DHCP
   /* netif not under DHCP control by default */
   netif->dhcp = NULL;
@@ -86,6 +86,7 @@ netif_add(struct netif *netif, struct ip_addr *ipaddr, struct ip_addr *netmask,
 
   /* call user specified initialization function for netif */
   if (init(netif) != ERR_OK) {
+      diag_printf("return NULL\n");
     return NULL;
   }
 
@@ -100,6 +101,7 @@ netif_add(struct netif *netif, struct ip_addr *ipaddr, struct ip_addr *netmask,
   LWIP_DEBUGF(NETIF_DEBUG, (" gw "));
   ip_addr_debug_print(NETIF_DEBUG, gw);
   LWIP_DEBUGF(NETIF_DEBUG, ("\n"));
+
   return netif;
 }
 

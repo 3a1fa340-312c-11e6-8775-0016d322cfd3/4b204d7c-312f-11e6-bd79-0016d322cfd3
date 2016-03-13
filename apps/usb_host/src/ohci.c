@@ -92,8 +92,8 @@
 //ZOT==> typedef unsigned int	spinlock_t;
 ohci_t		* GLOBAL_OHCI;
 
-extern void *kaligned_alloc(size_t nb, size_t align);
-extern void kaligned_free(void *block);
+//extern void *kaligned_alloc(size_t nb, size_t align);
+//extern void kaligned_free(void *block);
 #define PCI_DMA_TODEVICE	1
 #define PCI_DMA_FROMDEVICE	2
 struct pci_dev{};	//eCos	

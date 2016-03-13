@@ -114,8 +114,8 @@ void dhcp_arp_reply(struct netif *netif, struct ip_addr *addr);
 #endif
 
 /** to be called every minute */
-//void dhcp_coarse_tmr(void); //Ron
-void dhcp_coarse_tmr (cyg_handle_t handle, cyg_addrword_t ptr);
+void dhcp_coarse_tmr(void); //Ron
+//void dhcp_coarse_tmr (cyg_handle_t handle, cyg_addrword_t ptr);
 
 /** to be called every half second */
 void dhcp_fine_tmr(void);

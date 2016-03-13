@@ -41,10 +41,13 @@ $(OBJ_DIR)/%.o: %.c
 #    OBJS     :: list of object files
 #    DST      :: name of build product, like a library
 # You need only add new file to the list in SRCS
-SRCS=uart.c print.c psmain.c eeprom.c rwflash.c led.c pkdriver.c spiflash.c crc32.c pm.c bridge.c
+SRCS= print.c psmain.c eeprom.c rwflash.c led.c pkdriver.c crc32.c pm.c bridge.c
 
 ifeq ($(CHIP),arm9)
-SRCS += io.c
+SRCS += io.c spiflash.c uart.c
+endif
+
+ifeq ($(CHIP),mt7688)
 endif
 
 # DO not edit OBJS and DST

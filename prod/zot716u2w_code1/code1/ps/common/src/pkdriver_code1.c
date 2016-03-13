@@ -54,7 +54,6 @@ extern void aarp_input2ambf(void * Data,int16 DataLen);
 extern void ddp_input2ambf(char *data,unsigned int len);
 
 
-extern int STAR_MAC_Plugout;
 extern struct netif *Lanface;
 
 //ZOT
@@ -101,28 +100,7 @@ err_t SendPacket(struct netif *netif, struct pbuf *p)
 		return -1;
 
 	memcpy( &ep, p->payload, sizeof(struct ether) );
-
-
-	if(STAR_MAC_Plugout == 0)
-	{
-#if 0
-		ptr = malloc(p->tot_len);
-		if(ptr == NULL)
-			return -1;
-		cur_prt = ptr;
-		for(q = p; q != NULL; q = q->next) {
-			/* Read enough bytes to fill this pbuf in the chain. The
-			* available data in the pbuf is given by the q->len
-			* variable. */
-			memcpy( cur_prt,q->payload, q->len);
-			cur_prt +=q->len;
-		}
-	
-		send_frame(ptr, p->tot_len, 1);
-		free(ptr);
-#endif 
-		send_frame(p, p->tot_len, 1);
-	}
+    send_frame(p, p->tot_len, 1);
 	
 	return 0;
 }
@@ -137,12 +115,7 @@ int send_pkt(int intno,UINT8 *buffer,unsigned int length)
 		return -1;
 
 	memcpy( &ep, buffer, sizeof(struct ether) );
-
-	
-	if(STAR_MAC_Plugout == 0)
-	{
-		send_frame(buffer, length, 0);
-	}
+	send_frame(buffer, length, 0);
 	
 	return 0;
 }

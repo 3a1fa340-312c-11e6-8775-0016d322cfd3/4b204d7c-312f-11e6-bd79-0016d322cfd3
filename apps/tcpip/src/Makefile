@@ -22,7 +22,7 @@ OBJ_DIR       = $(PROD_BUILD_DIR)/obj
 LIB_DIR       = $(PROD_BUILD_DIR)/lib
 
 ###### FLAGS
-EXTRACFLAGS += -I../incl -I$(PROD_BUILD_DIR) -I$(APPS_DIR)/ps/common/incl 
+EXTRACFLAGS += -I../incl -I$(PROD_BUILD_DIR) -I$(APPS_DIR)/ps/common/incl -I$(PKG_INSTALL_DIR)/include
 
 ###### LOCAL BUILD RULES
 #
@@ -39,6 +39,9 @@ SRCS=etharp.c tcpip.c ip.c icmp.c ip_addr.c ip_frag.c sockets.c api_lib.c api_ms
 		mem.c memp.c sys.c pbuf.c stats.c raw.c udp.c tcp.c tcp_in.c tcp_out.c dhcp.c\
 		netif.c inet.c sys_arch.c linklip.c
 
+ifeq ($(CHIP),mt7688)
+SRCS += eth_drv.c init.c
+endif
 
 # DO not edit OBJS and DST
 OBJS=${SRCS:%.c=$(OBJ_DIR)/%.o}

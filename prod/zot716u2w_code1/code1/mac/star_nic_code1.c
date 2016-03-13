@@ -79,9 +79,6 @@ extern void ZOT_phy_update(cyg_addrword_t data);
 //ZOT static struct net_device *CUR_NAPI_DEV;
 //ZOT static struct net_device *STAR_NIC_LAN_DEV;
 
-//Jesse int STAR_MAC_Plugout = 1;	//ZOT
-int STAR_MAC_Plugout = 0;	//ZOT
-
 static cyg_sem_t send_frame_mutex;//ZOT716u2
 
 static int install_isr_account = 0;

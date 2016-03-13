@@ -234,7 +234,7 @@
 //#define CYGDAT_NET_STACK_CFG <pkgconf/net_freebsd_stack.h>
 /***** Networking stack proc output end *****/
 
-#define CYGPKG_NET_LWIP
+//#define CYGPKG_NET_LWIP
 
 #define CYGPKG_NS_DNS v2_0
 #define CYGPKG_NS_DNS_v2_0

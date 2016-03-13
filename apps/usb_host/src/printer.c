@@ -237,6 +237,9 @@ static int usblp_select_alts(struct usblp *usblp);
 static int usblp_set_protocol(struct usblp *usblp, int protocol);
 static int usblp_cache_device_id_string(struct usblp *usblp);
 
+static int usblp_write( struct usblp *usblp, const char *buffer, size_t count, int *ppos);
+static int usblp_read( struct usblp *usblp, char *buffer, size_t count, int *ppos);
+
 //ZOT static DECLARE_MUTEX(usblp_sem);	/* locks the existence of usblp's. */
 
 /*

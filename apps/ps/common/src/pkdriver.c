@@ -287,6 +287,11 @@ err_t SendPacket(struct netif *netif, struct pbuf *p)
 	return 0;
 }
 
+#ifdef MT7688_MAC
+extern err_t
+low_level_send_packet(struct netif *netif, unsigned char *pdata, int len);
+#endif
+
 //ZOT
 //for other packets, but TCP/IP
 int send_pkt(int intno,UINT8 *buffer,unsigned int length)
@@ -299,6 +304,7 @@ int send_pkt(int intno,UINT8 *buffer,unsigned int length)
 	if(length > 1514)
 		return -1;
 
+    diag_printf("send_pkt \n");
 	memcpy( &ep, buffer, sizeof(struct ether) );
 
 
@@ -345,7 +351,7 @@ int send_pkt(int intno,UINT8 *buffer,unsigned int length)
 		send_frame(buffer, length, 0);
         #endif
         #ifdef MT7688_MAC
-
+        low_level_send_packet(Lanface, buffer, length);
         #endif
 	}
 	
@@ -356,7 +362,7 @@ int send_pkt(int intno,UINT8 *buffer,unsigned int length)
 		send_frame(buffer, length, 0);
         #endif
         #ifdef MT7688_MAC
-
+        low_level_send_packet(Lanface, buffer, length);
         #endif
 #endif
 		spin_lock_irqsave(&WLan_TX_lock, &flags);	//ZOT==> spin_lock_irqsave(&WLan_TX_lock, flags);//eason 20091008
@@ -410,6 +416,7 @@ err_t pk_attach( struct netif *netif)
 	
 	netif->state = ethernetif;
     #endif
+
 	netif->name[0] = IFNAME0;
 	netif->name[1] = IFNAME1;
 	netif->output = ethernetif_output;
@@ -473,6 +480,7 @@ void LanPktInit()
 	else
 	{
         diag_printf("DHCP off \n");
+        /*
 		ipaddr.addr = NGET32(EEPROM_Data.BoxIPAddress);
 		netmask.addr = NGET32(EEPROM_Data.SubNetMask);
 		gw.addr = NGET32(EEPROM_Data.GetwayAddress);
@@ -480,6 +488,12 @@ void LanPktInit()
 		mib_DHCP.IPAddr = get32(EEPROM_Data.BoxIPAddress);
 		mib_DHCP.SubnetMask = get32(EEPROM_Data.SubNetMask);
 		mib_DHCP.GwyAddr = get32(EEPROM_Data.GetwayAddress);
+        */
+
+	    IP_ADDR(&gw, CYGDAT_LWIP_SERV_ADDR);
+	    IP_ADDR(&ipaddr, CYGDAT_LWIP_MY_ADDR);
+	    IP_ADDR(&netmask, CYGDAT_LWIP_NETMASK);
+
 	}
 
     diag_printf("check point 1\n");
@@ -490,7 +504,7 @@ void LanPktInit()
     #endif
     #ifdef MT7688_MAC
     if (Lanface != NULL)
-    netif = netif_add (Lanface, &ipaddr, &netmask, &gw, Lanface->state, pk_attach, tcpip_input);
+        netif = netif_add (Lanface, &ipaddr, &netmask, &gw, Lanface->state, pk_attach, tcpip_input);
     #endif
 	
     diag_printf("check point 2\n");
@@ -516,7 +530,7 @@ void LanPktInit()
                   &BridgeTask_Pckt_TaskHdl,
                   &BridgeTask_Pckt_Task);
     #endif	
-	
+
 	Process_OthPkt_handle = malloc(sizeof(cyg_handle_t));	//ZOT716u2
 	Process_OthPkt_mbox = malloc(sizeof(cyg_mbox));	//ZOT716u2
 	cyg_mbox_create(Process_OthPkt_handle, Process_OthPkt_mbox);
@@ -643,6 +657,8 @@ int ProcessOtherPckt(unsigned char *pFrame, unsigned int lenFrame)
 }
 #define UBDG_DROP	( (struct netif *)4 )
 extern unsigned char LANLightToggle;	//eason 20100809
+
+#ifdef STAR_MAC
 void LanRecv(unsigned char *data, unsigned int len)
 {
 	struct pbuf *p,*q;
@@ -738,6 +754,51 @@ void LanRecv(unsigned char *data, unsigned int len)
 	}//if		
 	LANLightToggle++;	//eason 20100809
 }
+#endif
+
+#ifdef MT7688_MAC
+void ecosif_input(struct netif *netif, struct pbuf *p)
+{
+    struct eth_hdr *ethhdr;
+    m_eth_hdr *eth;
+    struct netif *ifp;
+
+    if ((p == NULL) || (p->len == 0))
+        return;
+
+
+	eth = (m_eth_hdr *)p->payload;
+
+
+	ifp = bridge_in(Lanface, eth);
+	if (ifp == UBDG_DROP) {
+		return;
+	}
+
+    ethhdr = p->payload;
+
+    switch (htons(ethhdr->type)) {
+        case ETHTYPE_IP:
+            LWIP_DEBUGF(0, ("ecosif_input: IP packet\n"));
+            etharp_ip_input(netif, p);
+            pbuf_header(p, -sizeof(struct eth_hdr));
+            netif->input(p, netif);
+
+            Lanrecvcnt ++;
+            break;
+        case ETHTYPE_ARP:
+            LWIP_DEBUGF(0, ("ecosif_input: ARP packet\n"));
+            etharp_arp_input(netif, (struct eth_addr *) &netif->hwaddr, p);
+            break;
+        default:
+            OtherPckt_input(p->payload, p->len);
+            pbuf_free(p);
+            break;
+    }
+
+    LANLightToggle ++;
+}
+#endif
 
 struct OtherPcktr_mbuf
 {

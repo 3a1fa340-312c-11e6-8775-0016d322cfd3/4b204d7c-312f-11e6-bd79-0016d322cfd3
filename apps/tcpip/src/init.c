@@ -64,77 +64,260 @@
 
 #include <cyg/io/eth/eth_drv.h>
 #include <cyg/io/eth/netdev.h>
+#include "psglobal.h"
+#include "pstarget.h"
+#include "psglobal.h"
+#include "psdefine.h"
+#include "eeprom.h"
 
 
-// Define table boundaries
-CYG_HAL_TABLE_BEGIN(__NETDEVTAB__, netdev);
-CYG_HAL_TABLE_END(__NETDEVTAB_END__, netdev);
-void ecosglue_init(void);
+extern void ecosglue_init(void);
 #endif
 
-void inline IP_ADDR(struct ip_addr *ipaddr, char a, char b, char c, char d)
-{
-	IP4_ADDR(ipaddr,a,b,c,d);
-}
+int Network_TCPIP_ON;
 
+// =============================================================================================================
+// copy from zot_tcpip 
+// =============================================================================================================
 
-struct netif mynetif, loopif;
-void lwip_set_addr(struct netif *netif);
-#if PPP_SUPPORT
-#define PPP_USER "pppuser"
-#define PPP_PASS "ppppass"
+//NETWORK Task create information definition
+//#define NETWORK_TASK_PRI         5 
+//#define NETWORK_TASK_STACK_SIZE	 4096
+//static char 			NETWORK_Stack[NETWORK_TASK_STACK_SIZE];
+//static cyg_thread       NETWORK_Task;
+//static cyg_handle_t     NETWORK_TaskHdl;
 
-void 
-pppMyCallback(void *a , int e, void * arg)
-{
-	diag_printf("callback %d \n",e);
-}
-
-/* These temporarily here */
-unsigned long
-sys_jiffies(void)
-{
-   return cyg_current_time();
-}
-
-void 
-ppp_trace(int level, const char *format,...)
-{
-    va_list args;
-
-    (void)level;
-    va_start(args, format);
-    diag_vprintf(format, args);
-    va_end(args);
-}	
+//DHCP Task create information definition
+#if defined(N716U2W) || defined(N716U2)
+#define DHCP_TASK_PRI         8
 #endif
-
-#if LWIP_HAVE_LOOPIF
-struct netif ecos_loopif;
+#if defined(NDWP2020)
+#define DHCP_TASK_PRI         6
 #endif
+#define DHCP_TASK_STACK_SIZE	 4096
+static u8_t 			DHCP_Stack[DHCP_TASK_STACK_SIZE];
+static cyg_thread       DHCP_Task;
+static cyg_handle_t     DHCP_TaskHdl;
 
-#ifdef CYGPKG_LWIP_ETH
-static void
-arp_timer(void *arg)
-{
-  etharp_tmr();
-  sys_timeout(ARP_TMR_INTERVAL, (sys_timeout_handler) arp_timer, NULL);
-}
+struct netif *Lanface;
+#if defined(WIRELESS_CARD)
+struct netif *WLanface = NULL;
 #endif
+struct netif *ULanface = NULL;
 
-#if LWIP_DHCP
-static void lwip_dhcp_fine_tmr(void *arg)
+cyg_sem_t dhcp_sem;
+
+
+typedef struct MIB_DHCP_s
 {
-    dhcp_fine_tmr();
-    sys_timeout(500, (sys_timeout_handler) lwip_dhcp_fine_tmr, NULL);
+    uint32 IPAddr;
+    uint32 SubnetMask;
+    uint32 GwyAddr;
+} MIB_DHCP;
+
+//ZOTIPS extern MIB_DHCP                   *mib_DHCP_p;
+extern MIB_DHCP                   *mib_DHCP_p;	//ZOTIPS
+
+void erase_netif_ipaddr()
+{	
+	struct ip_addr ipaddr, netmask, gw;
+	
+	ipaddr.addr =  0;
+	netmask.addr = 0;
+	gw.addr = 0;
+	
+    #if defined(WIRELESS_CARD)
+	if(WLanface != NULL)
+ 	    netif_set_addr( WLanface, &ipaddr, &netmask, &gw);
+    #endif
+	netif_set_addr( Lanface, &ipaddr, &netmask, &gw);	
+	
+	mib_DHCP_p->IPAddr = DWordSwap(Lanface->ip_addr.addr);
+	mib_DHCP_p->SubnetMask = DWordSwap(Lanface->netmask.addr);
+	mib_DHCP_p->GwyAddr = DWordSwap(Lanface->gw.addr);
 }
 
-static void lwip_dhcp_coarse_tmr(void *arg)
+void updata_netif_ipaddr( struct netif *netif )
 {
-    dhcp_coarse_tmr();
-    sys_timeout(60000, (sys_timeout_handler) lwip_dhcp_coarse_tmr, NULL);
-}
+#if defined(WIRELESS_CARD) 
+	if (netif == WLanface){ //Ron modified on 12/07/04
+	    Lanface->ip_addr.addr = netif->ip_addr.addr;
+	    Lanface->netmask.addr = netif->netmask.addr;
+	    Lanface->gw.addr = netif->gw.addr;
+	}else if (netif == Lanface){
+		
+		if(WLanface != NULL){
+		WLanface->ip_addr.addr = netif->ip_addr.addr;
+		WLanface->netmask.addr = netif->netmask.addr;
+		WLanface->gw.addr = netif->gw.addr;
+		}
+		
+	}else{
+//		LWIP_ASSERT("updata_netif_ipaddr :network interface does not exist");
+	}
 #endif
+	
+	mib_DHCP_p->IPAddr = DWordSwap(Lanface->ip_addr.addr);
+	mib_DHCP_p->SubnetMask = DWordSwap(Lanface->netmask.addr);
+	mib_DHCP_p->GwyAddr = DWordSwap(Lanface->gw.addr);
+		
+    /*
+    printk("ip_addr.addr = %X\n", netif->ip_addr.addr);
+    */
+
+	NSET32(EEPROM_Data.BoxIPAddress, netif->ip_addr.addr);
+	NSET32(EEPROM_Data.SubNetMask, netif->netmask.addr);
+	NSET32(EEPROM_Data.GetwayAddress, netif->gw.addr);
+}
+
+void set_factory_ip()
+{
+	struct ip_addr ipaddr, netmask, gw;
+	
+    diag_printf("%s\n", __FUNCTION__);
+
+	memcpy(EEPROM_Data.BoxIPAddress, DEFAULT_Data.BoxIPAddress , 4);
+	memcpy(EEPROM_Data.SubNetMask, DEFAULT_Data.SubNetMask , 4);
+	memcpy(EEPROM_Data.GetwayAddress, DEFAULT_Data.GetwayAddress , 4);
+	
+	ipaddr.addr =  NGET32( EEPROM_Data.BoxIPAddress );
+	netmask.addr = NGET32( EEPROM_Data.SubNetMask );
+	gw.addr = NGET32( EEPROM_Data.GetwayAddress );
+
+#if defined(WIRELESS_CARD) 
+	if(WLanface != NULL){
+	netif_set_ipaddr(WLanface, &ipaddr);
+	netif_set_netmask(WLanface, &netmask);
+	netif_set_gw(WLanface, &gw);
+	}
+#endif 
+	
+	netif_set_ipaddr(Lanface, &ipaddr);
+	netif_set_netmask(Lanface, &netmask);
+	netif_set_gw(Lanface, &gw);
+	
+	mib_DHCP_p->IPAddr = DWordSwap(Lanface->ip_addr.addr);
+	mib_DHCP_p->SubnetMask = DWordSwap(Lanface->netmask.addr);
+	mib_DHCP_p->GwyAddr = DWordSwap(Lanface->gw.addr);
+
+}
+
+void UseEEPROMIP(){
+	struct ip_addr ipaddr, netmask, gw;
+
+	ipaddr.addr =  NGET32( EEPROM_Data.BoxIPAddress );
+	netmask.addr = NGET32( EEPROM_Data.SubNetMask );
+	gw.addr = NGET32( EEPROM_Data.GetwayAddress );
+
+#if defined(WIRELESS_CARD)
+	if(WLanface != NULL){
+	    netif_set_ipaddr(WLanface, &ipaddr);
+	    netif_set_netmask(WLanface, &netmask);
+	    netif_set_gw(WLanface, &gw);
+	}
+#endif
+	
+	netif_set_ipaddr(Lanface, &ipaddr);
+	netif_set_netmask(Lanface, &netmask);
+	netif_set_gw(Lanface, &gw);
+	
+	mib_DHCP_p->IPAddr = DWordSwap(Lanface->ip_addr.addr);
+	mib_DHCP_p->SubnetMask = DWordSwap(Lanface->netmask.addr);
+	mib_DHCP_p->GwyAddr = DWordSwap(Lanface->gw.addr);
+	
+}
+
+void dhcp_serch( int dhcp_count )
+{
+	while(1)
+	{
+		if(	dhcp_count == 0)
+			break;
+		
+		if( mib_DHCP_p->IPAddr == 0x0 )
+		{
+//ZOTIPS			dhcp_discover(WLanface);
+			dhcp_discover(Lanface);	//ZOTIPS
+			ppause(2000);
+			dhcp_count--;
+		}
+		else
+			break;
+	}
+}
+
+
+int Need_Rendezous_Reload = 0;
+
+extern cyg_handle_t	rendezvous_TaskHdl;
+
+void dhcp_init(cyg_addrword_t arg)
+{
+	uint no_timeout = 1;
+	int need_LinkLocal = 1;
+	
+	while( Network_TCPIP_ON == 0 )
+		ppause(100);
+	
+//ZOTIPS	dhcp_start(WLanface);
+	dhcp_start(Lanface);	//ZOTIPS
+	ppause(2000);
+	
+	if ( !strcmp(EEPROM_Data.WLESSID, "") || !strcmp(EEPROM_Data.WLESSID, "< ANY >")) 
+	    dhcp_serch(45);		// original:25.	Jesse modified this at build0006 of 716U2W on April 28, 2011.
+	else
+	    dhcp_serch(45);		// original:13.	Jesse modified this at build0006 of 716U2W on April 28, 2011.
+	
+	while(1)
+	{
+		cyg_semaphore_init( &dhcp_sem, 0);
+		no_timeout = 1;
+			
+#ifdef LINKLOCAL_IP
+	// Ron Add 11/28/04 
+		
+		if ( (mib_DHCP_p->IPAddr == 0x0) && need_LinkLocal )
+//ZOTIPS			Give_ip_by_myself(WLanface);
+			Give_ip_by_myself(Lanface);	//ZOTIPS
+		else
+		{
+			if(EEPROM_Data.RENVEnable == 1)
+			{
+				if( rendezvous_TaskHdl == 0)
+					cyg_semaphore_post( &rendezvous_sem);
+				else
+					Need_Rendezous_Reload = 1;	
+			}
+		}
+		
+#else
+		if( mib_DHCP_p->IPAddr == 0x0 )
+			set_factory_ip();
+#endif	
+	
+		if( (mib_DHCP_p->IPAddr == 0x0 ) || ((NGET32(EEPROM_Data.BoxIPAddress) & 0x0000FFFF)==0x0000FEA9) )
+			no_timeout = cyg_semaphore_timed_wait( &dhcp_sem, cyg_current_time() + 90000);
+		else
+			cyg_semaphore_wait( &dhcp_sem);
+			
+		
+		if( no_timeout == 0 )
+			need_LinkLocal = 0;
+		else
+			need_LinkLocal = 1;
+		
+		erase_netif_ipaddr();
+		delete_dhcp_time();
+		ppause(500);	
+		dhcp_serch(10);		// original:3.	Jesse modified this at build0006 of 716U2W on April 28, 2011.
+				
+	}
+	
+}
+
+// =============================================================================================================
+// 
+// =============================================================================================================
 
 
 //
@@ -145,8 +328,10 @@ static void lwip_dhcp_coarse_tmr(void *arg)
 // use an own DHCP thread insted.
 //
 
-void tcpip_init_done(void * arg)
+#if 1
+void tcpip_init_done_1(void * arg)
 {
+    /*
 #ifdef CYGPKG_LWIP_ETH
     sys_timeout(ARP_TMR_INTERVAL, (sys_timeout_handler) arp_timer, NULL);
 #endif
@@ -154,9 +339,52 @@ void tcpip_init_done(void * arg)
 	sys_timeout(500, (sys_timeout_handler) lwip_dhcp_fine_tmr, NULL);
 	sys_timeout(60000, (sys_timeout_handler) lwip_dhcp_coarse_tmr, NULL);
 #endif
+    */
 	sys_sem_t *sem = arg;
 	sys_sem_signal(*sem);
 }
+#endif
+
+//extern void tcpip_init_done(void * arg);
+#if LWIP_HAVE_LOOPIF
+extern struct netif ecos_loopif;
+#endif
+
+extern void LanPktInit(void);
+extern void LanPktStart(void);
+
+/*
+ * ecosglue_init --> init_hw_drivers --> if_ra305x_init --> eth_drv_init --> [ecosif_init]
+ * To use this function to
+ * .initialize netif
+ * .setup output, link_output function pointer
+ * .set netif ip address
+ */
+err_t ecosif_init(void)
+{
+    diag_printf("%s\n", __FUNCTION__);
+    LanPktInit();
+    LanPktStart();
+}
+
+/*
+ * to replase LanRecv function
+ * rxint -> eth_drv_recv -> if_ra305x_recv -> ecsoif_input -> tcpip stack
+ */
+//void ecosif_input(struct netif *netif, struct pbuf *p)
+//{
+//}
+
+err_t ecosif_output(struct netif *netif, struct pbuf *p, struct ip_addr *ipaddr)
+{
+  // resolve hardware address, then send (or queue) packet
+  return etharp_output(netif, ipaddr, p);
+}
+
+/*
+ * low_level_ouput -> eth_drv_send ->if_ra305x_send
+ */
+extern err_t low_level_output(struct netif *netif, struct pbuf *p);
 
 
 /*
@@ -164,11 +392,13 @@ void tcpip_init_done(void * arg)
  * wraps various init calls
  */
 int
-lwip_init(void)
+zot_network_init(void)
 {
+    diag_printf("use my functions\n");
 #if LWIP_HAVE_LOOPIF
 	struct ip_addr ipaddr, netmask, gw;
 #endif
+
 	static int inited = 0;
 	sys_sem_t sem;
 	if (inited)
@@ -183,11 +413,13 @@ lwip_init(void)
 	
 	/* Start the stack.It will spawn a new dedicated thread */
 	sem = sys_sem_new(0);
-	tcpip_init(tcpip_init_done,&sem);
+	tcpip_init(tcpip_init_done_1,&sem);
 	sys_sem_wait(sem);
 	sys_sem_free(sem);
 
-#if LWIP_HAVE_LOOPIF
+    Network_TCPIP_ON = 1;
+
+#if 0 //LWIP_HAVE_LOOPIF
 	IP4_ADDR(&gw, 127,0,0,1);
 	IP4_ADDR(&ipaddr, 127,0,0,1);
 	IP4_ADDR(&netmask, 255,0,0,0);
@@ -195,136 +427,57 @@ lwip_init(void)
 	netif_add(&ecos_loopif, &ipaddr, &netmask, &gw, NULL, loopif_init,
 	    tcpip_input);
 #endif
-	
-#if LWIP_SLIP	
-	lwip_set_addr(&mynetif);
-	slipif_init(&mynetif);
-	netif_set_default(&mynetif);
-#elif PPP_SUPPORT
-	pppInit();
-#if PAP_SUPPORT || CHAP_SUPPORT
-	pppSetAuth(PPPAUTHTYPE_PAP, PPP_USER, PPP_PASS);
+
+    //
+    // initialize low level network dirver
+    // (LAN device driver)
+    //
+    ecosglue_init();
+
+    #if 0
+	if(EEPROM_Data.PrintServerMode & PS_DHCP_ON)
+	{
+
+#ifdef LINKLOCAL_IP	
+        #if defined(N716U2W) || defined(N716U2)
+        if(EEPROM_Data.RENVEnable == 1)
+        #endif
+			Link_local_ip_init();	
 #endif
-	pppOpen(sio_open(2), pppMyCallback, NULL);
-#else	
-	ecosglue_init();		
+			
+		mib_DHCP_p->IPAddr = 0;
+		mib_DHCP_p->SubnetMask = 0;
+		mib_DHCP_p->GwyAddr = 0;
+/*				
+			memset( EEPROM_Data.BoxIPAddress, 0, 4);
+			memset( EEPROM_Data.SubNetMask, 0, 4);
+			memset( EEPROM_Data.GetwayAddress, 0, 4);
+*/			
+#if 0
+		//Create DHCP Thread
+	    cyg_thread_create(DHCP_TASK_PRI,
+	                  dhcp_init,
+	                  0,
+	                  "dhcp_init",
+	                  (void *) (DHCP_Stack),
+	                  DHCP_TASK_STACK_SIZE,
+	                  &DHCP_TaskHdl,
+	                  &DHCP_Task);
+			
+		//Start DHCP Thread
+		cyg_thread_resume(DHCP_TaskHdl);
+#endif
+	}
+#ifdef RENDEZVOUS
+	else
+	{
+		ppause(3000);
+		cyg_semaphore_post( &rendezvous_sem);
+	}
 #endif	
+    #endif
+
 	return 0;
 }
 
 
-err_t lwip_dummy_netif_init(struct netif *netif)
-{
-    return ERR_OK; 
-}
-
-
-void
-lwip_set_addr(struct netif *netif)
-{
-	struct ip_addr ipaddr, netmask, gw;
-  
-#if LWIP_DHCP
-    IP4_ADDR(&gw, 0,0,0,0);
-    IP4_ADDR(&ipaddr, 0,0,0,0);
-    IP4_ADDR(&netmask, 0,0,0,0);
-
-    netif_add(netif, &ipaddr, &netmask, &gw, netif->state, lwip_dummy_netif_init, tcpip_input);
-    netif_set_default(netif);
-    netif_set_up(netif);        // new step from lwip 1.0.0
-#else
-	IP_ADDR(&gw, CYGDAT_LWIP_SERV_ADDR);
-	IP_ADDR(&ipaddr, CYGDAT_LWIP_MY_ADDR);
-	IP_ADDR(&netmask, CYGDAT_LWIP_NETMASK);
-
-	netif_add(netif, &ipaddr, &netmask, &gw, netif->state, lwip_dummy_netif_init, tcpip_input);
-    netif_set_default(netif); 
-    netif_set_up(netif);        // new step from lwip 1.0.0
-#endif 
-}
-
-void lwip_dhcp_init(struct netif *netif)
-{
-#ifdef CYGOPT_LWIP_DHCP_MANAGEMENT
-    dhcp_start(netif);
-#endif
-}
-
-
-#ifdef CYGPKG_LWIP_ETH
-//io eth stuff
-
-cyg_sem_t delivery;
-
-void
-lwip_dsr_stuff(void)
-{
-  cyg_semaphore_post(&delivery);
-}
-
-//Input thread signalled by DSR calls deliver() on low level drivers
-static void
-input_thread(void *arg)
-{
-  cyg_netdevtab_entry_t *t;
-
-  for (;;) {
-    cyg_semaphore_wait(&delivery);
-
-    for (t = &__NETDEVTAB__[0]; t != &__NETDEVTAB_END__; t++) {
-      struct eth_drv_sc *sc = (struct eth_drv_sc *)t->device_instance;
-      if (sc->state & ETH_DRV_NEEDS_DELIVERY) {
-#if defined(CYGDBG_HAL_DEBUG_GDB_CTRLC_SUPPORT)
-        cyg_bool was_ctrlc_int;
-#endif
-	sc->state &= ~ETH_DRV_NEEDS_DELIVERY;
-#if defined(CYGDBG_HAL_DEBUG_GDB_CTRLC_SUPPORT)
-        was_ctrlc_int = HAL_CTRLC_CHECK((*sc->funs->int_vector)(sc), (int)sc);
-          if (!was_ctrlc_int) // Fall through and run normal code
-		  
-#endif
-	(sc->funs->deliver) (sc);
-      }
-    }
-  }
-
-}
-
-
-// Initialize all network devices
-static void
-init_hw_drivers(void)
-{
-  cyg_netdevtab_entry_t *t;
-
-  for (t = &__NETDEVTAB__[0]; t != &__NETDEVTAB_END__; t++) {
-    if (t->init(t)) {
-      t->status = CYG_NETDEVTAB_STATUS_AVAIL;
-    } else {
-      // What to do if device init fails?
-      t->status = 0;		// Device not [currently] available
-    }
-  }
-}
-
-extern struct netif *netif_default;
-
-#ifndef CYGNUM_LWIP_ETH_THREAD_PRIORITY
-#define CYGNUM_LWIP_ETH_THREAD_PRIORITY 6
-#endif
-
-void
-ecosglue_init(void)
-{
-    etharp_init();
-    cyg_semaphore_init(&delivery, 0);
-    //
-    // start input thread before hardware drivers are initialized because
-    // init_hw_drivers() calls dhcp_init() if DHCP support is configured 
-    // and dhcp_init() requires a running input thread
-    //
-    sys_thread_new(input_thread, (void*)0, CYGNUM_LWIP_ETH_THREAD_PRIORITY);
-    init_hw_drivers();
-}
-
-#endif //CYGPKG_LWIP_ETH

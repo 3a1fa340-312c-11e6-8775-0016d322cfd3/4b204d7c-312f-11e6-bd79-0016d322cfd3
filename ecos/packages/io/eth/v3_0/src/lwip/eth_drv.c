@@ -98,7 +98,15 @@ eth_drv_dsr(cyg_vector_t vector, cyg_ucount32 count, cyg_addrword_t data)
   lwip_dsr_stuff();	
 }
 
+//
+// fot zot network initialize procedure
+//
+#ifdef ZOT_TCPIP
+extern struct netif *Lanface;
+extern err_t ecosif_init(struct netif *netif);
+#else
 err_t ecosif_init(struct netif *netif);
+#endif
 
 // This function is called during system initialization to register a
 // network interface with the system.
@@ -106,10 +114,16 @@ static void
 eth_drv_init(struct eth_drv_sc *sc, unsigned char *enaddr)
 {
   struct netif *netif = &sc->sc_arpcom.ac_if;
+
+  diag_printf("%s in lwip package\n", __FUNCTION__);
   
+  #ifdef ZOT_TCPIP
+  Lanface = netif;
+  #endif
+
   netif->state = sc;
   ecosif_init(netif);
-  
+
   // enaddr == 0 -> hardware init was incomplete (no ESA)
   if (enaddr != 0) {
     // Set up hardware address
@@ -129,7 +143,10 @@ eth_drv_init(struct eth_drv_sc *sc, unsigned char *enaddr)
     //
     // we call this after the driver was started successfully
     //
+    #ifndef ZOT_TCPIP
+    // ZOT_TCPIP initialize DHCP later
     lwip_dhcp_init(netif);
+    #endif
 }
 
 //
@@ -208,7 +225,11 @@ eth_drv_tx_done(struct eth_drv_sc *sc, CYG_ADDRWORD key, int status)
 #endif  
 }
 
+//#ifdef ZOT_TCPIP
+//extern void ecosif_input(struct netif *netif, struct pbuf* pbuf);
+//#else
 static void ecosif_input(struct netif *netif, struct pbuf* pbuf);
+//#endif
 
 #define MAX_ETH_MSG 1540
 //
@@ -262,13 +283,46 @@ eth_drv_recv(struct eth_drv_sc *sc, int total_len)
 // ethernet driver
 //
 
+#ifdef ZOT_TCPIP
+err_t
+low_level_output(struct netif *netif, struct pbuf *p)
+#else
 static err_t
 low_level_output(struct netif *netif, struct pbuf *p)
+#endif
 {
   eth_drv_send(netif, p);
   return ERR_OK;
 }
 
+#ifdef ZOT_TCPIP
+err_t
+low_level_send_packet(struct netif *netif, unsigned char *pdata, int len)
+{
+    struct pbuf *p, *q;
+    unsigned char* ptr;
+
+    p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
+
+    if (p == NULL) {
+        LWIP_DEBUGF(0, ("ecosif_input: low_level_input returned NULL\n"));
+        return ERR_MEM;
+    }
+
+    ptr = pdata;
+    for (q = p; q != NULL; q = q->next) {
+        memcpy(q->payload, ptr, q->len);
+        ptr += q->len;
+    }
+
+    eth_drv_send(netif, p);
+    pbuf_free(p);
+
+    return ERR_OK;
+}
+#endif
+
+#ifndef ZOT_TCPIP
 //
 // ecosif_output():
 //
@@ -283,7 +337,6 @@ ecosif_output(struct netif *netif, struct pbuf *p, struct ip_addr *ipaddr)
   // resolve hardware address, then send (or queue) packet
   return etharp_output(netif, ipaddr, p);
 }
-
 
 
 //
@@ -313,7 +366,6 @@ ecosif_input(struct netif *netif, struct pbuf *p)
     pbuf_free(p);
     break;
   }
-
 }
 
 err_t
@@ -328,3 +380,5 @@ ecosif_init(struct netif *netif)
   lwip_set_addr(netif);
   return ERR_OK;
 }
+#endif
+

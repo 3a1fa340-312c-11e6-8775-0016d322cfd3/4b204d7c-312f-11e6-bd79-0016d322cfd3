@@ -69,7 +69,7 @@
 // Define table boundaries
 CYG_HAL_TABLE_BEGIN(__NETDEVTAB__, netdev);
 CYG_HAL_TABLE_END(__NETDEVTAB_END__, netdev);
-static void ecosglue_init(void);
+void ecosglue_init(void);
 #endif
 
 void inline IP_ADDR(struct ip_addr *ipaddr, char a, char b, char c, char d)
@@ -308,7 +308,7 @@ init_hw_drivers(void)
 
 extern struct netif *netif_default;
 
-static void
+void
 ecosglue_init(void)
 {
     etharp_init();

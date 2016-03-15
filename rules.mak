@@ -33,6 +33,7 @@ INC_DIR   = -I$(PKG_INSTALL_DIR)/include -I. -I./include
 CFLAGS    = -Wall $(INC_DIR) -ffunction-sections -fdata-sections
 CFLAGS   += -D__ECOS -DECOS \
 			-D$(TARGET) \
+			-D$(ARCH) \
 			-DUART_OUTPUT \
 			-DUSE_SYS_LIBS \
 			-DUSE_ADMIN_LIBS 
@@ -86,8 +87,9 @@ endif
 #
 
 ifeq ($(CHIP),mt7688)
-CFLAGS += -DCYGPKG_NET_LWIP -DMT7688_MAC -DCYGPKG_LWIP_ETH
-CFLAGS +=  -I$(TOPDIR)/include -I$(TOPDIR)/apps/tcpip/incl/ -I$(PKG_INSTALL_DIR)/include -include config.h
+CFLAGS += -DCYGPKG_NET_LWIP -DMT7688_MAC -DCYGPKG_LWIP_ETH 
+#CFLAGS +=  -I$(TOPDIR)/include -I$(TOPDIR)/apps/tcpip/incl/ -I$(PKG_INSTALL_DIR)/include -include config.h
+CFLAGS += -I$(TOPDIR)/include -include config.h 
 CFLAGS += -EL -mips32 -msoft-float -gstabs -fno-rtti -fno-exceptions -G0 -DCONFIG_MT7628_ASIC
 LDFLAGS += -EL -mips32 -msoft-float -Wl,--gc-sections -Wl,-static
 endif

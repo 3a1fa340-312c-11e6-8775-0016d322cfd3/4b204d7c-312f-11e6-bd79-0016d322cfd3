@@ -67,10 +67,12 @@ endif
 
 ifeq ($(CHIP),arm9)
 GCC_DIR = /opt/gnutools/arm-elf/bin
+ARCH = ARCH_ARM
 endif
 
 ifeq ($(CHIP),mt7688)
 GCC_DIR = $(ROOT_DIR)/tools/mipsisa32-elf/bin
+ARCH = ARCH_MIPS
 endif
 
 include rules.mak
@@ -96,7 +98,7 @@ ifeq ($(CHIP),mt7688)
 PATH := $(ECOS_TOOL_PATH):$(ECOS_MIPSTOOL_PATH):$(PATH)
 endif
 
-export PATH ROOT_DIR TOPDIR PROD_DIR APPS_DIR HDR_MAK FTR_MAK GCC_DIR TARGET_DEF 
+export PATH ROOT_DIR TOPDIR PROD_DIR APPS_DIR HDR_MAK FTR_MAK GCC_DIR TARGET_DEF ARCH
 export PKG_INSTALL_DIR ECOS_REPOSITORY ECOS_TOOL_PATH ECOS_MIPSTOOL_PATH TARGET_OS 
 
 ifeq ($(CHIP),arm9)
@@ -133,8 +135,8 @@ endif
 DRV_OBJS =
 
 else #mt7688
-PROD_MODULES = ps/psutility ps/common ps/ntps usb_host ipxbeui spooler ps/novell ps/nds ps/ippd http_zot ps/lpd ps/rawtcpd\
-				 ps/telnet ps/smbd ps/tftp_zot tcpip ps/atalk snmp rendezvous
+PROD_MODULES = ps/psutility tcpip ps/common ps/ntps usb_host ipxbeui spooler ps/novell ps/nds ps/ippd http_zot ps/lpd ps/rawtcpd\
+				 ps/telnet ps/smbd ps/tftp_zot ps/atalk snmp rendezvous
 endif
 
 PROD_LIBS = $(addprefix $(PROD_BUILD_DIR)/lib/, $(addsuffix .a, $(notdir $(PROD_MODULES))))
@@ -226,11 +228,11 @@ endif
 
 DST=./$(DST_NAME)
 
-#$(DST_NAME): ${OBJS} prod $(DRIVERS)
-#	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(OBJ_DIR)/drivers.o $(PROD_LIBS) 
+$(DST_NAME): ${OBJS} prod $(DRIVERS)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(OBJ_DIR)/drivers.o $(PROD_LIBS) 
 
-$(DST_NAME): ${OBJS} $(DRIVERS)
-	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(OBJ_DIR)/drivers.o
+#$(DST_NAME): ${OBJS} $(DRIVERS)
+#	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(OBJ_DIR)/drivers.o
 
 #
 # build ecos kernel for mt7688
@@ -243,7 +245,11 @@ ifeq ($(CHIP),mt7688)
 		cp ../\pkgconf/\mt7688_bsp.ecc .; \
 		ecosconfig --config=mt7688_bsp.ecc tree; \
 		make;\
-	   	fi
+		rm $(PKG_INSTALL_DIR)/include/network.h;\
+#	else \
+#		cd $(KERNEL_BUILD_DIR); \
+#		make; \
+	fi
 -include $(PKG_INSTALL_DIR)/include/pkgconf/ecos.mak
 endif
 

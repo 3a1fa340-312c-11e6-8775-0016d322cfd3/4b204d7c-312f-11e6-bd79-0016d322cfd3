@@ -1,5 +1,15 @@
+
+#ifndef CYGONCE_NETWORK_H
+#define CYGONCE_NETWORK_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "lwip/sys.h"
 #include "lwip/opt.h"
 #include "lwip/sockets.h"
+#include "lwip/inet.h"
 #include "lwip/ip.h"
 #include "lwip/udp.h"
 #include "lwip/netif.h"
@@ -14,3 +24,9 @@
 
 #define IS_BROADCAST_HWADDR(x) ( (*(unsigned long *)(x + 2) == 0xffffffff)  \
                                          && (*(unsigned short *)x == 0xffff) )
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // #ifndef CYGONCE_NETWORK_H

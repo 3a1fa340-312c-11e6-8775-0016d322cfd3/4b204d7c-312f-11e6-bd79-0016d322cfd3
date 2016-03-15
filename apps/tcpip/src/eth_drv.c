@@ -144,7 +144,7 @@ eth_drv_init(struct eth_drv_sc *sc, unsigned char *enaddr)
     // we call this after the driver was started successfully
     //
     #ifndef ZOT_TCPIP 
-    lwip_dhcp_init(netif);
+    //lwip_dhcp_init(netif);
     #endif 
 }
 

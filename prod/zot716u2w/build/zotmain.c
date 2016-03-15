@@ -25,7 +25,7 @@ int config_net_cluster_usage = 2400;
 int opmode = 1; /*1:Gateway, 2:Apcli as WAN port, 3:Repeater Mode */
 
 #if 1
-#define STACK_SIZE 0x1000
+#define STACK_SIZE 0x2000
 static char stack[STACK_SIZE];
 static cyg_thread thread_data;
 static cyg_handle_t thread_handle;
@@ -37,9 +37,9 @@ void zotmain( void )
 //void zotmain(cyg_addrword_t p)
 {
     flsh_init();
-    /*
-    lwip_init();
-    */
+
+    EEPROMInit();
+
     zot_network_init();
     
 	//LanPktInit();
@@ -56,13 +56,11 @@ void zotmain( void )
 	NETBEUInit();
 	Spooler_init();
     */
-	//ps_init();
+	ps_init();
 
 	//zot_idle_task_init();
 
-    diag_printf("this is my test\n");
-    diag_printf("this is my test\n");
-    diag_printf("this is my test\n");
+    diag_printf("use zot function\n");
 }
 
 void dbg_task(cyg_addrword_t p)
@@ -70,26 +68,21 @@ void dbg_task(cyg_addrword_t p)
     lwip_init();
 
     diag_printf("dbg_task test\n");
-    diag_printf("dbg_task test\n");
-    diag_printf("dbg_task test\n");
 }
 
 externC void
 cyg_user_start( void )
 {
-    //zotmain();
-#if 1
     cyg_thread_create(10,                // Priority - just a number
-                      dbg_task,          // entry
+                      zotmain,           // entry
                       0,                 // entry parameter
-                      "timeout test",        // Name
+                      "main init",       // Name
                       &stack[0],         // Stack
                       STACK_SIZE,        // Size
                       &thread_handle,    // Handle
                       &thread_data       // Thread data structure
             );
     cyg_thread_resume(thread_handle);  // Start it
-#endif
 }
 
 

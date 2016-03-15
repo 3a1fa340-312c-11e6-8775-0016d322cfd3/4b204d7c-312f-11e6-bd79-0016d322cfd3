@@ -121,6 +121,9 @@ struct netif {
   u8_t num;
 
   /** for mt7688 driver compatible */
+  /* Device dependent */
+  int dev;		    /* Subdevice number to pass to send */
+					/* To device -- control */
   struct if_data if_data;
 };
 

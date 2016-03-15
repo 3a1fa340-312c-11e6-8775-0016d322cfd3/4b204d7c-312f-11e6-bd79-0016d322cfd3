@@ -172,7 +172,7 @@ cdl_option CYGBLD_GLOBAL_COMMAND_PREFIX {
 #
 cdl_option CYGBLD_GLOBAL_CFLAGS {
     # Flavor: data
-    user_value "-Wall -Wpointer-arith -Wstrict-prototypes -Wundef  -Wno-write-strings -EL -mips32 -msoft-float -g -gstabs -O2 -ffunction-sections -fdata-sections -fno-rtti -fno-exceptions -G0 -DCONFIG_MT7628_ASIC"
+    user_value "-Wall -Wpointer-arith -Wstrict-prototypes -Wundef  -Wno-write-strings -EL -mips32 -msoft-float -g -gstabs -O2 -ffunction-sections -fdata-sections -fno-rtti -fno-exceptions -G0 -DCONFIG_MT7628_ASIC -DZOT_TCPIP"
     # value_source user
     # Default value:  CYGBLD_GLOBAL_WARNFLAGS .
     #                                 (CYGPKG_HAL_MIPS_LSBFIRST ? "-EL" : "-EB") .
@@ -14153,6 +14153,63 @@ cdl_option CYGIMP_BLOCK_LIB_STATISTICS {
     # Flavor: bool
     # No user value, uncomment the following line to provide one.
     # user_value 1
+    # value_source default
+    # Default value: 1
+};
+
+# <
+# DHCP
+# Provide DHCP support for initializing the IP address of network interfaces.
+#
+cdl_component CYGPKG_LWIP_DHCP {
+    # Flavor: bool
+    # No user value, uncomment the following line to provide one.
+    user_value 1
+    # value_source default
+    # Default value: 0
+    # Requires: CYGPKG_LWIP_UDP
+    #     CYGPKG_LWIP_UDP == 1
+    #   --> 1
+    # Requires:  CYGNUM_LWIP_MEMP_NUM_SYS_TIMEOUT >= 6 
+    #     CYGNUM_LWIP_MEMP_NUM_SYS_TIMEOUT == 4
+    #   --> 0
+
+    # The following properties are affected by this value
+    # option CYGNUM_LWIP_MEMP_NUM_SYS_TIMEOUT
+    #     DefaultValue: CYGPKG_LWIP_DHCP ? 6 : 4
+};
+
+# >
+# DHCP management
+# If enabled then the lwIP stack automatically calls dhcp_start(), 
+# dhcp_fine_tmr() and dhcp_coarse_tmr(). The DHCP stuff is handled 
+# in the TCP/IP thread. If this causes trouble on high traffic loads 
+# or if the application need to be aware of the DHCP state then it 
+# is better to disable this option. In this case managing the DHCP 
+# state in an application aware thread is recommended.
+#
+cdl_option CYGOPT_LWIP_DHCP_MANAGEMENT {
+    # This option is not active
+    # The parent CYGPKG_LWIP_DHCP is disabled
+
+    # Flavor: bool
+    # No user value, uncomment the following line to provide one.
+    user_value 1
+    # value_source default
+    # Default value: 1
+};
+
+# Check offered address
+# Enable this option if you want to do an ARP check on the offered address
+# (recommended).
+#
+cdl_option CYGOPT_LWIP_DHCP_DOES_ARP_CHECK {
+    # This option is not active
+    # The parent CYGPKG_LWIP_DHCP is disabled
+
+    # Flavor: bool
+    # No user value, uncomment the following line to provide one.
+    user_value 1
     # value_source default
     # Default value: 1
 };

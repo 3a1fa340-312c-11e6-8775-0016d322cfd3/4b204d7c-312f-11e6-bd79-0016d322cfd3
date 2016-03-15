@@ -97,12 +97,23 @@ uint32 clock()
 uint32 free_clock()
 {
 	uint32 pvalue;
+    #ifdef ARCH_ARM
 	pvalue = *(uint32 *) (0x79000040);
+    #endif
+    #ifdef ARCH_MIPS
+	pvalue = *(uint32 *) (0x89000040);
+    #endif
 	return (pvalue);
 }
 
+#ifdef ARCH_ARM
 uint32 RANDOMID_32K_ADDRESS = 0x7F8000L;  
 uint32 RANDOMID_START_ADDRESS = 0x7FFE00L;
+#endif
+#ifdef ARCH_MIPS
+uint32 RANDOMID_32K_ADDRESS = 0x807F8000L;  
+uint32 RANDOMID_START_ADDRESS = 0x807FFE00L;
+#endif
 
 void get_randnodeid(char *nodeid){
 	BYTE rand1, rand2, rand3, rand4;
@@ -172,17 +183,18 @@ void get_randnodeid(char *nodeid){
 	rand4 = (rand() * (rand() * free_clock()+rand_data))+0xCC;
 
 	memcpy(nodeid, DefaultNodeID, 6);
+    
 	memcpy(&nodeid[2], &rand1, sizeof(BYTE));
 	memcpy(&nodeid[3], &rand2, sizeof(BYTE));
 	memcpy(&nodeid[4], &rand3, sizeof(BYTE));
 	memcpy(&nodeid[5], &rand4, sizeof(BYTE));
+    
 	nodeid[2] = RANDID_SIGNATURE;
 
 }
 
 int ReadFromFactory(EEPROM *Data){
 	int i;
-    diag_printf("%s\n", __FUNCTION__);	
 	memset(Data, 0x00, sizeof(EEPROM));
 	strcpy(Data->ZOT_Mark, "ZOT"); //ZOT mark "ZOT"
 	Data->EEPROM_Version = 0x0B; //for EEPROM upgrade
@@ -269,9 +281,9 @@ int ReadFromFactory(EEPROM *Data){
 	Data->BoxIPAddress[0] = 0xC0; //192, Box IP Address for TCP/IP only
 	Data->BoxIPAddress[1] = 0xA8; //168 
 #if defined(N716U2W) || defined(N716U2)
-    diag_printf("192.168.100.5\n");
-	Data->BoxIPAddress[2] = 0x64; //100
-	Data->BoxIPAddress[3] = 0x05; //5
+    diag_printf("192.168.1.222\n");
+	Data->BoxIPAddress[2] = 0x1; //100
+	Data->BoxIPAddress[3] = 222; //5
 #endif
 #if defined(NDWP2020)
 	Data->BoxIPAddress[2] = 0x00; //0
@@ -401,10 +413,10 @@ int ReadFromFactory(EEPROM *Data){
 	memset(Data->WPA_Pass, 0x00, 64);
 
 // EAP 
-	memset(Data->EAP_Type, 0x00, 1);
+    Data->EAP_Type = 0;
+	//memset(Data->EAP_Type, 0x00, 1);
 	memset(Data->EAP_Name, 0x00, 21);
 	memset(Data->EAP_Password, 0x00, 21);
-
 
 	Data->WLWEPKeyType = 0x00;				//0: ASCII 1: HEX
 	Data->WLZone = 0xA1;					//A1-A5, otherwise is autodetect
@@ -416,7 +428,7 @@ int ReadFromFactory(EEPROM *Data){
 											
 	Data->WLAPMode = 0x00;	
 	Data->WLWEPType = 0x00;
-	
+
 	Data->WLMode = 2;		// 0x00: Infrastructure	0x01: Ad-Hoc	0x02: 802.11b Ad-Hoc
 	strcpy(Data->WLESSID, "WLAN-PS");
 	Data->WLChannel = 6;
@@ -430,14 +442,13 @@ int ReadFromFactory(EEPROM *Data){
 	memset(Data->WLWEPKey3, 0x00, 6);
 	memset(Data->WLWEPKey4, 0x00, 6);
 	memset(Data->WLWEP128Key, 0x00, 15);
-	
+
 	Data->WLRates = 0x00;				//Basic Rate	... Ron change 2/6/2003
 	Data->WLRate = 0x0F;				//TX Rate  bit0:  1M,  bit1:  2M,  bit2:5.5M,   bit3: 11M
 	Data->WLExtRate = 0xFF;				// 		   bit0:  6M,  bit1:  9M,  bit2: 12M,   bit3: 18M
 	                            		//         bit4: 24M,  bit5: 36M,  bit6: 48M,   bit7: 54M 
 	Data->WLShortPreamble = 0x01;   	//0: long, 1:short
 	Data->WLAuthType = 0x01; 			//1: Open system, 2: Share Key, 3: Both use, 4: WPA-PSK Enable
-
 }
 
 // Extra post-settings from customer -- TP-Link
@@ -855,7 +866,7 @@ void EEPROMInit(void)
 		NeedWriteDEFAULT = 1;
 		NeedWriteEEPROM = 1;
 	}
-	
+
 #ifdef IP_LOAD_DEFAULT
 	if( (DEFAULT_Data.IPLoadDef != 1) || (EEPROM_Data.IPLoadDef != 1) ){
 		DEFAULT_Data.IPLoadDef = 1;
@@ -933,17 +944,17 @@ void EEPROMInit(void)
 		if(WriteToEEPROM(&EEPROM_Data) != 0)	// Write EEPROM Data
 			ErrLightOnForever(Status_Lite); // Write EEPROM Data error
 	}
-
+	
 	/* If NODE ID is Default, get random NODE ID ..... Ron 4/3/2003 */
 	if( memcmp(EEPROM_Data.EthernetID,DefaultNodeID,6) == 0 )
 	{
 		get_randnodeid(EEPROM_Data.EthernetID);
 		if (EEPROM_Data.EthernetID[2] == RANDID_SIGNATURE)
 		{
-			memcpy(MyPhysNodeAddress,EEPROM_Data.EthernetID, 6);				
+			//memcpy(MyPhysNodeAddress,EEPROM_Data.EthernetID, 6);				
 		}
 	}
-	
+
 	// Charles 20001/08/09
 	WebFlash = MyData + MyDataSize[1];
 //	WebFlash = MyData;
@@ -991,7 +1002,6 @@ void EEPROMInit(void)
 
 	memcpy(CurSetupPassword,_SetupPassword,SETUP_PASSWD_LEN);  //12/30/99
 	CurSetupPassword[SETUP_PASSWD_LEN] = '\0';
-
 
 	//Light_Flash(2,1); //EEPROM Initial OK	
 //ZOT716u2	Light_ALL_Flash(2,1); //EEPROM Initial OK

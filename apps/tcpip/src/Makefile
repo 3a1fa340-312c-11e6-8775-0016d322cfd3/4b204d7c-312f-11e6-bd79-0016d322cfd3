@@ -22,7 +22,11 @@ OBJ_DIR       = $(PROD_BUILD_DIR)/obj
 LIB_DIR       = $(PROD_BUILD_DIR)/lib
 
 ###### FLAGS
-EXTRACFLAGS += -I../incl -I$(PROD_BUILD_DIR) -I$(APPS_DIR)/ps/common/incl -I$(PKG_INSTALL_DIR)/include
+EXTRACFLAGS += -I$(PROD_BUILD_DIR) -I$(APPS_DIR)/ps/common/incl -I$(PKG_INSTALL_DIR)/include
+
+ifeq ($(CHIP),arm9)
+EXTRACFLAGS += -I../incl
+endif
 
 ###### LOCAL BUILD RULES
 #
@@ -35,12 +39,13 @@ $(OBJ_DIR)/%.o: %.c
 #    OBJS     :: list of object files
 #    DST      :: name of build product, like a library
 # You need only add new file to the list in SRCS
+ifeq ($(CHIP),arm9)
 SRCS=etharp.c tcpip.c ip.c icmp.c ip_addr.c ip_frag.c sockets.c api_lib.c api_msg.c err.c \
 		mem.c memp.c sys.c pbuf.c stats.c raw.c udp.c tcp.c tcp_in.c tcp_out.c dhcp.c\
 		netif.c inet.c sys_arch.c linklip.c
-
+endif
 ifeq ($(CHIP),mt7688)
-SRCS += eth_drv.c init.c
+SRCS = init.c
 endif
 
 # DO not edit OBJS and DST

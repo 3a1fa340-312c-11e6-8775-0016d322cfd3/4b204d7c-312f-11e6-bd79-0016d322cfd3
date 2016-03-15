@@ -190,7 +190,7 @@ NETDEVTAB_ENTRY(ra305x_eth_netdev0,
 	&ra305x_eth_sc0);
 #endif	/*  CYGPKG_DEVS_ETH_MIPS_RA305X_ETH0  */
 
-
+#if 0
 #ifdef CYGPKG_DEVS_ETH_MIPS_RA305X_ETH1
 static if_ra305x_t ra305x_eth1_priv_data = {
 	unit: 1,
@@ -221,7 +221,7 @@ NETDEVTAB_ENTRY(ra305x_eth_netdev1,
 	if_ra305x_init,
 	&ra305x_eth_sc1);
 #endif	/*  CYGPKG_DEVS_ETH_MIPS_RA305X_ETH1  */
-
+#endif
 
 /*=====================================================================*/
 /*  Local variables                                                    */
@@ -528,11 +528,11 @@ void ra305x_restart(void)
 	 t =&ra305x_eth_netdev0;
 	 
 	t->init(t);
-
+#if 0
 	 t =&ra305x_eth_netdev1;
 	  t->init(t);
 	  if_ra305x_start( &ra305x_eth_sc1, NULL, 0);
-
+#endif
 	eth_restart = 0;	
 		diag_printf("[%s]<====\n",__FUNCTION__);
 
@@ -2002,13 +2002,8 @@ static void ra305x_rxint(rxctrl_t *prxc)
 		}
 #else
 		pifra305x = ra305x_lookupifp((cyg_uint8 *)(prxc->prxbuf[prxc->rx_head]+RA305X_RXBUF_OFFSET));
-		if (pifra305x != NULL) {
-            #ifdef ZOT_TCPIP
-            (pifra305x->sc->funs->recv)(pifra305x->sc, NULL, frame_len - ETH_VLANTAG_LEN);
-            #else
+		if (pifra305x != NULL) 
 			(pifra305x->sc->funs->eth_drv->recv)(pifra305x->sc, frame_len - ETH_VLANTAG_LEN);
-            #endif
-        }
 		else {
 			DBGPRINTF(DBG_RXMORE, "ifra305x: rx noifp!!\n");
 			ADD_PRIVATE_COUNTER(prxc->rx_noifp, 1);
@@ -2578,16 +2573,12 @@ static void if_ra305x_recv(struct eth_drv_sc *sc, struct eth_drv_sg *sg_list, in
 	if (pra305x == NULL)
 		return ;
 	prxc = pra305x->act_rx;
-    #ifndef ZOT_TCPIP
+
 	if (sg_len == 0 || sg_list == NULL) {
 		/*  Caller is out of buffers  */
 		/*  Drop the frame  */
 		return;
 	}
-    #else
-    if (sg_len == 0)
-        return;
-    #endif
 
 	frame_len = RX_PLEN0(prxc->prxd[prxc->rx_head].rx_status) - ETH_VLANTAG_LEN;
 	
@@ -2604,9 +2595,6 @@ static void if_ra305x_recv(struct eth_drv_sc *sc, struct eth_drv_sg *sg_list, in
 	dst[5] = src[5];	dst[4] = src[4];	dst[3] = src[3];
 	dst[2] = src[2];	dst[1] = src[1];	dst[0] = src[0];
 	
-    #ifdef ZOT_TCPIP
-    LanRecv((void *)dst, sg_len);
-    #else
 	psrc = (cyg_uint8 *) dst;
 	for (sg_last=&sg_list[sg_len]; sg_list != sg_last; sg_list++) {
 		cp_len = sg_list->len;
@@ -2622,7 +2610,6 @@ static void if_ra305x_recv(struct eth_drv_sc *sc, struct eth_drv_sg *sg_list, in
 	}
 	CYG_ASSERT(frame_len == 0, "total len mismatch");
 	CYG_ASSERT(sg_last == sg_list, "sg count mismatch");
-    #endif
 #endif /* !ETH_DRV_RXMBUF */
 }
 

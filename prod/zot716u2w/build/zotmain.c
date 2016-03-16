@@ -42,12 +42,12 @@ void zotmain( void )
 
     zot_network_init();
     
-	//LanPktInit();
-    //#ifdef STAR_MAC
-    //star_nic_lan_init();
-    //#endif
-	//LanPktStart();
-	
+    #ifdef STAR_MAC
+	LanPktInit();
+    star_nic_lan_init();
+	LanPktStart();
+	#endif
+
     //
     //Print Server module
     //

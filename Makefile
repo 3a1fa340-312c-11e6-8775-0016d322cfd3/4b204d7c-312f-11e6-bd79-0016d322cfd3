@@ -26,6 +26,7 @@ ECOS_REPOSITORY := $(ROOT_DIR)/ecos/packages
 ECOS_TOOL_PATH := $(ROOT_DIR)/tools/bin
 ECOS_MIPSTOOL_PATH := $(ROOT_DIR)/tools/mipsisa32-elf/bin
 DRIVERS =
+EXTOBJS =
 
 ifeq ($(CHIP),arm9)
 PKG_INSTALL_DIR = $(ROOT_DIR)/ecos/$(PROD_NAME)_ecos_install
@@ -63,6 +64,8 @@ endif # CONFIG_WIRELESS
 
 DRVSUBDIRS += ./drivers/ra305x_drivers/flash
 DRIVERS += drivers.o
+#EXTOBJS += $(OBJ_DIR)/drivers.o
+EXTOBJS += $(patsubst %, $(OBJ_DIR)/%, $(DRIVERS))
 endif
 
 ifeq ($(CHIP),arm9)
@@ -119,9 +122,14 @@ DIR_CHECK: MAKE_KERNEL_DIR MAKE_LIB_DIR MAKE_OBJ_DIR
 # NETAPP_LIBS 	= telnet.a smbd.a
 # ALL_LIBS = $(SYS_LIBS) $(ADMIN_LIBS) $(PS_LIBS) $(NETAPP_LIBS)
 
+PROD_MODULES 	=
+
 ifeq ($(CHIP),arm9)
-PROD_MODULES = mac ps/psutility usb_host ipxbeui ps/ntps spooler ps/common ps/novell ps/nds ps/ippd http_zot ps/lpd ps/rawtcpd\
-				 ps/telnet ps/smbd ps/tftp_zot tcpip ps/atalk snmp rendezvous uart mtk7601
+SYS_LIBS		= mac usb_host ps/common http_zot tcpip ps/psutility uart
+ADMIN_LIBS 		= ps/ntps ipxbeui
+PS_LIBS			= spooler ps/novell ps/nds ps/lpd ps/ippd ps/atalk ps/rawtcpd rendezvous snmp ps/tftp_zot
+NETAPP_LIBS 	= ps/telnet ps/smbd
+
 #
 # wireless driver have realtek, rt3070, mtk7601
 #
@@ -132,11 +140,28 @@ ifdef $(WIRELESS_LIBS)
 PROD_MODULES += $(WIRELESS_LIBS)
 endif
 
-DRV_OBJS =
-
 else #mt7688
-PROD_MODULES = ps/psutility tcpip ps/common ps/ntps usb_host ipxbeui spooler ps/novell ps/nds ps/ippd http_zot ps/lpd ps/rawtcpd\
-				 ps/telnet ps/smbd ps/tftp_zot ps/atalk snmp rendezvous
+
+SYS_LIBS		= usb_host tcpip ps/common http_zot ps/psutility
+ADMIN_LIBS 		= ps/ntps ipxbeui usb_host
+PS_LIBS			= spooler ps/novell ps/nds ps/lpd ps/ippd ps/atalk ps/rawtcpd rendezvous snmp ps/tftp_zot
+NETAPP_LIBS 	= ps/telnet ps/smbd
+
+#PROD_MODULES = ps/psutility tcpip ps/common ps/ntps usb_host ipxbeui spooler ps/novell ps/nds ps/ippd http_zot ps/lpd ps/rawtcpd\
+#				 ps/telnet ps/smbd ps/tftp_zot ps/atalk snmp rendezvous
+endif
+
+ifneq ($(findstring USE_SYS_LIBS,$(CFLAGS)),)
+PROD_MODULES += $(SYS_LIBS)
+endif
+ifneq ($(findstring USE_ADMIN_LIBS,$(CFLAGS)),)
+PROD_MODULES += $(ADMIN_LIBS)
+endif
+ifneq ($(findstring USE_PS_LIBS,$(CFLAGS)),)
+PROD_MODULES += $(PS_LIBS)
+endif
+ifneq ($(findstring USE_NETAPP_LIBS,$(CFLAGS)),)
+PROD_MODULES += $(NETAPP_LIBS)
 endif
 
 PROD_LIBS = $(addprefix $(PROD_BUILD_DIR)/lib/, $(addsuffix .a, $(notdir $(PROD_MODULES))))
@@ -228,8 +253,11 @@ endif
 
 DST=./$(DST_NAME)
 
+#$(DST_NAME): ${OBJS} prod $(DRIVERS)
+#	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(OBJ_DIR)/drivers.o $(PROD_LIBS) 
+
 $(DST_NAME): ${OBJS} prod $(DRIVERS)
-	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(OBJ_DIR)/drivers.o $(PROD_LIBS) 
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(EXTOBJS) $(PROD_LIBS) 
 
 #$(DST_NAME): ${OBJS} $(DRIVERS)
 #	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(OBJ_DIR)/drivers.o

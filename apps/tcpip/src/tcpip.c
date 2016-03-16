@@ -114,20 +114,10 @@ tcpip_thread(void *arg)
   tcp_init();
 #endif
 
-	Network_TCPIP_ON = 1;
 
-  diag_printf("ready to run tcpip_init_done\n");
   if (tcpip_init_done != NULL) {
-    diag_printf("mmmmmmmm go\n");
     tcpip_init_done(tcpip_init_done_arg);
-    diag_printf("mmmmmmmm back\n");
   }
-
-  diag_printf("tcpip check point\n");
-  diag_printf("tcpip check point\n");
-  diag_printf("tcpip check point\n");
-  diag_printf("tcpip check point\n");
-  diag_printf("tcpip check point\n");
 
 	sys_timeout(ARP_TMR_INTERVAL, arp_timer, NULL);	//ZOT716u2
 
@@ -504,25 +494,6 @@ void dhcp_init(cyg_addrword_t arg)
 	
 }
 
-#ifdef MT7688_MAC
-extern void ecosglue_init(void);
-#endif
-
-void tcpip_init_done_1(void * arg)
-{
-    diag_printf("%s\n", __FUNCTION__);
-#ifdef CYGPKG_LWIP_ETH
-    sys_timeout(ARP_TMR_INTERVAL, (sys_timeout_handler) arp_timer, NULL);
-#endif
-#ifdef CYGOPT_LWIP_DHCP_MANAGEMENT
-	sys_timeout(500, (sys_timeout_handler) lwip_dhcp_fine_tmr, NULL);
-	sys_timeout(60000, (sys_timeout_handler) lwip_dhcp_coarse_tmr, NULL);
-#endif
-	sys_sem_t *sem = arg;
-	sys_sem_signal(*sem);
-}
-
-
 void zot_network_task(cyg_addrword_t arg)
 {
 	sys_sem_t sem;
@@ -531,25 +502,10 @@ void zot_network_task(cyg_addrword_t arg)
 	mem_init();
 	memp_init();
 	pbuf_init();
-    netif_init();
 	
 	sem = sys_sem_new(0);
-	tcpip_init(tcpip_init_done_1, &sem);
-	sys_sem_wait(sem);
-	sys_sem_free(sem);
+	tcpip_init(tcpip_init_done, &sem);
 
-    //
-    // initialize low level network dirver
-    //
-    #ifdef MT7688_MAC
-    ecosglue_init();
-    #endif
-
-    LanPktInit();
-    #ifdef STAR_MAC
-    star_nic_lan_init();
-    #endif
-    LanPktStart();
 
 	if(EEPROM_Data.PrintServerMode & PS_DHCP_ON)
 	{
@@ -589,7 +545,9 @@ void zot_network_task(cyg_addrword_t arg)
 		cyg_semaphore_post( &rendezvous_sem);
 	}
 #endif		
-		
+
+	sys_sem_wait(sem);
+	sys_sem_free(sem);		
 }
 
 void zot_network_init()

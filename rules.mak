@@ -78,7 +78,7 @@ LIBS         = -Ttarget.ld -nostdlib
 SRC_DIR      = .
 
 ifeq ($(CHIP),arm9)
-CFLAGS  += -DSTAR_MAC
+CFLAGS  += -DSTAR_MAC -I$(TOPDIR)/include -I$(TOPDIR)/apps/tcpip/incl/ 
 LDFLAGS += -Wl,--gc-sections
 endif
 

@@ -118,7 +118,7 @@ void cpyfrompbuf(char *buffer, struct pbuf *p, int length)
 	}
 }
 
-int usb_usb_send;
+int usb_usb_send = 0;
 
 #if 0
 struct sk_buff {
@@ -250,8 +250,11 @@ err_t SendPacket(struct netif *netif, struct pbuf *p)
         #endif
     }	
 
-#ifdef WIRELESS_CARD
-	if( dst != WLanface && dst != Lanface && dst != ULanface){
+	if( dst != Lanface && 
+        #ifdef WIRELESS_CARD
+        dst != WLanface && 
+        #endif
+        dst != ULanface) {
 #if defined(N716U2W)
         #ifdef STAR_MAC
 		send_frame(p, p->tot_len, 1);
@@ -260,7 +263,7 @@ err_t SendPacket(struct netif *netif, struct pbuf *p)
         low_level_output(netif, p);
         #endif
 #endif
-
+#ifdef WIRELESS_CARD
 		spin_lock_irqsave(&WLan_TX_lock, &flags);	//ZOT==> spin_lock_irqsave(&WLan_TX_lock, flags);//eason 20091008
 		if(WLan_queuecount > 10)
 		{
@@ -282,8 +285,8 @@ err_t SendPacket(struct netif *netif, struct pbuf *p)
 		spin_lock_irqsave(&WLan_TX_lock, &flags);	//ZOT==> spin_lock_irqsave(&WLan_TX_lock, flags);//eason 20091008
 		WLan_tx_enqueue(&WLAN_READ_QUEUE,&pSkb);
 		spin_unlock_irqrestore(&WLan_TX_lock, &flags);//ZOT==>			spin_unlock_irqrestore(&WLan_TX_lock, flags); //eason 20091008	
-	}
 #endif
+	}
 	return 0;
 }
 
@@ -304,7 +307,6 @@ int send_pkt(int intno,UINT8 *buffer,unsigned int length)
 	if(length > 1514)
 		return -1;
 
-    diag_printf("send_pkt \n");
 	memcpy( &ep, buffer, sizeof(struct ether) );
 
 
@@ -419,8 +421,8 @@ err_t pk_attach( struct netif *netif)
 
 	netif->name[0] = IFNAME0;
 	netif->name[1] = IFNAME1;
-	netif->output = ethernetif_output;
-	netif->linkoutput = SendPacket;
+    netif->output = ethernetif_output;
+    netif->linkoutput = SendPacket;
 	
     #ifdef STAR_MAC
 	ethernetif->ethaddr = (struct eth_addr *)&(netif->hwaddr[0]);
@@ -496,8 +498,6 @@ void LanPktInit()
 
 	}
 
-    diag_printf("check point 1\n");
-
     #ifdef STAR_MAC
 	netif = malloc(sizeof(struct netif));
 	Lanface = netif_add( netif ,&ipaddr, &netmask, &gw, MyPhysNodeAddress, pk_attach, tcpip_input);
@@ -507,8 +507,6 @@ void LanPktInit()
         netif = netif_add (Lanface, &ipaddr, &netmask, &gw, Lanface->state, pk_attach, tcpip_input);
     #endif
 	
-    diag_printf("check point 2\n");
-
 	Lanface->name[0] = 0x4C;	      
 	netif_set_default(netif); 
 	
@@ -517,8 +515,9 @@ void LanPktInit()
 	// enable bridge
 	bdginit();
 
-
+    #ifdef STAR_MAC
 	etharp_init();
+    #endif
 //ZOT716u2 	sys_timeout(ARP_TMR_INTERVAL, arp_timer, NULL);	//move to tcpip_thread
     #ifdef STAR_MAC
     cyg_thread_create(BridgeTask_TASK_PRI,

@@ -319,6 +319,28 @@ void dhcp_init(cyg_addrword_t arg)
 // 
 // =============================================================================================================
 
+#ifdef CYGPKG_LWIP_ETH
+static void
+arp_timer(void *arg)
+{
+  etharp_tmr();
+  sys_timeout(ARP_TMR_INTERVAL, (sys_timeout_handler) arp_timer, NULL);
+}
+#endif
+
+#if LWIP_DHCP
+static void lwip_dhcp_fine_tmr(void *arg)
+{
+    dhcp_fine_tmr();
+    sys_timeout(500, (sys_timeout_handler) lwip_dhcp_fine_tmr, NULL);
+}
+
+static void lwip_dhcp_coarse_tmr(void *arg)
+{
+    dhcp_coarse_tmr();
+    sys_timeout(60000, (sys_timeout_handler) lwip_dhcp_coarse_tmr, NULL);
+}
+#endif
 
 //
 // This function is called when tcpip thread finished initialisation.
@@ -331,7 +353,7 @@ void dhcp_init(cyg_addrword_t arg)
 #if 1
 void tcpip_init_done_1(void * arg)
 {
-    /*
+    
 #ifdef CYGPKG_LWIP_ETH
     sys_timeout(ARP_TMR_INTERVAL, (sys_timeout_handler) arp_timer, NULL);
 #endif
@@ -339,7 +361,7 @@ void tcpip_init_done_1(void * arg)
 	sys_timeout(500, (sys_timeout_handler) lwip_dhcp_fine_tmr, NULL);
 	sys_timeout(60000, (sys_timeout_handler) lwip_dhcp_coarse_tmr, NULL);
 #endif
-    */
+   
 	sys_sem_t *sem = arg;
 	sys_sem_signal(*sem);
 }
@@ -362,7 +384,6 @@ extern void LanPktStart(void);
  */
 err_t ecosif_init(void)
 {
-    diag_printf("%s\n", __FUNCTION__);
     LanPktInit();
     LanPktStart();
 }
@@ -394,7 +415,7 @@ extern err_t low_level_output(struct netif *netif, struct pbuf *p);
 int
 zot_network_init(void)
 {
-    diag_printf("use my functions\n");
+    diag_printf("use zot_network_init\n");
 #if LWIP_HAVE_LOOPIF
 	struct ip_addr ipaddr, netmask, gw;
 #endif
@@ -434,7 +455,7 @@ zot_network_init(void)
     //
     ecosglue_init();
 
-    #if 0
+    #if 1
 	if(EEPROM_Data.PrintServerMode & PS_DHCP_ON)
 	{
 
@@ -445,9 +466,14 @@ zot_network_init(void)
 			Link_local_ip_init();	
 #endif
 			
+        /*
 		mib_DHCP_p->IPAddr = 0;
 		mib_DHCP_p->SubnetMask = 0;
 		mib_DHCP_p->GwyAddr = 0;
+        */
+
+        dhcp_start(Lanface);
+
 /*				
 			memset( EEPROM_Data.BoxIPAddress, 0, 4);
 			memset( EEPROM_Data.SubNetMask, 0, 4);

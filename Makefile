@@ -274,9 +274,10 @@ ifeq ($(CHIP),mt7688)
 		ecosconfig --config=mt7688_bsp.ecc tree; \
 		make;\
 		rm $(PKG_INSTALL_DIR)/include/network.h;\
-#	else \
-#		cd $(KERNEL_BUILD_DIR); \
-#		make; \
+	else \
+		cd $(KERNEL_BUILD_DIR); \
+		make; \
+		rm $(PKG_INSTALL_DIR)/include/network.h;\
 	fi
 -include $(PKG_INSTALL_DIR)/include/pkgconf/ecos.mak
 endif

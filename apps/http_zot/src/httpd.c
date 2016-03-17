@@ -1580,7 +1580,7 @@ httpd (cyg_addrword_t data)
 #endif IPPD
 			} else if(!strnicmp(Inline,wHdrs[HDR_SINCE],strlen(wHdrs[HDR_SINCE]))) {
 				//"If-Modified-Since:"
-				rq.newcheck = strdup(Inline[strlen(wHdrs[HDR_SINCE])+1]);
+				rq.newcheck = strdup(&Inline[strlen(wHdrs[HDR_SINCE])+1]);
 			} else if(!strnicmp(Inline,wHdrs[HDR_FROM],strlen(wHdrs[HDR_FROM]))) {
         		//"From:"
 				rq.from = strdup(&Inline[strlen(wHdrs[HDR_FROM])+1]);

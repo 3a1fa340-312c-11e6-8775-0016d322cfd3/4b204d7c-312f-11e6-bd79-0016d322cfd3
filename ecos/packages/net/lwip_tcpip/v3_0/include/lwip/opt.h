@@ -80,7 +80,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* Number of raw connection PCBs */
 #ifndef MEMP_NUM_RAW_PCB
-#define MEMP_NUM_RAW_PCB                4
+#define MEMP_NUM_RAW_PCB                10 //4
 #endif
 
 /* MEMP_NUM_UDP_PCB: the number of UDP protocol control blocks. One
@@ -113,17 +113,17 @@ a lot of data that needs to be copied, this should be set high. */
    set to 0 if the application only will use the raw API. */
 /* MEMP_NUM_NETBUF: the number of struct netbufs. */
 #ifndef MEMP_NUM_NETBUF
-#define MEMP_NUM_NETBUF                 2
+#define MEMP_NUM_NETBUF                 200 //2
 #endif
 /* MEMP_NUM_NETCONN: the number of struct netconns. */
 #ifndef MEMP_NUM_NETCONN
-#define MEMP_NUM_NETCONN                4
+#define MEMP_NUM_NETCONN                32  //4
 #endif
 /* MEMP_NUM_APIMSG: the number of struct api_msg, used for
    communication between the TCP/IP stack and the sequential
    programs. */
 #ifndef MEMP_NUM_API_MSG
-#define MEMP_NUM_API_MSG                8
+#define MEMP_NUM_API_MSG                200 //8
 #endif
 /* MEMP_NUM_TCPIPMSG: the number of struct tcpip_msg, which is used
    for sequential API communication and incoming packets. Used in

@@ -14214,6 +14214,9 @@ cdl_option CYGOPT_LWIP_DHCP_DOES_ARP_CHECK {
     # Default value: 1
 };
 
+cdl_component CYGDBG_LWIP_DEBUG {
+    user_value 0		
+};
 # <
 # <
 

@@ -1380,3 +1380,39 @@ int lwip_ioctl(int s, long cmd, void *argp)
   }
 }
 
+#ifdef ZOT_TCPIP
+/* There are two cases tcp layer will send ACK return:
+   1. Receive SYN, FIN and so on... (refer to tcp_process())
+   2. Receive TCP data and transfer to upper application, ACK will return just 
+      while application called recvfrom() or recv(). (refer tcpip_tcp_timer())
+   So while the tcp buffer is absent (sliding window =0) and we can not send ACK
+   return, the connection will be closed. 
+   
+   We only can send ACK from application to maintain our tcp connection while 
+   we can not receive tcp data and release tcp buffer.
+   															Ron Add 11/5/2004 */     
+     
+int	sendack(int s){
+	struct lwip_socket *sock = get_socket(s);	
+	
+	tcp_ack_now(sock->conn->pcb.tcp);
+	return 0;	
+}
+
+//ZOT add
+int get_socket_rcevent(	int s )
+{
+	int rcvevent=0;
+	struct lwip_socket *sock;
+	
+	sock = get_socket(s);
+	if(!sock) {
+   		set_errno(EBADF);
+    	return 0;
+  	}
+	
+	rcvevent = sock->rcvevent;
+	
+	return rcvevent;		
+}
+#endif

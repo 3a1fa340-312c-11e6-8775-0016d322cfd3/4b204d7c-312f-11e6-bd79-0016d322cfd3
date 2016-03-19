@@ -986,6 +986,9 @@ void my_send_view_box( void *dataptr, int size, struct sockaddr_in *fromsock)
 	temp_netif->netmask.addr = 0x0;
 	temp_netif->output = ethernetif_output;
 	temp_netif->linkoutput = SendPacket;
+    #ifdef MT7688_MAC
+    temp_netif->state = Lanface->state;
+    #endif
 	
 	/* set MAC hardware address length */
 	temp_netif->hwaddr_len = 6;

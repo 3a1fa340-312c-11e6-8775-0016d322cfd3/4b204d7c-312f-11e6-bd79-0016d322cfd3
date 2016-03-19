@@ -182,6 +182,9 @@ eth_drv_send(struct netif *netif, struct pbuf *p)
     bool need_lock = false;
     int debug_chan;
 #endif
+#ifdef ZOT_TCPIP
+  LWIP_ASSERT("netif->state != eth_drv_sc", netif->state != Lanface);
+#endif
 
   while (!(sc->funs->can_send) (sc)); 
 

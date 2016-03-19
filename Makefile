@@ -144,7 +144,7 @@ else #mt7688
 
 SYS_LIBS		= usb_host tcpip ps/common http_zot ps/psutility
 ADMIN_LIBS 		= ps/ntps ipxbeui usb_host
-PS_LIBS			= spooler ps/novell ps/nds ps/lpd ps/ippd ps/atalk ps/rawtcpd rendezvous snmp ps/tftp_zot
+PS_LIBS			= spooler usb_host ps/novell ps/nds ps/lpd ps/ippd ps/atalk ps/rawtcpd rendezvous snmp ps/tftp_zot
 NETAPP_LIBS 	= ps/telnet ps/smbd
 
 #PROD_MODULES = ps/psutility tcpip ps/common ps/ntps usb_host ipxbeui spooler ps/novell ps/nds ps/ippd http_zot ps/lpd ps/rawtcpd\

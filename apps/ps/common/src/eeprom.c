@@ -1024,13 +1024,13 @@ uint8	code1_build_hi_ver=0;
 uint8	code1_ps_model=0;
 uint8	code1_firmware_string[60]={0};
 
-uint8	code2_major_ver=0;
-uint8	code2_minor_ver=0;
-uint8	code2_ps_model=0;
-uint8	code2_build_low_ver=0;
-uint8	code2_build_hi_ver=0;
-uint8	code2_release_ver=0;
-uint8	code2_firmware_string[60]={0};
+uint8	code2_major_ver=9;//0;
+uint8	code2_minor_ver=8;//0;
+uint8	code2_ps_model=50;//0;
+uint8	code2_build_low_ver=12;//0;
+uint8	code2_build_hi_ver=34;//0;
+uint8	code2_release_ver=114;//0;
+uint8	code2_firmware_string[60]={"STR8132-9.08.50.0011.00001308r-2016/03/18 10:31:55"};//{0};
 
 uint8	Loader_firmware_string[60]={0};
 

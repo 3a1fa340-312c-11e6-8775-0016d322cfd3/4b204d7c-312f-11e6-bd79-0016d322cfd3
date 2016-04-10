@@ -35,6 +35,7 @@ CFLAGS   += -D__ECOS -DECOS \
 			-D$(TARGET) \
 			-D$(ARCH) \
 			-DUART_OUTPUT \
+			-DUSE_WIRELESS_LIBS \
 			-DUSE_SYS_LIBS \
 			-DUSE_ADMIN_LIBS \
 			-DUSE_PS_LIBS \
@@ -90,8 +91,9 @@ ifeq ($(CHIP),mt7688)
 CFLAGS += -DCYGPKG_NET_LWIP -DMT7688_MAC -DCYGPKG_LWIP_ETH 
 #CFLAGS +=  -I$(TOPDIR)/include -I$(TOPDIR)/apps/tcpip/incl/ -I$(PKG_INSTALL_DIR)/include -include config.h
 CFLAGS += -I$(TOPDIR)/include -include config.h 
-CFLAGS += -EL -mips32 -msoft-float -gstabs -fno-rtti -fno-exceptions -G0 -DCONFIG_MT7628_ASIC
-LDFLAGS += -EL -mips32 -msoft-float -Wl,--gc-sections -Wl,-static
+CFLAGS += -EL -mips32 -msoft-float -gstabs -fno-rtti -fno-exceptions -G0 -DCONFIG_MT7628_ASIC -Wpointer-arith -Wundef -Wno-write-strings
+LDFLAGS += -EL -mips32 -msoft-float -Wl,--gc-sections
+#LDFLAGS += -EL -mips32 -msoft-float -Wl,--gc-sections -Wl,-static
 endif
 
 .PHONY: depend all clean
@@ -115,51 +117,51 @@ endif
 	gzip -d -c $< > $*.o
 
 %.o: %.c
-	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) -Wp,-MD,$*.d $<
+	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) $(WFLAGS) -Wp,-MD,$*.d $<
 
 %.o: %.cxx
-	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) -Wp,-MD,$*.d $<
+	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) $(WFLAGS) -Wp,-MD,$*.d $<
 
 %.o: %.C
-	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) -Wp,-MD,$*.d $<
+	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) $(WFLAGS) -Wp,-MD,$*.d $<
 
 %.o: %.cc
-	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) -Wp,-MD,$*.d $<
+	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) $(WFLAGS) -Wp,-MD,$*.d $<
 
 %.o: %.S
-	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) -Wp,-MD,$*.d $<
+	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) $(WFLAGS) -Wp,-MD,$*.d $<
 
 %.d: %.o.gz
 	@echo "$@ : $<" > $@
 	gzip -d -c $< > $*.o
 	
 %.d : %.c
-	$(CC) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
+	$(CC) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(WFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
 	@sed -e '/^ *\\/d' -e "s#.*: #$@: #" $(@:.d=.tmp) > $@
 	@rm $(@:.d=.tmp)
 	
 %.d : %.cxx
-	$(CC) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
+	$(CC) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(WFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
 	@sed -e '/^ *\\/d' -e "s#.*: #$@: #" $(@:.d=.tmp) > $@
 	@rm $(@:.d=.tmp)
 	
 %.d : %.C
-	$(CC) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
+	$(CC) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(WFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
 	@sed -e '/^ *\\/d' -e "s#.*: #$@: #" $(@:.d=.tmp) > $@
 	@rm $(@:.d=.tmp)
 	
 %.d : %.cc
-	$(XCXX) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
+	$(XCXX) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(WFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
 	@sed -e '/^ *\\/d' -e "s#.*: #$@: #" $(@:.d=.tmp) > $@
 	@rm $(@:.d=.tmp)
 	
 %.d : %.S
-	$(XCXX) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
+	$(XCXX) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(WFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
 	@sed -e '/^ *\\/d' -e "s#.*: #$@: #" $(@:.d=.tmp) > $@
 	@rm $(@:.d=.tmp)
 
 %.i: %.c
-	$(XCC) -E -o $*.i $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) $< 
+	$(XCC) -E -o $*.i $(CFLAGS) $(EXTRACFLAGS) $(WFLAGS) $(CFLAGS_$@) $< 
 		
 %.bin: %.axf
 	$(XOC) -O binary $(@:.bin=.axf) $@

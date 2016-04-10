@@ -66,7 +66,6 @@
 #include <cyg/io/eth/netdev.h>
 #include "psglobal.h"
 #include "pstarget.h"
-#include "psglobal.h"
 #include "psdefine.h"
 #include "eeprom.h"
 
@@ -99,10 +98,10 @@ static u8_t 			DHCP_Stack[DHCP_TASK_STACK_SIZE];
 static cyg_thread       DHCP_Task;
 static cyg_handle_t     DHCP_TaskHdl;
 
-struct netif *Lanface;
-#if defined(WIRELESS_CARD)
+struct netif *Lanface = NULL;
+//#if defined(WIRELESS_CARD)
 struct netif *WLanface = NULL;
-#endif
+//#endif
 struct netif *ULanface = NULL;
 
 cyg_sem_t dhcp_sem;
@@ -374,6 +373,7 @@ extern struct netif ecos_loopif;
 
 extern void LanPktInit(void);
 extern void LanPktStart(void);
+extern err_t pk_attach( struct netif *netif);
 
 /*
  * ecosglue_init --> init_hw_drivers --> if_ra305x_init --> eth_drv_init --> [ecosif_init]
@@ -382,10 +382,38 @@ extern void LanPktStart(void);
  * .setup output, link_output function pointer
  * .set netif ip address
  */
-err_t ecosif_init(void)
+err_t ecosif_init(struct netif *netif)
 {
-    LanPktInit();
-    LanPktStart();
+    struct ip_addr ipaddr, netmask, gw;	
+
+    if (netif == Lanface) {
+        LanPktInit();
+        LanPktStart();
+    }
+
+    if (netif == WLanface) {
+        
+		if(EEPROM_Data.PrintServerMode & PS_DHCP_ON)
+		{
+			IP4_ADDR( &ipaddr,0,0,0,0);
+			IP4_ADDR( &netmask, 0,0,0,0);
+			IP4_ADDR( &gw, 0,0,0,0);
+		}
+		else
+		{
+            /*
+			ipaddr.addr = NGET32(EEPROM_Data.BoxIPAddress);
+			netmask.addr = NGET32(EEPROM_Data.SubNetMask);
+			gw.addr = NGET32(EEPROM_Data.GetwayAddress);
+            */
+	        IP_ADDR(&gw, CYGDAT_LWIP_SERV_ADDR);
+	        IP_ADDR(&ipaddr, CYGDAT_LWIP_MY_ADDR);
+	        IP_ADDR(&netmask, CYGDAT_LWIP_NETMASK);
+
+		}
+
+        netif_add (WLanface, &ipaddr, &netmask, &gw, WLanface->state, pk_attach, tcpip_input);
+    }
 }
 
 /*

@@ -122,9 +122,11 @@ struct netif {
 
   /** for mt7688 driver compatible */
   /* Device dependent */
-  int dev;		    /* Subdevice number to pass to send */
-					/* To device -- control */
+  int dev;		            /* Subdevice number to pass to send */
+					        /* To device -- control */
   struct if_data if_data;
+  short	 if_flags;		    /* up/down, broadcast, etc. */
+
 };
 
 #define if_ipackets if_data.ifi_ipackets

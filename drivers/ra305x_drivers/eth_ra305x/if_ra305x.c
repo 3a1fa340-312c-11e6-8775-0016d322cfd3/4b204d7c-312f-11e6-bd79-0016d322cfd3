@@ -235,7 +235,9 @@ static cyg_uint8 ucmem[UCMEM_SZ];
 static void ra305x_eth_drv_tx_done(struct eth_drv_sc *sc, CYG_ADDRESS key, int status)
 {
     struct ifnet *ifp = &sc->sc_arpcom.ac_if;
+#ifdef ETH_DRV_RXMBUF
     struct mbuf *m0 = (struct mbuf *)key;
+#endif
     CYGARC_HAL_SAVE_GP();
 
     // Check for errors here (via 'status')
@@ -2103,6 +2105,8 @@ static bool if_ra305x_init(struct cyg_netdevtab_entry *pnde)
 		DBGPRINTF(DBG_ERR, "ifra305x eth%d: init failed\n", unit);
 		return false;
 	}
+
+    Lanface = (struct net_if *)&sc->sc_arpcom.ac_if;
 
 #ifdef BRANCH_ADV
     // Read MAC value from flash

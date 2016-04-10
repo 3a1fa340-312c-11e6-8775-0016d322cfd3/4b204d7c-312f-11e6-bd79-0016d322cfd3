@@ -52,7 +52,7 @@ unsigned long kAvailmem;      /* Heap memory, ABLKSIZE units */
 unsigned long kPktAvailmem = 0;
 unsigned long kmini_Availmem;  //minimun available memory
 
-static MCB HUGE *kAllocp;
+static MCB HUGE *kAllocp = NULL;
 static MCB kBase;
 
 static MCB HUGE *kPktAllocp;
@@ -112,9 +112,9 @@ static void kmallocinit(void)
 		kAvailmem +=	nu;
 	}
 
+    #if 0
     kPktAllocp = CurBlock = &kPktBase;
 
-    #if 0
     nu = (0x2000 - 1)/MCBSIZE;
     for (i = 0 ; i < 24 ; i++) {
         CurBlock->s.Next = (MCB HUGE*)_kPktHeap[i];
@@ -206,9 +206,9 @@ kmalloc(size_t nb, int flag)
 				if(corrupt)
 					printf("%p %6lu C: %u",CurMcb,CurMcb->s.McbSize * MCBSIZE,corrupt);
 			}
-#endif
+#endif /* 0 */
 }
-#endif
+#endif /* PC_OUTPUT */
             if (flag == 0) {
 			    kAvailmem -= CurMcb->s.McbSize;
 			    if(kAvailmem < kmini_Availmem) kmini_Availmem = kAvailmem; //3/29/99

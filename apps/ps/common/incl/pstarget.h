@@ -191,8 +191,13 @@
 //--- SDROM no cache Memory Mapping allocation -----------------------------------------------
 #define kHW_RAM						31
 //#define kFarHeap_hugebase			( 0x005E0000L )
+#if defined(ARCH_ARM)
 #define kPktHeap_base               ( 0x005D0000L )
 #define kFarHeap_base				( 0x00600000L )
+#endif /* ARCH_ARM */
+#if defined(ARCH_MIPS)
+extern unsigned char kFarHeap_base[];
+#endif /* ARCH_MIPS */
 
 //--- Print Queue Length per Print Port -----------------------------------------------
 #ifndef USB_ZERO_CPY

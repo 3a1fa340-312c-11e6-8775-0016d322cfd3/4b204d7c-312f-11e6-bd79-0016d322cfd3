@@ -1,9 +1,15 @@
 
 # arm9, mt7688
 ifeq ($(CHIP),)
-	CHIP = mt7688
-	CHIPSET = mt7628
-	export CHIP CHIPSET
+CHIP = mt7688
+export CHIP
+endif
+
+ifeq ($(CHIP),mt7688)
+CHIPSET = mt7628
+PLATFORM = MT7628
+RT28xx_MODE = STA
+export CHIPSET RT28xx_MODE PLATFORM
 endif
 
 # zot716u2w, zot716u2, dwp2020
@@ -46,20 +52,20 @@ ifdef CONFIG_RA305X
 endif
 ifdef CONFIG_WIRELESS
 ifeq ($(CHIPSET),mt7628)
-	DRVSUBDIRS += ./drivers/ra305x_drivers/Jedi_7628/embedded
+	DRVSUBDIRS += ./drivers/ra305x_drivers/mt_wifi/embedded
 endif	
-ifdef CONFIG_ATE_DAEMON
-	DRVSUBDIRS += ./drivers/ra305x_drivers/wireless_ate
-	CFLAGS += -DRALINK_ATE_SUPPORT
-endif # CONFIG_ATE_DAEMON
-ifdef CONFIG_80211X_DAEMON
-	DRVSUBDIRS += ./drivers/ra305x_drivers/wireless_rtdot1x
-	CFLAGS += -DRALINK_1X_SUPPORT
-endif # CONFIG_80211X_DAEMON
-ifdef CONFIG_LLTD_DAEMON
-	DRVSUBDIRS += ./drivers/ra305x_drivers/lltd
-	CFLAGS += -DRALINK_LLTD_SUPPORT
-endif # CONFIG_LLTD_DAEMON
+#ifdef CONFIG_ATE_DAEMON
+#	DRVSUBDIRS += ./drivers/ra305x_drivers/wireless_ate
+#	CFLAGS += -DRALINK_ATE_SUPPORT
+#endif # CONFIG_ATE_DAEMON
+#ifdef CONFIG_80211X_DAEMON
+#	DRVSUBDIRS += ./drivers/ra305x_drivers/wireless_rtdot1x
+#	CFLAGS += -DRALINK_1X_SUPPORT
+#endif # CONFIG_80211X_DAEMON
+#ifdef CONFIG_LLTD_DAEMON
+#	DRVSUBDIRS += ./drivers/ra305x_drivers/lltd
+#	CFLAGS += -DRALINK_LLTD_SUPPORT
+#endif # CONFIG_LLTD_DAEMON
 endif # CONFIG_WIRELESS
 
 DRVSUBDIRS += ./drivers/ra305x_drivers/flash
@@ -257,7 +263,10 @@ DST=./$(DST_NAME)
 #	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(OBJ_DIR)/drivers.o $(PROD_LIBS) 
 
 $(DST_NAME): ${OBJS} prod $(DRIVERS)
-	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(EXTOBJS) $(PROD_LIBS) 
+	$(CC) $(LDFLAGS) -Wl,-static -Wl,--cref -o $@ $(OBJS) $(EXTOBJS) $(PROD_LIBS) 
+
+#$(DST_NAME): ${OBJS} prod $(DRIVERS) $(DRV_OBJS)
+#	$(CC) $(LDFLAGS) -Wl,-static -Wl,--cref -o $@ $(OBJS) $(DRV_OBJS) $(PROD_LIBS) 
 
 #$(DST_NAME): ${OBJS} $(DRIVERS)
 #	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(OBJ_DIR)/drivers.o

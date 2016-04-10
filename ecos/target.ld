@@ -44,5 +44,6 @@ SECTIONS
 log_buf_area = __heap1_end;
 net_mbufs_area = log_buf_area + 16384*2;
 net_clusters_area = net_mbufs_area + 200*1024;
+kFarHeap_base = net_clusters_area + 2400*1024;
 hal_vsr_table = 0x80000200;
 hal_virtual_vector_table = 0x80000300;

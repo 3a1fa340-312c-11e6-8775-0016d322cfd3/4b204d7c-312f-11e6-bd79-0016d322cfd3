@@ -223,7 +223,9 @@ int flsh_write(unsigned int addr, unsigned int from, unsigned int len)
         }
 
 	// Refresh watchdog to prevent from hanging up
+    /*
 	watchdog_tmr_func();
+    */
 
         if (len< blen)
             blen=len;

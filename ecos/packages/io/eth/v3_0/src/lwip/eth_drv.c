@@ -115,12 +115,6 @@ eth_drv_init(struct eth_drv_sc *sc, unsigned char *enaddr)
 {
   struct netif *netif = &sc->sc_arpcom.ac_if;
 
-  diag_printf("%s in lwip package\n", __FUNCTION__);
-  
-  #ifdef ZOT_TCPIP
-  Lanface = netif;
-  #endif
-
   netif->state = sc;
   ecosif_init(netif);
 

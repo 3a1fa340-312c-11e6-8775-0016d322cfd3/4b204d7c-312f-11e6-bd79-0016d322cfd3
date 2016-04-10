@@ -72,8 +72,9 @@ typedef cyg_mutex_t			spinlock_t;//ZOT==>
 #define FALSE               0
 
 
-extern void * kmalloc(unsigned long nb, int flag);
-extern void * kaligned_alloc(unsigned long nb, unsigned long align);
+extern void * kmalloc(size_t nb, int flag);
+extern void * kaligned_alloc(size_t nb, size_t align);
+
 extern void kfree(void *block, int flag);
 extern void kaligned_free(void *block);
 

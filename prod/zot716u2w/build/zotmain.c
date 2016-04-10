@@ -31,11 +31,14 @@ static cyg_thread thread_data;
 static cyg_handle_t thread_handle;
 #endif
 
+void cyg_net_init(void);
 int flsh_init (void);
 
 void zotmain( void )
 //void zotmain(cyg_addrword_t p)
 {
+
+    cyg_net_init();
     flsh_init();
 
     EEPROMInit();

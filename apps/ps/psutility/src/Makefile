@@ -42,9 +42,9 @@ $(OBJ_DIR)/%.o: %.c
 # You need only add new file to the list in SRCS
 SRCS=joblog.c alert.c
 
-ifeq ($(CHIP),arm9)
+#ifeq ($(CHIP),arm9)
 SRCS += kmalloc.c
-endif
+#endif
 
 # DO not edit OBJS and DST
 OBJS=${SRCS:%.c=$(OBJ_DIR)/%.o}

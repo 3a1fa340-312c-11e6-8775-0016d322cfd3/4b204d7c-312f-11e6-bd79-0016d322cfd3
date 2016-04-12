@@ -821,8 +821,6 @@ void ecosif_input(struct netif *netif, struct pbuf *p)
     switch (htons(ethhdr->type)) {
         case ETHTYPE_IP:
             LWIP_DEBUGF(0, ("ecosif_input: IP packet\n"));
-            if (netif == WLanface)
-                diag_printf("termy say, ecosif_input: IP packet\n");
             etharp_ip_input(netif, p);
             pbuf_header(p, -sizeof(struct eth_hdr));
             netif->input(p, netif);
@@ -831,8 +829,6 @@ void ecosif_input(struct netif *netif, struct pbuf *p)
             break;
         case ETHTYPE_ARP:
             LWIP_DEBUGF(0, ("ecosif_input: ARP packet\n"));
-            if (netif == WLanface)
-                diag_printf("termy say, ecosif_input: ARP packet\n");
             etharp_arp_input(netif, (struct eth_addr *) &netif->hwaddr, p);
             break;
         default:

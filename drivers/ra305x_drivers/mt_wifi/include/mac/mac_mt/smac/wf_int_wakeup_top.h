@@ -51,6 +51,8 @@
 #define HWISR3		(WF_INT_WAKEUP_TOP_BASE + 0x54)		/* 0x24454 */
 #define TBTT0 (1 << 15)
 #define PRETBTT0 (1 << 31)
+#define TBTT1 (1 << 20)
+#define PRETBTT1 (1 << 23)
 #define HWIER3		(WF_INT_WAKEUP_TOP_BASE + 0x58)
 #define HWISR4		(WF_INT_WAKEUP_TOP_BASE + 0x5c)
 #define HWIER4		(WF_INT_WAKEUP_TOP_BASE + 0x60)		/* 0x24460 */

@@ -776,10 +776,11 @@ return 0;
 }
 
 
-INT MtAsicSetPreTbtt(RTMP_ADAPTER *pAd, BOOLEAN enable)
+INT MtAsicSetPreTbtt(RTMP_ADAPTER *pAd, BOOLEAN enable, UCHAR idx)
 {
 	UINT32 timeout = 0, bitmask = 0;
 	INT bss_idx = 0; // TODO: this index may carried by parameters!
+	bss_idx=idx;
 
 	ASSERT(bss_idx <= 3);
     bitmask = 0xff << (bss_idx * 8);
@@ -1135,7 +1136,7 @@ UINT32 MtAsicGetWmmParam(RTMP_ADAPTER *pAd, UINT32 ac, UINT32 type)
 	}
 
     NdisCopyMemory(&pAd->CurrEdcaParam[ac], pAcParam, sizeof(TX_AC_PARAM_T));
-	CmdEdcaParameterSet(pAd,EdcaParam);
+	RTEnqueueInternalCmd(pAd, CMDTHREAD_EDCA_PARAM_SET, (VOID *)&EdcaParam, sizeof(CMD_EDCA_SET_T));
 	return TRUE;
 }
 
@@ -1162,7 +1163,7 @@ static INT MtAsicSetAllWmmParam(RTMP_ADAPTER *pAd,PEDCA_PARM pEdcaParm)
 
         NdisCopyMemory(&pAd->CurrEdcaParam[index], pAcParam, sizeof(TX_AC_PARAM_T));
 	}
-	CmdEdcaParameterSet(pAd,EdcaParam);
+	RTEnqueueInternalCmd(pAd, CMDTHREAD_EDCA_PARAM_SET, (VOID *)&EdcaParam, sizeof(CMD_EDCA_SET_T));
 
 	return TRUE;
 
@@ -1226,7 +1227,11 @@ VOID MtAsicSetSlotTime(RTMP_ADAPTER *pAd, UINT32 SlotTime, UINT32 SifsTime)
 	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("%s(%d): SetSlotTime!\n",__FUNCTION__, __LINE__));
 }
 
+#if defined(__ECOS) &&  defined(CONFIG_NET_CLUSTER_SIZE_2048)
+#define MAX_RX_PKT_LENGTH   0x1c2 //0x400 /* WORD(4 Bytes) unit */
+#else
 #define MAX_RX_PKT_LENGTH   0x400 /* WORD(4 Bytes) unit */
+#endif
 INT MtAsicSetMacMaxLen(RTMP_ADAPTER *pAd)
 {
 	// TODO: shiang-7603
@@ -1468,10 +1473,17 @@ VOID MtAsicTxCntUpdate(RTMP_ADAPTER *pAd, UCHAR wcid, MT_TX_COUNTER *pTxInfo)
 	TxSuccess = pTxInfo->TxCount -pTxInfo->TxFailCount;
 
 	if ( pTxInfo->TxFailCount == 0 )
+	{
 		pAd->RalinkCounters.OneSecTxNoRetryOkCount += pTxInfo->TxCount;
+		pAd->MacTab.Content[wcid].OneSecTxNoRetryOkCount += pTxInfo->TxCount;
+	}
 	else
+	{
 		pAd->RalinkCounters.OneSecTxRetryOkCount += pTxInfo->TxCount;
+		pAd->MacTab.Content[wcid].OneSecTxRetryOkCount += pTxInfo->TxCount;
+	}
 	pAd->RalinkCounters.OneSecTxFailCount += pTxInfo->TxFailCount;
+	pAd->MacTab.Content[wcid].OneSecTxFailCount += pTxInfo->TxFailCount;
 
 #ifdef STATS_COUNT_SUPPORT
 	pAd->WlanCounters.TransmittedFragmentCount.u.LowPart += TxSuccess;
@@ -2061,6 +2073,8 @@ VOID MtAsicUpdateRxWCIDTable(RTMP_ADAPTER *pAd, USHORT WCID, UCHAR *pAddr)
         dw2->field.cipher_suit = WTBL_CIPHER_NONE;
         dw0->field.rc_a2 = 1;
 	    dw0->field.rc_a1 = 1;
+        dw3->field.i_psm = 1;
+        dw3->field.du_i_psm = 1;  
     }
     else {
         mac_entry = &pAd->MacTab.Content[WCID];
@@ -2079,6 +2093,8 @@ VOID MtAsicUpdateRxWCIDTable(RTMP_ADAPTER *pAd, USHORT WCID, UCHAR *pAddr)
             dw0->field.muar_idx = 0x1;//Carter, MT_MAC apcli use HWBSSID1 to go.
 #endif /* !MULTI_APCLI_SUPPORT */
             dw0->field.rc_a1 = 1;
+		dw3->field.i_psm = 1;
+		dw3->field.du_i_psm = 1; 
         }
         else
             dw0->field.muar_idx = 0x0;
@@ -2593,8 +2609,12 @@ VOID CmdProcAddRemoveKey(
 #ifdef MULTI_APCLI_SUPPORT
         if ((Wcid != APCLI_MCAST_WCID(0)) && (Wcid != APCLI_MCAST_WCID(1)))
 #else /* MULTI_APCLI_SUPPORT */
+#ifdef RT_CFG80211_P2P_CONCURRENT_DEVICE 
+	if ((Wcid != APCLI_MCAST_WCID) && (Wcid != MCAST_WCID))
+#else /* MULTI_APCLI_SUPPORT */
         if (Wcid != APCLI_MCAST_WCID)
 #endif /* !MULTI_APCLI_SUPPORT */
+#endif /* APCLI_SUPPORT */
 #endif /* APCLI_SUPPORT */
         {
 			dw0->field.addr_4 = CmdKey.aucPeerAddr[4];
@@ -2828,17 +2848,12 @@ VOID MtAsicTurnOffRFClk(RTMP_ADAPTER *pAd, UCHAR Channel)
 }
 
 
-#ifdef WAPI_SUPPORT
-VOID MtAsicUpdateWAPIPN(
-	IN PRTMP_ADAPTER pAd,
-	IN USHORT		 WCID,
-	IN ULONG         pn_low,
-	IN ULONG         pn_high)
+#ifdef VCORECAL_SUPPORT
+VOID MtAsicVCORecalibration(RTMP_ADAPTER *pAd)
 {
 	// TODO: shiang-7603
 	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("%s(%d): Not support for HIF_MT yet!\n",
 				__FUNCTION__, __LINE__));
-	return;
 }
 #endif /* WAPI_SUPPORT */
 
@@ -4685,9 +4700,6 @@ VOID MtAsicInitMac(RTMP_ADAPTER *pAd)
 	mac_val = mac_val & ~(BIT1);
 	MAC_IO_WRITE32(pAd, DMA_TMCFR0, mac_val);
 
-	MAC_IO_READ32(pAd, RMAC_TMR_PA, &mac_val);
-	mac_val = mac_val & ~BIT31;
-	MAC_IO_WRITE32(pAd, RMAC_TMR_PA, mac_val);
 	/* Configure all rx packets to HIF, except WOL2M packet */
 	MAC_IO_READ32(pAd, DMA_RCFR0, &mac_val);
 	mac_val = 0x00010000; // drop duplicate
@@ -4864,6 +4876,79 @@ INT32 MtAsicGetThemalSensor(RTMP_ADAPTER *pAd, CHAR type)
 	}
 
 	return result;
+}
+
+/*
+  *  ucation: 0: stop; 1: flush; 2: start
+  */
+#define AC_QUEUE_STOP 0
+#define AC_QUEUE_FLUSH 1
+#define AC_QUEUE_START 2
+VOID MtAsicACQueue(RTMP_ADAPTER *pAd, UINT8 ucation, UINT8 BssidIdx, UINT32 u4AcQueueMap)
+{
+	UINT32 ACQCR_0 = 0, ACQCR_1 = 0;
+	UINT32 Value_0 = 0, Value_1 = 0;
+	UINT8 ucQueueIdx;
+
+	if (ucation > 2)
+		return;
+
+	switch (ucation)
+	{
+		case AC_QUEUE_STOP:
+			ACQCR_0 = ARB_TQCR4;
+			ACQCR_1 = ARB_TQCR5;
+			break;
+		case AC_QUEUE_FLUSH:
+			ACQCR_0 = ARB_TQCR2;
+			ACQCR_1 = ARB_TQCR3;
+			break;
+		case AC_QUEUE_START:
+			ACQCR_0 = ARB_TQCR0;
+			ACQCR_1 = ARB_TQCR1;
+			break;
+	}
+
+	for (ucQueueIdx = 0; ucQueueIdx < 14; ucQueueIdx++)
+	{
+	        if (u4AcQueueMap & (1 << ucQueueIdx)) {
+			switch (ucQueueIdx)
+	{
+				case 0:
+				case 1:
+				case 2:
+					Value_0 |= (1 << (ucQueueIdx*5 + BssidIdx));
+					break;
+				case 3:
+				case 4:
+				case 5:
+					Value_0 |= (1 << (ucQueueIdx*5 + BssidIdx + 1));
+					break;
+				case 6:
+					Value_1 |= (1 << (BssidIdx + 26));
+					break;
+				case 10:
+				case 11:
+				case 12:
+					Value_1 |= (1 << ((ucQueueIdx - 10)*5 + BssidIdx));
+					break;
+				case 13:
+				case 14:
+					Value_1 |= (1 << ((ucQueueIdx - 10)*5 + BssidIdx + 1));
+					break;
+			}
+ 		}
+	}
+
+	if (ACQCR_0 && Value_0) {
+		RTMP_IO_WRITE32(pAd, ACQCR_0, Value_0);
+		DBGPRINT(RT_DEBUG_ERROR, ("%s: Write CR:%x, Value=%x\n", __FUNCTION__, ACQCR_0, Value_0));
+	}
+	
+	if (ACQCR_1 && Value_1) {
+		RTMP_IO_WRITE32(pAd, ACQCR_1, Value_1);
+		DBGPRINT(RT_DEBUG_ERROR, ("%s: Write CR:%x, Value=%x\n", __FUNCTION__, ACQCR_1, Value_1));
+	}
 }
 #endif /* MT7603 ||MT7628  */
 

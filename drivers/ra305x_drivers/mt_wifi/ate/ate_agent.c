@@ -1392,3 +1392,47 @@ INT32 SetATETxBw(
 	else
 		return FALSE;
 }
+
+INT32 SetATEDPDRecord(
+	PRTMP_ADAPTER pAd,
+	RTMP_STRING *Arg)
+{
+	ATE_CTRL *ATECtrl = &(pAd->ATECtrl);
+	ATE_OPERATION *ATEOp = ATECtrl->ATEOp;
+	UCHAR Enable;
+#ifdef RTMP_FLASH_SUPPORT
+	USHORT doCal1 = 0;
+#endif /*RTMP_FLASH_SUPPORT*/
+
+	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("%s: Enable = %s\n", __FUNCTION__, Arg));
+
+	Enable = simple_strtol(Arg, 0, 10);
+	
+	if (Enable != 1)
+		return TRUE;
+
+#ifdef RTMP_FLASH_SUPPORT
+	/* Get DPD calibration and save to flash for channel 3,7 and 12*/
+	ATECtrl->Channel = 3;
+	ATECtrl->ControlChl = ATECtrl->Channel;
+	ATEOp->SetChannel(pAd, 3);
+	Set_DPD_SAVE_TEST_Proc(pAd, "1");
+
+	ATECtrl->Channel = 7;
+	ATECtrl->ControlChl = ATECtrl->Channel;
+	ATEOp->SetChannel(pAd, 7);
+	Set_DPD_SAVE_TEST_Proc(pAd, "1");
+
+	ATECtrl->Channel = 12;
+	ATECtrl->ControlChl = ATECtrl->Channel;
+	ATEOp->SetChannel(pAd, 12);
+	Set_DPD_SAVE_TEST_Proc(pAd, "1");
+
+	rtmp_ee_flash_read(pAd, 0x9F, &doCal1);
+	doCal1 |= (3 << 6); /* bit[6] Disable DPD, bit[7] Reload DPD */
+	rtmp_ee_flash_write(pAd, 0x9F, doCal1);
+	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("%s: E2P 0x9F = %x\n", __FUNCTION__, doCal1));
+		
+#endif /*RTMP_FLASH_SUPPORT*/
+	return TRUE;
+}

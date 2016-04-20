@@ -426,6 +426,10 @@ typedef union _BBP_R182_STRUC {
 	/*#define MAX_BBP_ID	255 */
 	#define MAX_BBP_ID	200
 
+#if defined(RT3352) || defined(RT5350)
+	#undef MAX_BBP_ID
+	#define MAX_BBP_ID	255
+#endif /* RT3352 */
 #else
 	#define MAX_BBP_ID	136
 

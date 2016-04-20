@@ -136,6 +136,34 @@ static inline BOOLEAN WscCheckWSCHeader(UCHAR *pData)
 		if ((__pAd)->WscHdrPshBtnFlag) WSC_HDR_BTN_CheckHandler(__pAd);
 
 /* bit3: WPS PBC function is controlled through GPIO[3] */
+#ifdef __ECOS
+#ifdef RT5350
+#define WSC_HDR_BTN_MR_PRESS_FLG_GET(__pAd, __FlgIsPressed)			\
+	{									\
+		UINT32 __gpio_value, __gpio_pol;                                \
+                __gpio_value = HAL_REG32(RTMP_PIO_CTL_ADDR + RTMP_PIO2100_DIR_OFFSET); \
+                __gpio_value &= 0xfffe;                                         \
+                HAL_REG32(RTMP_PIO_CTL_ADDR + RTMP_PIO2100_DIR_OFFSET) = __gpio_value; \
+                __gpio_pol = HAL_REG32(RTMP_PIO_CTL_ADDR + RTMP_PIO2100_POL_OFFSET); \
+                __gpio_value = HAL_REG32(RTMP_PIO_CTL_ADDR + RTMP_PIO2100_DATA_OFFSET); \
+                __FlgIsPressed = ((~__gpio_value) & 0x1)?1:0;                   \
+	}
+#endif
+
+
+#ifdef MT7628 /* GPIO#38 */
+#define WSC_HDR_BTN_MR_PRESS_FLG_GET(__pAd, __FlgIsPressed)			\
+	{									\
+		UINT32 __gpio_value, __gpio_pol;   \
+            __gpio_value = HAL_REG32(RTMP_PIO_CTL_ADDR + RTMP_PIO2100_DIR_OFFSET); \
+		    __gpio_value &= ~(1<<6); 						\
+            HAL_REG32(RTMP_PIO_CTL_ADDR + RTMP_PIO2100_DIR_OFFSET) = __gpio_value; \
+            __gpio_pol = HAL_REG32(RTMP_PIO_CTL_ADDR + RTMP_PIO2100_POL_OFFSET); \
+            __gpio_value = HAL_REG32(RTMP_PIO_CTL_ADDR + RTMP_PIO2100_DATA_OFFSET); \
+		__FlgIsPressed = ((~__gpio_value) & (1<<6))?1:0;					\
+	}
+#endif
+#else
 /* currently only for RT2860 & RT2870 */
 // TODO: shiang-7603
 #define WSC_HDR_BTN_MR_PRESS_FLG_GET(__pAd, __FlgIsPressed)				\
@@ -155,6 +183,7 @@ static inline BOOLEAN WscCheckWSCHeader(UCHAR *pData)
 				__FlgIsPressed = 1;											\
 		}\
 	}
+#endif
 /* WSC HDR PSH BTN FUNC */
 
 
@@ -374,6 +403,11 @@ static inline BOOLEAN WscCheckWSCHeader(UCHAR *pData)
 #define	WSC_PROFILE_RETRY_TIME_OUT	10000
 #ifdef WSC_LED_SUPPORT
 #define WSC_SUCCESSFUL_LED_PATTERN_TIMEOUT		300000		/* 300 seconds */
+#ifdef CONFIG_WIFI_LED_SHARE
+#define WSC_WPS_FAIL_WIFI_LED_TIMEOUT			120000		/* 120 seconds */
+#define WSC_WPS_OVERLAP_WIFI_LED_TIMEOUT		120000		/* 120 seconds */
+#define WSC_WPS_PREPOST_WIFI_LED_TIMEOUT		3000		/* 3seconds */
+#endif /* CONFIG_WIFI_LED_SHARE */
 #define WSC_WPS_FAIL_LED_PATTERN_TIMEOUT		15000		/* 15 seconds. */
 #define WSC_WPS_SKIP_TURN_OFF_LED_TIMEOUT		2500			/* 2.5 seconds. */
 #define WSC_WPS_TURN_OFF_LED_TIMEOUT			1000			/* 1 second. */

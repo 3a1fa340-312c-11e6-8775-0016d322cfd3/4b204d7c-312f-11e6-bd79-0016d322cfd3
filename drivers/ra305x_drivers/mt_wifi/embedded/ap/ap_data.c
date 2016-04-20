@@ -3315,14 +3315,14 @@ BOOLEAN APCheckVaildDataFrame(RTMP_ADAPTER *pAd, RX_BLK *pRxBlk)
 
 INT ap_rx_pkt_allow(RTMP_ADAPTER *pAd, RX_BLK *pRxBlk)
 {
+#ifdef STATS_COUNT_SUPPORT
 	RXINFO_STRUC *pRxInfo = pRxBlk->pRxInfo;
+#endif
 	HEADER_802_11 *pHeader = pRxBlk->pHeader;
 	MAC_TABLE_ENTRY *pEntry = NULL;
 	INT hdr_len = 0;
 
-#if defined(WDS_SUPPORT) || defined(CLIENT_WDS) || defined(IDS_SUPPORT)
 	FRAME_CONTROL *pFmeCtrl = &pHeader->FC;
-#endif /* defined(WDS_SUPPORT) || defined(CLIENT_WDS) || defined(IDS_SUPPORT) */
 	pEntry = PACInquiry(pAd, pRxBlk->wcid);
 
 #if defined(WDS_SUPPORT) || defined(CLIENT_WDS)
@@ -3392,6 +3392,33 @@ INT ap_rx_pkt_allow(RTMP_ADAPTER *pAd, RX_BLK *pRxBlk)
 		return FALSE;
 	}
 #endif /* defined(WDS_SUPPORT) || defined(CLIENT_WDS) */
+	if ((pFmeCtrl->FrDs == 1) && (pFmeCtrl->ToDs == 0))
+	{
+#ifdef APCLI_SUPPORT
+		/* handle APCLI. */
+		if (VALID_WCID(pRxBlk->wcid))
+			pEntry = ApCliTableLookUpByWcid(pAd, pRxBlk->wcid, pHeader->Addr2);
+		else
+			pEntry = MacTableLookup(pAd, pHeader->Addr2);
+
+		if (pEntry && IS_ENTRY_APCLI(pEntry))
+		{
+			ULONG Now32;
+			PAPCLI_STRUCT pApCliEntry = NULL;
+
+			if (!(pEntry && APCLI_IF_UP_CHECK(pAd, pEntry->wdev->func_idx)))
+				return FALSE;
+
+			pApCliEntry = &pAd->ApCfg.ApCliTab[pEntry->wdev->func_idx];
+
+			if (pApCliEntry)
+			{
+				NdisGetSystemUpTime(&Now32);
+				pApCliEntry->ApCliRcvBeaconTime = Now32;
+			}
+		}
+#endif /* APCLI_SUPPORT */
+	}
 
 	if (!pEntry) {
 #ifdef IDS_SUPPORT

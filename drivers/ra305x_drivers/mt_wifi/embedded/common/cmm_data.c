@@ -910,8 +910,10 @@ NDIS_STATUS MiniportMMRequest(RTMP_ADAPTER *pAd, UCHAR QueIdx, UCHAR *pData, UIN
 #ifdef RTMP_MAC_PCI
 		if (bUseDataQ)
 		{
+#ifndef __ECOS /* Eddy temporary remove on ECOS */
 			/* free Tx(QueIdx) resources*/
 			RTMPFreeTXDUponTxDmaDone(pAd, QueIdx);
+#endif /* __ECOS */
 			FreeNum = GET_TXRING_FREENO(pAd, QueIdx);
 		}
 		else
@@ -931,7 +933,16 @@ NDIS_STATUS MiniportMMRequest(RTMP_ADAPTER *pAd, UCHAR QueIdx, UCHAR *pData, UIN
 
 			/* We need to reserve space for rtmp hardware header. i.e., TxWI for RT2860 and TxInfo+TxWI for RT2870*/
 			NdisZeroMemory(&rtmpHwHdr, hw_len);
+#ifdef  __ECOS 
+#ifdef	CONFIG_NET_CLUSTER_GROUP2
+			Status = RTMPAllocateNdisPacket_4k(pAd, &pPacket, (UCHAR *)&rtmpHwHdr[0], hw_len, pData, Length);
+#else
+			Status = RTMPAllocateNdisPacket2(pAd, &pPacket, (UCHAR *)&rtmpHwHdr[0], hw_len, pData, Length);
+#endif
+
+#else
 			Status = RTMPAllocateNdisPacket(pAd, &pPacket, (UCHAR *)&rtmpHwHdr[0], hw_len, pData, Length);
+#endif
 			if (Status != NDIS_STATUS_SUCCESS)
 			{
 				MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_WARN, ("MiniportMMRequest (error:: can't allocate NDIS PACKET)\n"));
@@ -1382,8 +1393,8 @@ NDIS_STATUS MlmeHardTransmitMgmtRing(RTMP_ADAPTER *pAd, UCHAR QueIdx, PNDIS_PACK
 	if ((pAd->LatchRfRegs.Channel > 14) && (MlmeRate < RATE_6)) /* 11A band*/
 		MlmeRate = RATE_6;
 
-	if ((pHeader_802_11->FC.Type == FC_TYPE_DATA) &&
-		(pHeader_802_11->FC.SubType == SUBTYPE_QOS_NULL))
+	if (((pHeader_802_11->FC.Type == FC_TYPE_DATA) && (pHeader_802_11->FC.SubType == SUBTYPE_QOS_NULL)) || 
+		((pHeader_802_11->FC.Type == FC_TYPE_CNTL) && (pHeader_802_11->FC.SubType == SUBTYPE_BLOCK_ACK_REQ)))
 	{
 		pMacEntry = MacTableLookup(pAd, pHeader_802_11->Addr1);
 	}
@@ -3878,7 +3889,7 @@ static IP_ASSEMBLE_DATA *pCurIpAsmData[NUM_OF_TX_RING];
 {
 	ULONG now = 0;
 	IP_ASSEMBLE_DATA *pIpAsmbData = NULL;
-	DL_LIST *pAssHead = &pAd->assebQueue[queId];
+	MT_DL_LIST *pAssHead = &pAd->assebQueue[queId];
 
 	os_alloc_mem(NULL,(UCHAR**)&pIpAsmbData,sizeof(IP_ASSEMBLE_DATA));
 
@@ -3926,7 +3937,7 @@ static VOID rtmp_IpAssembleDataDestory(RTMP_ADAPTER *pAd,IP_ASSEMBLE_DATA *pIpAs
 
 static IP_ASSEMBLE_DATA* rtmp_IpAssembleDataSearch(RTMP_ADAPTER *pAd, UCHAR queIdx, UINT identify)
 {
-	DL_LIST *pAssHead = &pAd->assebQueue[queIdx];
+	MT_DL_LIST *pAssHead = &pAd->assebQueue[queIdx];
 	IP_ASSEMBLE_DATA *pAssData = NULL;
 
 	DlListForEach(pAssData,pAssHead,struct ip_assemble_data,list)
@@ -3942,7 +3953,7 @@ static IP_ASSEMBLE_DATA* rtmp_IpAssembleDataSearch(RTMP_ADAPTER *pAd, UCHAR queI
 
 static VOID rtmp_IpAssembleDataUpdate(RTMP_ADAPTER *pAd)
 {
-	DL_LIST *pAssHead = NULL;
+	MT_DL_LIST *pAssHead = NULL;
 	IP_ASSEMBLE_DATA *pAssData = NULL,*pNextAssData=NULL;
 	INT i=0;
 	ULONG now = 0;
@@ -4114,16 +4125,17 @@ INT TxOPUpdatingAlgo(RTMP_ADAPTER *pAd)
     UCHAR UpdateTxOP = 0xFF;
     UINT32 TxTotalByteCnt = pAd->TxTotalByteCnt;
     UINT32 RxTotalByteCnt = pAd->RxTotalByteCnt;
+    BOOLEAN TxopEnabled = ((pAd->CommonCfg.ManualTxop == 0) && (pAd->CommonCfg.bEnableTxBurst) && (pAd->chipCap.TxOPScenario == 1));
+#ifdef APCLI_SUPPORT
+    UINT apcliNum = 0, ifIndex = 0;
+#endif /* APCLI_SUPPORT */
 
     if ((TxTotalByteCnt == 0) || (RxTotalByteCnt == 0))
     {
         /* Avoid to divide 0, when doing the traffic calculating */
         MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("Not expected one of them is 0, TxTotalByteCnt = %d, RxTotalByteCnt = %d\n", TxTotalByteCnt, RxTotalByteCnt));
     }
-    else if ((pAd->MacTab.Size == 1) 
-            && (pAd->CommonCfg.ManualTxop == 0) 
-            && pAd->CommonCfg.bEnableTxBurst
-            && (pAd->chipCap.TxOPScenario == 1))
+    else if ((pAd->MacTab.Size == 1) && TxopEnabled)
     {
         if (RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_RDG_ACTIVE) == TRUE)
         {
@@ -4174,6 +4186,70 @@ INT TxOPUpdatingAlgo(RTMP_ADAPTER *pAd)
     else if (pAd->MacTab.Size > 1)
     {
         UpdateTxOP = 0x0;
+    }
+
+#ifdef APCLI_SUPPORT
+    if (TxopEnabled)	
+    {	
+    	for (ifIndex = 0; ifIndex < MAX_APCLI_NUM; ifIndex++)
+    	{
+		APCLI_STRUCT *apcli_entry;
+		PMAC_TABLE_ENTRY pEntry;
+		STA_TR_ENTRY *tr_entry;
+		UINT Wcid = 0;
+
+    		apcli_entry = &pAd->ApCfg.ApCliTab[ifIndex];
+        	Wcid = apcli_entry->MacTabWCID;
+
+        	if (!VALID_WCID(Wcid))
+        		continue;
+
+	        pEntry = &pAd->MacTab.Content[Wcid];
+		tr_entry = &pAd->MacTab.tr_entry[Wcid];
+
+		if (IS_ENTRY_APCLI(pEntry)
+            	   && (pEntry->Sst == SST_ASSOC)
+            	   && (tr_entry->PortSecured == WPA_802_1X_PORT_SECURED))
+        	{
+			apcliNum++;
+		}
+	}
+	
+	if (apcliNum == 1)
+	{
+		if (pAd->MacTab.Size == 1)
+		{
+			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("Hit only one apcli tune TxOP to 80\n"));
+	        	UpdateTxOP = 0x80;
+
+		}
+#ifdef MAC_REPEATER_SUPPORT
+		else if ((pAd->ApCfg.RepeaterCliSize == 1) &&
+        	((pAd->ApCfg.RepeaterCliSize + apcliNum) == pAd->MacTab.Size))
+		{
+			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("Hit only one rept tune TxOP to 80\n"));
+                	UpdateTxOP = 0x80;
+		}
+#endif /* MAC_REPEATER_SUPPORT */
+	}
+    }
+#endif /* APCLI_SUPPORT */
+
+	if ((pAd->MacTab.Size >= 30)
+#ifdef APCLI_SUPPORT
+		&& (apcliNum == 0)
+#endif /* APCLI_SUPPORT */
+	   )
+	{
+		ULONG txCount = 0;
+		ULONG per = 0;
+
+		txCount = pAd->WlanCounters.TransmittedFragmentCount.u.LowPart;
+		per = txCount==0? 0: 1000*(pAd->WlanCounters.FailedCount.u.LowPart)/(pAd->WlanCounters.FailedCount.u.LowPart+txCount);
+		per = (per / 10);
+
+		if (per < 2)
+			UpdateTxOP = 0x40;
     }
 
     if (UpdateTxOP != 0xFF &&

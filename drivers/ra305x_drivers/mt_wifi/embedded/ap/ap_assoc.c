@@ -1286,6 +1286,9 @@ SendAssocResponse:
 
 	MgtMacHeaderInit(pAd, &AssocRspHdr, SubType, 0, ie_list->Addr2, 
 						wdev->if_addr, wdev->bssid);
+#ifdef RT_CFG80211_P2P_SUPPORT
+        if (RTMP_CFG80211_VIF_P2P_GO_ON(pAd))
+        {
 
 	MakeOutgoingFrame(pOutBuffer, &FrameLen,
 	                  sizeof(HEADER_802_11), &AssocRspHdr,
@@ -1293,10 +1296,26 @@ SendAssocResponse:
 	                  2,                        &StatusCode,
 	                  2,                        &Aid,
 	                  1,                        &SupRateIe,
+                          1,                        &pAd->cfg80211_ctrl.P2pSupRateLen,
+                          pAd->cfg80211_ctrl.P2pSupRateLen, pAd->cfg80211_ctrl.P2pSupRate,
+                          END_OF_ARGS);
+
+
+        }
+        else
+#endif /* RT_CFG80211_P2P_SUPPORT */
+	{
+		MakeOutgoingFrame(pOutBuffer, &FrameLen,
+		                  sizeof(HEADER_802_11), &AssocRspHdr,
+		                  2,                        &CapabilityInfoForAssocResp,
+		                  2,                        &StatusCode,
+		                  2,                        &Aid,
+		                  1,                        &SupRateIe,
 	                  1,                        &SupRateLen,
 	                  SupRateLen, pAd->CommonCfg.SupRate,
 	                  END_OF_ARGS);
 
+	}
 	if ((pAd->CommonCfg.ExtRateLen) && (PhyMode != WMODE_B) && (FlgIs11bSta == 0))
 	{
 		ULONG TmpLen;

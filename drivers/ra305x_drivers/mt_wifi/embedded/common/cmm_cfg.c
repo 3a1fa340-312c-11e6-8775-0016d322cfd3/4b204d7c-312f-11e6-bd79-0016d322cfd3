@@ -27,6 +27,9 @@
 
 
 #include "rt_config.h"
+#include "rt_ecos.h"
+#include "lwip/netif.h"
+#include "cyg/io/eth/eth_drv.h"
 
 static BOOLEAN RT_isLegalCmdBeforeInfUp(RTMP_STRING *SetCmd);
 
@@ -1172,7 +1175,7 @@ INT RTMP_COM_IoctlHandle(
 					MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("rt28xx_open return fail!\n"));
 					return NDIS_STATUS_FAILURE;
 				}
-				
+			
 				/* Get the current time for calculating startup time */
 				NdisGetSystemUpTime(&end); diff_ms = (end-start)*1000/OS_HZ;
 				DBGPRINT(RT_DEBUG_ERROR, ("WiFi Startup Cost (%s): %lu.%03lus\n",
@@ -1621,6 +1624,12 @@ INT	Set_Antenna_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
 }
 
 
+#ifdef RT5350
+INT Set_Hw_Antenna_Div_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
+{
+	return Set_Antenna_Proc(pAd, arg);
+}
+#endif /* RT5350 */
 
 
 
@@ -1918,6 +1927,99 @@ INT Set_PDMAWatchDog_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
 }
 
 
+INT SetPSERegister_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
+{
+	UINT32 idx;
+	UINT32 RemapBase, RemapOffset;
+	UINT32 Value;
+	UINT32 RestoreValue;
+	
+    	idx = simple_strtol(arg, 0, 10);
+
+	if (idx == 1)
+	{
+
+			MAC_IO_READ32(pAd, MCU_PCIE_REMAP_2, &RestoreValue);
+			RemapBase = GET_REMAP_2_BASE(0x800c006c) << 19;
+			RemapOffset = GET_REMAP_2_OFFSET(0x800c006c);
+			MAC_IO_WRITE32(pAd, MCU_PCIE_REMAP_2, RemapBase);
+
+			MAC_IO_WRITE32(pAd, 0x80000 + RemapOffset, 3);
+
+			MAC_IO_READ32(pAd, 0x80000 + RemapOffset, &Value);
+			DBGPRINT(RT_DEBUG_OFF, ("0x800c006c [3]=0x%x\n",Value));
+			
+	}
+			
+
+	return TRUE;
+}
+
+INT SetPDMARegister_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
+{
+	UINT32 idx;
+	UINT32 Value;
+    	idx = simple_strtol(arg, 0, 10);
+
+			switch (idx)
+			{
+				case 0:/* improvement: use round robin mcs when group == 0 */
+					MAC_IO_WRITE32(pAd, 0x4244, 0x08000000);
+					MAC_IO_READ32(pAd, 0x4244, &Value);
+					DBGPRINT(RT_DEBUG_OFF, ("mac 4244[0x08000000]=0x%x\n",Value));
+					break;
+				case 1:/* improvement: use round robin mcs when group == 0 */
+					MAC_IO_WRITE32(pAd, 0x4244, 0x18000000);
+					MAC_IO_READ32(pAd, 0x4244, &Value);
+					DBGPRINT(RT_DEBUG_OFF, ("mac 4244[0x18000000]=0x%x\n",Value));
+					break;
+				case 2:/* improvement: use round robin mcs when group == 0 */
+					MAC_IO_WRITE32(pAd, 0x4244, 0x28000000);
+					MAC_IO_READ32(pAd, 0x4244, &Value);
+					DBGPRINT(RT_DEBUG_OFF, ("mac 4244[0x28000000]=0x%x\n",Value));
+					break;
+				case 3:/* improvement: use round robin mcs when group == 0 */
+					MAC_IO_WRITE32(pAd, 0x4244, 0x38000000);
+					MAC_IO_READ32(pAd, 0x4244, &Value);
+					DBGPRINT(RT_DEBUG_OFF, ("mac 4244[0x38000000]=0x%x\n",Value));
+					break;
+				case 4:/* improvement: use round robin mcs when group == 0 */
+					MAC_IO_WRITE32(pAd, 0x4244, 0x48000000);
+					MAC_IO_READ32(pAd, 0x4244, &Value);
+					DBGPRINT(RT_DEBUG_OFF, ("mac 4244[0x48000000]=0x%x\n",Value));
+					break;
+				case 5:/* improvement: use round robin mcs when group == 0 */
+					MAC_IO_WRITE32(pAd, 0x4244, 0x58000000);
+					MAC_IO_READ32(pAd, 0x4244, &Value);
+					DBGPRINT(RT_DEBUG_OFF, ("mac 4244[0x58000000]=0x%x\n",Value));
+					break;
+				case 6:/* improvement: use round robin mcs when group == 0 */
+					MAC_IO_WRITE32(pAd, 0x4244, 0x68000000);
+					MAC_IO_READ32(pAd, 0x4244, &Value);
+					DBGPRINT(RT_DEBUG_OFF, ("mac 4244[0x68000000]=0x%x\n",Value));					
+					break;
+				case 7:/* improvement: use round robin mcs when group == 0 */
+					MAC_IO_WRITE32(pAd, 0x4244, 0x78000000);
+					MAC_IO_READ32(pAd, 0x4244, &Value);
+					DBGPRINT(RT_DEBUG_OFF, ("mac 4244[0x78000000]=0x%x\n",Value));										
+					break;
+				case 8:/* improvement: use round robin mcs when group == 0 */
+					MAC_IO_WRITE32(pAd, 0x4244, 0x88000000);
+					MAC_IO_READ32(pAd, 0x4244, &Value);
+					DBGPRINT(RT_DEBUG_OFF, ("mac 4244[0x88000000]=0x%x\n",Value));
+					break;
+				case 9:/* improvement: use round robin mcs when group == 0 */
+					MAC_IO_WRITE32(pAd, 0x4244, 0x98000000);
+					MAC_IO_READ32(pAd, 0x4244, &Value);
+					DBGPRINT(RT_DEBUG_OFF, ("mac 4244[0x98000000]=0x%x\n",Value));
+					break;				
+				default:
+					DBGPRINT(RT_DEBUG_OFF, ("wrong idx\n"));
+					break;
+			}
+			
+	return TRUE;
+}
 INT SetPSEWatchDog_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
 {
 	UINT32 Dbg;
@@ -1953,6 +2055,49 @@ INT SetPSEWatchDog_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
 	return TRUE;
 }
 #endif
+UINT32 APCheckBcnQ = 3;
+
+INT Set_BcnCheck_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
+{
+	UINT32 Dbg;
+
+    Dbg = simple_strtol(arg, 0, 10);
+
+	if (Dbg > 0)
+	{
+		APCheckBcnQ = Dbg;
+		diag_printf("set APCheckBcnQ=>%d\n",Dbg);
+	}
+	else
+	{
+		APCheckBcnQ = 5;
+		diag_printf("set APCheckBcnQ=>default 5\n");
+	}
+
+	return TRUE;
+}
+
+UINT32 MemDumpLen = 32;
+
+INT Set_MemDumpLen_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
+{
+	UINT32 Dbg;
+
+    Dbg = simple_strtol(arg, 0, 10);
+
+	if (Dbg > 0)
+	{
+		MemDumpLen = Dbg;
+		diag_printf("set MemDumpLen=>%d bytes\n",Dbg);
+	}
+	else
+	{
+		MemDumpLen = 32;
+		diag_printf("set MemDumpLen=>default 32 bytes\n");
+	}
+
+	return TRUE;
+}
 INT SetPsmWatchDog_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
 {
 	UINT32 val = 0;
@@ -2562,6 +2707,42 @@ INT SetSKUEnable_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
 	}
 
 	AsicSwitchChannel(pAd, pAd->CommonCfg.Channel, FALSE);
+	return TRUE;
+}
+#endif /* SINGLE_SKU_V2 */
+#ifdef SMART_CARRIER_SENSE_SUPPORT
+INT SetSCSEnable_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
+{
+	UINT32 value;
+	
+	value = simple_strtol(arg, 0, 10);
+	
+	if (value > 500)
+	{
+		pAd->SCSCtrl.SCSThreshold= value;
+		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("==>%s (Traffice Threshold=%d)\n", __FUNCTION__, value));
+	}
+	else
+	{
+		if (value == 1)
+		{
+			pAd->SCSCtrl.SCSEnable= SCS_ENABLE;
+			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("==>%s (ON)\n", __FUNCTION__));
+		}
+		else if (value == 0)
+		{
+			pAd->SCSCtrl.SCSEnable= SCS_DISABLE;
+			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("==>%s (OFF)\n", __FUNCTION__));
+			/* Restore to default */
+			RTMP_IO_WRITE32(pAd, CR_AGC_0, pAd->SCSCtrl.CR_AGC_0_default);
+			RTMP_IO_WRITE32(pAd, CR_AGC_0_RX1, pAd->SCSCtrl.CR_AGC_0_default);
+			RTMP_IO_WRITE32(pAd, CR_AGC_3, pAd->SCSCtrl.CR_AGC_3_default);
+			RTMP_IO_WRITE32(pAd, CR_AGC_3_RX1, pAd->SCSCtrl.CR_AGC_3_default);
+			pAd->SCSCtrl.SCSStatus = SCS_STATUS_DEFAULT;
+		}
+		else
+			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("==>%s (Unknow value = %d)\n", __FUNCTION__, value));
+	}
 	
 	return TRUE;
 }
@@ -2576,6 +2757,7 @@ INT Set_ed_chk_proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
 	DBGPRINT(RT_DEBUG_OFF, ("%s()::ed_chk=%d\n", 
 		__FUNCTION__, ed_chk));
 
+	pAd->ed_chk = ed_chk;
 	if (ed_chk != 0)
 		RTMP_CHIP_ASIC_SET_EDCCA(pAd, TRUE);
 	else
@@ -2584,5 +2766,331 @@ INT Set_ed_chk_proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
 	return TRUE;
 }
 
+INT ed_status_read(RTMP_ADAPTER *pAd)
+{
+	UINT32 period_us = pAd->ed_chk_period * 1000;
+	ULONG irqflag=0;
+	INT percent;
+
+	UINT32 ch_idle_stat=0, ch_busy_stat=0, ed_stat=0, rssi_stat=0;
+	INT32 WBRssi0, WBRssi1, RefWBRssi;
+	
+	RTMP_IO_READ32(pAd, 0x2c050, &ed_stat);
+
+	RTMP_IRQ_LOCK(&pAd->irq_lock, irqflag);
+	
+	pAd->ch_idle_stat[pAd->ed_stat_lidx] = ch_idle_stat;
+	pAd->ch_busy_stat[pAd->ed_stat_lidx] = ch_busy_stat;	
+	pAd->ed_stat[pAd->ed_stat_lidx] = ed_stat;
+	NdisGetSystemUpTime(&pAd->chk_time[pAd->ed_stat_lidx]);
+
+	RTMP_IO_READ32(pAd,RO_AGC_DEBUG_2,&rssi_stat);
+	
+	//IBRssi0 = (rssi_stat&0xFF000000)>>24;
+	WBRssi0 = (rssi_stat&0x00FF0000)>>16;
+	//IBRssi1 = (rssi_stat&0x0000FF00)>>8;
+	WBRssi1 = (rssi_stat&0x000000FF);
+
+	if(WBRssi0>=128)
+		WBRssi0-=256;	
+
+	if(WBRssi1>=128)
+		WBRssi1-=256;
+
+	RefWBRssi = max(WBRssi0,WBRssi1);
+	pAd->rssi_stat[pAd->ed_stat_lidx] = RefWBRssi;
+	if(RefWBRssi >= -40 && pAd->ed_big_rssi_count < pAd->ed_block_tx_threshold)
+		pAd->ed_big_rssi_count++;
+	else if(pAd->ed_big_rssi_count > 0)
+		pAd->ed_big_rssi_count--;
+	
+	pAd->ed_big_rssi_stat[pAd->ed_stat_lidx] = pAd->ed_big_rssi_count * 100 / pAd->ed_block_tx_threshold;
+	
+	if ((pAd->ed_threshold > 0) && (period_us > 0) && (pAd->ed_block_tx_threshold > 0)) {
+		percent = (pAd->ed_stat[pAd->ed_stat_lidx] * 100 ) / period_us;
+		if (percent > 100)
+			percent = 100;
+
+		if (percent > pAd->ed_threshold) 
+		{
+			pAd->ed_trigger_cnt++;
+			pAd->ed_silent_cnt = 0;
+		}
+		else		
+		{
+			pAd->ed_trigger_cnt = 0;
+			pAd->ed_silent_cnt++;
+		}
+				
+		if(pAd->ed_debug)
+		{
+			DBGPRINT(RT_DEBUG_ERROR, ("@@@ %s: pAd->ed_trigger_cnt=%d,	pAd->ed_silent_cnt=%u, percent=%d !!\n", 
+				__FUNCTION__, pAd->ed_trigger_cnt, pAd->ed_silent_cnt
+			,  percent));
+		}
+	}
+	pAd->ed_trigger_stat[pAd->ed_stat_lidx] = pAd->ed_trigger_cnt;
+	pAd->ed_silent_stat[pAd->ed_stat_lidx] = pAd->ed_silent_cnt;
+
+	
+	INC_RING_INDEX(pAd->ed_stat_lidx, ED_STAT_CNT);
+	//pAd->false_cca_stat[pAd->ed_stat_lidx] = 0;
+	if (pAd->ed_stat_sidx == pAd->ed_stat_lidx) {
+		INC_RING_INDEX(pAd->ed_stat_sidx, ED_STAT_CNT);
+	}	
+	RTMP_IRQ_UNLOCK(&pAd->irq_lock, irqflag);
+
+	if(pAd->ed_chk != FALSE)
+	{
+		UINT32 macVal = 0, macVal2 = 0;
+
+		RTMP_IO_READ32(pAd, WF_PHY_BASE + 0x0634, &macVal2);
+		if (pAd->ed_trigger_cnt > pAd->ed_block_tx_threshold || pAd->ed_big_rssi_stat[pAd->ed_stat_lidx] < 50) {
+			//EDCCA CERT
+			if(pAd->ed_threshold_strict != TRUE)
+			{
+				pAd->ed_threshold_strict = TRUE;
+				macVal = 0xD7C87D10;  		
+				RTMP_IO_WRITE32(pAd, WF_PHY_BASE + 0x0618, macVal);
+
+				macVal2 &= 0xFFFFFFFE;
+				RTMP_IO_WRITE32(pAd, WF_PHY_BASE + 0x0634, macVal2);
+				DBGPRINT(RT_DEBUG_WARN, ("\n====\n@@@ %s: EDCCA TH - H\npAd->ed_trigger_cnt : %d > %d ||  pAd->ed_big_rssi_stat : %d < 50\n====\n"
+				,__FUNCTION__,pAd->ed_trigger_cnt,pAd->ed_block_tx_threshold,pAd->ed_big_rssi_stat[pAd->ed_stat_lidx]));
+			}
+		}
+
+		if (pAd->ed_silent_cnt > pAd->ed_block_tx_threshold && pAd->ed_big_rssi_stat[pAd->ed_stat_lidx] >= 50) {
+			//EDCCA USER
+			if(pAd->ed_threshold_strict != FALSE)
+			{
+				pAd->ed_threshold_strict = FALSE;
+				macVal = 0xD7C87D0F;  
+				RTMP_IO_WRITE32(pAd, WF_PHY_BASE + 0x0618, macVal);
+
+				macVal2 |= 0x1;
+				RTMP_IO_WRITE32(pAd, WF_PHY_BASE + 0x0634, macVal2);
+				DBGPRINT(RT_DEBUG_WARN, ("\n====\n@@@ %s: EDCCA TH - L\npAd->ed_silent_cnt : %d > %d && pAd->ed_big_rssi_stat : %d >= 50\n====\n"
+				,__FUNCTION__,pAd->ed_silent_cnt,pAd->ed_block_tx_threshold,pAd->ed_big_rssi_stat[pAd->ed_stat_lidx]));
+			}
+		}
+	}
+
+
+	return TRUE;
+}
+
+//this function will be called in multi entry
+INT ed_monitor_exit(RTMP_ADAPTER *pAd)
+{
+	ULONG irqflag=0;
+
+	RTMP_IRQ_LOCK(&pAd->irq_lock, irqflag);
+	DBGPRINT(RT_DEBUG_OFF, ("@@@ %s : ===>\n", __FUNCTION__));
+	
+#ifdef ED_SMART
+	RTMPCancelTimer(&pAd->ed_timer, &cancelled);
+#endif //ED_SMART
+
+	NdisZeroMemory(&pAd->ed_stat[0], sizeof(pAd->ed_stat));
+	NdisZeroMemory(&pAd->ch_idle_stat[0], sizeof(pAd->ch_idle_stat));
+	NdisZeroMemory(&pAd->ch_busy_stat[0], sizeof(pAd->ch_busy_stat));
+	NdisZeroMemory(&pAd->chk_time[0], sizeof(pAd->chk_time));
+	NdisZeroMemory(&pAd->ed_trigger_stat[0], sizeof(pAd->ed_trigger_stat));
+	NdisZeroMemory(&pAd->ed_silent_stat[0], sizeof(pAd->ed_silent_stat));
+	NdisZeroMemory(&pAd->rssi_stat[0], sizeof(pAd->rssi_stat));
+	
+	pAd->ed_stat_lidx = pAd->ed_stat_sidx = 0;
+	pAd->ed_trigger_cnt = 0;
+	pAd->ed_silent_cnt = 0;
+	//ignore fisrt time's incorrect false cca 
+	pAd->ed_false_cca_cnt = 0;
+
+	pAd->ed_tx_stoped = FALSE;
+	pAd->ed_threshold_strict = FALSE;
+	//also clear top level flags
+	pAd->ed_chk = FALSE;
+	DBGPRINT(RT_DEBUG_OFF, ("@@@ %s : <===\n", __FUNCTION__));
+	RTMP_IRQ_UNLOCK(&pAd->irq_lock, irqflag);
+
+	RTMP_CHIP_ASIC_SET_EDCCA(pAd,FALSE);
+	
+	return TRUE;
+}
+
+
+// open & muanl cmd will call
+INT ed_monitor_init(RTMP_ADAPTER *pAd)
+{
+	ULONG irqflag=0;
+
+	RTMP_IRQ_LOCK(&pAd->irq_lock, irqflag);
+	DBGPRINT(RT_DEBUG_OFF, ("@@@ %s : ===>\n", __FUNCTION__));
+	NdisZeroMemory(&pAd->ed_stat[0], sizeof(pAd->ed_stat));
+	NdisZeroMemory(&pAd->ch_idle_stat[0], sizeof(pAd->ch_idle_stat));
+	NdisZeroMemory(&pAd->ch_busy_stat[0], sizeof(pAd->ch_busy_stat));
+	NdisZeroMemory(&pAd->chk_time[0], sizeof(pAd->chk_time));
+	NdisZeroMemory(&pAd->ed_trigger_stat[0], sizeof(pAd->ed_trigger_stat));
+	NdisZeroMemory(&pAd->ed_silent_stat[0], sizeof(pAd->ed_silent_stat));
+	NdisZeroMemory(&pAd->rssi_stat[0], sizeof(pAd->rssi_stat));
+	
+	pAd->ed_stat_lidx = pAd->ed_stat_sidx = 0;
+	pAd->ed_trigger_cnt = 0;
+	pAd->ed_silent_cnt = 0;
+
+	// ignore fisrt time's incorrect false cca
+	pAd->ed_false_cca_cnt = 0;
+	
+	pAd->ed_tx_stoped = FALSE;
+	pAd->ed_threshold_strict = FALSE;
+	
+	//also set  top level flags
+	if(pAd->ed_chk == 0)	//turn on if disabled , otherwise decide by profile
+		pAd->ed_chk = 1; 
+
+	DBGPRINT(RT_DEBUG_OFF, ("@@@ %s : <===\n", __FUNCTION__));
+	RTMP_IRQ_UNLOCK(&pAd->irq_lock, irqflag);
+
+	RTMP_CHIP_ASIC_SET_EDCCA(pAd,TRUE);
+	return TRUE;
+}
+
+INT show_ed_stat_proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
+{
+	unsigned long irqflags=0;
+	UINT32 ed_stat[ED_STAT_CNT], ed_big_rssi_stat[ED_STAT_CNT], rssi_stat[ED_STAT_CNT];
+	UINT32 silent_stat[ED_STAT_CNT], trigger_stat[ED_STAT_CNT]; 
+	UINT32 busy_stat[ED_STAT_CNT], idle_stat[ED_STAT_CNT];
+	ULONG chk_time[ED_STAT_CNT];
+	INT period_us;
+	UCHAR start, end, idx;
+		
+	RTMP_IRQ_LOCK(&pAd->irq_lock, irqflags);
+	start = pAd->ed_stat_sidx;
+	end = pAd->ed_stat_lidx;
+	NdisMoveMemory(&ed_stat[0], &pAd->ed_stat[0], sizeof(ed_stat));
+	NdisMoveMemory(&ed_big_rssi_stat[0], &pAd->ed_big_rssi_stat[0], sizeof(ed_big_rssi_stat));
+	NdisMoveMemory(&busy_stat[0], &pAd->ch_busy_stat[0], sizeof(busy_stat));
+	NdisMoveMemory(&idle_stat[0], &pAd->ch_idle_stat[0], sizeof(idle_stat));
+	NdisMoveMemory(&chk_time[0], &pAd->chk_time[0], sizeof(chk_time));
+	NdisMoveMemory(&trigger_stat[0], &pAd->ed_trigger_stat[0], sizeof(
+trigger_stat));
+	NdisMoveMemory(&silent_stat[0], &pAd->ed_silent_stat[0], sizeof(silent_stat));
+	NdisMoveMemory(&rssi_stat[0], &pAd->rssi_stat[0], sizeof(
+rssi_stat));
+	RTMP_IRQ_UNLOCK(&pAd->irq_lock, irqflags);
+
+#ifdef CONFIG_AP_SUPPORT
+	DBGPRINT(RT_DEBUG_OFF, ("Dump ChannelBusy Counts, ed_chk=%u, false_cca_threshold=%u, ChkPeriod=%dms, ED_Threshold=%d%%, HitCntForBlockTx=%d\n", 
+	pAd->ed_chk, pAd->ed_false_cca_threshold, pAd->ed_chk_period, pAd->ed_threshold, pAd->ed_block_tx_threshold));
+#endif
+
+	period_us = pAd->ed_chk_period * 1000;
+	DBGPRINT(RT_DEBUG_OFF, ("TimeSlot:"));
+	idx = start;
+	do {
+		DBGPRINT(RT_DEBUG_OFF, ("%ld  ", chk_time[idx]));
+		INC_RING_INDEX(idx, ED_STAT_CNT);
+	} while (idx != end);
+	DBGPRINT(RT_DEBUG_OFF, ("\n"));
+
+	DBGPRINT(RT_DEBUG_OFF, ("Dump ED_STAT\n"));
+	DBGPRINT(RT_DEBUG_OFF, ("RawCnt:"));
+	idx = start;
+	do {
+		DBGPRINT(RT_DEBUG_OFF, ("%d  ", ed_stat[idx]));
+		INC_RING_INDEX(idx, ED_STAT_CNT);
+	} while (idx != end);
+	DBGPRINT(RT_DEBUG_OFF, ("\n"));
+
+	DBGPRINT(RT_DEBUG_OFF, ("Percent:"));
+	idx = start;
+	do {
+		DBGPRINT(RT_DEBUG_OFF, ("\t%d", (ed_stat[idx] * 100) / period_us));
+		INC_RING_INDEX(idx, ED_STAT_CNT);
+	} while (idx != end);
+	DBGPRINT(RT_DEBUG_OFF, ("\n"));
+
+	DBGPRINT(RT_DEBUG_OFF, ("RSSI:"));
+	idx = start;
+	do {
+		DBGPRINT(RT_DEBUG_OFF, ("\t%d", rssi_stat[idx]));
+		INC_RING_INDEX(idx, ED_STAT_CNT);
+	} while (idx != end);
+	DBGPRINT(RT_DEBUG_OFF, ("\n"));
+	
+	DBGPRINT(RT_DEBUG_OFF, ("TriggerCnt:"));
+	idx = start;
+	do {
+		DBGPRINT(RT_DEBUG_OFF, ("\t%d", trigger_stat[idx]));
+		INC_RING_INDEX(idx, ED_STAT_CNT);
+	} while (idx != end);
+
+	DBGPRINT(RT_DEBUG_OFF, ("SilentCnt:"));
+	idx = start;
+	do {
+		DBGPRINT(RT_DEBUG_OFF, ("\t%d", silent_stat[idx]));
+		INC_RING_INDEX(idx, ED_STAT_CNT);
+	} while (idx != end);
+	DBGPRINT(RT_DEBUG_OFF, ("\n==========================\n"));
+
+
+	DBGPRINT(RT_DEBUG_OFF, ("BIG WBRSSI %% - Over -40dBm \n"));
+	/*DBGPRINT(RT_DEBUG_OFF, ("RawCnt:"));
+	idx = start;
+	do {
+		DBGPRINT(RT_DEBUG_OFF, ("%d  ", ed_2nd_stat[idx]));
+		INC_RING_INDEX(idx, ED_STAT_CNT);
+	} while (idx != end);
+	DBGPRINT(RT_DEBUG_OFF, ("\n"));
+	*/
+	DBGPRINT(RT_DEBUG_OFF, ("Percent:"));
+	idx = start;
+	do {
+		DBGPRINT(RT_DEBUG_OFF, ("\t%d", ed_big_rssi_stat[idx]));
+		INC_RING_INDEX(idx, ED_STAT_CNT);
+	} while (idx != end);
+	DBGPRINT(RT_DEBUG_OFF, ("\n"));
+	DBGPRINT(RT_DEBUG_OFF, ("\n==========================\n"));
+
+
+	DBGPRINT(RT_DEBUG_OFF, ("Dump CH_IDLE_STAT\n"));
+	DBGPRINT(RT_DEBUG_OFF, ("RawCnt:"));
+	idx = start;
+	do {
+		DBGPRINT(RT_DEBUG_OFF, ("%d  ", idle_stat[idx]));
+		INC_RING_INDEX(idx, ED_STAT_CNT);
+	} while (idx != end);
+	DBGPRINT(RT_DEBUG_OFF, ("\n"));
+
+	DBGPRINT(RT_DEBUG_OFF, ("Percent:"));
+	idx = start;
+	do {
+		DBGPRINT(RT_DEBUG_OFF, ("\t%d", (idle_stat[idx] *100)/ period_us));
+		INC_RING_INDEX(idx, ED_STAT_CNT);
+	} while (idx != end);
+	DBGPRINT(RT_DEBUG_OFF, ("\n"));
+	DBGPRINT(RT_DEBUG_OFF, ("\n==========================\n"));	
+
+	DBGPRINT(RT_DEBUG_OFF, ("Dump CH_BUSY_STAT\n"));
+	DBGPRINT(RT_DEBUG_OFF, ("RawCnt:"));
+	idx = start;
+	do {
+		DBGPRINT(RT_DEBUG_OFF, ("%d  ", busy_stat[idx]));
+		INC_RING_INDEX(idx, ED_STAT_CNT);
+	} while (idx != end);
+	DBGPRINT(RT_DEBUG_OFF, ("\n"));
+
+	DBGPRINT(RT_DEBUG_OFF, ("Percent:"));
+	idx = start;
+	do {
+		DBGPRINT(RT_DEBUG_OFF, ("\t%d", (busy_stat[idx] *100 )/ period_us));
+		INC_RING_INDEX(idx, ED_STAT_CNT);
+	} while (idx != end);
+	DBGPRINT(RT_DEBUG_OFF, ("\n"));
+	DBGPRINT(RT_DEBUG_OFF, ("\n==========================\n"));
+
+	return TRUE;
+}
 
 

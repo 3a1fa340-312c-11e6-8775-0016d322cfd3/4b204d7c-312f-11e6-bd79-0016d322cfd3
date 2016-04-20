@@ -181,6 +181,7 @@ enum EXT_CMD_TYPE {
 	EXT_CMD_GET_THEMAL_SENSOR=0x2C,
 	EXT_CMD_TMR_CAL = 0x2D,
     EXT_CMD_OBTW = 0x2F,
+    EXT_CMD_LOAD_DPD_FROM_FLASH = 0x50,
 };
 
 enum
@@ -941,7 +942,8 @@ typedef struct _EXT_EVENT_TMR_CAL_RESULT_T
     UINT32      u4TmrCPCnt;//cp cnt * 25 already.
     UINT32      u4TmrResult;
     UINT32      u4TmrTxFE_5;
-    UINT32      u4Reserved;
+    UINT8       ucTMRPhase;
+    UINT8       aucReserved[3];
 } EXT_EVENT_TMR_CAL_RESULT_T, *P_EXT_EVENT_TMR_CAL_RESULT_T;
 
 typedef struct _EXT_CMD_PWR_MGT_BIT_T
@@ -1006,7 +1008,11 @@ typedef struct _EXT_CMD_TMR_CAL_T {
 	UINT8 aucReserve[3];
 } EXT_CMD_TMR_CAL_T, *P_EXT_CMD_TMR_CAL_T;
 
+#if defined(__ECOS) &&  defined(CONFIG_NET_CLUSTER_SIZE_2048)
+#define MT_UPLOAD_FW_UNIT (1024 * 2)
+#else
 #define MT_UPLOAD_FW_UNIT (1024 * 4)
+#endif
 
 
 #define CMD_EDCA_AIFS_BIT 		1 << 0
@@ -1047,6 +1053,14 @@ typedef struct _CMD_SLOT_TIME_SET_T
     UINT16  u2Eifs;
     UINT16  u2Reserve2;
 }CMD_SLOT_TIME_SET_T,*P_CMD_SLOT_TIME_SET_T;
+typedef struct  _EXT_CMD_ID_LOAD_DPD_T
+{
+    UINT8        ucReload; // 0: No reload, 1: do reload
+    UINT8        ucChannel;
+    UINT8        aucReserve[2];
+    UINT32       au4WF0CR[17];
+    UINT32       au4WF1CR[17];
+} EXT_CMD_ID_LOAD_DPD_T, *P_EXT_CMD_ID_LOAD_DPD_T;
 
 
 INT32 CmdExtPwrMgtBitWifi(struct _RTMP_ADAPTER *pAd, UINT8 ucWlanIdx, UINT8 ucPwrMgtBit);

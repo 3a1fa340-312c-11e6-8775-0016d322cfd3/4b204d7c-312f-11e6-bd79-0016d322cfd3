@@ -1153,6 +1153,9 @@ VOID MacTableMaintenance(RTMP_ADAPTER *pAd)
 	startWcid = 2;
 #endif /* RT_CFG80211_P2P_CONCURRENT_DEVICE */
 
+#ifdef SMART_CARRIER_SENSE_SUPPORT
+	pAd->SCSCtrl.SCSMinRssi = 0; /* (Reset)The minimum RSSI of STA */
+#endif /* SMART_CARRIER_SENSE_SUPPORT */
 	for (i = startWcid; i < MAX_LEN_OF_MAC_TABLE; i++)
 	{
 		MAC_TABLE_ENTRY *pEntry = &pMacTable->Content[i];
@@ -1416,6 +1419,14 @@ VOID MacTableMaintenance(RTMP_ADAPTER *pAd)
 					avgRssi));
 
 		}
+#ifdef SMART_CARRIER_SENSE_SUPPORT
+		if (pAd->SCSCtrl.SCSEnable == SCS_ENABLE)
+		{
+			CHAR tmpRssi = RTMPMinRssi(pAd, pEntry->RssiSample.AvgRssi[0], pEntry->RssiSample.AvgRssi[1], pEntry->RssiSample.AvgRssi[2]);
+			if (tmpRssi < 	pAd->SCSCtrl.SCSMinRssi )
+				pAd->SCSCtrl.SCSMinRssi = tmpRssi;
+		}
+#endif /* SMART_CARRIER_SENSE_SUPPORT */
 
 		if (bDisconnectSta)
 		{

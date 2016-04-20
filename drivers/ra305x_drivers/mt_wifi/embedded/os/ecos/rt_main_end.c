@@ -211,7 +211,6 @@ int rt28xx_packet_xmit(void *pPacketSrc)
 		RELEASE_NDIS_PACKET(pAd, pPacket, NDIS_STATUS_FAILURE);
 		goto done;
 	}
-    diag_printf("termy say, %s\n", __FUNCTION__);
 
 	wdev_tx_pkts((NDIS_HANDLE)pAd, (PPNDIS_PACKET)&pPacket, 1, wdev);
 done:

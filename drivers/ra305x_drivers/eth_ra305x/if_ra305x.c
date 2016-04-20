@@ -188,6 +188,7 @@ NETDEVTAB_ENTRY(ra305x_eth_netdev0,
 	"ra305x_" CYGDAT_DEVS_ETH_MIPS_RA305X_ETH0_NAME,
 	if_ra305x_init,
 	&ra305x_eth_sc0);
+
 #endif	/*  CYGPKG_DEVS_ETH_MIPS_RA305X_ETH0  */
 
 #if 0
@@ -2090,6 +2091,7 @@ static void ra305x_txint(txctrl_t *ptxc)
  *=============================================================*/
 static bool if_ra305x_init(struct cyg_netdevtab_entry *pnde)
 {
+#if 0
 	struct eth_drv_sc *sc;
 	if_ra305x_t *pifra305x;
 	int unit;
@@ -2112,7 +2114,7 @@ static bool if_ra305x_init(struct cyg_netdevtab_entry *pnde)
     // Read MAC value from flash
 	CFG_get_mac(unit, pifra305x->macaddr);
 #endif // BRANCH_ADV //
-	
+
 	pifra305x->sc = sc;
 	if (ra305x_addifp(unit, pifra305x) < 0)
 		goto err_out;
@@ -2120,7 +2122,7 @@ static bool if_ra305x_init(struct cyg_netdevtab_entry *pnde)
 	if (eth_restart== 0)
 	(sc->funs->eth_drv->init)(sc, pifra305x->macaddr);
 	return true;
-	
+#endif	
 err_out:
 	return false;	
 }

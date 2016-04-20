@@ -82,6 +82,15 @@ NDIS_STATUS RTMPAllocateNdisPacket(
 	IN	PUCHAR					pData,
 	IN	UINT					DataLen);
 
+#ifdef __ECOS
+NDIS_STATUS RTMPAllocateNdisPacket2(
+	IN	VOID					*pReserved,
+	OUT PNDIS_PACKET			*ppPacket,
+	IN	PUCHAR					pHeader,
+	IN	UINT					HeaderLen,
+	IN	PUCHAR					pData,
+	IN	UINT					DataLen);
+#endif
 VOID RTMPFreeNdisPacket(VOID *pReserved, PNDIS_PACKET pPacket);
 
 void RTMP_QueryPacketInfo(
@@ -282,6 +291,12 @@ PNET_DEV RtmpOSNetDevCreate(
 
 BOOLEAN RtmpOSNetDevIsUp(VOID *pDev);
 
+#ifdef __ECOS
+#ifdef CONFIG_SNIFFER_SUPPORT
+VOID RTMP_SnifferPktInput(
+	IN PNDIS_PACKET pPacket);
+#endif
+#endif
 unsigned char *RtmpOsNetDevGetPhyAddr(VOID *pDev);
 
 VOID RtmpOsNetQueueStart(PNET_DEV pDev);

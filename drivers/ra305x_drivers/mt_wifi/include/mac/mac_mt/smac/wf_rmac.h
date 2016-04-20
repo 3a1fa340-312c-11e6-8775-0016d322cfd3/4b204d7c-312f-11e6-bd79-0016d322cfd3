@@ -191,11 +191,8 @@ typedef union _RMAC_MORE_STRUC {
 #define RMAC_PHY_DELAY	(WF_RMAC_BASE + 0x0a8)
 #define RMAC_TMR_PA     (WF_RMAC_BASE + 0x0e0)
 
-typedef enum _TMR_TYPE {
-	TMR_DISABLE = 0,
-	TMR_INITIATOR,
-	TMR_RESPONDER
-} TMR_TYPE, *P_TMR_TYPE;
+#define RMAC_TMR_ENABLE     BIT31
+#define RMAC_TMR_ROLE       BIT30
 #endif /* __WF_RMAC_H__*/
 
 

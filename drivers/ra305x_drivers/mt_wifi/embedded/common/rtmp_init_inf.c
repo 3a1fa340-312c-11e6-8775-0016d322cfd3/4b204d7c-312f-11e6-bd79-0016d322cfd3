@@ -264,6 +264,10 @@ int rt28xx_init(VOID *pAdSrc, RTMP_STRING *pDefaultMac, RTMP_STRING *pHostName)
 	RTMP_CLEAR_FLAGS(pAd);
 
 
+#ifdef WDS_SUPPORT
+
+	NdisAllocateSpinLock(pAd, &pAd->WdsTabLock);
+#endif
 	Status = RtmpMgmtTaskInit(pAd);
 	if (Status != NDIS_STATUS_SUCCESS)
 		goto err3;
@@ -308,6 +312,12 @@ int rt28xx_init(VOID *pAdSrc, RTMP_STRING *pDefaultMac, RTMP_STRING *pHostName)
 
 	RTMP_NET_DEV_NICKNAME_INIT(pAd);
 
+#ifdef SMART_CARRIER_SENSE_SUPPORT
+	BssTableInit(&pAd->SCSCtrl.SCSBssTab);
+	/* Backup CR_AGC_0 & CR_AGC_3 value */
+	RTMP_IO_READ32(pAd, CR_AGC_0, &pAd->SCSCtrl.CR_AGC_0_default);
+	RTMP_IO_READ32(pAd, CR_AGC_3, &pAd->SCSCtrl.CR_AGC_3_default);
+#endif /* SMART_CARRIER_SENSE_SUPPORT */
 	/* After operation mode is finialized, init the AP or STA mode */
 #ifdef CONFIG_AP_SUPPORT
 	IF_DEV_CONFIG_OPMODE_ON_AP(pAd)
@@ -547,6 +557,9 @@ int rt28xx_init(VOID *pAdSrc, RTMP_STRING *pDefaultMac, RTMP_STRING *pHostName)
 #ifdef DOT11_N_SUPPORT
 #endif /* DOT11_N_SUPPORT */
 
+#ifdef RT305x
+	RTMP_CHIP_SPECIFIC(pAd, RT305x_INITIALIZATION, NULL, 0);
+#endif /* RT305x */
 
 
 	DBGPRINT_S(("<==== rt28xx_init, Status=%x\n", Status));
@@ -767,7 +780,19 @@ VOID RTMPDrvOpen(VOID *pAdSrc)
 
 	
 	/* Only turn EDCCA on in CE region */
-	RTMP_CHIP_ASIC_SET_EDCCA(pAd, GetEDCCASupport(pAd));
+	{
+		BOOLEAN bEdcca = FALSE;
+
+		bEdcca = GetEDCCASupport(pAd);
+
+		if (bEdcca)
+		{
+			//pAd->ed_current_region_is_CE = TRUE;
+			ed_monitor_init(pAd);		
+		}
+		else
+			ed_monitor_exit(pAd);
+	}
 	
 }
 

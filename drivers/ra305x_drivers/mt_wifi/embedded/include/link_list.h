@@ -98,19 +98,19 @@ static inline RT_LIST_ENTRY *delEntryList(LIST_HEADER *pList, RT_LIST_ENTRY *pEn
 }
 
 
-typedef struct _DL_LIST
+typedef struct _MT_DL_LIST
 {
-	struct _DL_LIST *Next;
-	struct _DL_LIST *Prev;
-}DL_LIST, *PDL_LIST;
+	struct _MT_DL_LIST *Next;
+	struct _MT_DL_LIST *Prev;
+}MT_DL_LIST, *PMT_DL_LIST;
 
-static inline void DlListInit(struct _DL_LIST *List)
+static inline void DlListInit(struct _MT_DL_LIST *List)
 {
 	List->Next = List;
 	List->Prev = List;
 }
 
-static inline void DlListAdd(struct _DL_LIST *List, struct _DL_LIST *Item)
+static inline void DlListAdd(struct _MT_DL_LIST *List, struct _MT_DL_LIST *Item)
 {
 	Item->Next = List->Next;
 	Item->Prev = List;
@@ -118,12 +118,12 @@ static inline void DlListAdd(struct _DL_LIST *List, struct _DL_LIST *Item)
 	List->Next = Item; 	
 }
 
-static inline void DlListAddTail(struct _DL_LIST *List, struct _DL_LIST *Item)
+static inline void DlListAddTail(struct _MT_DL_LIST *List, struct _MT_DL_LIST *Item)
 {
 	DlListAdd(List->Prev, Item);
 }
 
-static inline void DlListDel(struct _DL_LIST *Item)
+static inline void DlListDel(struct _MT_DL_LIST *Item)
 {
 	Item->Next->Prev = Item->Prev;
 	Item->Prev->Next = Item->Next;
@@ -131,14 +131,14 @@ static inline void DlListDel(struct _DL_LIST *Item)
 	Item->Prev = NULL;
 }
 
-static inline int DlListEmpty(struct _DL_LIST *List)
+static inline int DlListEmpty(struct _MT_DL_LIST *List)
 {
 	return List->Next == List;
 }
 
-static inline unsigned int DlListLen(struct _DL_LIST *List)
+static inline unsigned int DlListLen(struct _MT_DL_LIST *List)
 {
-	struct _DL_LIST *Item;
+	struct _MT_DL_LIST *Item;
 	unsigned int Count = 0;
 	
 	for (Item = List->Next; Item != List; Item = Item->Next)

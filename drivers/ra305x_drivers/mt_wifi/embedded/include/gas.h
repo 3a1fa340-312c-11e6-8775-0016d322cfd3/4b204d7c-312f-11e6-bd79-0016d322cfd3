@@ -62,14 +62,14 @@ enum GAS_EVENT {
 
 typedef struct _GAS_QUERY_RSP_FRAGMENT
 {
-	DL_LIST List;
+	MT_DL_LIST List;
 	UCHAR GASRspFragID;
 	UINT16 FragQueryRspLen;
 	UCHAR *FragQueryRsp;
 }GAS_QUERY_RSP_FRAGMENT, *PGAS_QUERY_RSP_FRAGMENT;
 
 typedef struct _GAS_PEER_ENTRY {
-	DL_LIST List;
+	MT_DL_LIST List;
 	enum GAS_STATE CurrentState;
 	UCHAR ControlIndex;
 	UCHAR PeerMACAddr[MAC_ADDR_LEN];
@@ -94,11 +94,11 @@ typedef struct _GAS_PEER_ENTRY {
 	UINT32 AllocResource;
 	UINT32 FreeResource;
 	UCHAR QueryNum;
-	DL_LIST GASQueryRspFragList;
+	MT_DL_LIST GASQueryRspFragList;
 }GAS_PEER_ENTRY, *PGAS_PEER_ENTRY;
 
 typedef struct _GAS_CTRL {
-	DL_LIST GASPeerList;
+	MT_DL_LIST GASPeerList;
 	NDIS_SPIN_LOCK GASPeerListLock;
 	UINT8 ExternalANQPServerTest;
 	UINT32 cb_delay; /* Come Back Delay */

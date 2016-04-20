@@ -60,6 +60,18 @@ VOID EnableAPMIMOPSv1(
 	UCHAR CentralChannel;
 
 
+#ifdef RT305x
+	UCHAR RFValue=0;
+		
+	RT30xxReadRFRegister(pAd, RF_R01, &RFValue);
+	RFValue &= 0x03;	//clear bit[7~2]
+	RFValue |= 0x3C; // default 2Tx 2Rx
+	// turn off tx1
+	RFValue &= ~(0x1 << 5);
+	// turn off rx1
+	RFValue &= ~(0x1 << 4);
+	// Turn off unused PA or LNA when only 1T or 1R
+#endif /* RT305x */
 
 	if(pAd->CommonCfg.Channel>14)
 		TxPinCfg=0x00050F05;
@@ -85,6 +97,9 @@ VOID EnableAPMIMOPSv1(
 		
 	RTMP_IO_WRITE32(pAd, TX_PIN_CFG, TxPinCfg);
 
+#ifdef RT305x
+	RT30xxWriteRFRegister(pAd, RF_R01, RFValue);
+#endif /* RT305x */
 	}
 	AsicSwitchChannel(pAd, CentralChannel, FALSE);
 
@@ -101,6 +116,13 @@ VOID DisableAPMIMOPSv1(
 	UINT32	Value=0;
 
 
+#ifdef RT305x
+	UCHAR 	RFValue=0;
+
+	RT30xxReadRFRegister(pAd, RF_R01, &RFValue);
+	RFValue &= 0x03;	//clear bit[7~2]
+	RFValue |= 0x3C; // default 2Tx 2Rx
+#endif /* RT305x */
 
 	if(pAd->CommonCfg.Channel>14)
 		TxPinCfg=0x00050F05;
@@ -143,6 +165,9 @@ VOID DisableAPMIMOPSv1(
 
 	RTMP_IO_WRITE32(pAd, TX_PIN_CFG, TxPinCfg);
 
+#ifdef RT305x
+	RT30xxWriteRFRegister(pAd, RF_R01, RFValue);
+#endif /* RT305x */
 
 	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_INFO, ("DisableAPMIMOPS, 305x/28xx reserve only one antenna\n"));
 }

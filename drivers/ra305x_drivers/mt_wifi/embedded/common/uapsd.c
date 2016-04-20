@@ -2418,6 +2418,12 @@ VOID UAPSD_TriggerFrameHandle(RTMP_ADAPTER *pAd, MAC_TABLE_ENTRY *pEntry, UCHAR 
 			Use management queue to tx QoS Null frame to avoid delay so
 			us_of_frame is not used.
 		*/
+#ifdef MT_PS
+		if (pEntry->i_psm == I_PSM_DISABLE)
+                {
+			MtSetIgnorePsm(pAd, pEntry, I_PSM_ENABLE);
+                }
+#endif /* MT_PS */
 		RtmpEnqueueNullFrame(pAd, pEntry->Addr, pEntry->CurrTxRate,
 							Aid, pEntry->func_tb_idx, TRUE, TRUE, UpOfFrame);
 

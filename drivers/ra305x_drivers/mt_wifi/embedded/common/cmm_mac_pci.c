@@ -2481,8 +2481,121 @@ VOID PSEResetAndRecovery(RTMP_ADAPTER *pAd)
 	if (Loop > 500) 
 	{		
 		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("%s: PSE Reset Fail(%x)\n", __FUNCTION__, Value));
+
+		/*Dump the PSE CRs*/
+		{
+			UINT32 RemapBase, RemapOffset;
+			UINT32 Value;
+			UINT32 RestoreValue;
+
+			{
+				DBGPRINT(RT_DEBUG_ERROR, ("%s: START ============== PSE CR dump ===================\n", __FUNCTION__));
+
+				RTMP_IO_READ32(pAd, 0x816c, &Value);
+				DBGPRINT(RT_DEBUG_ERROR, ("mac [0x816c] = 0x%08x\n", Value));
+				RTMP_IO_READ32(pAd, 0x8170, &Value);				
+				DBGPRINT(RT_DEBUG_ERROR, ("mac [0x8170] = 0x%08x\n", Value));				
+
+				RTMP_IO_READ32(pAd, MCU_PCIE_REMAP_2, &RestoreValue);
+				RemapBase = GET_REMAP_2_BASE(0x800c0070) << 19;
+				RemapOffset = GET_REMAP_2_OFFSET(0x800c0070);
+				RTMP_IO_READ32(pAd, 0x80000 + RemapOffset, &Value);
+				DBGPRINT(RT_DEBUG_ERROR, ("rw 3 : mac [0x800c0070] = 0x%08x\n", Value));
+
+				//RTMP_IO_READ32(pAd, MCU_PCIE_REMAP_2, &RestoreValue);
+				RemapBase = GET_REMAP_2_BASE(0x800c006c) << 19;
+				RemapOffset = GET_REMAP_2_OFFSET(0x800c006c);
+				RTMP_IO_WRITE32(pAd, MCU_PCIE_REMAP_2, RemapBase);
+
+				// write 3
+				RTMP_IO_WRITE32(pAd, 0x80000 + RemapOffset, 3);
+				RTMP_IO_READ32(pAd, 0x80000 + RemapOffset, &Value);
+				DBGPRINT(RT_DEBUG_ERROR, ("rw 3 : mac [0x800c006c] = 0x%08x\n", Value));
+				
+				// write 4
+				RTMP_IO_WRITE32(pAd, 0x80000 + RemapOffset, 4);
+				RTMP_IO_READ32(pAd, 0x80000 + RemapOffset, &Value);
+				DBGPRINT(RT_DEBUG_ERROR, ("rw 4 : mac [0x800c006c] = 0x%08x\n", Value));
+
+				// write 5
+				RTMP_IO_WRITE32(pAd, 0x80000 + RemapOffset, 5);
+				RTMP_IO_READ32(pAd, 0x80000 + RemapOffset, &Value);
+				DBGPRINT(RT_DEBUG_ERROR, ("rw 5 : mac [0x800c006c] = 0x%08x\n", Value));
+
+				// write 6
+				RTMP_IO_WRITE32(pAd, 0x80000 + RemapOffset, 6);
+				RTMP_IO_READ32(pAd, 0x80000 + RemapOffset, &Value);
+				DBGPRINT(RT_DEBUG_ERROR, ("rw 6 :mac [0x800c006c] = 0x%08x\n", Value));
+
+				// write 7
+				RTMP_IO_WRITE32(pAd, 0x80000 + RemapOffset, 7);
+				RTMP_IO_READ32(pAd, 0x80000 + RemapOffset, &Value);
+				DBGPRINT(RT_DEBUG_ERROR, ("rw 7 :mac [0x800c006c] = 0x%08x\n", Value));
+
+				// write 8
+				RTMP_IO_WRITE32(pAd, 0x80000 + RemapOffset, 8);
+				RTMP_IO_READ32(pAd, 0x80000 + RemapOffset, &Value);
+				DBGPRINT(RT_DEBUG_ERROR, ("rw 8 :mac [0x800c006c] = 0x%08x\n", Value));
+
+				// write 9
+				RTMP_IO_WRITE32(pAd, 0x80000 + RemapOffset, 9);
+				RTMP_IO_READ32(pAd, 0x80000 + RemapOffset, &Value);
+				DBGPRINT(RT_DEBUG_ERROR, ("rw 9 :mac [0x800c006c] = 0x%08x\n", Value));
+
+				// write a
+				RTMP_IO_WRITE32(pAd, 0x80000 + RemapOffset, 0xa);
+				RTMP_IO_READ32(pAd, 0x80000 + RemapOffset, &Value);
+				DBGPRINT(RT_DEBUG_ERROR, ("rw a :mac [0x800c006c] = 0x%08x\n", Value));
+
+				// write b
+				RTMP_IO_WRITE32(pAd, 0x80000 + RemapOffset, 0xb);
+				RTMP_IO_READ32(pAd, 0x80000 + RemapOffset, &Value);
+				DBGPRINT(RT_DEBUG_ERROR, ("rw b :mac [0x800c006c] = 0x%08x\n", Value));
+
+				// write c
+				RTMP_IO_WRITE32(pAd, 0x80000 + RemapOffset, 0xc);
+				RTMP_IO_READ32(pAd, 0x80000 + RemapOffset, &Value);
+				DBGPRINT(RT_DEBUG_ERROR, ("rw c :mac [0x800c006c] = 0x%08x\n", Value));
+
+				RTMP_IO_WRITE32(pAd, MCU_PCIE_REMAP_2, RestoreValue);
+				DBGPRINT(RT_DEBUG_ERROR, ("%s: END ============== PSE CR dump ===================\n", __FUNCTION__));
+				
+			}
+		}
+
+
+#ifdef DMA_RESET_SUPPORT
+		if (pAd->PSEResetFailRecover == FALSE)
+		{
+			pAd->PSEResetFailRecover = TRUE;
+			pAd->PSEResetFailRetryQuota = 3; // start to count down
+		}
+		else
+		{
+			if (pAd->PSEResetFailRetryQuota)
+				pAd->PSEResetFailRetryQuota --;
+
+			if (pAd->PSEResetFailRetryQuota == 0) // reach the quota
+			{
+				pAd->PSEResetFailRecover = FALSE;
+				DBGPRINT(RT_DEBUG_ERROR, ("%s: PSE Reset Retry Reach Quota!!\n", __FUNCTION__));
+			}
+		}
+#endif /* DMA_RESET_SUPPORT */
 		pAd->PSEResetFailCount++;
 	}
+#ifdef DMA_RESET_SUPPORT	
+	else //Reset Success
+	{
+		if (pAd->PSEResetFailRecover)
+		{
+			DBGPRINT(RT_DEBUG_ERROR, ("%s: PSE Reset Recover Back!!\n", __FUNCTION__));
+		}
+		
+		pAd->PSEResetFailRecover = FALSE;
+		pAd->PSEResetFailRetryQuota = 0;
+	}
+#endif /* DMA_RESET_SUPPORT */
 
 
 #ifdef RTMP_PCI_SUPPORT
@@ -2579,6 +2692,15 @@ VOID RT28xx_UpdateBeaconToAsic(
 	IF_DEV_CONFIG_OPMODE_ON_AP(pAd) {
 		bcn_buf = &pAd->ApCfg.MBSSID[apidx].bcn_buf;
 	}
+#endif /* CONFIG_AP_SUPPORT */
+
+#ifdef CONFIG_AP_SUPPORT
+#ifdef RT_CFG80211_P2P_SUPPORT
+	if ((pAd->cfg80211_ctrl.isCfgInApMode == RT_CMD_80211_IFTYPE_AP))
+	{
+		bcn_buf = &pAd->ApCfg.MBSSID[apidx].bcn_buf;
+	}
+#endif /* RT_CFG80211_P2P_SUPPORT */
 #endif /* CONFIG_AP_SUPPORT */
 
 #ifdef CONFIG_STA_SUPPORT
@@ -3601,6 +3723,7 @@ VOID PciMlmeRadioOFF(RTMP_ADAPTER *pAd)
 }
 
 
+#ifndef __ECOS
 /*
 ========================================================================
 Routine Description:
@@ -3663,6 +3786,8 @@ ra_dma_addr_t RtmpDrvPciMapSingle(
 #endif
 }
 
+}
+#endif //__ECOS
 
 int write_reg(RTMP_ADAPTER *ad, UINT32 base, UINT16 offset, UINT32 value)
 {

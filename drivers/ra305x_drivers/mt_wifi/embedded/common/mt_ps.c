@@ -110,6 +110,10 @@ VOID CheckSkipTX(
 	{
 		dw3->field.du_i_psm = 0;
 		dw3->field.i_psm = 0;
+
+		/* also sync pEntry flag*/
+		pEntry->i_psm = 0 ;
+
 		isChange = TRUE;
 	}
 	

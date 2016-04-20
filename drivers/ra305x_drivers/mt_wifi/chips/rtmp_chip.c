@@ -65,6 +65,12 @@ VOID RtmpChipWriteHighMemory(
 	IN UINT8 Unit)
 {
 #ifdef RTMP_MAC_PCI
+#ifdef SPECIFIC_BCN_BUF_SUPPORT
+unsigned long irqFlag = 0;
+	RTMP_MAC_SHR_MSEL_LOCK(pAd, HIGHER_SHRMEM, irqFlag);
+	RtmpChipWriteMemory(pAd, Offset, Value, Unit);
+	RTMP_MAC_SHR_MSEL_UNLOCK(pAd, LOWER_SHRMEM, irqFlag);
+#endif /* SPECIFIC_BCN_BUF_SUPPORT */
 #endif /* RTMP_MAC_PCI */
 }
 
@@ -123,6 +129,44 @@ Note:
 */
 VOID RtmpChipBcnSpecInit(RTMP_ADAPTER *pAd)
 {
+#ifdef SPECIFIC_BCN_BUF_SUPPORT
+	RTMP_CHIP_CAP *pChipCap = &pAd->chipCap;
+
+
+	pChipCap->FlgIsSupSpecBcnBuf = TRUE;
+	pChipCap->BcnMaxHwNum = 16;
+	pChipCap->WcidHwRsvNum = 255;
+
+/* 	In 16-MBSS support mode, if AP-Client is enabled,
+	the last 8-MBSS would be occupied for AP-Client using. */
+#ifdef APCLI_SUPPORT
+	pChipCap->BcnMaxNum = (8 - MAX_MESH_NUM);
+#else
+	pChipCap->BcnMaxNum = (16 - MAX_MESH_NUM);
+#endif /* APCLI_SUPPORT */
+
+	pChipCap->BcnMaxHwSize = 0x2000;
+
+	/* It's allowed to use the higher(secordary) 8KB shared memory */
+	pChipCap->BcnBase[0] = 0x4000;
+	pChipCap->BcnBase[1] = 0x4200;
+	pChipCap->BcnBase[2] = 0x4400;
+	pChipCap->BcnBase[3] = 0x4600;
+	pChipCap->BcnBase[4] = 0x4800;
+	pChipCap->BcnBase[5] = 0x4A00;
+	pChipCap->BcnBase[6] = 0x4C00;
+	pChipCap->BcnBase[7] = 0x4E00;
+	pChipCap->BcnBase[8] = 0x5000;
+	pChipCap->BcnBase[9] = 0x5200;
+	pChipCap->BcnBase[10] = 0x5400;
+	pChipCap->BcnBase[11] = 0x5600;
+	pChipCap->BcnBase[12] = 0x5800;
+	pChipCap->BcnBase[13] = 0x5A00;
+	pChipCap->BcnBase[14] = 0x5C00;
+	pChipCap->BcnBase[15] = 0x5E00;
+
+	pAd->chipOps.BeaconUpdate = RtmpChipWriteHighMemory;
+#endif /* SPECIFIC_BCN_BUF_SUPPORT */
 }
 
 
@@ -555,6 +599,26 @@ int RtmpChipOpsHook(VOID *pCB)
 
 	/* We depends on RfICType and MACVersion to assign the corresponding operation callbacks. */
 
+#ifdef RT305x
+#ifdef RT3352
+	/*FIXME by Steven: RFIC=RFIC_3022 in some RT3352 board*/
+/*	if (pAd->RfIcType == RFIC_3322) {*/
+	if (IS_RT3352(pAd))
+		RT3352_Init(pAd);
+	else
+#endif /* RT3352 */
+#ifdef RT5350
+	if (IS_RT5350(pAd))
+		RT5350_Init(pAd);
+	else
+#endif /* RT5350 */
+/* comment : the RfIcType is not ready yet, because EEPROM doesn't be initialized. */
+/*	if ((pAd->MACVersion == 0x28720200) &&
+		((pAd->RfIcType == RFIC_3320) || (pAd->RfIcType == RFIC_3020) || (pAd->RfIcType == RFIC_3021) || (pAd->RfIcType == RFIC_3022))) */
+	if (IS_RT3050_3052_3350(pAd))
+		RT305x_Init(pAd);
+	else
+#endif /* RT305x */
 
 
 done:

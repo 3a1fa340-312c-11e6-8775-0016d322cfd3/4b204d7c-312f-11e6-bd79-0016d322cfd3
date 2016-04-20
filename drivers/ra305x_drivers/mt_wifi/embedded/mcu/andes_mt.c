@@ -84,6 +84,9 @@ INT32 AndesMTPciKickOutCmdMsg(PRTMP_ADAPTER pAd, struct cmd_msg *msg)
 	pTxD->Burst = 0;
 	pTxD->DMADONE = 0;
 
+#ifdef __ECOS
+	if(pTxD->SDLen0 > (4096-64))panic("AndesMTPciKickOutCmdMsg!\n");
+#endif
 #ifdef RT_BIG_ENDIAN
 	RTMPDescriptorEndianChange((PUCHAR)pTxD, TYPE_TXD);
 	WriteBackToDescriptor((PUCHAR)pDestTxD, (PUCHAR)pTxD, FALSE, TYPE_TXD);
@@ -96,6 +99,7 @@ INT32 AndesMTPciKickOutCmdMsg(PRTMP_ADAPTER pAd, struct cmd_msg *msg)
    	/* Increase TX_CTX_IDX, but write to register later.*/
 	INC_RING_INDEX(pAd->CtrlRing.TxCpuIdx, MGMT_RING_SIZE);
 
+	msg->net_pkt = NULL;
 	if (msg->need_wait)
 		AndesQueueTailCmdMsg(&ctl->ackq, msg, wait_ack);
 	else
@@ -655,6 +659,12 @@ static VOID CmdPsClearRsp(struct cmd_msg *msg, char *Data, UINT16 Len)
 				Use management queue to tx QoS Null frame to avoid delay so
 				us_of_frame is not used.
 			*/
+#ifdef MT_PS
+			if (pEntry->i_psm == I_PSM_DISABLE)
+			{
+				MtSetIgnorePsm(ad, pEntry, I_PSM_ENABLE);
+			}
+#endif /* MT_PS */
 			RtmpEnqueueNullFrame(ad, pEntry->Addr, pEntry->CurrTxRate,
 								pEntry->Aid, pEntry->func_tb_idx, TRUE, TRUE, tr_entry->EospNullUp);
 
@@ -987,7 +997,11 @@ static INT32 CmdFwScatters(RTMP_ADAPTER *ad, UINT8 *image, UINT32 image_len)
 
 	while (1)
 	{
-		INT32 sent_len_max = MT_UPLOAD_FW_UNIT - cap->cmd_header_len - 64;
+		/*
+		*BE CAREFUL: in RTMP_AllocateRxPacketBuffer() it will resverse 64byte,so we can't tx 
+		*					MT_UPLOAD_FW_UNIT - cap->cmd_header_len - cap->cmd_padding_len frimware in one buffer
+		*/
+		INT32 sent_len_max = MT_UPLOAD_FW_UNIT - cap->cmd_header_len  - 128;
 		sent_len = (image_len - cur_len) >=  sent_len_max ? sent_len_max : (image_len - cur_len);
 
 		if (sent_len > 0) {
@@ -1841,7 +1855,7 @@ static VOID mt_FillSkuParameter(RTMP_ADAPTER *pAd,UINT8 channel,UINT8 *txPowerSk
 					txPowerSku[SKU_OFDM_24_36]= ch->PwrOFDM[4] ? ch->PwrOFDM[4] : 0xff;
 					txPowerSku[SKU_OFDM_48] 	= ch->PwrOFDM[6] ? ch->PwrOFDM[6] : 0xff;
 					txPowerSku[SKU_OFDM_54] 	= ch->PwrOFDM[7] ? ch->PwrOFDM[7] : 0xff;
-					txPowerSku[SKU_HT20_0_8] 	= ch->PwrHT20[0] ? ch->PwrHT20[2] : 0xff;
+					txPowerSku[SKU_HT20_0_8] 	= ch->PwrHT20[0] ? ch->PwrHT20[0] : 0xff;
 					/*MCS32 is a special rate will chose the max power, normally will be OFDM 6M */
 					txPowerSku[SKU_HT20_32] 	=  ch->PwrOFDM[0] ? ch->PwrOFDM[0] : 0xff;
 					txPowerSku[SKU_HT20_1_2_9_10] = ch->PwrHT20[1] ? ch->PwrHT20[1] : 0xff;
@@ -3247,7 +3261,7 @@ static VOID ExtEventBeaconLostHandler(RTMP_ADAPTER *pAd, UINT8 *Data, UINT32 Len
 								pExtEventBeaconLoss->aucBssid[5]));
 }
 #endif /*CONFIG_STA_SUPPORT*/
-
+/*
 static VOID ExtEventTmrCalResultHandler(RTMP_ADAPTER *pAd, UINT8 *Data, UINT32 Length)
 {
     struct _EXT_EVENT_TMR_CAL_RESULT_T *pTmrCalResult = (struct _EXT_EVENT_TMR_CAL_RESULT_T *)Data;
@@ -3274,6 +3288,7 @@ static VOID ExtEventTmrCalResultHandler(RTMP_ADAPTER *pAd, UINT8 *Data, UINT32 L
                 pAd->chipCap.TmrCalResult)
             );
 }
+*/
 static VOID ExtEventFwLog2HostHandler(RTMP_ADAPTER *pAd, UINT8 *Data, UINT32 Length)
 {
 	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("FW LOG: %s\n", Data));
@@ -3376,13 +3391,13 @@ static VOID EventExtEventHandler(RTMP_ADAPTER *pAd, UINT8 ExtEID, UINT8 *Data, U
 		case EXT_EVENT_FW_LOG_2_HOST:
 			ExtEventFwLog2HostHandler(pAd, Data, Length);
 			break;
+#ifdef MT_PS			
 #if defined(MT7603) || defined(MT7628)
 		case EXT_CMD_PS_RETRIEVE_START:
-            #if defined(MT_PS)
 			CmdPsRetrieveStartRspFromCR(pAd, Data, Length);
-            #endif /* MT_PS */
 			break;
 #endif /* MT7603 || MT7628 */
+#endif
 #ifdef MT7636_BTCOEX
 		case EXT_EVENT_BT_COEX:
 			ExtEventBTCoexHandler(pAd, Data, Length);
@@ -3403,9 +3418,11 @@ static VOID EventExtEventHandler(RTMP_ADAPTER *pAd, UINT8 ExtEID, UINT8 *Data, U
 			ExtEventBeaconLostHandler(pAd, Data, Length);
 			break;
 #endif /*CONFIG_STA_SUPPORT*/
+        /*
         case EXT_EVENT_TMR_CAL_RESULT:
             ExtEventTmrCalResultHandler(pAd, Data, Length);
             break;
+        */
 		default:
 			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("%s: Unknown Ext Event(%x)\n", __FUNCTION__,
 										ExtEID));
@@ -3559,7 +3576,10 @@ VOID AndesMTRxEventHandler(RTMP_ADAPTER *pAd, UCHAR *data)
 
 #ifdef RTMP_PCI_SUPPORT
 	if (msg->net_pkt)
+		{
 		RTMPFreeNdisPacket(pAd, msg->net_pkt);
+		msg->net_pkt = NULL;
+	}
 #endif
 
 	AndesFreeCmdMsg(msg);
@@ -4513,6 +4533,8 @@ INT AndesLedEnhanceOP(
 	{
 		led_enhance.field.tx_blink=2;
 		led_enhance.field.reverse_polarity=1;	
+		if (Led_Parameter == 1 || Led_Parameter == 0)
+			Led_Parameter = ~(Led_Parameter) & 0x1;			
 	}
 	led_enhance.field.idx = Led_Parameter;
 	os_alloc_mem(pAd, (UCHAR **)&pBuf, VarLen);
@@ -4542,6 +4564,134 @@ INT AndesLedEnhanceOP(
 
 error:
 	DBGPRINT(RT_DEBUG_INFO, ("%s:(ret = %d)\n", __FUNCTION__, ret));
+	return ret;	
+}
+#endif
+
+#ifdef RTMP_FLASH_SUPPORT
+static VOID ReloadDPDByChannel(RTMP_ADAPTER *pAd, UINT8 channel, P_EXT_CMD_ID_LOAD_DPD_T pCmdLoadDPD)
+{
+	/* reload low channel  WF0: 0x314~0x357  WF1: 0x358~0x39B */
+	if(channel >= 1 && channel <= 5)
+	{		
+		INT q = 0;
+		
+		for(q = 0; q < 17; q++)
+		{
+			UINT32 DPDValueWF0 = 0, DPDValueWF1 = 0;
+			UINT16 tmp1 = 0, tmp2 = 0;
+			rtmp_ee_flash_read(pAd, (0x314 + q*4), &tmp1);
+			rtmp_ee_flash_read(pAd, (0x314 + q*4 + 2), &tmp2);
+			DPDValueWF0 = (tmp2 << 16) | tmp1;
+			pCmdLoadDPD->au4WF0CR[q] = DPDValueWF0;
+
+			rtmp_ee_flash_read(pAd, (0x358 + q*4), &tmp1);
+			rtmp_ee_flash_read(pAd, (0x358 + q*4 + 2), &tmp2);
+			DPDValueWF1 = (tmp2 << 16) | tmp1;
+			pCmdLoadDPD->au4WF1CR[q] = DPDValueWF1;
+
+			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, 
+			("%s: flash 0x%x = WF0[%d] = %x , flash 0x%x = WF1[%d] = %x\n"
+			, __FUNCTION__, (0x314 + q*4),q, DPDValueWF0, (0x358 + q*4),q, DPDValueWF1));
+		}
+	}
+	/* reload mid channel  WF0: 0x28C~0x2CF  WF1: 0x2D0~0x313 */
+	else if(channel >= 6 && channel <= 10 )
+	{
+		INT q = 0;
+		
+		for(q = 0; q < 17; q++)
+		{
+			UINT32 DPDValueWF0 = 0, DPDValueWF1 = 0;
+			UINT16 tmp1 = 0, tmp2 = 0;
+			rtmp_ee_flash_read(pAd, (0x28C + q*4), &tmp1);
+			rtmp_ee_flash_read(pAd, (0x28C + q*4 + 2), &tmp2);
+			DPDValueWF0 = (tmp2 << 16) | tmp1;
+			pCmdLoadDPD->au4WF0CR[q] = DPDValueWF0;
+
+			rtmp_ee_flash_read(pAd, (0x2D0 + q*4), &tmp1);
+			rtmp_ee_flash_read(pAd, (0x2D0 + q*4 + 2), &tmp2);
+			DPDValueWF1 = (tmp2 << 16) | tmp1;
+			pCmdLoadDPD->au4WF1CR[q] = DPDValueWF1;
+
+			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, 
+			("%s: flash 0x%x = WF0[%d] = %x , flash 0x%x = WF1[%d] = %x\n"
+			, __FUNCTION__, (0x28C + q*4),q, DPDValueWF0, (0x2D0 + q*4),q, DPDValueWF1));
+		}
+	}
+	/* reload mid channel  WF0: 0x204~0x247  WF1: 0x248~0x28B */
+	else if(channel >= 11 && channel <= 14 )
+	{
+		INT q = 0;
+		
+		for(q = 0; q < 17; q++)
+		{
+			UINT32 DPDValueWF0 = 0, DPDValueWF1 = 0;
+			UINT16 tmp1 = 0, tmp2 = 0;
+			rtmp_ee_flash_read(pAd, (0x204 + q*4), &tmp1);
+			rtmp_ee_flash_read(pAd, (0x204 + q*4 + 2), &tmp2);
+			DPDValueWF0 = (tmp2 << 16) | tmp1;
+			pCmdLoadDPD->au4WF0CR[q] = DPDValueWF0;
+
+			rtmp_ee_flash_read(pAd, (0x248 + q*4), &tmp1);
+			rtmp_ee_flash_read(pAd, (0x248 + q*4 + 2), &tmp2);
+			DPDValueWF1 = (tmp2 << 16) | tmp1;
+			pCmdLoadDPD->au4WF1CR[q] = DPDValueWF1;
+
+			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, 
+			("%s: flash 0x%x = WF0[%d] = %x , flash 0x%x = WF1[%d] = %x\n"
+			, __FUNCTION__, (0x204 + q*4),q, DPDValueWF0, (0x248 + q*4),q, DPDValueWF1));
+		}
+	}
+	return;
+}
+INT32 CmdLoadDPDDataFromFlash(RTMP_ADAPTER *pAd, UINT8 channel, UINT16 doReload)
+{
+	struct cmd_msg *msg;
+	EXT_CMD_ID_LOAD_DPD_T CmdLoadDPD;
+	INT32 ret = 0;
+
+	if(channel < 1 || channel > 14)
+	{
+		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("%s: Channel = %d (1~14), INSANE , return\n", __FUNCTION__, channel));
+		ret = NDIS_STATUS_INVALID_DATA;
+		goto error;
+	}
+	
+	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, 
+	("%s: Channel = %d, DoReload = %d\n", __FUNCTION__, channel, doReload));
+
+	msg = AndesAllocCmdMsg(pAd, sizeof(CmdLoadDPD));
+
+	if (!msg)
+	{
+		ret = NDIS_STATUS_RESOURCES;
+		goto error;
+	}
+
+
+	AndesInitCmdMsg(msg, P1_Q0, EXT_CID, CMD_SET, EXT_CMD_LOAD_DPD_FROM_FLASH, TRUE, 0,
+							TRUE, TRUE, 8, NULL, EventExtCmdResultMsgRsp);
+
+	memset(&CmdLoadDPD, 0x00, sizeof(CmdLoadDPD));
+
+	if(doReload != 0)
+	{
+		CmdLoadDPD.ucReload = 1;
+		ReloadDPDByChannel(pAd, channel, &CmdLoadDPD);
+	}
+	else
+	{
+		CmdLoadDPD.ucReload = 0;
+	}
+
+	AndesAppendCmdMsg(msg, (char *)&CmdLoadDPD, sizeof(CmdLoadDPD));
+
+	ret = AndesSendCmdMsg(pAd, msg);
+
+
+error:
+	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_INFO, ("%s:(ret = %d)\n", __FUNCTION__, ret));
 	return ret;	
 }
 #endif

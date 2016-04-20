@@ -43,10 +43,36 @@
   *	EEPROM Related definitions
   *
   ************************************************************************/
+#ifdef RT305x
+#if defined(CONFIG_RALINK_RT3050_1T1R)
+#if defined(CONFIG_RALINK_RT3350)
+#define EEPROM_DEFAULT_FILE_PATH                     "/etc_ro/wlan/RT3350_AP_1T1R_V1_0.bin"
+#else
+#define EEPROM_DEFAULT_FILE_PATH                     "/etc_ro/wlan/RT3050_AP_1T1R_V1_0.bin"
+#endif /* CONFIG_RALINK_RT3350 */
+#endif /* CONFIG_RALINK_RT3050_1T1R */
+
+#if defined(CONFIG_RALINK_RT3051_1T2R)
+#define EEPROM_DEFAULT_FILE_PATH                     "/etc_ro/wlan/RT3051_AP_1T2R_V1_0.bin"
+#endif /* CONFIG_RALINK_RT3051_1T2R */
+
+#if defined(CONFIG_RALINK_RT3052_2T2R)
+#define EEPROM_DEFAULT_FILE_PATH                     "/etc_ro/wlan/RT3052_AP_2T2R_V1_1.bin"
+#endif /* CONFIG_RALINK_RT3052_2T2R */
+#endif /* RT305x */
 
 
+#ifdef RT3352
+#if defined(CONFIG_RALINK_RT3352_2T2R)
+#define EEPROM_DEFAULT_FILE_PATH                     "/etc_ro/wlan/RT3352_AP_2T2R-4L_V12.BIN"
+#endif /* CONFIG_RALINK_RT3352_2T2R */
+#endif /* RT3352 */
 
-
+#ifdef RT5350
+#if defined(CONFIG_RALINK_RT5350_1T1R)
+#define EEPROM_DEFAULT_FILE_PATH                     "/etc_ro/wlan/RT5350_AP_1T1R_V1_0.bin"
+#endif // CONFIG_RALINK_RT5350_1T1R //
+#endif /* RT5350 */
 
 
 

@@ -15,7 +15,6 @@
 */
 #include "rt_config.h"
 
-extern int bufCnt;
 struct cmd_msg *AndesAllocCmdMsg(RTMP_ADAPTER *ad, unsigned int length)
 {
 	struct cmd_msg *msg = NULL;
@@ -177,7 +176,7 @@ VOID AndesIncErrorCount(struct MCU_CTRL *ctl, enum cmd_msg_error_type type)
 }
 
 
-static NDIS_SPIN_LOCK *AndesGetSpinLock(struct MCU_CTRL *ctl, DL_LIST *list)
+static NDIS_SPIN_LOCK *AndesGetSpinLock(struct MCU_CTRL *ctl, MT_DL_LIST *list)
 {
 	NDIS_SPIN_LOCK *lock = NULL;
 
@@ -222,7 +221,7 @@ get_seq:
 }
 
 
-static VOID _AndesQueueTailCmdMsg(DL_LIST *list, struct cmd_msg *msg,
+static VOID _AndesQueueTailCmdMsg(MT_DL_LIST *list, struct cmd_msg *msg,
 										enum cmd_msg_state state)
 {
 	msg->state = state;
@@ -230,7 +229,7 @@ static VOID _AndesQueueTailCmdMsg(DL_LIST *list, struct cmd_msg *msg,
 }
 
 
-VOID AndesQueueTailCmdMsg(DL_LIST *list, struct cmd_msg *msg,
+VOID AndesQueueTailCmdMsg(MT_DL_LIST *list, struct cmd_msg *msg,
 										enum cmd_msg_state state)
 {
 	unsigned long flags;
@@ -246,7 +245,7 @@ VOID AndesQueueTailCmdMsg(DL_LIST *list, struct cmd_msg *msg,
 }
 
 
-static VOID _AndesQueueHeadCmdMsg(DL_LIST *list, struct cmd_msg *msg,
+static VOID _AndesQueueHeadCmdMsg(MT_DL_LIST *list, struct cmd_msg *msg,
 										enum cmd_msg_state state)
 {
 	msg->state = state;
@@ -254,7 +253,7 @@ static VOID _AndesQueueHeadCmdMsg(DL_LIST *list, struct cmd_msg *msg,
 }
 
 
-VOID AndesQueueHeadCmdMsg(DL_LIST *list, struct cmd_msg *msg,
+VOID AndesQueueHeadCmdMsg(MT_DL_LIST *list, struct cmd_msg *msg,
 										enum cmd_msg_state state)
 {
 	unsigned long flags;
@@ -270,7 +269,7 @@ VOID AndesQueueHeadCmdMsg(DL_LIST *list, struct cmd_msg *msg,
 }
 
 
-UINT32 AndesQueueLen(struct MCU_CTRL *ctl, DL_LIST *list)
+UINT32 AndesQueueLen(struct MCU_CTRL *ctl, MT_DL_LIST *list)
 {
 	UINT32 qlen;
 	unsigned long flags;
@@ -287,7 +286,7 @@ UINT32 AndesQueueLen(struct MCU_CTRL *ctl, DL_LIST *list)
 
 /* Nobody uses it currently*/
 
-static VOID AndesQueueInit(struct MCU_CTRL *ctl, DL_LIST *list)
+static VOID AndesQueueInit(struct MCU_CTRL *ctl, MT_DL_LIST *list)
 {
 
 	unsigned long flags;
@@ -301,7 +300,7 @@ static VOID AndesQueueInit(struct MCU_CTRL *ctl, DL_LIST *list)
 }
 
 
-VOID _AndesUnlinkCmdMsg(struct cmd_msg *msg, DL_LIST *list)
+VOID _AndesUnlinkCmdMsg(struct cmd_msg *msg, MT_DL_LIST *list)
 {
 	if (!msg)
 		return;
@@ -310,7 +309,7 @@ VOID _AndesUnlinkCmdMsg(struct cmd_msg *msg, DL_LIST *list)
 }
 
 
-VOID AndesUnlinkCmdMsg(struct cmd_msg *msg, DL_LIST *list)
+VOID AndesUnlinkCmdMsg(struct cmd_msg *msg, MT_DL_LIST *list)
 {
 	unsigned long flags;
 	NDIS_SPIN_LOCK *lock;
@@ -318,6 +317,8 @@ VOID AndesUnlinkCmdMsg(struct cmd_msg *msg, DL_LIST *list)
 	struct MCU_CTRL *ctl = &ad->MCUCtrl;
 
 	lock = AndesGetSpinLock(ctl, list);
+	if (lock == NULL)
+		return ;
 
 	RTMP_SPIN_LOCK_IRQSAVE(lock, &flags);
 	_AndesUnlinkCmdMsg(msg, list);
@@ -325,7 +326,7 @@ VOID AndesUnlinkCmdMsg(struct cmd_msg *msg, DL_LIST *list)
 }
 
 
-static struct cmd_msg *_AndesDequeueCmdMsg(DL_LIST *list)
+static struct cmd_msg *_AndesDequeueCmdMsg(MT_DL_LIST *list)
 {
 	struct cmd_msg *msg;
 
@@ -337,7 +338,7 @@ static struct cmd_msg *_AndesDequeueCmdMsg(DL_LIST *list)
 }
 
 
-struct cmd_msg *AndesDequeueCmdMsg(struct MCU_CTRL *ctl, DL_LIST *list)
+struct cmd_msg *AndesDequeueCmdMsg(struct MCU_CTRL *ctl, MT_DL_LIST *list)
 {
 	unsigned long flags;
 	struct cmd_msg *msg;
@@ -455,15 +456,23 @@ VOID AndesBhSchedule(RTMP_ADAPTER *ad)
 							&& OS_TEST_BIT(MCU_INIT, &ctl->flags)) {
 #ifndef WORKQUEUE_BH
 		RTMP_NET_TASK_DATA_ASSIGN(&ctl->cmd_msg_task, (unsigned long)(ad));
-		RTMP_OS_TASKLET_SCHE(&ctl->cmd_msg_task);
+#ifdef ECOS_NETTASK_SCHDULE_NEW
+		RTMP_OS_TASKLET_SCHE(MT_McuCommand);
 #else
-		tasklet_hi_schedule(&ctl->cmd_msg_task);
+		RTMP_OS_TASKLET_SCHE(&ctl->cmd_msg_task);
+#endif
+#else
+#ifdef ECOS_NETTASK_SCHDULE_NEW
+		RTMP_OS_TASKLET_SCHE(MT_McuCommand);
+#else
+		RTMP_OS_TASKLET_SCHE(&ctl->cmd_msg_task);
+#endif
 #endif
 	}
 }
 
 
-VOID AndesCleanupCmdMsg(RTMP_ADAPTER *ad, DL_LIST *list)
+VOID AndesCleanupCmdMsg(RTMP_ADAPTER *ad, MT_DL_LIST *list)
 {
 	unsigned long flags;
 	struct cmd_msg *msg, *msg_tmp;
@@ -491,8 +500,10 @@ static VOID AndesCtrlPciInit(RTMP_ADAPTER *ad)
 	ctl->cmd_seq = 0;
 #ifndef WORKQUEUE_BH
 	RTMP_OS_TASKLET_INIT(ad, &ctl->cmd_msg_task, AndesCmdMsgBh, (unsigned long)ad);
+	strcpy(&ctl->cmd_msg_task.taskName[0], "mcu");
 #else
 	tasklet_init(&ctl->cmd_msg_task, AndesCmdMsgBh, (unsigned long)ad);
+	strcpy(&ctl->cmd_msg_task.taskName[0], "mcu");
 #endif
 	NdisAllocateSpinLock(ad, &ctl->txq_lock);
 	AndesQueueInit(ctl, &ctl->txq);
@@ -650,6 +661,13 @@ static INT32 AndesWaitForCompleteTimeout(struct cmd_msg *msg, long timeout)
 	int ret = 0;
 	long expire = timeout ? RTMPMsecsToJiffies(timeout) : RTMPMsecsToJiffies(CMD_MSG_TIMEOUT);
 
+#ifdef __ECOS
+	if(in_interrupt())				
+	{	
+		printk("\ncyg_semaphore_wait call in DSR! file:%s line:%d\n",__FILE__,__LINE__);		
+		printk("\nERROR! pls check.\n");						
+	}	
+#endif
 	ret = RTMP_OS_WAIT_FOR_COMPLETION_TIMEOUT(&msg->ack_done, expire);
 
 	return ret;

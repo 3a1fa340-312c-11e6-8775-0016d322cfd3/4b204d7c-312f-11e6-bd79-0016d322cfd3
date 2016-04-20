@@ -572,13 +572,25 @@ static PUCHAR MATProto_IP_Rx(
 
 		wcid = RTMP_GET_PACKET_WCID(pSkb);
 		
+		if (VALID_WCID(wcid))
+		{
 		pEntry = &pAd->MacTab.Content[wcid];
+		}
+		else
+		{
+			return pMacAddr;
+		}
+		if (pEntry == NULL)
+		{
+			return pMacAddr;
+		}
 		pReptEntry = &pAd->ApCfg.ApCliTab[pEntry->func_tb_idx].RepeaterCli[pEntry->MatchReptCliIdx];
 
-		if (pEntry->bReptCli)
+		if (pEntry && IS_ENTRY_APCLI(pEntry) && (pEntry->bReptCli == TRUE))
 		{
 			PUCHAR pPktHdr, pLayerHdr;
 
+			pReptEntry = &pAd->ApCfg.ApCliTab[pEntry->func_tb_idx].RepeaterCli[pEntry->MatchReptCliIdx];
 			pPktHdr = GET_OS_PKT_DATAPTR(pSkb);
 			pLayerHdr = (pPktHdr + MAT_ETHER_HDR_LEN);
 			
@@ -678,8 +690,13 @@ static PUCHAR MATProto_IP_Tx(
 #ifdef MAC_REPEATER_SUPPORT
 			if (pMatCfg->bMACRepeaterEn)
 			{
-				if (RTMPLookupRepeaterCliEntry(pMatCfg->pPriv, FALSE, pDevMacAdr) != NULL)
+				REPEATER_CLIENT_ENTRY *pReptEntry = NULL;
+
+				pReptEntry = RTMPLookupRepeaterCliEntry(pMatCfg->pPriv, FALSE, pDevMacAdr);
+
+				if (pReptEntry != NULL)
 				{
+					ASSERT(pReptEntry->CliValid == TRUE);
 					NdisMoveMemory((bootpHdr+28), pDevMacAdr, MAC_ADDR_LEN);
 
 					if (NdisEqualMemory(dhcpHdr, DHCP_MAGIC, 4))

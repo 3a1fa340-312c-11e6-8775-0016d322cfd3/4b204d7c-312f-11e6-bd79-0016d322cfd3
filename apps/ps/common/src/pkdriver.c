@@ -197,15 +197,13 @@ err_t SendPacket(struct netif *netif, struct pbuf *p)
 	struct sk_buff* pSkb;
 	unsigned long flags;//eason 20091008
 
-    if (netif == WLanface)
-        diag_printf("termy say, WLanface SendPacket \n");
-
 	if(p->tot_len > 1514)
 		return -1;
 
 	memcpy( &ep, p->payload, sizeof(struct ether) );
 
 	dst = bridge_dst_lookup(&ep);
+    dst = WLanface;
 
 	if(usb_usb_send == 1)
 		dst = ULanface;
@@ -237,7 +235,6 @@ err_t SendPacket(struct netif *netif, struct pbuf *p)
 		spin_unlock_irqrestore(&WLan_TX_lock, &flags);//ZOT==>			spin_unlock_irqrestore(&WLan_TX_lock, flags); //eason 20091008
         #endif /* STAR_MAC */
         #ifdef MT7688_MAC
-        diag_printf("termy say, WLanface low_level_output\n");
         low_level_output(WLanface, p);
         #endif /* MT7688_MAC */
 		return 0;
@@ -300,7 +297,6 @@ err_t SendPacket(struct netif *netif, struct pbuf *p)
 		spin_unlock_irqrestore(&WLan_TX_lock, &flags);//ZOT==>			spin_unlock_irqrestore(&WLan_TX_lock, flags); //eason 20091008	
         #endif /* STAR_MAC */
         #ifdef MT7688_MAC
-        diag_printf("termy say, WLanface low_level_output all_send\n");
         low_level_output(WLanface, p);
         #endif /* MT7688_MAC */
 #endif /* WIRELESS_CARD */
@@ -833,7 +829,9 @@ void ecosif_input(struct netif *netif, struct pbuf *p)
             break;
         default:
             diag_printf("termy say, OtherPckt_input\n");
+            /*
             OtherPckt_input(p->payload, p->len);
+            */
             pbuf_free(p);
             break;
     }

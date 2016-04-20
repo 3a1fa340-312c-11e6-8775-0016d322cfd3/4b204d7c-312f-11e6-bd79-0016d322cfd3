@@ -67,10 +67,17 @@
 		__TimeStamp |= (tsf_h << 32);				\
 	}
 
+#ifdef __ECOS
+#define UAPSD_TIME_GET(__pAd, __Time)					\
+	{													\
+		__Time = cyg_current_time()*(1000/HZ);			\
+	}
+#else /* __ECOS */
 #define UAPSD_TIME_GET(__pAd, __Time)					\
 	{													\
 		NdisGetSystemUpTime(&__Time);					\
 	}
+#endif /* __ECOS */
 
 
 /* uapsd initialization */

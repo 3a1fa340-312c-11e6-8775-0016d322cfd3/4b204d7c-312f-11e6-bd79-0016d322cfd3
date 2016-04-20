@@ -75,6 +75,7 @@ VOID  ATEPeriodicExec(PVOID SystemSpecific1, PVOID FunctionContext,
 INT32 SetATE(struct _RTMP_ADAPTER *pAd, RTMP_STRING *Arg);
 INT32 SetATEChannel(struct _RTMP_ADAPTER *pAd, RTMP_STRING *Arg);
 INT32 SetATETxBw(struct _RTMP_ADAPTER *pAd, RTMP_STRING *Arg);
+INT32 SetATEDPDRecord(struct _RTMP_ADAPTER *pAd, RTMP_STRING *Arg);
 INT32 MT_ATEInit(struct _RTMP_ADAPTER *pAd);
 PNDIS_PACKET ATEPayloadInit(struct _RTMP_ADAPTER *pAd, UINT32 TxIdx);
 INT32 ATEPayloadAlloc(struct _RTMP_ADAPTER *pAd, UINT32 Index);

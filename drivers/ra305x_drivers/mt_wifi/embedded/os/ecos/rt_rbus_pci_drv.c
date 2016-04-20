@@ -2966,12 +2966,13 @@ void dfs_tasklet(unsigned long data)
 #endif /* DFS_SUPPORT */
 #endif /* CONFIG_AP_SUPPORT */
 
+UINT RX0_Max_Pending = 0;
+UINT RX1_Max_Pending = 0;
 /***************************************************************************
   *
   *	interrupt handler related procedures.
   *
   **************************************************************************/
-  extern int wf_rx_debug ;
 VOID rt2860_interrupt(void *dev_instance)
 	{
 		RTMP_ADAPTER *pAd ;
@@ -3335,6 +3336,36 @@ VOID rt2860_interrupt(void *dev_instance)
 				RTMP_OS_TASKLET_SCHE(&pObj->rx_done_task);
 		//	pAd->int_pending |= INT_RX_DATA;
 				}
+{
+
+			RTMP_RX_RING *pRxRing;
+			//NDIS_SPIN_LOCK *pRxRingLock;
+			UINT32 pRxPending;
+			UINT32 dma,cpu;
+			cyg_uint32 old;
+			HAL_DISABLE_INTERRUPTS(old);
+			pRxRing = &pAd->RxRing[0];
+			//pRxRingLock = &pAd->RxRingLock[0];
+			//RTMP_SEM_LOCK(pRxRingLock);
+		
+			{
+				/* Get how may packets had been received */
+				RTMP_IO_READ32(pAd, pRxRing->hw_didx_addr, &dma);
+				RTMP_IO_READ32(pAd, pRxRing->hw_cidx_addr, &cpu);
+		
+				/* get rx pending count */
+				if (dma > cpu)
+					pRxPending = dma - cpu;
+				else
+					pRxPending = dma + RX_RING_SIZE - cpu;
+				
+				if(pRxPending > RX0_Max_Pending)
+					RX0_Max_Pending = pRxPending;
+					//diag_printf("\n===>>>Rx Ring 0 queue packets:%d\n", pRxPending);
+			}
+			//RTMP_SEM_UNLOCK(pRxRingLock);
+			HAL_RESTORE_INTERRUPTS(old);
+}
 		}
 	
 #ifdef CONFIG_ANDES_SUPPORT
@@ -3349,6 +3380,36 @@ VOID rt2860_interrupt(void *dev_instance)
 				RTMP_OS_TASKLET_SCHE(&pObj->rx1_done_task);
 			} else 
 			RTMP_OS_TASKLET_SCHE(&pObj->rx1_done_task);
+{
+
+			RTMP_RX_RING *pRxRing;
+			//NDIS_SPIN_LOCK *pRxRingLock;
+			UINT32 pRxPending;
+			UINT32 dma,cpu;
+			cyg_uint32 old;
+			HAL_DISABLE_INTERRUPTS(old);
+			pRxRing = &pAd->RxRing[1];
+			//pRxRingLock = &pAd->RxRingLock[1];
+			//RTMP_SEM_LOCK(pRxRingLock);
+		
+			{
+				/* Get how may packets had been received */
+				RTMP_IO_READ32(pAd, pRxRing->hw_didx_addr, &dma);
+				RTMP_IO_READ32(pAd, pRxRing->hw_cidx_addr, &cpu);
+		
+				/* get rx pending count */
+				if (dma > cpu)
+					pRxPending = dma - cpu;
+				else
+					pRxPending = dma + RX1_RING_SIZE - cpu;
+				
+				if(pRxPending > RX1_Max_Pending)
+					RX1_Max_Pending = pRxPending;
+					//diag_printf("\n===>>>Rx Ring 1 queue packets:%d\n",pRxPending);
+			}
+			//RTMP_SEM_UNLOCK(pRxRingLock);
+			HAL_RESTORE_INTERRUPTS(old);
+	}
 			//pAd->int_pending |= INT_RX_CMD;
 		}
 #endif /* CONFIG_ANDES_SUPPORT */

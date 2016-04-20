@@ -256,7 +256,7 @@ BOOLEAN ApCliCheckHt(
 
 	aux_ht_cap->HtCapInfo.GF =  pHtCapability->HtCapInfo.GF & rt_ht_cap->GF;
 
-#ifdef CONFIG_MULTI_CHANNEL //APCLI's bw , Central , channel
+#if	defined(CONFIG_MULTI_CHANNEL) || defined(RT_CFG80211_P2P_CONCURRENT_DEVICE)
 	if (RTMP_CFG80211_VIF_P2P_CLI_ON(pAd))
 	{
 		pApCliEntry->wdev.bw = aux_ht_cap->HtCapInfo.ChannelWidth;
@@ -357,24 +357,12 @@ BOOLEAN ApCliLinkUp(RTMP_ADAPTER *pAd, UCHAR ifIndex)
 			{
 				if (ifIndex < MAX_APCLI_NUM)
 				{
-#ifdef LINUX
-					struct net_device *pNetDev;
-					struct net *net= &init_net;
+#ifdef __ECOS
 
-					for_each_netdev(net, pNetDev)
-					{
-						if (pNetDev->priv_flags == IFF_EBRIDGE)
-						{
-							COPY_MAC_ADDR(pAd->ApCfg.BridgeAddress, pNetDev->dev_addr);
-							MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, (" Bridge Addr = %02X:%02X:%02X:%02X:%02X:%02X. !!!\n",
-										PRINT_MAC(pAd->ApCfg.BridgeAddress)));
-
-						}
-						pSkipEntry = RepeaterInvaildMacLookup(pAd, pNetDev->dev_addr);
-
-						if (pSkipEntry == NULL)
-						RTMPRepeaterInsertInvaildMacEntry(pAd, pNetDev->dev_addr);
-					}
+					char mac[6];
+					CFG_get_mac(0, mac);
+					COPY_MAC_ADDR(pAd->ApCfg.BridgeAddress, mac);
+					MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, (" Bridge Addr = %02x:%02x:%02x:%02x:%02x:%02x. !!!\n", PRINT_MAC(pAd->ApCfg.BridgeAddress)));
 #endif
 				}
 
@@ -528,6 +516,13 @@ BOOLEAN ApCliLinkUp(RTMP_ADAPTER *pAd, UCHAR ifIndex)
 				else
 #endif /*WPA_SUPPLICANT_SUPPORT*/
 					tr_entry->PortSecured = WPA_802_1X_PORT_SECURED;
+#ifdef __ECOS	
+					{
+						extern opmode;
+						if (opmode == 2)
+							mon_snd_cmd(MON_CMD_LINK_CHK);
+					}
+#endif /* __ECOS */	
 #ifdef MAC_REPEATER_SUPPORT
 				if (CliIdx != 0xFF)
 					pApCliEntry->RepeaterCli[CliIdx].CliConnectState = 2;
@@ -1044,6 +1039,13 @@ VOID ApCliLinkDown(RTMP_ADAPTER *pAd, UCHAR ifIndex)
 	RT_CFG80211_LOST_GO_INFORM(pAd);
 #endif /* RT_CFG80211_P2P_CONCURRENT_DEVICE || CFG80211_MULTI_STA */
 
+#ifdef __ECOS
+	{
+		extern opmode;
+		if (opmode == 2)
+			mon_snd_cmd(MON_CMD_LINK_CHK);
+	}
+#endif /* __ECOS */
 }
 
 
@@ -1205,7 +1207,7 @@ VOID ApCliIfMonitor(RTMP_ADAPTER *pAd)
 			{
 				pReptCliEntry = &pAd->ApCfg.ApCliTab[index].RepeaterCli[CliIdx];
 
-				if ((pReptCliEntry->CliEnable) && (pReptCliEntry->CliValid))
+				if (pReptCliEntry->CliEnable)
 				{
 					Wcid = pAd->ApCfg.ApCliTab[index].RepeaterCli[CliIdx].MacTabWCID;
 
@@ -1725,7 +1727,7 @@ INT ApCliAllowToSendPacket(
 				RTMP_QueryPacketInfo(pPacket, &PacketInfo, &pSrcBufVA, &SrcBufLen);
 
 				pReptEntry = RTMPLookupRepeaterCliEntry(pAd, TRUE, (pSrcBufVA + MAC_ADDR_LEN));
-				if (pReptEntry)
+				if (pReptEntry && pReptEntry->CliValid)
 				{
 					*pWcid = pReptEntry->MacTabWCID;
 					return TRUE;
@@ -2681,6 +2683,10 @@ VOID APCli_Init(RTMP_ADAPTER *pAd, RTMP_OS_NETDEV_OP_HOOK *pNetDevOps)
 						MacMask = 0xFC;
 					else if ((pAd->ApCfg.BssidNum + MAX_APCLI_NUM + MAX_MESH_NUM) <= 8)
 						MacMask = 0xF8;
+#ifdef SPECIFIC_BCN_BUF_SUPPORT
+					else if ((pAd->ApCfg.BssidNum + MAX_APCLI_NUM + MAX_MESH_NUM) <= 16)
+						MacMask = 0xF0;
+#endif /* SPECIFIC_BCN_BUF_SUPPORT */
 
 					/*
 						Refer to HW definition -
@@ -2999,7 +3005,11 @@ BOOLEAN ApCliAutoConnectExec(
 		{
 			sprintf(tempBuf, "%d", pBssEntry->Channel);
 			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("Switch to channel :%s\n", tempBuf));
+#ifdef APCLI_AUTO_BW_TMP /* should be removed after apcli auto-bw is applied */
+			pAd->CommonCfg.HtCapability.HtCapInfo.ChannelWidth = pBssEntry->AddHtInfo.AddHtInfo.RecomWidth;
+			pAd->CommonCfg.RegTransmitSetting.field.BW = pBssEntry->AddHtInfo.AddHtInfo.RecomWidth;
 			pAd->CommonCfg.RegTransmitSetting.field.EXTCHA = pBssEntry->AddHtInfo.AddHtInfo.ExtChanOffset;
+#endif /* APCLI_AUTO_BW_TMP */
 			Set_Channel_Proc(pAd, tempBuf);
 		}
 			sprintf(tempBuf, "%02X:%02X:%02X:%02X:%02X:%02X",

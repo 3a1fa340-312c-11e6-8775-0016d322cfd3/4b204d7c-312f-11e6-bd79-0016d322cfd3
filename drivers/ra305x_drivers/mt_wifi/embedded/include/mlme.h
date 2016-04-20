@@ -115,9 +115,7 @@
 #define BSS_NOT_FOUND                    0xFFFFFFFF
 
 #ifdef CONFIG_AP_SUPPORT
-#ifndef CONFIG_STA_SUPPORT
-#define MAX_LEN_OF_MLME_QUEUE            20 /*10 */
-#endif
+#define MAX_LEN_OF_MLME_QUEUE            64 /*20*/ /*10 */
 #endif /* CONFIG_AP_SUPPORT */
 
 #ifdef CONFIG_STA_SUPPORT
@@ -135,6 +133,10 @@ enum SCAN_MODE{
 #ifdef DOT11N_DRAFT3
 	SCAN_2040_BSS_COEXIST = 0x4,
 #endif /* DOT11N_DRAFT3 */
+#if defined(P2P_SUPPORT) || defined(RT_CFG80211_P2P_SUPPORT)
+	SCAN_P2P = 0x5,
+	SCAN_P2P_SEARCH = 0x6,
+#endif /* P2P_SUPPORT */
 	SCAN_ACTIVE_MAX,
 	
 	/* Passive scan, no probe request, only wait beacon and probe response */
@@ -372,6 +374,25 @@ typedef struct GNU_PACKED _EXT_CAP_INFO_ELEMENT{
 	UINT32 operating_mode_notification:1;
 	UINT32 rsv63:1;
 #endif // RT_BIG_ENDIAN //
+#ifdef RT_BIG_ENDIAN
+	UINT8 ftm_init:1;	/* bit71: FTM Initiator in 802.11mc D4.0*/
+	UINT8 ftm_resp:1;	/* bit70: FTM responder */
+	UINT8 rsv69:1;
+	UINT8 rsv68:1;
+	UINT8 rsv67:1;
+	UINT8 rsv66:1;
+	UINT8 rsv65:1;
+	UINT8 rsv64:1;
+#else
+	UINT8 rsv64:1;
+	UINT8 rsv65:1;
+	UINT8 rsv66:1;
+	UINT8 rsv67:1;
+	UINT8 rsv68:1;
+	UINT8 rsv69:1;
+	UINT8 ftm_resp:1;	/* bit70: FTM responder */
+	UINT8 ftm_init:1;	/* bit71: FTM Initiator in 802.11mc D4.0*/
+#endif // RT_BIG_ENDIAN //
 }EXT_CAP_INFO_ELEMENT, *PEXT_CAP_INFO_ELEMENT;
 
 
@@ -404,6 +425,24 @@ typedef struct GNU_PACKED _CHA_SWITCH_ANNOUNCE_IE{
 typedef struct GNU_PACKED _SEC_CHA_OFFSET_IE{
 	UCHAR			SecondaryChannelOffset;	 /* 1: Secondary above, 3: Secondary below, 0: no Secondary */
 } SEC_CHA_OFFSET_IE, *PSEC_CHA_OFFSET_IE;
+typedef struct GNU_PACKED _MEASUREMENT_REQ
+{
+	UCHAR ID;
+	UCHAR Length;
+	UCHAR Token;
+	UCHAR RequestMode;
+	UCHAR Type;
+} MEASUREMENT_REQ;
+
+/* 802.11mc D3.0 8.4.2.21 */
+typedef struct GNU_PACKED _MEASUREMENT_REPORT
+{
+	UCHAR ID;
+	UCHAR Length;
+	UCHAR Token;
+	UCHAR ReportMode;
+	UCHAR Type;
+} MEASUREMENT_REPORT;
 
 
 /* This structure is extracted from struct RT_HT_CAPABILITY and RT_VHT_CAP */
@@ -744,6 +783,33 @@ typedef struct GNU_PACKED _FRAME_RM_REQ_ACTION {
 	USHORT	Repetition;
 	UCHAR   data[0];
 }   FRAME_RM_REQ_ACTION, *PFRAME_RM_REQ_ACTION;
+typedef struct GNU_PACKED _FRAME_LOCATION_CONFIG_REQ {
+	HEADER_802_11   Hdr;
+	UCHAR	Category;
+	UCHAR	Action;
+	UCHAR	Token;
+}   FRAME_LOCATION_CONFIG_REQ, *PFRAME_LOCATION_CONFIG_REQ;
+
+/* 7.4.12.7, Location Configuration Response frame format */
+typedef struct GNU_PACKED _FRAME_LOCATION_CONFIG_RSP {
+	HEADER_802_11   Hdr;
+	UCHAR	Category;
+	UCHAR	Action;
+	UCHAR	Token;
+}   FRAME_LOCATION_CONFIG_RSP, *PFRAME_LOCATION_CONFIG_RSP;
+
+/* 7.4.13.2, Timing Measurement frame format */
+typedef struct GNU_PACKED _FRAME_TIMING_MEASURE {
+	HEADER_802_11   Hdr;
+	UCHAR	Category;
+	UCHAR	Action;
+	UCHAR	DialogToken;
+	UCHAR   FollowUpToken;
+	ULONG   TOD;
+	ULONG   TOA;
+	UCHAR   MaxTODError;
+	UCHAR   MaxTOAError;
+}   FRAME_TIMING_MEASURE, *PFRAME_TIMING_MEASURE;
 
 typedef struct GNU_PACKED _HT_EXT_CHANNEL_SWITCH_ANNOUNCEMENT_IE{
 	UCHAR		ID;
@@ -1230,6 +1296,28 @@ typedef struct _MLME_DLS_REQ_STRUCT {
 } MLME_DLS_REQ_STRUCT, *PMLME_DLS_REQ_STRUCT;
 #endif /* QOS_DLS_SUPPORT */
 #endif /* CONFIG_STA_SUPPORT */
+
+/* Timing Measurement Frame REQ Format */
+typedef struct GNU_PACKED _FRAME_TMR_REQ_ACTION {
+    HEADER_802_11   Hdr;
+    UCHAR   Category;
+    UCHAR   Action;
+    UCHAR   Trigger;
+}   FRAME_TMR_REQ_ACTION, *PFRAME_TMR_REQ_ACTION;
+
+/* Timing Measurement Frame Format */
+typedef struct GNU_PACKED _FRAME_FTM_ACTION {
+    HEADER_802_11   Hdr;
+    UCHAR   Category;
+    UCHAR   Action;
+    UCHAR   DialogToken;
+    UCHAR   FollowUpDialogToken;
+    UCHAR   TOD[6];/*Unit 0.1ns */
+    UCHAR   TOA[6];/*Unit 0.1ns */
+    UCHAR   TodErr[2];
+    UCHAR   ToaErr[2];
+    /*TODO: three optional present IE. (LCI, LCivic, FTM IE)*/
+}   FRAME_FTM_ACTION, *PFRAME_FTM_ACTION;
 
 typedef struct GNU_PACKED _EID_STRUCT{
     UCHAR   Eid;

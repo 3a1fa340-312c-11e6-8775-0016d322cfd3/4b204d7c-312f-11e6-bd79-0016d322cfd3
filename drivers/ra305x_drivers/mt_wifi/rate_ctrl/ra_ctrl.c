@@ -2313,6 +2313,8 @@ VOID MlmeRAInit(RTMP_ADAPTER *pAd, MAC_TABLE_ENTRY *pEntry)
 	pEntry->lastRateIdx = 0xFF;
 	pEntry->lowTrafficCount = 0;
 	pEntry->perThrdAdj = PER_THRD_ADJ;
+	pEntry->TrafficLoading = RA_INIT_STATE;
+	pEntry->RaHoldTime = 0;
 #endif /* NEW_RATE_ADAPT_SUPPORT */
 
 

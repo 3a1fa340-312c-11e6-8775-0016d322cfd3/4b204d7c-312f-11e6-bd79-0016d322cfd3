@@ -649,13 +649,11 @@ static VOID ApCliCtrlJoinReqAction(
 //		if (pAd->CommonCfg.Channel != pAd->ScanTab.BssEntry[bss_idx].Channel)
 		{
 			pApCliEntry->MlmeAux.Channel = pAd->ScanTab.BssEntry[bss_idx].Channel;
-#ifdef CONFIG_MULTI_CHANNEL
 				pApCliEntry->wdev.CentralChannel = pApCliEntry->MlmeAux.Channel ;
 				//should be check and update in in asso to check ==> ApCliCheckHt()
 				pApCliEntry->wdev.channel = pApCliEntry->wdev.CentralChannel;
 				pApCliEntry->wdev.bw = HT_BW_20;
 				pApCliEntry->wdev.extcha = EXTCHA_NONE;				
-#endif /* CONFIG_MULTI_CHANNEL */
 			AsicSwitchChannel(pAd, pApCliEntry->MlmeAux.Channel, FALSE);
 			AsicLockChannel(pAd, pApCliEntry->MlmeAux.Channel);
 
@@ -1556,8 +1554,6 @@ static VOID ApCliCtrlDisconnectReqAction(
 	if (CliIdx != 0xFF)
 	{
 		ifIndex = ((ifIndex - 64) / 16);
-		pAd->ApCfg.ApCliTab[ifIndex].RepeaterCli[CliIdx].CliValid = FALSE;
-		pAd->ApCfg.ApCliTab[ifIndex].RepeaterCli[CliIdx].CliEnable = FALSE;
 		RTMPRemoveRepeaterEntry(pAd, ifIndex, CliIdx);			
 	}
 	else
@@ -1631,8 +1627,6 @@ static VOID ApCliCtrlPeerDeAssocReqAction(
 				RTMPCancelTimer(&pAd->ApCfg.ApCliTab[ifIndex].RepeaterCli[index].ApCliAssocTimer, &Cancelled);
 				if (pAd->ApCfg.ApCliTab[ifIndex].RepeaterCli[index].CliValid)
 					ApCliLinkDown(pAd, (64 + MAX_EXT_MAC_ADDR_SIZE*ifIndex + index));
-				pAd->ApCfg.ApCliTab[ifIndex].RepeaterCli[index].CliValid = FALSE;
-				pAd->ApCfg.ApCliTab[ifIndex].RepeaterCli[index].CliEnable = FALSE;
 				RTMPRemoveRepeaterEntry(pAd, ifIndex, index);
 			}
 		}
@@ -1671,8 +1665,6 @@ static VOID ApCliCtrlPeerDeAssocReqAction(
 	if (CliIdx != 0xFF)
 	{
 		ifIndex = ((ifIndex - 64) / 16);
-		pAd->ApCfg.ApCliTab[ifIndex].RepeaterCli[CliIdx].CliValid = FALSE;
-		pAd->ApCfg.ApCliTab[ifIndex].RepeaterCli[CliIdx].CliEnable = FALSE;
 		RTMPRemoveRepeaterEntry(pAd, ifIndex, CliIdx);		
 	}
 	else
@@ -1757,8 +1749,6 @@ static VOID ApCliCtrlDeAssocAction(
 	if (CliIdx != 0xFF)
 	{
 		ifIndex = ((ifIndex - 64) / 16);
-		pAd->ApCfg.ApCliTab[ifIndex].RepeaterCli[CliIdx].CliValid = FALSE;
-		pAd->ApCfg.ApCliTab[ifIndex].RepeaterCli[CliIdx].CliEnable = FALSE;
 		RTMPRemoveRepeaterEntry(pAd, ifIndex, CliIdx);			
 	}
 	else
@@ -1850,8 +1840,6 @@ static VOID ApCliCtrlDeAuthAction(
 	if (CliIdx != 0xFF)
 	{
 		ifIndex = ((ifIndex - 64) / 16);
-		pAd->ApCfg.ApCliTab[ifIndex].RepeaterCli[CliIdx].CliValid = FALSE;
-		pAd->ApCfg.ApCliTab[ifIndex].RepeaterCli[CliIdx].CliEnable = FALSE;
 		//RTMPDelRepeaterCliAsicEntry(pAd, CliIdx);
 		RTMPRemoveRepeaterEntry(pAd, ifIndex, CliIdx);		
 	}

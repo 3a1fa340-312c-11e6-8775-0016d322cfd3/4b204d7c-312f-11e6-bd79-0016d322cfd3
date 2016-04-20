@@ -973,6 +973,7 @@ struct	iwreq
 	union	iwreq_data	u;
 };
 
+#define ifr_name ifr_ifrn.ifrn_name
 /* -------------------------- IOCTL DATA -------------------------- */
 /*
  *	For those ioctl which want to exchange mode data that what could
@@ -1163,6 +1164,6 @@ struct __compat_iw_event {
 #define IW_EV_PARAM_PK_LEN	(IW_EV_LCP_PK_LEN + sizeof(struct iw_param))
 #define IW_EV_ADDR_PK_LEN	(IW_EV_LCP_PK_LEN + sizeof(struct sockaddr))
 #define IW_EV_QUAL_PK_LEN	(IW_EV_LCP_PK_LEN + sizeof(struct iw_quality))
-#define IW_EV_POINT_PK_LEN	(IW_EV_LCP_LEN + 4)
+#define IW_EV_POINT_PK_LEN	(IW_EV_LCP_PK_LEN + 4)
 
 #endif	/* _LINUX_WIRELESS_H */

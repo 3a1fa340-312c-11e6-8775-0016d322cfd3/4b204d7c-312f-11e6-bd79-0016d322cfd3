@@ -1317,7 +1317,7 @@ VOID WDS_Init(RTMP_ADAPTER *pAd, RTMP_OS_NETDEV_OP_HOOK *pNetDevOps)
 		pAd->flg_wds_init = TRUE;
 
 
-	NdisAllocateSpinLock(pAd, &pAd->WdsTabLock);
+	//NdisAllocateSpinLock(pAd, &pAd->WdsTabLock);
 
 	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("Total allocated %d WDS interfaces!\n", index));
 	

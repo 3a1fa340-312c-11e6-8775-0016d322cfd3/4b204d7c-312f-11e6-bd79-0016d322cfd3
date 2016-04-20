@@ -1458,7 +1458,7 @@ static void rtmp_read_radius_parms_from_file(RTMP_ADAPTER *pAd, RTMP_STRING *tmp
 	}
 
 	/*IEEE8021X*/
-	if(RTMPGetKeyParameter("IEEE8021X", tmpbuf, 10, buffer, TRUE))
+	if(RTMPGetKeyParameter("IEEE8021X", tmpbuf, 32, buffer, TRUE))
 	{
 	    for (i = 0, macptr = rstrtok(tmpbuf,";"); macptr; macptr = rstrtok(NULL,";"), i++)
 	    {
@@ -2905,12 +2905,7 @@ NDIS_STATUS	RTMPSetProfileParameters(
 	    /*TxPower*/
 		if(RTMPGetKeyParameter("TxPower", tmpbuf, 10, pBuffer, TRUE))
 		{
-			pAd->CommonCfg.TxPowerPercentage = (ULONG) simple_strtol(tmpbuf, 0, 10);
-#ifdef CONFIG_STA_SUPPORT
-			IF_DEV_CONFIG_OPMODE_ON_STA(pAd)
-				pAd->CommonCfg.TxPowerDefault = pAd->CommonCfg.TxPowerPercentage;
-#endif /* CONFIG_STA_SUPPORT */
-			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("TxPower=%ld\n", pAd->CommonCfg.TxPowerPercentage));
+			Set_TxPower_Proc(pAd, tmpbuf);
 		}
 		/*BGProtection*/
 		if(RTMPGetKeyParameter("BGProtection", tmpbuf, 10, pBuffer, TRUE))
@@ -4412,6 +4407,14 @@ NDIS_STATUS	RTMPSetProfileParameters(
 #ifdef CONFIG_STA_SUPPORT
 			if(pAd->StaCfg.wdev.if_dev)
 				set_sniffer_mode(pAd->StaCfg.wdev.if_dev, pAd->sniffer_ctl.sniffer_type);
+#ifdef CONFIG_AP_SUPPORT
+#ifdef RT_CFG80211_P2P_SUPPORT
+	if ((pAd->cfg80211_ctrl.isCfgInApMode == RT_CMD_80211_IFTYPE_AP))
+	{
+		bcn_buf = &pAd->ApCfg.MBSSID[apidx].bcn_buf;
+	}
+#endif /* RT_CFG80211_P2P_SUPPORT */
+#endif /* CONFIG_AP_SUPPORT */
 #endif /* CONFIG_STA_SUPPORT */
 #ifdef CONFIG_AP_SUPPORT
 			if(pAd->ApCfg.MBSSID[0].wdev.if_dev)
@@ -4440,6 +4443,15 @@ NDIS_STATUS	RTMPSetProfileParameters(
          MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("LEDMethod = %d\n",pAd->LedCntl.LedMethod));
       }
 #endif
+#ifdef SMART_CARRIER_SENSE_SUPPORT
+      if (RTMPGetKeyParameter("SCSEnable", tmpbuf, 10, pBuffer, TRUE))
+      {
+         long SCSEnable;
+         SCSEnable = simple_strtol(tmpbuf, 0, 10);
+         pAd->SCSCtrl.SCSEnable = SCSEnable;
+         MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("Smart Carrier Sense = %lx\n",SCSEnable));
+      }
+#endif /* SMART_CARRIER_SENSE_SUPPORT */
 	}while(0);
 
 	os_free_mem(NULL, tmpbuf);

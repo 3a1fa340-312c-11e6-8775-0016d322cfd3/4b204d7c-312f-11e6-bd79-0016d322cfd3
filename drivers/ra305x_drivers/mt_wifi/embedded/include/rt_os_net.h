@@ -317,10 +317,13 @@ VOID RTMP_CFG80211_VirtualIF_CancelP2pClient(
 #endif /* RT_CFG80211_P2P_CONCURRENT_DEVICE */
 #endif /* RT_CFG80211_P2P_SUPPORT */
 
+#if defined(RT_CFG80211_P2P_CONCURRENT_DEVICE) || defined(CFG80211_MULTI_STA)
 PNET_DEV RTMP_CFG80211_FindVifEntry_ByType(
     IN      VOID     *pAdSrc,
     IN      UINT32    devType);
 	
+PWIRELESS_DEV RTMP_CFG80211_FindVifEntryWdev_ByType(
+    VOID  *pAdSrc, UINT32 devType);
 VOID RTMP_CFG80211_AddVifEntry(
     IN      VOID     *pAdSrc,
     IN      PNET_DEV pNewNetDev,
@@ -345,6 +348,7 @@ VOID RTMP_CFG80211_VirtualIF_Remove(
 
 VOID RTMP_CFG80211_AllVirtualIF_Remove(	
 	IN VOID 		*pAdSrc);
+#endif /* RT_CFG80211_P2P_CONCURRENT_DEVICE || CFG80211_MULTI_STA */
 
 #ifdef CFG80211_MULTI_STA
 BOOLEAN RTMP_CFG80211_MULTI_STA_ON(VOID *pAdSrc, PNET_DEV pNewNetDev);
@@ -578,6 +582,11 @@ INT rt_android_private_command_entry(
 
 #define RTMP_DRIVER_80211_AP_KEY_ADD(__pAd, __pKeyInfo) \
     RTMP_COM_IoctlHandle(__pAd, NULL, CMD_RTPRIV_IOCTL_80211_AP_KEY_ADD, 0, __pKeyInfo, 0)
+#define RTMP_DRIVER_80211_RTS_THRESHOLD_ADD(__pAd, __Rts_thresold) \
+    RTMP_COM_IoctlHandle(__pAd, NULL, CMD_RTPRIV_IOCTL_80211_RTS_THRESHOLD_ADD, 0, __Rts_thresold, 0)
+
+#define RTMP_DRIVER_80211_FRAG_THRESHOLD_ADD(__pAd, __Frag_thresold) \
+    RTMP_COM_IoctlHandle(__pAd, NULL, CMD_RTPRIV_IOCTL_80211_FRAG_THRESHOLD_ADD, 0, __Frag_thresold, 0)
 
 #define RTMP_DRIVER_80211_AP_KEY_DEFAULT_SET(__pAd, __KeyId)				\
 	RTMP_COM_IoctlHandle(__pAd, NULL, CMD_RTPRIV_IOCTL_80211_AP_KEY_DEFAULT_SET, 0, NULL, __KeyId)

@@ -46,9 +46,29 @@ struct _RTMP_ADAPTER;
 /* */
 /* Device ID & Vendor ID, these values should match EEPROM value */
 /* */
+#ifdef __ECOS
+#define RTMP_SYS_CTL_ADDR 0xB0000000
+#define RTMP_PIO_CTL_ADDR 0xB0000600
+#endif /* __ECOS */
 #define RTMP_MAC_CSR_ADDR	0xB0300000
 #define RTMP_FLASH_BASE_ADDR	0xbc000000
 
+#ifdef __ECOS
+/* System Control */
+#define RTMP_SYS_GPIOMODE_OFFSET 0x0060
+
+/* Programmable I/O */
+#define RTMP_PIO2100_DATA_OFFSET 0x0024
+#define RTMP_PIO2100_DIR_OFFSET 0x0004
+#define RTMP_PIO2100_POL_OFFSET 0x0014
+#define RTMP_PIO2100_SET_OFFSET 0x002c
+#define RTMP_PIO2100_CLEAR_OFFSET 0x0030
+#define RTMP_PIO3924_DATA_OFFSET 0x0048
+#define RTMP_PIO3924_DIR_OFFSET 0x004C
+#define RTMP_PIO3924_POL_OFFSET 0x0050
+#define RTMP_PIO3924_SET_OFFSET 0x0054
+#define RTMP_PIO3924_CLEAR_OFFSET 0x0058
+#endif /* __ECOS */
 
 #if defined (CONFIG_MTK_MT7628)
 #define PROCREG_DIR             "mt7628"

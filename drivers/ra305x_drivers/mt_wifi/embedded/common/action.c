@@ -1196,6 +1196,13 @@ VOID PeerHTAction(RTMP_ADAPTER *pAd, MLME_QUEUE_ELEM *Elem)
                             APMlmeDynamicTxRateSwitching(pAd);
                         }
                     }
+#ifdef RT_CFG80211_SUPPORT
+#ifdef RT_CFG80211_P2P_SUPPORT
+				if((pAd->cfg80211_ctrl.isCfgInApMode == RT_CMD_80211_IFTYPE_AP) && 
+				    (!OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_DOZE)))
+                                        MlmeDynamicTxRateSwitching(pAd);
+#endif /*RT_CFG80211_P2P_SUPPORT*/				
+#endif /* RT_CFG80211_SUPPORT */
 
 #endif /* CONFIG_AP_SUPPORT */
 				}

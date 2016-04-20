@@ -27,6 +27,687 @@
 
 #ifdef LED_CONTROL_SUPPORT
 	
+#ifdef CONFIG_SWMCU_SUPPORT
+INT Show_LedCfg_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
+{
+	LED_CFG_T macLedCfg;
+	ULED_PARAMETER *pLedParameter;
+	
+	pLedParameter = &pAd->LedCntl.SWMCULedCntl.LedParameter;
+
+	printk("LedAMode_RadioOnLinkA=%d\n", pLedParameter->LedAgCfg.field.LedAMode_RadioOnLinkA);
+	printk("LedGMode_RadioOnLinkA=%d\n", pLedParameter->LedAgCfg.field.LedGMode_RadioOnLinkA);
+	printk("LedAMode_RadioOnLinkG=%d\n", pLedParameter->LedAgCfg.field.LedAMode_RadioOnLinkG);
+	printk("LedGMode_RadioOnLinkG=%d\n", pLedParameter->LedAgCfg.field.LedGMode_RadioOnLinkG);
+	printk("LedAMode_RadioOnLinkDown=%d\n", pLedParameter->LedAgCfg.field.LedAMode_RadioOnLinkDown);
+	printk("LedGMode_RadioOnLinkDown=%d\n", pLedParameter->LedAgCfg.field.LedGMode_RadioOnLinkDown);
+	printk("LedAMode_RadioOff=%d\n", pLedParameter->LedAgCfg.field.LedAMode_RadioOff);
+	printk("LedGMode_RadioOff=%d\n", pLedParameter->LedAgCfg.field.LedGMode_RadioOff);
+
+	printk("LedActModeNoTx_RadioOnLinkA=%d\n", pLedParameter->LedActCfg.field.LedActModeNoTx_RadioOnLinkA);
+	printk("LedActMode_RadioOnLinkA=%d\n", pLedParameter->LedActCfg.field.LedActMode_RadioOnLinkA);
+	printk("LedActModeNoTx_RadioOnLinkG=%d\n", pLedParameter->LedActCfg.field.LedActModeNoTx_RadioOnLinkG);
+	printk("LedActMode_RadioOnLinkG=%d\n", pLedParameter->LedActCfg.field.LedActMode_RadioOnLinkG);
+	printk("LedActModeNoTx_RadioOnLinkDown=%d\n", pLedParameter->LedActCfg.field.LedActModeNoTx_RadioOnLinkDown);
+	printk("LedActMode_RadioOnLinkDown=%d\n", pLedParameter->LedActCfg.field.LedActMode_RadioOnLinkDown);
+	printk("LedActModeNoTx_RadioOff=%d\n", pLedParameter->LedActCfg.field.LedActModeNoTx_RadioOff);
+	printk("LedActMode_RadioOff=%d\n", pLedParameter->LedActCfg.field.LedActMode_RadioOff);
+
+	RTMP_IO_READ32(pAd, MAC_LED_CFG, &macLedCfg.word);
+	
+	printk("LED_CFG = %x\n\n", macLedCfg.word);
+	printk("LED_ON_TIME = %d\n", macLedCfg.field.LED_ON_TIME);
+	printk("LED_OFF_TIME = %d\n", macLedCfg.field.LED_OFF_TIME);
+	printk("SLOW_BLK_TIME = %d\n", macLedCfg.field.SLOW_BLK_TIME);
+	printk("R_LED_MODE (A) = %d\n", macLedCfg.field.R_LED_MODE);
+	printk("G_LED_MODE (ACT) = %d\n", macLedCfg.field.G_LED_MODE);
+	printk("Y_LED_MODE (A) = %d\n", macLedCfg.field.Y_LED_MODE);
+	printk("LED_POL = %d\n", macLedCfg.field.LED_POL);
+
+	return TRUE;
+}
+
+
+INT Set_LedCfg_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
+{
+	INT loop;
+	PCHAR thisChar;
+	long polarity=0;
+	long ledOnTime=0;
+	long ledOffTime=0;
+	long slowBlkTime=0;
+	
+	loop = 0;
+
+	while ((thisChar = strsep((char **)&arg, "-")) != NULL)
+	{
+		switch(loop)
+		{
+			case 0:
+				polarity = simple_strtol(thisChar, 0, 10);
+				break;
+
+			case 1:
+				ledOnTime = simple_strtol(thisChar, 0, 10);
+				break;
+
+			case 2:
+				ledOffTime = simple_strtol(thisChar, 0, 10);
+				break;
+
+			case 3:
+				slowBlkTime = simple_strtol(thisChar, 0, 10);
+				break;
+
+			default:
+				break;
+		}
+		loop ++;
+	}
+
+	SetLedCfg(pAd, (INT)polarity, (INT)ledOnTime, (INT)ledOffTime, (INT)slowBlkTime);
+
+	return TRUE;
+}
+
+INT Set_LedCheck_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
+{
+	INT loop;
+	PCHAR thisChar;
+	long ledSel=0;
+	long ledMode=0;
+
+	loop = 0;
+	while ((thisChar = strsep((char **)&arg, "-")) != NULL)
+	{
+		switch(loop)
+		{
+			case 0:
+				ledSel = simple_strtol(thisChar, 0, 10);
+				break;
+
+			case 1:
+				ledMode = simple_strtol(thisChar, 0, 10);
+				break;
+
+			default:
+				break;
+		}
+		loop ++;
+	}
+
+	SetLedMode(pAd, (INT)ledSel, (INT)ledMode);
+
+	return TRUE;
+}
+
+VOID SetLedCfg(
+	IN PRTMP_ADAPTER pAd,
+	IN INT ledPolarity,
+	IN INT ledOnTime,
+	IN INT ledOffTime,
+	IN INT slowBlkTime)
+{
+	LED_CFG_T macLedCfg;
+	RTMP_IO_READ32(pAd, MAC_LED_CFG, &macLedCfg.word);
+
+	macLedCfg.field.LED_POL = ledPolarity;
+	macLedCfg.field.LED_ON_TIME = ledOnTime;
+	macLedCfg.field.LED_OFF_TIME = ledOffTime;
+	macLedCfg.field.SLOW_BLK_TIME = slowBlkTime;
+
+	RTMP_IO_WRITE32(pAd, MAC_LED_CFG, macLedCfg.word);
+
+	return;
+}
+
+VOID SetLedMode(
+	IN PRTMP_ADAPTER pAd,
+	IN INT LedSel,
+	IN INT LedMode)
+{
+	LED_CFG_T macLedCfg;
+	RTMP_IO_READ32(pAd, MAC_LED_CFG, &macLedCfg.word);
+
+	switch(LedSel)
+	{
+		case LED_G: /* LED G. */
+			macLedCfg.field.Y_LED_MODE = LedMode;
+			break;
+
+		case LED_A: /* LED A. */
+			macLedCfg.field.G_LED_MODE = LedMode;
+			break;
+
+		case LED_ACT: /* LED ACT. */
+			macLedCfg.field.R_LED_MODE = LedMode;
+			break;
+
+		default:
+			break;
+	}
+
+	RTMP_IO_WRITE32(pAd, MAC_LED_CFG, macLedCfg.word);
+
+	return;
+}
+
+
+/*
+ * WPS Type : time of LED on,
+ *     		  time of LED off,
+ *		  	  time of on/off cycles that LED blink,
+ *		  	  time of on/off cycles that LED rest
+ * InProgress: 0.2s, 0.1s, infinite, 0s
+ * Error: 0.1s, 0.1s, infinite, 0s
+ * Session Overlap Detected: 0.1s, 0.1s, 1s, 0.5s
+ * Success: 300s, infinite, infinite, 0s
+ * Pre, Post stage: 0.5s, 0.5s, infinite, 0s
+ */
+void SetWPSLinkStatus(IN PRTMP_ADAPTER pAd)
+{
+	PLED_OPERATION_MODE pCurrentLedCfg = &pAd->LedCntl.SWMCULedCntl.CurrentLedCfg;
+	PWPS_LED_TIME_UNIT pWPSLedTimeUnit = &pAd->LedCntl.SWMCULedCntl.WPSLedTimeUnit;
+	
+	switch(pAd->LedCntl.SWMCULedCntl.LinkStatus)
+	{
+#ifdef CONFIG_WIFI_LED_SHARE
+		case LINK_STATUS_WPS_PRE_STAGE:
+			pCurrentLedCfg->field.LedActMode = MCU_LED_ACT_WPS_PRE_STAGE;
+			pWPSLedTimeUnit->OnPeriod = 0.5 * 1000 / LED_CHECK_INTERVAL;
+			pWPSLedTimeUnit->OffPeriod = 0.5 * 1000 / LED_CHECK_INTERVAL;
+			pWPSLedTimeUnit->BlinkPeriod = INFINITE_PERIOD;
+			pWPSLedTimeUnit->RestPeriod = 0;
+			break;
+		case LINK_STATUS_WPS_POST_STAGE:
+			pCurrentLedCfg->field.LedActMode = MCU_LED_ACT_WPS_POST_STAGE;
+			pWPSLedTimeUnit->OnPeriod = 0.5 * 1000 / LED_CHECK_INTERVAL;
+			pWPSLedTimeUnit->OffPeriod = 0.5 * 1000 / LED_CHECK_INTERVAL;
+			pWPSLedTimeUnit->BlinkPeriod = INFINITE_PERIOD;
+			pWPSLedTimeUnit->RestPeriod = 0;
+			break;
+#endif /* CONFIG_WIFI_LED_SHARE */
+#ifdef WSC_INCLUDED
+#ifdef WSC_LED_SUPPORT
+		case LINK_STATUS_WPS_IN_PROCESS:
+			pCurrentLedCfg->field.LedActMode = MCU_LED_ACT_WPS_IN_PROCESS;
+			pWPSLedTimeUnit->OnPeriod = 0.2 * 1000 / LED_CHECK_INTERVAL;
+			pWPSLedTimeUnit->OffPeriod = 0.1 * 1000 / LED_CHECK_INTERVAL;
+			pWPSLedTimeUnit->BlinkPeriod = INFINITE_PERIOD;
+			pWPSLedTimeUnit->RestPeriod = 0;
+			break;
+		case LINK_STATUS_WPS_ERROR:
+			pCurrentLedCfg->field.LedActMode = MCU_LED_ACT_WPS_ERROR;
+			pWPSLedTimeUnit->OnPeriod = 0.1 * 1000 / LED_CHECK_INTERVAL;
+			pWPSLedTimeUnit->OffPeriod = 0.1 * 1000 / LED_CHECK_INTERVAL;
+			pWPSLedTimeUnit->BlinkPeriod = INFINITE_PERIOD;
+			pWPSLedTimeUnit->RestPeriod = 0;
+			break;
+		case LINK_STATUS_WPS_SESSION_OVERLAP_DETECTED:
+			pCurrentLedCfg->field.LedActMode = MCU_LED_ACT_WPS_SESSION_OVERLAP_DETECTED;
+			pWPSLedTimeUnit->OnPeriod = 0.1 * 1000 / LED_CHECK_INTERVAL;
+			pWPSLedTimeUnit->OffPeriod = 0.1 * 1000 / LED_CHECK_INTERVAL;
+			pWPSLedTimeUnit->BlinkPeriod = 1 * 1000 / LED_CHECK_INTERVAL;
+			pWPSLedTimeUnit->RestPeriod = 0.5 * 1000 / LED_CHECK_INTERVAL;
+			break;
+		case LINK_STATUS_WPS_SUCCESS_WITH_SECURITY:
+			pCurrentLedCfg->field.LedActMode = MCU_LED_ACT_WPS_SUCCESS_WITH_SECURITY;
+			pWPSLedTimeUnit->OnPeriod = 300 * 1000 / LED_CHECK_INTERVAL;
+			pWPSLedTimeUnit->OffPeriod = INFINITE_PERIOD;
+			pWPSLedTimeUnit->BlinkPeriod = INFINITE_PERIOD;
+			pWPSLedTimeUnit->RestPeriod = 0;
+			break;
+		case LINK_STATUS_WPS_SUCCESS_WITHOUT_SECURITY:
+			pCurrentLedCfg->field.LedActMode = MCU_LED_ACT_WPS_SUCCESS_WITHOUT_SECURITY;
+			pWPSLedTimeUnit->OnPeriod = 300 * 1000 / LED_CHECK_INTERVAL;
+			pWPSLedTimeUnit->OffPeriod = INFINITE_PERIOD;
+			pWPSLedTimeUnit->BlinkPeriod = INFINITE_PERIOD;
+			pWPSLedTimeUnit->RestPeriod = 0;
+			break;
+		case LINK_STATUS_WPS_TURN_LED_OFF:
+			pCurrentLedCfg->field.LedActMode = MCU_LED_ACT_WPS_TURN_LED_OFF;
+			pWPSLedTimeUnit->OnPeriod = 0;
+			pWPSLedTimeUnit->OffPeriod = 0;
+			pWPSLedTimeUnit->BlinkPeriod = 0;
+			pWPSLedTimeUnit->RestPeriod = 0;
+			break;
+		case LINK_STATUS_NORMAL_CONNECTION_WITHOUT_SECURITY:
+			pCurrentLedCfg->field.LedActMode = MCU_LED_ACT_WPS_NORMAL_CONNECTION_WITHOUT_SECURITY;
+			pWPSLedTimeUnit->OnPeriod = 300 * 1000 / LED_CHECK_INTERVAL;
+			pWPSLedTimeUnit->OffPeriod = INFINITE_PERIOD;
+			pWPSLedTimeUnit->BlinkPeriod = INFINITE_PERIOD;
+			pWPSLedTimeUnit->RestPeriod = 0;
+			break;
+		case LINK_STATUS_NORMAL_CONNECTION_WITH_SECURITY:
+			pCurrentLedCfg->field.LedActMode = MCU_LED_ACT_WPS_NORMAL_CONNECTION_WITH_SECURITY;
+			pWPSLedTimeUnit->OnPeriod = 300 * 1000 / LED_CHECK_INTERVAL;
+			pWPSLedTimeUnit->OffPeriod = INFINITE_PERIOD;
+			pWPSLedTimeUnit->BlinkPeriod = INFINITE_PERIOD;
+			pWPSLedTimeUnit->RestPeriod = 0;
+			break;
+#endif /* WSC_INCLUDED */
+#endif /* WSC_LED_SUPPORT */
+		default:
+			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("%s:(Unknown LinkStatus)%d", __FUNCTION__, pAd->LedCntl.SWMCULedCntl.LinkStatus));
+			break;
+		}
+
+		pWPSLedTimeUnit->LeftOnPeriod = pWPSLedTimeUnit->OnPeriod;
+		pWPSLedTimeUnit->LeftOffPeriod = pWPSLedTimeUnit->OffPeriod;
+		pWPSLedTimeUnit->LeftBlinkPeriod = pWPSLedTimeUnit->BlinkPeriod;
+		pWPSLedTimeUnit->LeftRestPeriod = pWPSLedTimeUnit->RestPeriod;
+}
+
+
+void SetLedLinkStatus(IN PRTMP_ADAPTER pAd)
+{
+	PSWMCU_LED_CONTROL pSWMCULedCntl = &pAd->LedCntl.SWMCULedCntl;
+	ULED_PARAMETER *pLedParameter = &pAd->LedCntl.SWMCULedCntl.LedParameter;
+	PLED_OPERATION_MODE pCurrentLedCfg  = &pAd->LedCntl.SWMCULedCntl.CurrentLedCfg;
+	
+	pAd->LedCntl.SWMCULedCntl.BlinkFor8sTimer = 0;
+
+	switch(pSWMCULedCntl->LinkStatus)
+	{
+		case LINK_STATUS_RADIO_OFF:			/* Radio off */
+			pCurrentLedCfg->field.LedGMode = pLedParameter->LedAgCfg.field.LedGMode_RadioOff;
+			pCurrentLedCfg->field.LedAMode = pLedParameter->LedAgCfg.field.LedAMode_RadioOff;
+			pCurrentLedCfg->field.LedActMode = pLedParameter->LedActCfg.field.LedActMode_RadioOff;
+			pCurrentLedCfg->field.LedActModeNoTx = pLedParameter->LedActCfg.field.LedActModeNoTx_RadioOff;
+			pCurrentLedCfg->field.LedGPolarity = pLedParameter->LedPolarityCfg.field.LedGPolarity_RadioOff;
+			pCurrentLedCfg->field.LedAPolarity = pLedParameter->LedPolarityCfg.field.LedAPolarity_RadioOff;
+			pCurrentLedCfg->field.LedActPolarity = pLedParameter->LedPolarityCfg.field.LedActPolarity_RadioOff;
+			break;
+
+		case LINK_STATUS_RADIO_ON:			/* Radio on but not link up */
+			pCurrentLedCfg->field.LedGMode = pLedParameter->LedAgCfg.field.LedGMode_RadioOnLinkDown;
+			pCurrentLedCfg->field.LedAMode = pLedParameter->LedAgCfg.field.LedAMode_RadioOnLinkDown;
+			pCurrentLedCfg->field.LedActMode = pLedParameter->LedActCfg.field.LedActMode_RadioOnLinkDown;
+			pCurrentLedCfg->field.LedActModeNoTx = pLedParameter->LedActCfg.field.LedActModeNoTx_RadioOnLinkDown;
+			pCurrentLedCfg->field.LedGPolarity = pLedParameter->LedPolarityCfg.field.LedGPolarity_RadioOnLinkDown;
+			pCurrentLedCfg->field.LedAPolarity = pLedParameter->LedPolarityCfg.field.LedAPolarity_RadioOnLinkDown;
+			pCurrentLedCfg->field.LedActPolarity = pLedParameter->LedPolarityCfg.field.LedActPolarity_RadioOnLinkDown;
+  			break;
+
+		case LINK_STATUS_GBAND_LINK_UP:		/* Radio on and link to G */
+			pCurrentLedCfg->field.LedGMode = pLedParameter->LedAgCfg.field.LedGMode_RadioOnLinkG;
+			pCurrentLedCfg->field.LedAMode = pLedParameter->LedAgCfg.field.LedAMode_RadioOnLinkG;
+			pCurrentLedCfg->field.LedActMode = pLedParameter->LedActCfg.field.LedActMode_RadioOnLinkG;
+			pCurrentLedCfg->field.LedActModeNoTx = pLedParameter->LedActCfg.field.LedActModeNoTx_RadioOnLinkG;
+			pCurrentLedCfg->field.LedGPolarity = pLedParameter->LedPolarityCfg.field.LedGPolarity_RadioOnLinkG;
+			pCurrentLedCfg->field.LedAPolarity = pLedParameter->LedPolarityCfg.field.LedAPolarity_RadioOnLinkG;
+			pCurrentLedCfg->field.LedActPolarity = pLedParameter->LedPolarityCfg.field.LedActPolarity_RadioOnLinkG;
+  			break;
+
+		case LINK_STATUS_ABAND_LINK_UP:		/* Radio on and link to A */
+			pCurrentLedCfg->field.LedGMode = pLedParameter->LedAgCfg.field.LedGMode_RadioOnLinkA;
+			pCurrentLedCfg->field.LedAMode = pLedParameter->LedAgCfg.field.LedAMode_RadioOnLinkA;
+			pCurrentLedCfg->field.LedActMode = pLedParameter->LedActCfg.field.LedActMode_RadioOnLinkA;
+			pCurrentLedCfg->field.LedActModeNoTx = pLedParameter->LedActCfg.field.LedActModeNoTx_RadioOnLinkA;
+			pCurrentLedCfg->field.LedGPolarity = pLedParameter->LedPolarityCfg.field.LedGPolarity_RadioOnLinkA;
+			pCurrentLedCfg->field.LedAPolarity = pLedParameter->LedPolarityCfg.field.LedAPolarity_RadioOnLinkA;
+			pCurrentLedCfg->field.LedActPolarity = pLedParameter->LedPolarityCfg.field.LedActPolarity_RadioOnLinkA;
+  			break;
+
+		case LINK_STATUS_WPS:		/* WPS */
+			if(pLedParameter->LedMode == LED_MODE_WPS_LOW_POLARITY)
+			{
+				pCurrentLedCfg->field.LedActPolarity = ACTIVE_LOW;
+				pCurrentLedCfg->field.LedActMode = MCU_LED_ACT_SOLID_ON;	/* Force ACT to solid on/off */
+				pCurrentLedCfg->field.LedActMode = MCU_LED_ACT_OFF;			/* Force ACT to solid on/off */
+			}
+			if(pLedParameter->LedMode == LED_MODE_WPS_HIGH_POLARITY)
+			{
+				pCurrentLedCfg->field.LedActPolarity = ACTIVE_HIGH;
+				pCurrentLedCfg->field.LedActMode = MCU_LED_ACT_SOLID_ON;	/* Force ACT to solid on/off */
+				pCurrentLedCfg->field.LedActMode = MCU_LED_ACT_OFF;			/* Force ACT to solid on/off */
+			}
+			break;
+
+		case LINK_STATUS_ON_SITE_SURVEY:
+			if (pLedParameter->LedMode == LED_MODE_8SEC_SCAN)
+				pSWMCULedCntl->BlinkFor8sTimer = (8000 / LED_CHECK_INTERVAL);
+			break;
+	}
+}
+
+
+static void ChgSignalStrengthLed(RTMP_ADAPTER *pAd)
+{
+	RTMP_IO_WRITE32(pAd, GPIO_DIR, 0x00); /* set GPIO to output. */
+	RTMP_IO_WRITE32(pAd, GPIO_DAT, (pAd->LedCntl.SWMCULedCntl.GPIOPolarity ? pAd->LedCntl.SWMCULedCntl.SignalStrength : ~pAd->LedCntl.SWMCULedCntl.SignalStrength));
+}
+
+
+static inline int TX_TRAFFIC_EXIST(RTMP_ADAPTER *pAd)
+{
+	UINT RegValue;
+
+	RTMP_IO_READ32(pAd, MCU_INT_STATUS, &RegValue);
+	return (RegValue & 0x0e);
+}
+
+static inline int BEN_TC_ACT(RTMP_ADAPTER *pAd)
+{
+	UINT RegValue;
+
+	RTMP_IO_READ32(pAd, MCU_INT_STATUS, &RegValue);
+	return (RegValue & 0x10);
+}
+
+#ifdef __ECOS
+#ifdef WSC_LED_SUPPORT
+#ifdef RT5350
+#define WPS_LED_GPIO 14
+void __WPS_LED_ON()
+{
+        int value;
+
+        value = HAL_REG32(RTMP_PIO_CTL_ADDR + RTMP_PIO2100_DIR_OFFSET);
+        value |= (1<<WPS_LED_GPIO);
+        HAL_REG32(RTMP_PIO_CTL_ADDR + RTMP_PIO2100_DIR_OFFSET) = value;
+
+        value = (1<<WPS_LED_GPIO);
+#if RALINK_GPIO_LED_LOW_ACT
+        HAL_REG32(RTMP_PIO_CTL_ADDR + RTMP_PIO2100_CLEAR_OFFSET) = value;   
+#else
+        HAL_REG32(RTMP_PIO_CTL_ADDR + RTMP_PIO2100_SET_OFFSET) = value;   
+#endif
+}
+
+void __WPS_LED_OFF()
+{
+        int value;
+
+        value = HAL_REG32(RTMP_PIO_CTL_ADDR + RTMP_PIO2100_DIR_OFFSET);
+        value |= (1<<WPS_LED_GPIO);
+        HAL_REG32(RTMP_PIO_CTL_ADDR + RTMP_PIO2100_DIR_OFFSET) = value;
+
+        value = (1<<WPS_LED_GPIO);
+#if RALINK_GPIO_LED_LOW_ACT        
+        HAL_REG32(RTMP_PIO_CTL_ADDR + RTMP_PIO2100_SET_OFFSET) = value;       
+#else
+        HAL_REG32(RTMP_PIO_CTL_ADDR + RTMP_PIO2100_CLEAR_OFFSET) = value;   
+#endif
+}
+#endif /* RT5350 */
+
+
+static void ChgMacWPSLedCfg(RTMP_ADAPTER *pAd)
+{
+	PWPS_LED_TIME_UNIT pWPSLedTimeUnit = &pAd->LedCntl.SWMCULedCntl.WPSLedTimeUnit;
+
+        /* Always LED Off */
+        if (pWPSLedTimeUnit->OnPeriod == 0)
+                __WPS_LED_OFF();
+
+        /* Always LED On */
+        if ((pWPSLedTimeUnit->OnPeriod == INFINITE_PERIOD) 
+                || ((pWPSLedTimeUnit->OnPeriod != 0) 
+                && (pWPSLedTimeUnit->OffPeriod == 0) 
+                && (pWPSLedTimeUnit->BlinkPeriod == INFINITE_PERIOD)))
+                __WPS_LED_ON();
+
+
+        if ((pWPSLedTimeUnit->LeftBlinkPeriod > 0) 
+                || (pWPSLedTimeUnit->BlinkPeriod == INFINITE_PERIOD)) {
+
+                if (pWPSLedTimeUnit->BlinkPeriod != INFINITE_PERIOD)
+                        pWPSLedTimeUnit->LeftBlinkPeriod--;
+                
+                if ((pWPSLedTimeUnit->LeftOnPeriod == 0) 
+                        && (pWPSLedTimeUnit->LeftOffPeriod == 0)) {
+                        pWPSLedTimeUnit->LeftOnPeriod = pWPSLedTimeUnit->OnPeriod;
+                        pWPSLedTimeUnit->LeftOffPeriod = pWPSLedTimeUnit->OffPeriod;
+                }
+
+                if (pWPSLedTimeUnit->LeftOnPeriod > 0) {
+                        /* Set LED On until LeftOnPeriod == 0 */
+                        __WPS_LED_ON();
+                        pWPSLedTimeUnit->LeftOnPeriod--;
+                } else if (pWPSLedTimeUnit->LeftOffPeriod > 0) {
+                        /* Set LED Off until LeftOffPeriod == 0 */
+                        __WPS_LED_OFF();
+                        pWPSLedTimeUnit->LeftOffPeriod--;
+                        return;
+                } else if (pWPSLedTimeUnit->OffPeriod == INFINITE_PERIOD) {
+                        __WPS_LED_OFF();
+                }                
+        } else if (pWPSLedTimeUnit->LeftRestPeriod > 0) {
+                __WPS_LED_OFF();
+                pWPSLedTimeUnit->LeftRestPeriod--;
+                if (pWPSLedTimeUnit->LeftRestPeriod == 0) {
+                        pWPSLedTimeUnit->LeftOnPeriod = pWPSLedTimeUnit->OnPeriod;
+                        pWPSLedTimeUnit->LeftOffPeriod = pWPSLedTimeUnit->OffPeriod;
+                        pWPSLedTimeUnit->LeftBlinkPeriod = pWPSLedTimeUnit->BlinkPeriod;
+                        pWPSLedTimeUnit->LeftRestPeriod = pWPSLedTimeUnit->RestPeriod;
+                }
+        } else
+                __WPS_LED_OFF();
+}
+#endif /* WSC_LED_SUPPORT */
+#endif /* __ECOS */
+
+
+/* Change LED State according to CurrentLedPolarity, CurrentLedCfg, and Tx activity */
+/* The result is stored in AbstractMacLedCfg (Abstract MacLedCfg). */
+/* AbstractMacLedCfg is an abstract layer. Since MAC's LED_CFG doesn't match firmware requirement totally, */
+/* this abstract layer is to hide these difference. */
+static void ChgMacLedCfg(RTMP_ADAPTER *pAd)
+{
+	LED_CFG_T LedCfgBuf;
+	BYTE DataTxActivity, BeaconTxActivity;
+	PSWMCU_LED_CONTROL pSWMCULedCntl = &pAd->LedCntl.SWMCULedCntl;
+	PLED_OPERATION_MODE pCurrentLedCfg = &pAd->LedCntl.SWMCULedCntl.CurrentLedCfg;
+
+	/* 
+	** MCU_INT_STA (offset: 0x0414)
+	** bit 1: MTX2_INT, TX2Q to MAC frame transfer complete interrupt.
+	** bit 2: MTX1_INT, TX1Q to MAC frame transfer complete interrupt.
+	** bit 3: MTX0_INT, TX0Q to MAC frame transfer complete interrupt.
+	*/
+	if (TX_TRAFFIC_EXIST(pAd)) /* Check if there is Tx Traffic */
+		DataTxActivity = 1;
+	else
+		DataTxActivity = 0;
+
+	/* Check if there are beacon */
+	BeaconTxActivity = BEN_TC_ACT(pAd);
+
+	/* Clear Tx and beacon Tx complete interrupt */
+	RTMP_IO_WRITE32(pAd, MCU_INT_STATUS, 0x1e);
+	
+	RTMP_IO_READ32(pAd, MAC_LED_CFG, &LedCfgBuf.word);
+
+	/* For backward compatible issue,
+         * LedActMode: 0: None, 1: Solid ON, 2: Blink (data/mgr), 3: Blink (data,mgr,beacon)
+	 * =>Solid off = solid on + high polarity
+         */
+//#ifdef RT5350
+#if defined(RT5350) || defined(RT6352)
+	LedCfgBuf.field.LED_POL = !pCurrentLedCfg->field.LedActPolarity;
+#else
+	LedCfgBuf.field.LED_POL = pCurrentLedCfg->field.LedActPolarity;
+#endif
+	if(pSWMCULedCntl->LedBlinkTimer!=0)
+		pSWMCULedCntl->LedBlinkTimer--;
+	else
+		pSWMCULedCntl->LedBlinkTimer = 0xff;
+
+	/* LED Act. connect to G_LED. */
+	if (pSWMCULedCntl->LedParameter.LedMode == LED_MODE_8SEC_SCAN && pSWMCULedCntl->BlinkFor8sTimer)
+	{
+		UINT8 LedPolarity = pCurrentLedCfg->field.LedActPolarity ? 0 : 3;
+		LedCfgBuf.field.G_LED_MODE = GetBitX(pSWMCULedCntl->LedBlinkTimer, 0) ? LedPolarity : ~LedPolarity;
+		pSWMCULedCntl->BlinkFor8sTimer--;
+	}
+	else if (pCurrentLedCfg->field.LedActMode == MCU_LED_ACT_OFF)
+	{
+		LedCfgBuf.field.G_LED_MODE =
+				pCurrentLedCfg->field.LedActPolarity ? MAC_LED_ON : MAC_LED_OFF;
+	}
+	else if (pCurrentLedCfg->field.LedActMode == MCU_LED_ACT_SOLID_ON)
+	{
+		LedCfgBuf.field.G_LED_MODE =
+				pCurrentLedCfg->field.LedActPolarity ? MAC_LED_OFF : MAC_LED_ON;
+	}
+	else if ((DataTxActivity && pCurrentLedCfg->field.LedActMode > MCU_LED_ACT_SOLID_ON) /* Data packet transmited. */
+		|| (BeaconTxActivity && pCurrentLedCfg->field.LedActMode == MCU_LED_ACT_BLINK_UPON_TX_DATA_MNG_BEN)) /* Beacon frame transmited. */
+	{
+		LedCfgBuf.field.G_LED_MODE = GetBitX(pSWMCULedCntl->LedBlinkTimer, 0) ? MAC_LED_ON : MAC_LED_OFF;
+	}
+	else if (!DataTxActivity && !BeaconTxActivity)
+	{
+		if (pCurrentLedCfg->field.LedActModeNoTx == 0) /* solid on when no tx. */
+			LedCfgBuf.field.G_LED_MODE =
+				pCurrentLedCfg->field.LedActPolarity ? MAC_LED_OFF : MAC_LED_ON;
+		else /* slow blink. */
+			LedCfgBuf.field.G_LED_MODE = GetBitX(pSWMCULedCntl->LedBlinkTimer, 4) ? MAC_LED_ON : MAC_LED_OFF;
+	}
+
+	/* LED G. connect to Y_LED. */
+	if (pCurrentLedCfg->field.LedGMode == MCU_LED_G_FAST_BLINK)
+		LedCfgBuf.field.Y_LED_MODE = GetBitX(pSWMCULedCntl->LedBlinkTimer, 0) ? MAC_LED_ON : MAC_LED_OFF;
+	else if (pCurrentLedCfg->field.LedGMode == MCU_LED_G_SLOW_BLINK)
+		LedCfgBuf.field.Y_LED_MODE = GetBitX(pSWMCULedCntl->LedBlinkTimer, 4) ? MAC_LED_ON : MAC_LED_OFF;
+	else if (pCurrentLedCfg->field.LedGMode == MCU_LED_G_SOLID_ON)
+		LedCfgBuf.field.Y_LED_MODE =
+			pCurrentLedCfg->field.LedGPolarity ? MAC_LED_OFF : MAC_LED_ON;
+	else /* dark */
+		LedCfgBuf.field.Y_LED_MODE =
+			pCurrentLedCfg->field.LedGPolarity ? MAC_LED_ON : MAC_LED_OFF;
+
+	/* LED A. connect to R_LED. */
+	if (pCurrentLedCfg->field.LedAMode == MCU_LED_A_FAST_BLINK)
+		LedCfgBuf.field.R_LED_MODE = GetBitX(pSWMCULedCntl->LedBlinkTimer, 0) ? MAC_LED_ON : MAC_LED_OFF;
+	else if (pCurrentLedCfg->field.LedAMode ==  MCU_LED_A_SLOW_BLINK)
+		LedCfgBuf.field.R_LED_MODE = GetBitX(pSWMCULedCntl->LedBlinkTimer, 4) ? MAC_LED_ON : MAC_LED_OFF;
+	else if (pCurrentLedCfg->field.LedAMode == MCU_LED_A_SOLID_ON)
+		LedCfgBuf.field.R_LED_MODE =
+			pCurrentLedCfg->field.LedAPolarity ? MAC_LED_OFF : MAC_LED_ON;
+	else
+		LedCfgBuf.field.R_LED_MODE =
+			pCurrentLedCfg->field.LedAPolarity ? MAC_LED_ON : MAC_LED_OFF;
+
+	if ((pSWMCULedCntl->bWlanLed) && !RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_RADIO_OFF))
+	{
+		RTMP_IO_WRITE32(pAd, MAC_LED_CFG, LedCfgBuf.word);
+	}
+	else
+	{
+#if defined(RT5350) || defined(RT6352)
+		/* dont't look e2p 0x40 alway set down the led*/
+		if (IS_RT5350(pAd) || IS_RT6352(pAd))
+		{
+			RTMP_IO_WRITE32(pAd, MAC_LED_CFG, 1 << 30);
+		}
+		else
+#endif /* defined(RT5350) || defined(RT6352) */
+		{
+			RTMP_IO_WRITE32(pAd, MAC_LED_CFG, 0);
+		}		
+	}
+
+	return;
+}
+
+
+#ifdef CONFIG_WIFI_LED_SHARE
+static void WPSChgMacLedCfg(RTMP_ADAPTER *pAd)
+{
+	LED_CFG_T LedCfgBuf;
+	PWPS_LED_TIME_UNIT pWPSLedTimeUnit = &pAd->LedCntl.SWMCULedCntl.WPSLedTimeUnit;
+
+	if (pWPSLedTimeUnit->LeftBlinkPeriod)
+	{
+		if (pWPSLedTimeUnit->LeftOnPeriod)
+		{
+			LedCfgBuf.field.G_LED_MODE = MAC_LED_ON; /* Solid on */
+			pWPSLedTimeUnit->LeftOnPeriod--;
+
+			if(!pWPSLedTimeUnit->LeftOnPeriod)
+			{
+				pWPSLedTimeUnit->LeftOffPeriod = pWPSLedTimeUnit->OffPeriod;
+				if (!pWPSLedTimeUnit->LeftOffPeriod)
+					pWPSLedTimeUnit->LeftOnPeriod = pWPSLedTimeUnit->OnPeriod;
+			}
+		}
+		else if (pWPSLedTimeUnit->LeftOffPeriod)
+		{
+			LedCfgBuf.field.G_LED_MODE = MAC_LED_OFF; /* Off */
+			pWPSLedTimeUnit->LeftOffPeriod--;
+
+			if (!pWPSLedTimeUnit->LeftOffPeriod)
+			{
+				pWPSLedTimeUnit->LeftOnPeriod = pWPSLedTimeUnit->OnPeriod;
+				if (!pWPSLedTimeUnit->LeftOnPeriod)
+					pWPSLedTimeUnit->LeftOffPeriod = pWPSLedTimeUnit->OffPeriod;
+			}
+		}
+
+		pWPSLedTimeUnit->LeftBlinkPeriod--;
+
+		if(!pWPSLedTimeUnit->LeftBlinkPeriod)
+		{
+			pWPSLedTimeUnit->LeftRestPeriod = pWPSLedTimeUnit->RestPeriod;
+			if (!pWPSLedTimeUnit->LeftRestPeriod)
+				pWPSLedTimeUnit->LeftBlinkPeriod = pWPSLedTimeUnit->BlinkPeriod;
+		}
+	}
+	else if (pWPSLedTimeUnit->LeftRestPeriod)
+	{
+		LedCfgBuf.field.G_LED_MODE = MAC_LED_ON; /* Off */
+		pWPSLedTimeUnit->LeftRestPeriod--;
+		if (!pWPSLedTimeUnit->LeftRestPeriod)
+		{
+			pWPSLedTimeUnit->LeftBlinkPeriod = pWPSLedTimeUnit->BlinkPeriod;
+			if (!pWPSLedTimeUnit->LeftBlinkPeriod)
+				pWPSLedTimeUnit->LeftRestPeriod = pWPSLedTimeUnit->RestPeriod;
+		}
+	}
+
+	RTMP_IO_WRITE32(pAd, MAC_LED_CFG, LedCfgBuf.word);
+}
+#endif /* CONFIG_WIFI_LED_SHARE */
+
+
+/* Entry for SWMCU Led control.  Triggered by timer per LED_CHECK_INTERVAL */
+void SWMCULedCtrlMain(
+	IN PVOID SystemSpecific1, 
+	IN PVOID FunctionContext, 
+	IN PVOID SystemSpecific2, 
+	IN PVOID SystemSpecific3)
+{
+	RTMP_ADAPTER *pAd = (RTMP_ADAPTER *)FunctionContext;
+	PSWMCU_LED_CONTROL pSWMCULedCntl = &pAd->LedCntl.SWMCULedCntl;
+
+	switch(pSWMCULedCntl->LedParameter.LedMode)
+	{
+		case 0:		/* Hardware controlled mode. Just ignore it. */
+			return;
+		case LED_MODE_SIGNAL_STREGTH:	/* In addition to mode 0, set signal strength LED */
+			ChgSignalStrengthLed(pAd);
+			break;
+#ifdef CONFIG_WIFI_LED_SHARE
+		case WPS_LED_MODE_SHARE:
+			WPSChgMacLedCfg(pAd);
+			break;
+#endif /* CONFIG_WIFI_LED_SHARE */
+		default:
+#ifdef __ECOS
+#if defined(RT5350) || defined(RT6352)
+#ifdef WSC_LED_SUPPORT
+			ChgMacWPSLedCfg(pAd);
+#endif /* WSC_LED_SUPPORT */
+#endif /* RT5350 || RT6352 */
+#endif /* __ECOS */		
+			ChgMacLedCfg(pAd);
+			break;
+	}
+}
+BUILD_TIMER_FUNCTION(SWMCULedCtrlMain);
+
+#endif /* CONFIG_SWMCU_SUPPORT */
 
 #ifdef CONFIG_ANDES_SUPPORT
 INT LED_Array[16][12]={
@@ -159,6 +840,28 @@ VOID RTMPSetLEDStatus(RTMP_ADAPTER *pAd, UCHAR Status)
 #endif /* CONFIG_ATE */
 #ifdef WSC_INCLUDED
 #ifdef WSC_LED_SUPPORT
+#ifdef CONFIG_WIFI_LED_SHARE
+		case LED_WPS_PRE_STAGE:
+			if (WscSupportWPSLEDMode(pAd))
+			{
+				LinkStatus = LINK_STATUS_WPS_PRE_STAGE;
+				MCUCmd = MCU_SET_WPS_LED_MODE;
+				pWscControl->WscLEDMode = LED_WPS_PRE_STAGE;
+			}
+			else
+				bIgnored = TRUE;
+			break;
+		case LED_WPS_POST_STAGE:
+			if (WscSupportWPSLEDMode(pAd))
+			{
+				LinkStatus = LINK_STATUS_WPS_PRE_STAGE;
+				MCUCmd = MCU_SET_WPS_LED_MODE;
+				pWscControl->WscLEDMode = LED_WPS_POST_STAGE;
+			}
+			else
+				bIgnored = TRUE;
+			break;
+#endif /* CONFIG_WIFI_LED_SHARE */
 		case LED_WPS_IN_PROCESS:
 			if (WscSupportWPSLEDMode(pAd))
 			{
@@ -209,6 +912,9 @@ VOID RTMPSetLEDStatus(RTMP_ADAPTER *pAd, UCHAR Status)
 				if ((LED_MODE(pAd) == WPS_LED_MODE_7) || 
 					(LED_MODE(pAd) == WPS_LED_MODE_11) || 
 					(LED_MODE(pAd) == WPS_LED_MODE_12)
+#ifdef CONFIG_WIFI_LED_SHARE
+					||(LED_MODE(pAd) == WPS_LED_MODE_SHARE)
+#endif /* CONFIG_WIFI_LED_SHARE */
 					)
 				{
 					/* In the WPS LED mode 7, 11 and 12, the blue LED would last 300 seconds regardless of the AP's security settings. */
@@ -264,6 +970,11 @@ VOID RTMPSetLEDStatus(RTMP_ADAPTER *pAd, UCHAR Status)
 		case LED_WPS_TURN_LED_OFF:
 			if (WscSupportWPSLEDMode(pAd))
 			{
+#ifdef CONFIG_WIFI_LED_SHARE
+				USHORT value;
+				RT28xx_EEPROM_READ16(pAd, EEPROM_FREQ_OFFSET, value);
+				pAd->LedCntl.MCULedCntl.word = (value >> 8);
+#endif /* CONFIG_WIFI_LED_SHARE */
 				LinkStatus = LINK_STATUS_WPS_TURN_LED_OFF;
 				MCUCmd = MCU_SET_WPS_LED_MODE;
 				pWscControl->WscLEDMode = LED_WPS_TURN_LED_OFF;
@@ -501,6 +1212,12 @@ void rtmp_read_led_setting_from_eeprom(RTMP_ADAPTER *pAd)
 
 void RTMPStartLEDMode(IN RTMP_ADAPTER *pAd)
 {
+#ifdef CONFIG_SWMCU_SUPPORT
+	PSWMCU_LED_CONTROL pSWMCULedCntl = &pAd->LedCntl.SWMCULedCntl;
+	pSWMCULedCntl->bWlanLed = TRUE;
+	RTMPInitTimer(pAd, &pSWMCULedCntl->LedCheckTimer, GET_TIMER_FUNCTION(SWMCULedCtrlMain), pAd, TRUE);
+	RTMPSetTimer(&pSWMCULedCntl->LedCheckTimer, LED_CHECK_INTERVAL);
+#endif /* CONFIG_SWMCU_SUPPORT */
 }
 
 
@@ -533,9 +1250,18 @@ void RTMPInitLEDMode(IN RTMP_ADAPTER *pAd)
 
 inline void RTMPExitLEDMode(IN RTMP_ADAPTER *pAd)
 {
+#ifdef CONFIG_SWMCU_SUPPORT
+	BOOLEAN Cancelled;
+	PSWMCU_LED_CONTROL pSWMCULedCntl = &pAd->LedCntl.SWMCULedCntl;
+#endif /* CONFIG_SWMCU_SUPPORT */
 
 	RTMPSetLED(pAd, LED_RADIO_OFF);
 
+#ifdef CONFIG_SWMCU_SUPPORT
+	pSWMCULedCntl->bWlanLed = FALSE;
+	OS_WAIT(500);
+	RTMPCancelTimer(&pSWMCULedCntl->LedCheckTimer, &Cancelled);
+#endif /* CONFIG_SWMCU_SUPPORT */
 	return;
 }
 

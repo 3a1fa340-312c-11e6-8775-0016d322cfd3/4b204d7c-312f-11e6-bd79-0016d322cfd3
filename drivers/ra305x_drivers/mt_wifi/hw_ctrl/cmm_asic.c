@@ -616,7 +616,7 @@ INT AsicSetPreTbtt(RTMP_ADAPTER *pAd, BOOLEAN enable)
 
 #ifdef MT_MAC
 	if (pAd->chipCap.hif_type == HIF_MT)
-		return MtAsicSetPreTbtt(pAd, enable);
+		return MtAsicSetPreTbtt(pAd, enable, 0);
 #endif
 
 	AsicNotSupportFunc(pAd, __FUNCTION__);
@@ -781,29 +781,70 @@ VOID AsicEnableBssSync(PRTMP_ADAPTER pAd, USHORT BeaconPeriod)
 /*CFG_TODO*/
 VOID AsicEnableApBssSync(RTMP_ADAPTER *pAd, USHORT BeaconPeriod)
 {
-#if defined(RTMP_MAC) || defined(RLT_MAC)
-	if (pAd->chipCap.hif_type == HIF_RTMP ||pAd->chipCap.hif_type == HIF_RLT)
-	{
-		RtAsicEnableApBssSync(pAd, BeaconPeriod);
-		return;
-	}
-#endif
+	UINT32 bitmask = 0;
+    UINT32 Value;
+    INT bss_idx = 1; // TODO: this index may carried by parameters!
+	DBGPRINT(RT_DEBUG_TRACE, ("--->%s():\n", __FUNCTION__));
 
-#ifdef MT_MAC
-	if (pAd->chipCap.hif_type == HIF_MT)
-	{
-		MT_BSS_SYNC_CTRL_T bssSync;
-		NdisZeroMemory(&bssSync,sizeof(MT_BSS_SYNC_CTRL_T));
-		bssSync.BeaconPeriod = BeaconPeriod;
-		bssSync.PreTbttInterval = 0x50;
-		bssSync.BssSet = 1;
-		bssSync.BssOpMode = MT_BSS_MODE_AP;
-		MtAsicEnableBssSync(pAd,bssSync);
-		return;
-	}
-#endif
+#ifdef CONFIG_AP_SUPPORT
+    //INT32 IdBss, MaxNumBss = pAd->ApCfg.BssidNum;
+#endif /* CONFIG_AP_SUPPORT */
 
-	AsicNotSupportFunc(pAd, __FUNCTION__);
+    /* Configure Beacon interval */
+    RTMP_IO_READ32(pAd, LPON_T0TPCR+4, &Value);
+    Value = 0;
+    Value &= ~BEACONPERIODn_MASK;
+    Value |= BEACONPERIODn(BeaconPeriod);
+    Value |= TBTTn_CAL_EN;
+    RTMP_IO_WRITE32(pAd, LPON_T0TPCR+4, Value);
+
+
+    /* Enable Pre-TBTT Trigger, and calcuate next TBTT timer by HW*/
+    //enable PRETBTT0INT_EN, PRETBTT0TIMEUP_EN
+    //and TBTT0PERIODTIMER_EN, TBTT0TIMEUP_EN
+   	 RTMP_IO_WRITE32(pAd, LPON_MPTCR0, 0x9900);//TODO: TBTT1, TBTT2.
+	// RTMP_IO_WRITE32(pAd, LPON_MPTCR0, (TBTT_TIMEUP_EN |TBTT_PERIOD_TIMER_EN | PRETBTT_TIMEUP_EN | PRETBTT_INT_EN) << 8);//TODO: TBTT1, TBTT2.
+    /*
+	   Set Pre-TBTT interval :
+       each HW BSSID has its own PreTBTT interval,
+       unit is 64us, 0x00~0xff is configurable.
+       Base on RTMP chip experience,
+       Pre-TBTT is 6ms before TBTT interrupt. 1~10 ms is reasonable.
+	*/
+    ASSERT(bss_idx <= 3);
+    bitmask = 0xff << (bss_idx * 8);
+    RTMP_IO_READ32(pAd, LPON_PISR, &Value);
+    Value &= (~bitmask);
+    Value |= (0x50 << (bss_idx * 8));
+    //mac_val =0x50505050;
+    RTMP_IO_WRITE32(pAd, LPON_PISR, Value);
+
+	{
+			MAC_IO_READ32(pAd, HWIER0, &Value);
+			Value = 0;
+			Value |= TBTT1;
+			Value |= PRETBTT1;
+			MAC_IO_WRITE32(pAd, HWIER0, Value);
+			printk("enable HWIER0 bit29 and bit20\n");
+		
+	}
+    /* Config BCN/BMC timoeut, or the normal Tx wil be blocked forever if no beacon frame in Queue */
+    Value = 0x01800180;
+    //RTMP_IO_WRITE32(pAd, LPON_BCNTR, mac_val);
+
+    /* Configure Beacon Queue Operation mode */
+    RTMP_IO_READ32(pAd, ARB_SCR, &Value);
+
+	Value &= (~(1<<30)); // work-around to make BCN need to content with other ACs
+   	Value &= (~(1<<31)); // work-around to make BMC need to content with other ACs - 20140109 discussion.
+    Value |= (BCNQ_OP_MODE_AP << 2);//TODO, Carter, when use other HWBSSID, shall could choose index to set correcorresponding bit.
+	//Value = Value & 0xefffffff;
+    RTMP_IO_WRITE32(pAd, ARB_SCR, Value);
+
+    /* Start Beacon Queue */
+    RTMP_IO_READ32(pAd, ARB_BCNQCR0, &Value);
+    Value |= 0x2;
+    RTMP_IO_WRITE32(pAd, ARB_BCNQCR0, Value);
 }
 
 
@@ -1541,17 +1582,13 @@ VOID AsicTurnOffRFClk(RTMP_ADAPTER *pAd, UCHAR Channel)
 }
 
 
-#ifdef WAPI_SUPPORT
-VOID AsicUpdateWAPIPN(
-	IN RTMP_ADAPTER *pAd,
-	IN USHORT WCID,
-	IN ULONG pn_low,
-	IN ULONG pn_high)
+#ifdef VCORECAL_SUPPORT
+VOID AsicVCORecalibration(RTMP_ADAPTER *pAd)
 {
 #if defined(RTMP_MAC) || defined(RLT_MAC)
 	if (pAd->chipCap.hif_type == HIF_RTMP ||pAd->chipCap.hif_type == HIF_RLT)
 	{
-		RtAsicUpdateWAPIPN(pAd, WCID, pn_low, pn_high);
+		RtAsicVCORecalibration(pAd);
 		return;
 	}
 #endif
@@ -1559,7 +1596,7 @@ VOID AsicUpdateWAPIPN(
 #ifdef MT_MAC
 	if (pAd->chipCap.hif_type == HIF_MT)
 	{
-		MtAsicUpdateWAPIPN(pAd, WCID, pn_low, pn_high);
+		MtAsicVCORecalibration(pAd);
 		return;
 	}
 #endif

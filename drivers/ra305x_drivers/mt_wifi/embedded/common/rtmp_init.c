@@ -171,6 +171,11 @@ NDIS_STATUS RTMPAllocAdapterBlock(VOID *handle, VOID **ppAdapter)
 
 		NdisAllocateSpinLock(pAd, &TimerSemLock);
 
+#ifdef SPECIFIC_BCN_BUF_SUPPORT
+#ifdef RTMP_MAC_PCI
+		NdisAllocateSpinLock(pAd, &pAd->ShrMemLock);
+#endif /* RTMP_MAC_PCI */
+#endif /* SPECIFIC_BCN_BUF_SUPPORT */
 
 #ifdef RTMP_MAC_SDIO
 		RTMP_SEM_EVENT_INIT(&(pAd->PowerLock), NULL);
@@ -1153,6 +1158,15 @@ VOID UserCfgInit(RTMP_ADAPTER *pAd)
 			break;
 	}
 
+#ifdef RT3052
+#ifdef RTMP_RBUS_SUPPORT
+	if (pAd->infType == RTMP_DEV_INF_RBUS)
+	{
+		RTMP_SYS_IO_READ32(0xb000000c, &pAd->CommonCfg.CID);
+		RTMP_SYS_IO_READ32(0xb0000000, &pAd->CommonCfg.CN);
+	}
+#endif /* RTMP_RBUS_SUPPORT */
+#endif /* RT3052 */
 
 #ifdef CONFIG_AP_SUPPORT
 #ifdef AP_SCAN_SUPPORT
@@ -1734,7 +1748,11 @@ VOID UserCfgInit(RTMP_ADAPTER *pAd)
 		pAd->WriteWscCfgToAr9DatFile = FALSE;
 #ifdef CONFIG_AP_SUPPORT
 #ifdef RTMP_RBUS_SUPPORT
+#ifdef __ECOS
+		pAd->bWscDriverAutoUpdateCfg = TRUE;
+#else
 		pAd->bWscDriverAutoUpdateCfg = FALSE;
+#endif /* __ECOS */
 #else
 		pAd->bWscDriverAutoUpdateCfg = TRUE;
 #endif
@@ -2017,6 +2035,10 @@ VOID UserCfgInit(RTMP_ADAPTER *pAd)
 	pAd->PSETriggerType1Count = 0;
 	pAd->PSEResetFailCount = 0;
 	pAd->pse_reset_exclude_flag = FALSE;
+#ifdef DMA_RESET_SUPPORT	
+	pAd->PSEResetFailRecover = FALSE;
+	pAd->PSEResetFailRetryQuota = 0;
+#endif  /* DMA_RESET_SUPPORT */
 #endif
 
 #ifdef RTMP_MAC_PCI
@@ -2048,6 +2070,9 @@ VOID UserCfgInit(RTMP_ADAPTER *pAd)
 	pAd->monitor_ctrl.CurrentMonitorMode = 0;
 #endif /* CONFIG_SNIFFER_SUPPORT */
 
+#ifdef DMA_RESET_SUPPORT
+	pAd->bcn_reset_en = TRUE;
+#endif /* DMA_RESET_SUPPORT */
 
     pAd->bPS_Retrieve =1;
 
@@ -2062,6 +2087,20 @@ VOID UserCfgInit(RTMP_ADAPTER *pAd)
     pAd->CommonCfg.ManualTxopLowBound = 5; // Ratio
 
     pAd->CommonCfg.ManualProtection = 0;
+#ifdef SMART_CARRIER_SENSE_SUPPORT
+	pAd->SCSCtrl.SCSEnable = SCS_DISABLE;
+	pAd->SCSCtrl.SCSMinRssi=0;
+	pAd->SCSCtrl.SCSStatus=SCS_STATUS_DEFAULT;
+	pAd->SCSCtrl.SCSThreshold = 250000; /* 2 Mbps */
+#endif
+
+	pAd->ed_chk = FALSE; //let country region to turn on
+	pAd->ed_debug = FALSE;
+	
+	pAd->ed_chk_period = 100;
+	pAd->ed_threshold = 90;
+	pAd->ed_false_cca_threshold = 150;
+	pAd->ed_block_tx_threshold = 20;
 
 	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("<-- UserCfgInit\n"));
 }
@@ -2837,8 +2876,25 @@ VOID CMDHandler(RTMP_ADAPTER *pAd)
 						Set_Channel_Proc(pAd, ChStr);
 					}
 					break;
+				case CMDTHREAD_EDCA_PARAM_SET:
+					{
+						CMD_EDCA_SET_T EdcaParam;
+
+						NdisMoveMemory(&EdcaParam , pData, sizeof(CMD_EDCA_SET_T));
+						CmdEdcaParameterSet(pAd, EdcaParam);
+					}
+					break;
 #endif /* MT_MAC */
 #ifdef CONFIG_AP_SUPPORT
+#ifdef CONFIG_ATE	
+				case CMDTHREAD_STOP_ATE:
+					{
+						ATE_CTRL *ATECtrl = &(pAd->ATECtrl);
+						ATE_OPERATION *ATEOp = ATECtrl->ATEOp;
+						ATEOp->ATEStop(pAd);
+					}
+					break;
+#endif /* CONFIG_ATE */
 				case CMDTHREAD_AP_UPDATE_CAPABILITY_AND_ERPIE:
 					{
 						APUpdateCapabilityAndErpIe(pAd);

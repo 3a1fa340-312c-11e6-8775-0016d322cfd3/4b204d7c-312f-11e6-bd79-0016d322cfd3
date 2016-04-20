@@ -170,6 +170,7 @@ typedef struct _CFG_TDLS_ENTRY {
 	BOOLEAN			EntryValid;
 	UCHAR			MacAddr[MAC_ADDR_LEN];		
 	RALINK_TIMER_STRUCT	Timer;			/* Use to time out Peer Traffic Indicator */
+	UCHAR TPK[LEN_PMK];	/* TPK-KCK(16 bytes) for MIC + TPK-TP (16 bytes) for data */
 	
 	UCHAR			Token;			/* Dialog token */
 	BOOLEAN			bInitiator;		/* TRUE: I am TDLS Initiator STA, FALSE: I am TDLS Responder STA */

@@ -179,6 +179,16 @@ static VOID RxSensitivityTuning(RTMP_ADAPTER *pAd)
 #ifdef CONFIG_ATE
 	if (ATE_ON(pAd))
 	{
+#ifdef RT3352
+		if (IS_RT3352(pAd))
+		{
+		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R27, 0x0);
+		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R66, R66);
+		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R27, 0x20);
+		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R66, R66);
+		}
+		else
+#endif /* RT3352 */
 		ATE_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R66, R66);
 	}
 	else
@@ -309,6 +319,16 @@ static VOID Default_ChipAGCInit(RTMP_ADAPTER *pAd, UCHAR BandWidth)
 	{	// BG band
 		{
 			R66 = 0x2E + lan_gain;
+#if defined(RT3352)
+			if (IS_RT3352(pAd))
+			{
+				/* Gary 20100714: Update BBP R66 programming: */
+				if (pAd->CommonCfg.BBPCurrentBW == BW_20)
+					R66 = (lan_gain * 2 + 0x1C);
+				else
+					R66 = (lan_gain * 2 + 0x24);
+			}
+#endif // defined(RT3352) //
 		}
 	}
 	else
@@ -331,6 +351,16 @@ static VOID AsicAntennaDefaultReset(
 	IN PRTMP_ADAPTER		pAd,
 	IN EEPROM_ANTENNA_STRUC	*pAntenna)
 {
+#ifdef RT5350
+	if (IS_RT5350(pAd))
+	{
+		pAntenna->word = 0;
+		pAntenna->field.RfIcType = RFIC_3320;
+		pAntenna->field.TxPath = 1;
+		pAntenna->field.RxPath = 1;
+	}
+	else
+#endif /* RT5350 */
 	{
 
 		pAntenna->word = 0;

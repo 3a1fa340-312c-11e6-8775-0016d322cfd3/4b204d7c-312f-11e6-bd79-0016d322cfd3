@@ -938,21 +938,21 @@ typedef struct GNU_PACKED rmac_rxd_0_tmr {
 	UINT32 ir:1;
 	UINT32 tod_vld:1;
 	UINT32 toa_vld:1;
-	UINT32 type:2;
 	UINT32 sub_type:4;
+	UINT32 type:2;
 	UINT32 tmf:1;
 	UINT32 nc:1;
-	UINT32 rsv_16:2;
+	UINT32 txv_frmode:2;
 	UINT32 rx_byte_cnt:16;
 } RMAC_RXD_0_TMR;
 #else
 typedef struct GNU_PACKED rmac_rxd_0_tmr {
 	UINT32 rx_byte_cnt:16;
-	UINT32 rsv_16:2;
+	UINT32 txv_frmode:2;
 	UINT32 nc:1;
 	UINT32 tmf:1;
-	UINT32 sub_type:4;
 	UINT32 type:2;
+	UINT32 sub_type:4;
 	UINT32 toa_vld:1;
 	UINT32 tod_vld:1;
 	UINT32 ir:1;
@@ -1305,24 +1305,28 @@ typedef struct GNU_PACKED _RXV_FRM_STRUC{
 #ifdef RT_BIG_ENDIAN
 typedef union GNU_PACKED tmr_d_1 {
 	struct {
-		UINT32 rsv_29:3;
-		UINT32 rxv_fr_mode:2;
-		UINT32 rxv_tx_mode:3;
-		UINT32 rsv_21:3;
-		UINT32 txv_fr_mode:2;
 		UINT32 txv_tx_mode:3;
-		UINT32 rsv_8:8;
+        UINT32 rxv_dw1_bit29:1;
+        UINT32 rxv_dw1_bit23:1;
+		UINT32 rxv_tx_mode:3;
+		UINT32 rxv_fr_mode:2;
+		UINT32 rxv_dw1_bit12:1;
+		UINT32 rxv_dw3_bit6:1;
+		UINT32 toae_report:6;
+		UINT32 tod_fine:6;
 		UINT32 pid:8;
 	} field_init;
 
 	struct {
-		UINT32 rsv_29:3;
-		UINT32 rxv_fr_mode:2;
-		UINT32 rxv_tx_mode:3;
-		UINT32 rsv_21:3;
-		UINT32 txv_fr_mode:2;
 		UINT32 txv_tx_mode:3;
-		UINT32 rsv_8:8;
+        UINT32 rxv_dw1_bit29:1;
+        UINT32 rxv_dw1_bit23:1;
+        UINT32 rxv_tx_mode:3;
+        UINT32 rxv_fr_mode:2;
+        UINT32 rxv_dw1_bit12:1;
+        UINT32 rxv_dw3_bit6:1;
+        UINT32 toae_report:6;
+        UINT32 tod_fine:6;
 		UINT32 rxv_sn:8;
 	} field_resp;
 
@@ -1332,24 +1336,28 @@ typedef union GNU_PACKED tmr_d_1 {
 typedef union GNU_PACKED tmr_d_1 {
 	struct {
 		UINT32 pid:8;
-		UINT32 rsv_8:8;
-		UINT32 txv_tx_mode:3;
-		UINT32 txv_fr_mode:2;
-		UINT32 rsv_21:3;
-		UINT32 rxv_tx_mode:3;
+		UINT32 tod_fine:6;
+        UINT32 toae_report:6;
+		UINT32 rxv_dw3_bit6:1;
+		UINT32 rxv_dw1_bit12:1;
 		UINT32 rxv_fr_mode:2;
-		UINT32 rsv_29:3;
+        UINT32 rxv_tx_mode:3;
+        UINT32 rxv_dw1_bit23:1;
+        UINT32 rxv_dw1_bit29:1;
+		UINT32 txv_tx_mode:3;
 	} field_init;
 
 	struct {
 		UINT32 rxv_sn:8;
-		UINT32 rsv_8:8;
-		UINT32 txv_tx_mode:3;
-		UINT32 txv_fr_mode:2;
-		UINT32 rsv_21:3;
-		UINT32 rxv_tx_mode:3;
+        UINT32 tod_fine:6;
+        UINT32 toae_report:6;
+        UINT32 rxv_dw3_bit6:1;
+        UINT32 rxv_dw1_bit12:1;
 		UINT32 rxv_fr_mode:2;
-		UINT32 rsv_29:3;
+        UINT32 rxv_tx_mode:3;
+        UINT32 rxv_dw1_bit23:1;
+        UINT32 rxv_dw1_bit29:1;
+        UINT32 txv_tx_mode:3;
 	} field_resp;
 
 	UINT32 word;
@@ -1359,8 +1367,9 @@ typedef union GNU_PACKED tmr_d_1 {
 #ifdef RT_BIG_ENDIAN
 typedef union GNU_PACKED tmr_d_2 {
 	struct {
-		UINT32 sn:16;
-		UINT32 ta_0:16;
+		UINT16 sn;
+		UINT8 ta_1;
+		UINT8 ta_0;
 	} field;
 
 	UINT32 word;
@@ -1368,12 +1377,37 @@ typedef union GNU_PACKED tmr_d_2 {
 #else
 typedef union GNU_PACKED tmr_d_2 {
 	struct {
-		UINT32 ta_0:16;
-		UINT32 sn:16;
+		UINT8 ta_0;
+		UINT8 ta_1;
+		UINT16 sn;
 	} field;
 
 	UINT32 word;
 } TMR_D_2;
+#endif
+
+#ifdef RT_BIG_ENDIAN
+typedef union GNU_PACKED tmr_d_3 {
+	struct {
+		UINT8 ta_5;
+		UINT8 ta_4;
+		UINT8 ta_3;
+		UINT8 ta_2;
+	} field;
+
+	UINT32 word;
+} TMR_D_3;
+#else
+typedef union GNU_PACKED tmr_d_3 {
+	struct {
+		UINT8 ta_2;
+		UINT8 ta_3;
+		UINT8 ta_4;
+		UINT8 ta_5;
+	} field;
+
+	UINT32 word;
+} TMR_D_3;
 #endif
 
 #ifdef RT_BIG_ENDIAN
@@ -1400,7 +1434,7 @@ typedef struct GNU_PACKED _TMR_FRM_STRUC{
 	struct rmac_rxd_0_tmr tmr_d0;
 	TMR_D_1 tmr_d1;
 	TMR_D_2 tmr_d2;
-	UINT32 ta_16;
+	TMR_D_3 ta_16;//DW3, only with meaning when as responder
 	UINT32 tod_0;
 	UINT32 toa_0;
 	TMR_D_6 tmr_d6;

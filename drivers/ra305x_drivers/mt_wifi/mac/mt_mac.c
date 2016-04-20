@@ -835,11 +835,6 @@ VOID write_tmac_info(
 		txd_2->ba_disable = 1;
 		txd_2->timing_measure = 0;
 		txd_2->fix_rate = 1;
-        if (pAd->chipCap.TmrEnable == 1) {
-            if ((txd_1->no_ack == 0) && (txd_2->bc_mc_pkt == 0)) {
-                txd_2->timing_measure = 1;
-            }
-        }
 
 		txd_2->sub_type = (*((UINT16 *)(tmac_info + sizeof(TMAC_TXD_L))) & (0xf << 4)) >> 4;
 		txd_2->frm_type = (*((UINT16 *)(tmac_info + sizeof(TMAC_TXD_L))) & (0x3 << 2)) >> 2;
@@ -893,10 +888,6 @@ VOID write_tmac_info(
 			//txd_6->ant_id = 0;
 			txd_6->ant_pri = info->AntPri;
 
-            if ((pAd->chipCap.TmrEnable == 1) && (txd_2->timing_measure == 1)) {
-                txd_6->spe_en = 0;
-            }
-            else
                 txd_6->spe_en = info->SpeEn;
 
 			txd_6->bw = ((1 << 2) |bw);
@@ -1034,12 +1025,11 @@ VOID write_tmac_info_Data(RTMP_ADAPTER *pAd, UCHAR *buf, TX_BLK *pTxBlk)
 	if (pMacEntry && IS_ENTRY_APCLI(pMacEntry)) {
 		//tr_entry = &pAd->MacTab.tr_entry[pMacEntry->wcid];
 
-		tb_entry.wtbl_addr[0] = wtbl_ctrl->wtbl_base_addr[0] +
-							pMacEntry->wcid * wtbl_ctrl->wtbl_entry_size[0];
-
-		HW_IO_READ32(pAd, tb_entry.wtbl_addr[0], &tb_entry.wtbl_1.wtbl_1_d0.word);
-
-		txd_1->own_mac = dw0->field.muar_idx; //Carter, refine this
+#ifdef MULTI_APCLI_SUPPORT
+                txd_1->own_mac = (0x1 + pMacEntry->func_tb_idx);
+#else /* MULTI_APCLI_SUPPORT */
+                txd_1->own_mac = 0x1; 
+#endif /* !MULTI_APCLI_SUPPORT */
 		//printk("txd_1->own_mac = %x\n", txd_1->own_mac);
 	}
 	else if (pMacEntry && IS_ENTRY_CLIENT(pMacEntry)) {

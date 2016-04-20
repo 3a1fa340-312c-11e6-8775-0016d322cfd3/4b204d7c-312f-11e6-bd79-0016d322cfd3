@@ -34,8 +34,13 @@
 
 #include "rtmp_os.h"
 
+#ifdef __ECOS
 #define DECLARE_TIMER_FUNCTION(_func)			\
-	void rtmp_timer_##_func(unsigned long alarm_handle, unsigned long data)
+	void rtmp_timer_##_func(cyg_handle_t alarm, cyg_addrword_t data)
+#else
+#define DECLARE_TIMER_FUNCTION(_func)			\
+	void rtmp_timer_##_func(unsigned long data)
+#endif /* __ECOS */
 
 #define GET_TIMER_FUNCTION(_func)				\
 	(PVOID)rtmp_timer_##_func
@@ -99,8 +104,9 @@ BOOLEAN RtmpTimerQRemove(
 void RtmpTimerQExit(struct _RTMP_ADAPTER *pAd);
 void RtmpTimerQInit(struct _RTMP_ADAPTER *pAd);
 
+#ifdef __ECOS
 #define BUILD_TIMER_FUNCTION(_func)										\
-void rtmp_timer_##_func(unsigned long alarm_handle, unsigned long data)		\
+void rtmp_timer_##_func(cyg_handle_t alarm, cyg_addrword_t data)					\
 {																			\
 	PRALINK_TIMER_STRUCT	_pTimer = (PRALINK_TIMER_STRUCT)data;				\
 	RTMP_TIMER_TASK_ENTRY	*_pQNode;										\
@@ -116,12 +122,39 @@ void rtmp_timer_##_func(unsigned long alarm_handle, unsigned long data)		\
 #define BUILD_TIMER_FUNCTION(_func)										\
 void rtmp_timer_##_func(unsigned long data)										\
 {																			\
+	PRALINK_TIMER_STRUCT	_pTimer = (PRALINK_TIMER_STRUCT)data;				\
+	RTMP_TIMER_TASK_ENTRY	*_pQNode;										\
+	RTMP_ADAPTER			*_pAd;											\
+																			\
+	_pTimer->handle = _func;													\
+	_pAd = (RTMP_ADAPTER *)_pTimer->pAd;										\
+	_pQNode = RtmpTimerQInsert(_pAd, _pTimer); 								\
+	if ((_pQNode == NULL) && (_pAd->TimerQ.status & RTMP_TASK_CAN_DO_INSERT))	\
+		RTMP_OS_Add_Timer(&_pTimer->TimerObj, OS_HZ);               					\
+}
+#endif /* __ECOS */
+#else /* !RTMP_TIMER_TASK_SUPPORT */
+#ifdef __ECOS
+#define BUILD_TIMER_FUNCTION(_func)										\
+void rtmp_timer_##_func(cyg_handle_t alarm, cyg_addrword_t data)					\
+{																			\
 	PRALINK_TIMER_STRUCT	pTimer = (PRALINK_TIMER_STRUCT) data;				\
 																			\
 	_func(NULL, (PVOID) pTimer->cookie, NULL, pTimer); 							\
 	if (pTimer->Repeat)														\
 		RTMP_OS_Add_Timer(&pTimer->TimerObj, pTimer->TimerValue);			\
 }
+#else /* !__ECOS */
+#define BUILD_TIMER_FUNCTION(_func)										\
+void rtmp_timer_##_func(unsigned long data)										\
+{																			\
+	PRALINK_TIMER_STRUCT	pTimer = (PRALINK_TIMER_STRUCT) data;				\
+																			\
+	_func(NULL, (PVOID) pTimer->cookie, NULL, pTimer); 							\
+	if (pTimer->Repeat)														\
+		RTMP_OS_Add_Timer(&pTimer->TimerObj, pTimer->TimerValue);			\
+}
+#endif /* __ECOS */
 #endif /* RTMP_TIMER_TASK_SUPPORT */
 
 DECLARE_TIMER_FUNCTION(MlmePeriodicExec);

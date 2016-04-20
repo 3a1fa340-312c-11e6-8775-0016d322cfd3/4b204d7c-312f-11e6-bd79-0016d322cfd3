@@ -285,6 +285,9 @@ INT	Set_Cmm_WirelessMode_Proc(
 		}
 #endif /* CONFIG_STA_SUPPORT */
 
+#ifdef RT305x
+		RTMP_CHIP_SPECIFIC(pAd, RT305x_WLAN_MODE_CHANGE, NULL, 0);
+#endif /* RT305x */
 
 #ifdef CONFIG_AP_SUPPORT
 #ifdef MBSS_SUPPORT
@@ -1663,7 +1666,21 @@ VOID RTMPIoctlMAC(RTMP_ADAPTER *pAd, RTMP_IOCTL_INPUT_STRUCT *wrq)
 					break;
 				}
 			}
+#ifdef __ECOS
+			if (is_write) {
+				RTMP_IO_WRITE32(pAd, mac_s, macVal);
+				sprintf(msg+strlen(msg), "[0x%04x]:%08x  ", mac_s, macVal);
+				MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("MacAddr=0x%x, MacValue=0x%x\n", mac_s, macVal));
+			} else {
+				for(IdMac = mac_s; IdMac <= mac_e; IdMac += 4)
+				{
+					RTMP_IO_READ32(pAd, IdMac, &macVal);
+					sprintf(msg+strlen(msg), "[0x%04x]:%08x  ", IdMac , macVal);
+					MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("MacAddr=0x%x, MacValue=0x%x\n", IdMac, macVal));
+				}
+			}
 
+#else	//#ifdef __ECOS
 			if (is_write) {
 				RTMP_IO_WRITE32(pAd, mac_s, macVal);
 				sprintf(msg+strlen(msg), "[0x%04x]:%08x  ", mac_s, macVal);
@@ -1678,6 +1695,7 @@ VOID RTMPIoctlMAC(RTMP_ADAPTER *pAd, RTMP_IOCTL_INPUT_STRUCT *wrq)
 						MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("MacAddr=0x%x, MacValue=0x%x\n", IdMac, macVal));
 				}
 			}
+#endif //#ifdef __ECOS
 
 
 			if (ptr)
@@ -2975,6 +2993,9 @@ RTMP_STRING *GetAuthMode(CHAR auth)
     ==========================================================================
 */
 #define	LINE_LEN	(4+33+20+23+9+7+7+3)	/* Channel+SSID+Bssid+Security+Signal+WiressMode+ExtCh+NetworkType*/
+#ifdef AIRPLAY_SUPPORT
+#define IS_UNICODE_SSID_LEN  (4)
+#endif /* AIRPLAY_SUPPORT */
 
 #ifdef CONFIG_STA_SUPPORT
 #ifdef WSC_STA_SUPPORT
@@ -2993,6 +3014,9 @@ VOID RTMPCommSiteSurveyData(
 	RTMP_STRING SecurityStr[32] = {0};
 	NDIS_802_11_ENCRYPTION_STATUS	ap_cipher = Ndis802_11EncryptionDisabled;
 	NDIS_802_11_AUTHENTICATION_MODE	ap_auth_mode = Ndis802_11AuthModeOpen;
+#ifdef AIRPLAY_SUPPORT	
+	BOOLEAN isUniCodeSsid = FALSE;
+#endif /* AIRPLAY_SUPPORT */	
 
 		/*Channel*/
 		sprintf(msg+strlen(msg),"%-4d", pBss->Channel);
@@ -3005,11 +3029,21 @@ VOID RTMPCommSiteSurveyData(
 	else
 	{
 		INT idx = 0;
+#ifdef AIRPLAY_SUPPORT		
+		isUniCodeSsid = TRUE;
+#endif /* AIRPLAY_SUPPORT */
 		sprintf(Ssid, "0x");
-		for (idx = 0; (idx < 14) && (idx < pBss->SsidLen); idx++)
+		for (idx = 0; (idx < MAX_LEN_OF_SSID) && (idx < pBss->SsidLen); idx++)
 			sprintf(Ssid + 2 + (idx*2), "%02X", (UCHAR)pBss->Ssid[idx]);
 	}
 		sprintf(msg+strlen(msg),"%-33s", Ssid);
+#ifdef AIRPLAY_SUPPORT
+	/* IsUniCode SSID */
+    if (isUniCodeSsid == TRUE)
+    	sprintf(msg+strlen(msg),"%-4s", "Y");
+    else
+    	sprintf(msg+strlen(msg),"%-4s", "N");
+#endif /* AIRPLAY_SUPPORT */
 
 		/*BSSID*/
 		sprintf(msg+strlen(msg),"%02x:%02x:%02x:%02x:%02x:%02x   ",
@@ -3179,6 +3213,14 @@ VOID RTMPIoctlGetSiteSurvey(
     INT         max_len = LINE_LEN;
 	BSS_ENTRY *pBss;
 	UINT32 TotalLen, BufLen = IW_SCAN_MAX_DATA;
+#ifdef AIRPLAY_SUPPORT
+	UCHAR TargetSsid[MAX_LEN_OF_SSID+1];
+	UCHAR TargetSsidLen = 0;
+#endif /* AIRPLAY_SUPPORT */
+
+#ifdef AIRPLAY_SUPPORT
+	max_len += IS_UNICODE_SSID_LEN;
+#endif /* AIRPLAY_SUPPORT */
 
 #ifdef CONFIG_STA_SUPPORT
 #ifdef WSC_STA_SUPPORT
@@ -3188,10 +3230,28 @@ VOID RTMPIoctlGetSiteSurvey(
 
 	TotalLen = sizeof(CHAR)*((MAX_LEN_OF_BSS_TABLE)*max_len) + 100;
 
+#ifdef AIRPLAY_SUPPORT
+	if (wrq->u.data.length > MAX_LEN_OF_SSID)
+	{
+                MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("RTMPIoctlGetSiteSurvey - INPUT SSID LEN NOT CORRECT\n"));
+                return;
+    }
+
+	if (wrq->u.data.length > 0)
+	{
+		NdisZeroMemory(TargetSsid, sizeof(TargetSsid));
+		copy_from_user(TargetSsid, wrq->u.data.pointer, wrq->u.data.length);
+		TargetSsidLen = strlen(TargetSsid);
+		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("Filter the ScanRes by SSID --> %s (%d)\n", TargetSsid, TargetSsidLen));
+	}
+
+
+#else
 	if (wrq->u.data.length == 0)
 		BufLen = IW_SCAN_MAX_DATA;
 	else
 		BufLen = wrq->u.data.length;
+#endif /* AIRPLAY_SUPPORT */
 
 	os_alloc_mem(NULL, (PUCHAR *)&msg, TotalLen);
 
@@ -3204,8 +3264,13 @@ VOID RTMPIoctlGetSiteSurvey(
 	memset(msg, 0 , TotalLen);
 	sprintf(msg,"%s","\n");
 
+#ifdef AIRPLAY_SUPPORT
+	sprintf(msg+strlen(msg),"%-4s%-33s%-4s%-20s%-23s%-9s%-7s%-7s%-3s\n",
+	    "Ch", "SSID", "UN", "BSSID", "Security", "Siganl(%)", "W-Mode", " ExtCH"," NT");
+#else
 	sprintf(msg+strlen(msg),"%-4s%-33s%-20s%-23s%-9s%-7s%-7s%-3s\n",
 	    "Ch", "SSID", "BSSID", "Security", "Siganl(%)", "W-Mode", " ExtCH"," NT");
+#endif /* AIRPLAY_SUPPORT */
 
 #ifdef WSC_INCLUDED
 	sprintf(msg+strlen(msg)-1,"%-4s%-5s\n", " WPS", " DPID");
@@ -3232,6 +3297,13 @@ VOID RTMPIoctlGetSiteSurvey(
 		if((strlen(msg)+100 ) >= BufLen)
 			break;
 
+#ifdef AIRPLAY_SUPPORT
+		if (TargetSsidLen > 0) 
+		{
+			if (strcmp(pBss->Ssid, TargetSsid) != 0)
+				continue;
+		}
+#endif /* AIRPLAY_SUPPORT */
 
 		RTMPCommSiteSurveyData(msg, pBss, TotalLen);
 
@@ -4944,9 +5016,51 @@ INT Set_DebugFlags_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
 #endif /* DBG_CTRL_SUPPORT */
 
 
+#if defined(RT305x)||defined(RT3070)
+INT Set_HiPower_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
+{
+	pAd->CommonCfg.HighPowerPatchDisabled = !(simple_strtol(arg, 0, 10));
+
+	if (pAd->CommonCfg.HighPowerPatchDisabled != 0)
+	{
+		RTMP_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R82, 0x62);
+		RTMP_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R67, 0x20);
+		RT30xxWriteRFRegister(pAd, RF_R27, 0x23);
+	}
+	return TRUE;
+}
+#endif /* defined(RT305x) || defined(RT3070) */
 
 
+#ifdef RT305x
+#if defined(RT3352) || defined(RT5350)
+#ifdef RTMP_INTERNAL_TX_ALC
+INT Set_TSSIMaxRange_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
+{
+	UINT8 range = (UINT8)simple_strtol(arg, 0, 10);
 
+	if ((!IS_RT3352(pAd)) && (!IS_RT5350(pAd)))
+	{
+		DBGPRINT_ERR(("The chipset is neither RT3352 nor RT5350 !\n"));
+		return FALSE;
+	}
+
+	if ((range != 0) && (range != 2) && (range != 4))
+	{
+		DBGPRINT_ERR(("You should input 0, 2, or 4 !\n"));
+		return FALSE;
+	}
+
+	/* one step means 0.5 dB */
+	pAd->chipCap.TxPowerMaxCompenStep = (range << 1);
+	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("Set_TSSIMaxRange_Proc::(TxPowerMaxCompenStep=%d)\n",
+				pAd->chipCap.TxPowerMaxCompenStep));
+
+	return TRUE;
+}
+#endif /* RTMP_INTERNAL_TX_ALC */
+#endif /* defined(RT3352) || defined(RT5350) */
+#endif /* RT305x */
 
 INT Set_LongRetryLimit_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
 {
@@ -6959,6 +7073,71 @@ INT show_devinfo_proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
 	return TRUE;
 }
 
+#ifdef __ECOS
+INT show_mboxinfo_proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
+{
+	UINT32 count,base,size;
+	void ** item=NULL;
+	int i;
+	POS_COOKIE pOSCookie = NULL; 
+	PRTMP_NET_TASK_STRUCT   pNetTask = NULL;
+	
+	pOSCookie = (POS_COOKIE) pAd->OS_Cookie;
+	base=cyg_mbox_peek_base(pOSCookie->nettask_handle);
+	count=cyg_mbox_peek(pOSCookie->nettask_handle);
+	size=cyg_mbox_peek_size(pOSCookie->nettask_handle);
+	item=cyg_mbox_peek_itemqueue(pOSCookie->nettask_handle);
+
+	diag_printf("***mbox size:%d,count:%d\n",size,count);
+	for(i=0;i<count;i++)
+	{	
+		pNetTask = (PRTMP_NET_TASK_STRUCT)(*item);
+		diag_printf("%s : ",(char *)(pNetTask->taskName));
+		item++;
+		if(i%20 == 0)
+			diag_printf("\n");
+	}
+	diag_printf("\n");
+	return TRUE;
+}
+
+extern UINT32 MemDumpLen;
+INT show_memdump_proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
+{
+	UINT32 addr;
+
+	if(!arg)
+		diag_printf("addr = NULL\n");
+
+    addr = simple_strtol(arg, 0, 16);
+
+	if((addr&0x80000000 != 0x80000000) ||(addr&0xa0000000 != 0xa0000000))
+	{
+		diag_printf("mem addr error! should be 0x80xxxxxx or 0xa0xxxxxx\n");
+		return TRUE;
+	}		
+
+	//hex_dump
+	{
+		unsigned char *pt;
+		int x;
+		
+		pt = addr;
+		printf("memdump: %p, len = %d\n",  addr, MemDumpLen);
+		for (x=0; x<MemDumpLen; x++)
+		{
+			if (x % 16 == 0) 
+				printf("0x%04x : ", x);
+			printf("%02x ", ((unsigned char)pt[x]));
+			if (x%16 == 15) printf("\n");
+		}
+		printf("\n");
+	}	
+
+	return TRUE;
+}
+
+#endif
 
 INT show_wdev_info(RTMP_ADAPTER *pAd, struct wifi_dev *wdev)
 {
@@ -7227,43 +7406,43 @@ INT show_trinfo_proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
 		RTMP_IRQ_UNLOCK(&pAd->irq_lock, irq_flags);
 
 		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("TxRing Configuration\n"));
-		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\tRingIdx Reg \tBase \t\tCnt \tCIDX \tDIDX\n"));
+		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\tRingIdx Reg \tBase \t\tCnt \tCIDX \tDIDX \tFIDX\n"));
 		for (idx = 0; idx < NUM_OF_TX_RING; idx++) {
-			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\t%d \t0x%04x \t0x%08x \t0x%x \t0x%x \t0x%x\n",
-						idx, pAd->TxRing[idx].hw_desc_base, tbase[idx], tcnt[idx], tcidx[idx], tdidx[idx]));
+			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\t%d \t0x%04x \t0x%08x \t0x%x \t0x%x \t0x%x \t0x%x\n",
+						idx, pAd->TxRing[idx].hw_desc_base, tbase[idx], tcnt[idx], tcidx[idx], tdidx[idx], pAd->TxRing[idx].TxSwFreeIdx));
 		}
 
 		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\nRxRing Configuration\n"));
-		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\tRingIdx Reg \tBase \t\tCnt \tCIDX \tDIDX\n"));
+		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\tRingIdx Reg \tBase \t\tCnt \tCIDX \tDIDX \tFIDX\n"));
 		for (idx = 0; idx < NUM_OF_RX_RING; idx++) {
-			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\t%d \t0x%04x \t0x%08x \t0x%x \t0x%x \t0x%x\n",
-						idx, pAd->RxRing[idx].hw_desc_base, rbase[idx], rcnt[idx], rcidx[idx], rdidx[idx]));
+			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\t%d \t0x%04x \t0x%08x \t0x%x \t0x%x \t0x%x \t0x%x\n",
+						idx, pAd->RxRing[idx].hw_desc_base, rbase[idx], rcnt[idx], rcidx[idx], rdidx[idx], pAd->RxRing[idx].RxSwReadIdx));
 		}
 
 		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\nMgmtRing Configuration\n"));
-		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\tRingIdx Reg \tBase \t\tCnt \tCIDX \tDIDX\n"));
-		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\t%d \t0x%04x \t0x%08x \t0x%x \t0x%x \t0x%x\n",
-									0, pAd->MgmtRing.hw_desc_base, mbase[0], mcnt[0], mcidx[0], mdidx[0]));
+		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\tRingIdx Reg \tBase \t\tCnt \tCIDX \tDIDX \tFIDX\n"));
+		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\t%d \t0x%04x \t0x%08x \t0x%x \t0x%x \t0x%x \t0x%x\n",
+									0, pAd->MgmtRing.hw_desc_base, mbase[0], mcnt[0], mcidx[0], mdidx[0], pAd->MgmtRing.TxSwFreeIdx));
 
 #ifdef CONFIG_ANDES_SUPPORT
 		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\nCtrlRing Configuration\n"));
-		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\tRingIdx Reg \tBase \t\tCnt \tCIDX \tDIDX\n"));
-		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\t%d \t0x%04x \t0x%08x \t0x%x \t0x%x \t0x%x\n",
-									0, pAd->CtrlRing.hw_desc_base, mbase[1], mcnt[1], mcidx[1], mdidx[1]));
+		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\tRingIdx Reg \tBase \t\tCnt \tCIDX \tDIDX \tFIDX\n"));
+		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\t%d \t0x%04x \t0x%08x \t0x%x \t0x%x \t0x%x \t0x%x\n",
+									0, pAd->CtrlRing.hw_desc_base, mbase[1], mcnt[1], mcidx[1], mdidx[1], pAd->CtrlRing.TxSwFreeIdx));
 #endif /* CONFIG_ANDES_SUPPORT */
 
 #ifdef MT_MAC
 		if (pAd->chipCap.hif_type == HIF_MT)
 		{
 			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\nBcnRing Configuration\n"));
-			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\tRingIdx Reg \tBase \t\tCnt \tCIDX \tDIDX\n"));
-			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\t%d \t0x%04x \t0x%08x \t0x%x \t0x%x \t0x%x\n",
-									0, pAd->BcnRing.hw_desc_base, mbase[2], mcnt[2], mcidx[2], mdidx[2]));
+			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\tRingIdx Reg \tBase \t\tCnt \tCIDX \tDIDX \tFIDX\n"));
+			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\t%d \t0x%04x \t0x%08x \t0x%x \t0x%x \t0x%x \t0x%x\n",
+									0, pAd->BcnRing.hw_desc_base, mbase[2], mcnt[2], mcidx[2], mdidx[2], pAd->BcnRing.TxSwFreeIdx));
 
 			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\nBMCRing Configuration\n"));
-			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\tRingIdx Reg \tBase \t\tCnt \tCIDX \tDIDX\n"));
-			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\t%d \t0x%04x \t0x%08x \t0x%x \t0x%x \t0x%x\n",
-								0, pAd->TxBmcRing.hw_desc_base, mbase[3], mcnt[3], mcidx[3], mdidx[3]));
+			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\tRingIdx Reg \tBase \t\tCnt \tCIDX \tDIDX \tFIDX\n"));
+			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("\t%d \t0x%04x \t0x%08x \t0x%x \t0x%x \t0x%x \t0x%x\n",
+								0, pAd->TxBmcRing.hw_desc_base, mbase[3], mcnt[3], mcidx[3], mdidx[3], pAd->TxBmcRing.TxSwFreeIdx));
 		}
 #endif /* MT_MAC */
 

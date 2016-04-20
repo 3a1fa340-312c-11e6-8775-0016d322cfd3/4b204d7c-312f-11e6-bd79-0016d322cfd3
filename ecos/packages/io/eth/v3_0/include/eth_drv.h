@@ -154,6 +154,7 @@ struct arpcom {
 #ifdef CYGPKG_NET_LWIP
 struct arpcom {
     struct netif ac_if;
+    unsigned char ac_enaddr[6];
 };
 #endif
 

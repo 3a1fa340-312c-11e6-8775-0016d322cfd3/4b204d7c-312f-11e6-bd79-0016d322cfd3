@@ -49,22 +49,35 @@ void send_radiotap_monitor_packets(
 						CHAR MaxRssi,
 						UINT32 timestamp) {
 			  			
+#ifdef __ECOS
+	PECOS_PKT_BUFFER pOSPkt;
+#else
 	struct sk_buff *pOSPkt;
+#endif
+
 	int rate_index = 0;
 	USHORT header_len = 0;
 	UCHAR temp_header[40] = {0};
-	struct mtk_radiotap_header *mtk_rt_hdr;
+	struct mtk_radiotap_header *mtk_rt_hdr, *old_mtk_rt_hdr, local_mtk_rt_hdr;
 	UINT32 varlen = 0, padding_len = 0;
 	UINT64 tmp64;
 	UINT32 tmp32;
 	UINT16 tmp16;
 	UCHAR *pos;
 	DOT_11_HDR *pHeader = (DOT_11_HDR *)dot11_hdr;
-
+	
+	SNI_DBGPRINTF(RT_DEBUG_INFO, "send_radiotap_monitor_packets =>\n");
+	
 	MEM_DBG_PKT_FREE_INC(pRxPacket);
 
 	pOSPkt = RTPKT_TO_OSPKT(pRxPacket);
-	pOSPkt->dev = pNetDev;
+	pOSPkt->net_dev = pNetDev;
+
+	varlen = skb_headroom(pOSPkt);
+	
+	SNI_DBGPRINTF(RT_DEBUG_INFO, "==>skb_headroom:%d\n", varlen);
+
+	varlen =0;
 	if (pHeader->FC.Type == 0x2 /* FC_TYPE_DATA */) {
 		DataSize -= LENGTH_802_11;
 		if ((pHeader->FC.ToDs == 1) && (pHeader->FC.FrDs == 1))
@@ -97,29 +110,40 @@ void send_radiotap_monitor_packets(
 			pData += header_len;
 	}
 
-	if (DataSize < pOSPkt->len) {
+	if (DataSize < pOSPkt->pktLen) {
+#ifdef __ECOS
+		SNI_DBGPRINTF(RT_DEBUG_INFO, "skb_trim\n");
 		skb_trim(pOSPkt, DataSize);
+#else
+		skb_trim(pOSPkt, DataSize);
+#endif
+
 	} else {
-		skb_put(pOSPkt, (DataSize - pOSPkt->len));
+		skb_put(pOSPkt, (DataSize - pOSPkt->pktLen));
 	}
 
-	if ((pData - pOSPkt->data) > 0) {
-		skb_put(pOSPkt, (pData - pOSPkt->data));
-		skb_pull(pOSPkt, (pData - pOSPkt->data));
+	if ((pData - pOSPkt->pDataPtr) > 0) {
+		skb_put(pOSPkt, (pData - pOSPkt->pDataPtr));
+		skb_pull(pOSPkt, (pData - pOSPkt->pDataPtr));
 	}
 
 	if (skb_headroom(pOSPkt) < (sizeof(*mtk_rt_hdr) + header_len)) {
+#ifdef __ECOS
+		SNI_DBGPRINTF(RT_DEBUG_ERROR, "[%s]pskb_expand_head not support\n",__FUNCTION__);	
+		goto err_free_sk_buff;
+#else		
 		if (pskb_expand_head(pOSPkt, (sizeof(*mtk_rt_hdr) + header_len), 0, GFP_ATOMIC)) {
 			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR,
 				 ("%s : Reallocate header size of sk_buff fail!\n",
 				  __FUNCTION__));
 			goto err_free_sk_buff;
 		}
+#endif		
 	}
 
 	if (header_len > 0)
 		NdisMoveMemory(skb_push(pOSPkt, header_len), temp_header, header_len);
-
+	SNI_DBGPRINTF(RT_DEBUG_INFO, "==>skb_push:header len:%d\n",header_len);
 	/* tsf */
 	padding_len = ((varlen % 8) == 0) ? 0 : (8 - (varlen % 8));
 	varlen += (8 + padding_len);
@@ -190,10 +214,14 @@ void send_radiotap_monitor_packets(
 		/* partial_aid */
 		varlen += 2;
 	}
-
+	SNI_DBGPRINTF(RT_DEBUG_INFO, "==>skb_push:mtk_rt_hdr len:%d, varlen:%d\n", sizeof(*mtk_rt_hdr), varlen);
 	mtk_rt_hdr = (struct mtk_radiotap_header *)skb_push(pOSPkt, sizeof(*mtk_rt_hdr) + varlen);
 	NdisZeroMemory(mtk_rt_hdr, sizeof(*mtk_rt_hdr) + varlen);
-
+	//SNI_DBGPRINTF(RT_DEBUG_INFO,"mtk_rt_hdr addr:%x\n",mtk_rt_hdr);
+	//use local var to avoid addr align issue
+	old_mtk_rt_hdr = mtk_rt_hdr;
+	mtk_rt_hdr = &local_mtk_rt_hdr;
+	
 	mtk_rt_hdr->rt_hdr.it_version = PKTHDR_RADIOTAP_VERSION;
 	mtk_rt_hdr->rt_hdr.it_pad = 0;
 	mtk_rt_hdr->rt_hdr.it_len = cpu2le16(sizeof(*mtk_rt_hdr) + varlen);
@@ -218,6 +246,10 @@ void send_radiotap_monitor_packets(
 	if (PHYMODE == MODE_VHT)
 		mtk_rt_hdr->rt_hdr.it_present |= cpu2le32(1 << IEEE80211_RADIOTAP_VHT); 
 
+
+	mtk_rt_hdr = old_mtk_rt_hdr;
+	NdisMoveMemory(mtk_rt_hdr, &local_mtk_rt_hdr, sizeof(*mtk_rt_hdr));
+	
 	varlen = 0;
 	pos = mtk_rt_hdr->variable;
 	
@@ -346,13 +378,19 @@ void send_radiotap_monitor_packets(
 		varlen++;
 	}
 
-
+	sniffer_hex_dump("Radiotap Pkt content", GET_OS_PKT_DATAPTR(pOSPkt), 48);
+#ifdef __ECOS
+	//SET_OS_PKT_NETDEV();
+	RTMP_SnifferPktInput(pOSPkt);
+#else
 	pOSPkt->dev = pOSPkt->dev;
 	pOSPkt->mac_header = pOSPkt->data;
 	pOSPkt->pkt_type = PACKET_OTHERHOST;
 	pOSPkt->protocol = __constant_htons(ETH_P_80211_RAW);
 	pOSPkt->ip_summed = CHECKSUM_NONE;
 	netif_rx_ni(pOSPkt);
+#endif	
+	SNI_DBGPRINTF(RT_DEBUG_INFO, "send_radiotap_monitor_packets <=\n");
 	return;
 
 err_free_sk_buff:
@@ -439,11 +477,12 @@ VOID Monitor_Remove(RTMP_ADAPTER *pAd)
 }
 BOOLEAN Monitor_Open(RTMP_ADAPTER *pAd, PNET_DEV dev_p)
 {
+#ifndef __ECOS
 	if (pAd->monitor_ctrl.wdev.if_dev == dev_p)
 	{
 		RTMP_OS_NETDEV_SET_TYPE(pAd->monitor_ctrl.wdev.if_dev,ARPHRD_IEEE80211_RADIOTAP);
 	}
-
+#endif
 	return TRUE;
 }
 

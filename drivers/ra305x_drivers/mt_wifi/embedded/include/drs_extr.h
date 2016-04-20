@@ -136,6 +136,19 @@ typedef enum {
 	RAL_QUICK_DRS
 }RA_LOG_TYPE;
 
+#define HIGH_TRAFFIC_THRESHOLD 15
+#define RATE_ADAPT_HOLD_TIME 30
+
+enum RATE_ADAPT_TRAFFIC_LOADING {
+	RA_INIT_STATE,
+	ZERO_TRAFFIC,
+	LOW_TRAFFIC,
+	HIGH_TRAFFIC,
+};
+
+#define RATE_ADAPT_HOLD_TX_RATE(_traffic_loading_old, _traffic_loading_new, _buffer_time) \
+	((_traffic_loading_old == HIGH_TRAFFIC || _traffic_loading_old == LOW_TRAFFIC) && (_traffic_loading_new == ZERO_TRAFFIC)) || \
+	((_traffic_loading_new == ZERO_TRAFFIC) && (_buffer_time > 0))
 
 extern UCHAR RateSwitchTable11B[];
 extern UCHAR RateSwitchTable11G[];

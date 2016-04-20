@@ -556,7 +556,7 @@ union mcluster_4k {
 									\
 	MCLALLOC(_mm->m_ext.ext_buf, (how));				\
 	if (_mm->m_ext.ext_buf != NULL) {				\
-		_mm->m_data = _mm->m_ext.ext_buf;			\
+		_mm->m_data = _mm->m_ext.ext_buf;		\
 		_mm->m_flags |= M_EXT;					\
 		_mm->m_ext.ext_free = NULL;				\
 		_mm->m_ext.ext_ref = NULL;				\
@@ -611,10 +611,8 @@ union mcluster_4k {
 	struct mbuf *_mm = (m);						\
 									\
 	/* KASSERT(_mm->m_type != MT_FREE, ("freeing free mbuf")); */		\
-    if (_mm->m_type > MT_DATA) diag_printf("termy say, ###### m_type = %d\n", _mm->m_type); \
 	mbtypes[_mm->m_type]--;						\
 	if ((_mm->m_flags & M_PKTHDR) != 0 && _mm->m_pkthdr.aux) {	\
-        diag_printf("termy say, checkpoint e, adr=%x, type=%x\n", _mm->m_pkthdr.aux, _mm->m_type);\
 		m_freem(_mm->m_pkthdr.aux);				\
 		_mm->m_pkthdr.aux = NULL;				\
 	}								\

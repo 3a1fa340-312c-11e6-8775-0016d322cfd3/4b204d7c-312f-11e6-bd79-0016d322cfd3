@@ -1453,6 +1453,35 @@ VOID rtmp_mac_bcn_buf_init(IN RTMP_ADAPTER *pAd, BOOLEAN bHardReset)
 #ifdef RTMP_MAC
 	if (pAd->chipCap.hif_type == HIF_RTMP)
 	{
+#ifdef SPECIFIC_BCN_BUF_SUPPORT
+		if (pAd->chipCap.FlgIsSupSpecBcnBuf == TRUE)
+		{
+			RTMP_REG_PAIR BcnSpecMACRegTable[] = {
+				/* 	
+					That means all beacon's size are 512 bytes 
+					and their starting address are "0x4000, 0x4200, 0x4400, 0x4600, ....." 
+					in the second(higher) 8KB shared memory . 
+
+					The formula is : 0x4000 + BCNx_OFFSET*64
+						ex : the address of BSS0 = 0x4000 + 0x00 * 64 = 0x4000
+							 the address of BSS1 = 0x4000 + 0x08 * 64 = 0x4200
+				*/
+				{BCN_OFFSET0,			0x18100800}, 
+				{BCN_OFFSET1,			0x38302820}, 
+				{BCN_OFFSET2,			0x58504840}, 
+				{BCN_OFFSET3,			0x78706860}, 
+			};
+
+			tb_size = (sizeof(BcnSpecMACRegTable) / sizeof(RTMP_REG_PAIR));
+			/* re-set beacon offset */
+			for(idx = 0; idx < tb_size; idx++)
+			{
+				RTMP_IO_WRITE32(pAd, (USHORT)BcnSpecMACRegTable[idx].Register, 
+										BcnSpecMACRegTable[idx].Value);
+			}
+		}
+		else
+#endif /* SPECIFIC_BCN_BUF_SUPPORT */
 		{
 			RTMP_REG_PAIR bcn_legacy_reg_tb[] = {
 #if defined(HW_BEACON_OFFSET) && (HW_BEACON_OFFSET == 0x200)

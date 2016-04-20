@@ -1428,7 +1428,7 @@ struct rf_index_info {
 	UINT32 rf_value[0];
 };
 
-struct mac_info {
+struct mt_mac_info {
 	UINT32 mac_start;
 	UINT32 mac_end;
 	UINT32 mac_value[0];

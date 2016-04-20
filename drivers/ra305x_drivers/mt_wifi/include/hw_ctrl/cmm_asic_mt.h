@@ -122,7 +122,7 @@ INT MtAsicWtblSetRDG(struct _RTMP_ADAPTER *pAd, BOOLEAN bEnable);
 
 VOID MtAsicSetPiggyBack(struct _RTMP_ADAPTER *pAd, BOOLEAN bPiggyBack);
 
-INT MtAsicSetPreTbtt(struct _RTMP_ADAPTER *pAd, BOOLEAN enable);
+INT MtAsicSetPreTbtt(struct _RTMP_ADAPTER *pAd, BOOLEAN enable, UCHAR idx);
 INT MtAsicSetGPTimer(struct _RTMP_ADAPTER *pAd, BOOLEAN enable, UINT32 timeout);
 INT MtAsicSetChBusyStat(struct _RTMP_ADAPTER *pAd, BOOLEAN enable);
 INT MtAsicGetTsfTime(struct _RTMP_ADAPTER *pAd, UINT32 *high_part, UINT32 *low_part);
@@ -205,11 +205,11 @@ BOOLEAN MtAsicSendCommandToMcuBBP(
 
 VOID MtAsicTurnOffRFClk(struct _RTMP_ADAPTER *pAd, UCHAR Channel);
 
-#ifdef WAPI_SUPPORT
-VOID MtAsicUpdateWAPIPN(struct _RTMP_ADAPTER *pAd, USHORT WCID, ULONG pn_low, ULONG pn_high);
-#endif /* WAPI_SUPPORT */
 
 
+#ifdef VCORECAL_SUPPORT
+VOID MtAsicVCORecalibration(struct _RTMP_ADAPTER *pAd);
+#endif /* VCORECAL_SUPPORT */
 
 
 #ifdef STREAM_MODE_SUPPORT
@@ -270,6 +270,7 @@ VOID MtAsicSetRxPspollFilter(RTMP_ADAPTER *pAd, CHAR enable);
 
 #if defined(MT7603) || defined(MT7628)
 INT32 MtAsicGetThemalSensor(struct _RTMP_ADAPTER *pAd, CHAR type);
+VOID MtAsicACQueue(struct _RTMP_ADAPTER *pAd, UINT8 ucation, UINT8 BssidIdx, UINT32 u4AcQueueMap);
 #endif /* MT7603 || MT7628  */
 
 								

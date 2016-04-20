@@ -59,23 +59,25 @@ static VOID DumpBcnQMessage(RTMP_ADAPTER *pAd, INT apidx)
 		set_get_fid(pAd, tmp);
 	}
 
+	/*
 	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("check TX_START and SLOT_IDLE\n"));
 	for (j = 0; j < 10; j++) {
 		MAC_IO_READ32(pAd, ARB_BCNQCR0, &tmp_value);
 		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("ARB_BCNQCR0: %x\n", tmp_value));
-	}
+	}*/
 #ifdef DBG
 	if (DBG_LVL_WARN <= RTDebugLevel) {
-		Show_PSTable_Proc(pAd, NULL);
+		//Show_PSTable_Proc(pAd, NULL);
 		ShowPseInfo(pAd, NULL);
 	}
 	if (DBG_LVL_ERROR <= RTDebugLevel) {
 		show_trinfo_proc(pAd, NULL);
-		SetTxRxCr_Proc(pAd, "1");
+		//SetTxRxCr_Proc(pAd, "1");
 	}
 #endif /*DBG*/
 }
 
+extern UINT32 APCheckBcnQ;
 
 VOID APCheckBcnQHandler(RTMP_ADAPTER *pAd, INT apidx, BOOLEAN *is_pretbtt_int)
 {
@@ -107,7 +109,7 @@ VOID APCheckBcnQHandler(RTMP_ADAPTER *pAd, INT apidx, BOOLEAN *is_pretbtt_int)
 			}
 #endif /* DMA_RESET_SUPPORT */			
 			check_point_num++;
-            if (check_point_num > 3) {
+            if (check_point_num > 10) {
                 DBGPRINT(RT_DEBUG_ERROR, ("%s()=>BSS%d:BcnPkt not idle(%d) - %d!, \n",
                                 __FUNCTION__, apidx, pMbss->bcn_buf.bcn_state, check_point_num));
             }
@@ -134,7 +136,16 @@ VOID APCheckBcnQHandler(RTMP_ADAPTER *pAd, INT apidx, BOOLEAN *is_pretbtt_int)
 #endif /* DMA_RESET_SUPPORT */
 				
 			if (check_point_num > 10) {
+				static int sht_i=0;
+				sht_i++;
+				if(sht_i > APCheckBcnQ)
+				{
 				DumpBcnQMessage(pAd, apidx);
+					pAd->pse_reset_exclude_flag = TRUE;	
+					PSEResetAndRecovery(pAd);
+					pAd->pse_reset_exclude_flag = FALSE;
+					sht_i=0;
+				}
 #ifdef DMA_RESET_SUPPORT
 			if (pAd->bcn_reset_en)
 			{
@@ -152,9 +163,9 @@ VOID APCheckBcnQHandler(RTMP_ADAPTER *pAd, INT apidx, BOOLEAN *is_pretbtt_int)
 			}
 #endif	/* DMA_RESET_SUPPORT */				
 				check_point_num = 0;
-			}else if (check_point_num == 7) {
+			}/*else if (check_point_num == 7) {
 				SetTxRxCr_Proc(pAd, "0");
-			}
+			}*/
             else if (check_point_num % 5 == 4) {
                 if (MTK_REV_GTE(pAd, MT7628, MT7628E2)) {
                     dma_sch_reset(pAd, NULL);
@@ -233,7 +244,20 @@ VOID APCheckBcnQHandler(RTMP_ADAPTER *pAd, INT apidx, BOOLEAN *is_pretbtt_int)
         }
 
 		if (apidx == 0)
+		{
+			static int sht_j=0;
+			sht_j++;
+			if(sht_j > APCheckBcnQ)
+			{
 			DumpBcnQMessage(pAd, apidx);
+				dma_sch_reset(pAd, NULL);
+				pAd->pse_reset_exclude_flag = TRUE;	
+				PSEResetAndRecovery(pAd);
+				pAd->pse_reset_exclude_flag = FALSE;
+				sht_j=0;
+			}
+			diag_printf("BcnPkt not idle apidx == 0 > 10\n");
+		}
 
 		*is_pretbtt_int = FALSE;
 		return;
@@ -243,13 +267,13 @@ VOID APCheckBcnQHandler(RTMP_ADAPTER *pAd, INT apidx, BOOLEAN *is_pretbtt_int)
 		pMbss->bcn_recovery_num++;
 		*is_pretbtt_int = TRUE;
 	}
-	else if (pMbss->bcn_not_idle_time % 10 ==  7) {
+	/*else if (pMbss->bcn_not_idle_time % 10 ==  7) {
 		SetTxRxCr_Proc(pAd, "0");
-	}	
+	}*/
 	else {
 		pMbss->bcn_not_idle_time++;
 		*is_pretbtt_int = FALSE;
-        if (pMbss->bcn_not_idle_time > 2) {
+        if (pMbss->bcn_not_idle_time > 7) {
             DBGPRINT(RT_DEBUG_ERROR, ("%s()=>BSS%d:BcnPkt not idle(%d) - %d!, \n",
                             __FUNCTION__, apidx, pMbss->bcn_buf.bcn_state, pMbss->bcn_not_idle_time));
         }
@@ -378,6 +402,9 @@ VOID MTPciMlmeRadioOn(PRTMP_ADAPTER pAd)
 	}
 #endif
 
+#ifdef LED_CONTROL_SUPPORT
+	RTMPSetLED(pAd, LED_LINK_UP);
+#endif /* LED_CONTROL_SUPPORT */
 	RTMP_CLEAR_FLAG(pAd, fRTMP_ADAPTER_DISABLE_DEQUEUEPACKET);
 }
 
@@ -398,7 +425,6 @@ VOID MTPciPollTxRxEmpty(RTMP_ADAPTER *pAd)
 #endif /* CONFIG_ATE */
 	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("%s\n", __FUNCTION__));
 
-	RtmpOsMsDelay(100);
 
 	/* Fix Rx Ring FULL lead DMA Busy, when DUT is in reset stage */
 	RTMP_SET_FLAG(pAd, fRTMP_ADAPTER_POLL_IDLE);
@@ -466,6 +492,9 @@ VOID MTPciMlmeRadioOff(PRTMP_ADAPTER pAd)
 	/*  Stop send TX packets */
 	RTMP_OS_NETDEV_STOP_QUEUE(pAd->net_dev);
 
+#ifdef LED_CONTROL_SUPPORT
+	RTMPSetLED(pAd, LED_LINK_DOWN);
+#endif /* LED_CONTROL_SUPPORT */
 #ifdef CONFIG_AP_SUPPORT
 	IF_DEV_CONFIG_OPMODE_ON_AP(pAd)
 	{
@@ -886,9 +915,9 @@ BOOLEAN MonitorRxPse(RTMP_ADAPTER *pAd)
 	if (pAd->RxPseCheckTimes < 10)
 	{
 		/* Check RX FIFO if not ready */
-		MAC_IO_WRITE32(pAd, 0x4244, 0x28000000);
+		MAC_IO_WRITE32(pAd, 0x4244, 0x98000000);
 		MAC_IO_READ32(pAd, 0x4244, &Value);
-		if ((Value & (1 << 8)) != 0)
+		if ((Value & (1 << 9)) != 0)
 		{
 			pAd->RxPseCheckTimes = 0;
 			return FALSE;
@@ -905,8 +934,19 @@ BOOLEAN MonitorRxPse(RTMP_ADAPTER *pAd)
 			MAC_IO_READ32(pAd, 0x80000 + RemapOffset, &Value);
 
 			if(((Value & (0x8001 << 16)) == (0x8001 << 16)) ||
+					((Value & (0xe001 << 16)) == (0xe001 << 16)) ||
+					((Value & (0x4001 << 16)) == (0x4001 << 16)))
+			{
+			if(((Value & (0x8001 << 16)) == (0x8001 << 16)) ||
 					((Value & (0xe001 << 16)) == (0xe001 << 16)))
 			{
+					pAd->PSETriggerType1Count++;
+				}
+
+				if ((Value & (0x4001 << 16)) == (0x4001 << 16))
+				{
+					pAd->PSETriggerType2Count++;
+				}
 				pAd->RxPseCheckTimes++;
 				MAC_IO_WRITE32(pAd, MCU_PCIE_REMAP_2, RestoreValue);
 				return FALSE;
@@ -1010,6 +1050,7 @@ VOID PSEWatchDog(RTMP_ADAPTER *pAd)
 	if (((NoDataIn)
 #ifdef DMA_RESET_SUPPORT		
 		|| ((pAd->bcn_reset_en) && (pAd->pse_reset_flag))
+		|| ((pAd->PSEResetFailRecover) && (pAd->PSEResetFailRetryQuota))
 #endif		
 		)
 		&& (pAd->pse_reset_exclude_flag == FALSE))

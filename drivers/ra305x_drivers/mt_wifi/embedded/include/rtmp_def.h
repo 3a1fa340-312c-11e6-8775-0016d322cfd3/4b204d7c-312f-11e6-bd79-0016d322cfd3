@@ -121,7 +121,7 @@
 #define MGMT_DMA_BUFFER_SIZE    1600	/*2048 */
 
 #define RX_BUFFER_AGGRESIZE     3840	/*3904 //3968 //4096 //2048 //4096 */
-#define RX1_BUFFER_SIZE         1700    /* 1700 //512 */
+#define RX1_BUFFER_SIZE         3840    /* 1700 //512 */
 #define RX_BUFFER_NORMSIZE      3840	/*3904 //3968 //4096 //2048 //4096 */
 #define TX_BUFFER_NORMSIZE		RX_BUFFER_NORMSIZE
 #define MAX_FRAME_SIZE          2346	/* Maximum 802.11 frame size */
@@ -671,11 +671,21 @@ enum WIFI_MODE{
 #define MAX_LEN_OF_BA_ORI_TABLE          ((NUM_OF_TID * MAX_LEN_OF_MAC_TABLE)/2)	/*   (NUM_OF_TID*MAX_AID_BA + 32)   // Block ACK originator */
 
 #ifdef MEMORY_OPTIMIZATION
+#ifdef RT_CFG80211_P2P_SUPPORT
+#define MAX_LEN_OF_BSS_TABLE             128
+#define MAX_REORDERING_MPDU_NUM			 256
+#else
 #define MAX_LEN_OF_BSS_TABLE             32
+#define MAX_REORDERING_MPDU_NUM			 256
+#endif
+#else	//MEMORY_OPTIMIZATION
+#ifdef __ECOS
+#define MAX_LEN_OF_BSS_TABLE             64 /* 128 */
 #define MAX_REORDERING_MPDU_NUM			 256
 #else
 #define MAX_LEN_OF_BSS_TABLE             128 /* 64 */
 #define MAX_REORDERING_MPDU_NUM			 512
+#endif
 #endif
 
 /* key related definitions */
@@ -858,6 +868,7 @@ enum WIFI_MODE{
 #define IE_ROAMING_CONSORTIUM	111 /* 802.11u */
 #define IE_EXT_CAPABILITY                127	/* 802.11n D3.03 */
 #define IE_OPERATING_MODE_NOTIFY	199
+#define IE_FTM_PARM                     206		/* 802.11mc D4.0 */
 
 #define IE_WPA                          221	/* WPA */
 #define IE_VENDOR_SPECIFIC              221	/* Wifi WMM (WME) */
@@ -1122,6 +1133,8 @@ enum WIFI_MODE{
 #define ACTION_GAS_COMEBACK_REQ				12 	/* 11U */
 #define ACTION_GAS_COMEBACK_RSP				13 	/* 11U */
 #define ACTION_TDLS_DISCOVERY_RSP			14	/* 11z D13.0 */
+#define ACTION_FTM_REQUEST					32	/* 11mc D3.0 */
+#define ACTION_FTM							33	/* 11mc D3.0 */
 #define ACTION_VENDOR_USAGE					221
 
 /*HT  Action field value */
@@ -1796,6 +1809,7 @@ typedef struct _WIFI_NODE_TYPE {
 #define IS_ENTRY_CLIENT(_x)		((_x)->EntryType == ENTRY_CLIENT)
 #define IS_ENTRY_WDS(_x)		((_x)->EntryType & ENTRY_CAT_WDS)
 #define IS_ENTRY_APCLI(_x)		((_x)->EntryType == ENTRY_APCLI)
+#define IS_ENTRY_ADHOC(_x)		((_x)->EntryType & ENTRY_ADHOC)
 #define IS_ENTRY_AP(_x)			((_x)->EntryType & ENTRY_CAT_AP)
 #define IS_ENTRY_MESH(_x)		((_x)->EntryType & ENTRY_CAT_MESH)
 #define IS_ENTRY_DLS(_x)		((_x)->EntryType == ENTRY_DLS)
@@ -1811,6 +1825,7 @@ typedef struct _WIFI_NODE_TYPE {
 #define SET_ENTRY_WDS(_x)		((_x)->EntryType = ENTRY_WDS)
 #define SET_ENTRY_APCLI(_x)		((_x)->EntryType = ENTRY_APCLI)
 #define SET_ENTRY_AP(_x)		((_x)->EntryType = ENTRY_AP)
+#define SET_ENTRY_ADHOC(_x)      ((_x)->EntryType = ENTRY_ADHOC)
 #define SET_ENTRY_MESH(_x)		((_x)->EntryType = ENTRY_MESH)
 #define SET_ENTRY_DLS(_x)		((_x)->EntryType = ENTRY_DLS)
 #define SET_ENTRY_TDLS(_x)		((_x)->EntryType = ENTRY_TDLS)
@@ -1820,6 +1835,8 @@ typedef struct _WIFI_NODE_TYPE {
 #define SET_PKT_OPMODE_AP(_x)		((_x)->OpMode = OPMODE_AP)
 #define SET_PKT_OPMODE_STA(_x)		((_x)->OpMode = OPMODE_STA)
 
+#define IS_PKT_OPMODE_AP(_x)		((_x)->OpMode == OPMODE_AP)
+#define IS_PKT_OPMODE_STA(_x)		((_x)->OpMode == OPMODE_STA)
 
 #define IS_OPMODE_AP(_x)		((_x)->OpMode == OPMODE_AP)
 #define IS_OPMODE_STA(_x)		((_x)->OpMode == OPMODE_STA)
@@ -1844,6 +1861,17 @@ typedef struct _WIFI_NODE_TYPE {
 #else
 #define INF_MAIN_DEV_NAME		"ra"
 #define INF_MBSSID_DEV_NAME		"ra"
+#endif
+#endif /* ANDROID_SUPPORT */
+#ifdef __ECOS
+#define SECOND_INF_MAIN_DEV_NAME	"rai"
+#define SECOND_INF_MBSSID_DEV_NAME	"rai"
+#define SECOND_INF_WDS_DEV_NAME	"wdsi"
+#define SECOND_INF_APCLI_DEV_NAME	"apclii"
+#define SECOND_INF_MESH_DEV_NAME	"meshi"
+#define SECOND_INF_P2P_DEV_NAME	"p2pi"
+#ifdef CONFIG_SNIFFER_SUPPORT
+#define SECOND_INF_MONITOR_DEV_NAME		"moni"
 #endif
 #endif /* ANDROID_SUPPORT */
 
@@ -2088,6 +2116,19 @@ enum {
 #ifdef MT_PS
 #define I_PSM_ENABLE	1
 #define I_PSM_DISABLE	0
+#endif /* MT_PS */
+
+#ifdef SMART_CARRIER_SENSE_SUPPORT
+enum {
+	SCS_DISABLE,
+	SCS_ENABLE,
+};
+
+enum {
+	SCS_STATUS_DEFAULT,
+	SCS_STATUS_LOW,
+	SCS_STATUS_ULTRA_LOW,
+};
 #endif /* MT_PS */
 
 #define ABS(_x, _y) ((_x) > (_y)) ? ((_x) -(_y)) : ((_y) -(_x))

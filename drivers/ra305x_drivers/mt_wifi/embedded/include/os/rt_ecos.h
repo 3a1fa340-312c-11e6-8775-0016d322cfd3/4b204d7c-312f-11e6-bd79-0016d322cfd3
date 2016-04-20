@@ -100,7 +100,7 @@
 #endif
 	
 	
-#define AP_DRIVER_VERSION			"4.0.1.0-alpha-2"
+#define AP_DRIVER_VERSION			"4.0.1.0"
 #ifdef MULTIPLE_CARD_SUPPORT
 #define CARD_INFO_PATH			"/etc/Wireless/RT2860AP/RT2860APCard.dat"
 #endif /* MULTIPLE_CARD_SUPPORT */
@@ -1003,6 +1003,9 @@ do{                                   \
 #endif /* VENDOR_FEATURE3_SUPPORT */
 
 void hex_dump(char *str, unsigned char *pSrcBufVA, unsigned int SrcBufLen);
+#ifdef CONFIG_SNIFFER_SUPPORT
+void sniffer_hex_dump(char *str, unsigned char *pSrcBufVA, unsigned int SrcBufLen);
+#endif
 
 /***********************************************************************************
  * Device DMA Access related definitions and data structures.
@@ -1197,7 +1200,7 @@ do{ \
 
 /*EddyTODO */
 #define EFAULT  -1
-#define SIOCIWFIRSTPRIV 0x00
+#define SIOCIWFIRSTPRIV	0x8BE0
 
 
 /***********************************************************************************
@@ -1298,7 +1301,7 @@ typedef struct _RTMP_VX_INIT_STRING_{
 #define GET_OS_PKT_CB(_p)		(RTPKT_TO_OSPKT(_p)->cb)
 #define PACKET_CB(_p, _offset)	((RTPKT_TO_OSPKT(_p)->cb[CB_OFF + (_offset)]))
 
-#define GET_PAD_FROM_NET_DEV(_pAd, _net_dev)	(_pAd) = (PRTMP_ADAPTER)((PNET_DEV)_net_dev)->driver_private;
+#define GET_PAD_FROM_NET_DEV(_pAd, _net_dev)	(_pAd) = (PRTMP_ADAPTER)(_net_dev)->driver_private;
 
 
 
@@ -1352,8 +1355,9 @@ typedef VOID									* PPCI_DEV;
 #ifndef caddr_t
 typedef char           *caddr_t;
 #endif
+#ifdef WSC_INCLUDED
 void wsc_set_acl_list(void *pAd_ptr,UCHAR apidx);
-
+#endif
 INT rt28xx_ioctl(
 	IN	PNET_DEV	endDev, 
 	IN	caddr_t		data,
@@ -1370,6 +1374,7 @@ extern  int rt28xx_send_packets(PECOS_PKT_BUFFER skb, PNET_DEV ndev);
 #ifdef MT_MAC
 #define BCN_RING_SIZE		20
 #endif /* MT_MAC */
+#define RX1_RING_SIZE			64
 
 #define MAX_TX_PROCESS          TX_RING_SIZE /*8 */
 #define MAX_DMA_DONE_PROCESS    TX_RING_SIZE
@@ -1467,7 +1472,19 @@ do {	\
 #define RTMP_NET_TASK_DATA_ASSIGN(__Tasklet, __Data)		\
 		(__Tasklet)->data = (unsigned long)__Data
 
+#ifdef CONFIG_SNIFFER_SUPPORT
 
+//Sniffer Debug
+extern int sniffer_debug_level;	
+#define SNI_DBGPRINTF(Level, fmt, args...)   \
+{                                       \
+        if (Level <= sniffer_debug_level)    \
+        {                                \
+            diag_printf("[sniffer]");  \
+			diag_printf( fmt, ## args); \
+        }                                   \
+}
+#endif
 
 /* ------------------------- PRIVATE INFO ------------------------- */
 /*
@@ -1591,6 +1608,7 @@ do {	\
 struct net_device {
     char            name[IFNAMSIZ];
     void*           priv;
+    void*           sc;
     const struct    iw_handler_def *   wireless_handlers;
     unsigned char   dev_addr[8];
     unsigned int    flags;
@@ -1602,7 +1620,7 @@ struct net_device {
 };
 
 struct iw_statistics *rt28xx_get_wireless_stats(
-        struct net_device *net_dev);
+        PNET_DEV net_dev);
 
 // Logging facilities
 #ifdef CYGPKG_NET_FREEBSD_LOGGING
@@ -1736,6 +1754,13 @@ extern void *kmalloc(size_t nb, int flag);
 #define m_retry         cyg_m_retry
 #define m_mballoc_wait  cyg_m_mballoc_wait
 
+//todo:????
+#define RTMP_OS_NETDEV_SET_TYPE(_pNetDev, _type)
+#define RTMP_OS_NETDEV_SET_TYPE_MONITOR(_pNetDev) 
+#define RTMP_OS_NETDEV_GET_TYPE(_pNetDev)	
+//this is for littel endian
+#define __cpu_to_le16(x) (x)
+//this is for big endian
 
 // TODO:need redefine
 #endif /* __RT_ECOS_H__ */

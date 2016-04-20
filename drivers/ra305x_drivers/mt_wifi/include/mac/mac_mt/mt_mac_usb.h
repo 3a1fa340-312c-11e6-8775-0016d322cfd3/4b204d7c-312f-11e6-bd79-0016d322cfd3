@@ -276,7 +276,7 @@ typedef struct _CMD_CONTEXT
 /* */
 typedef struct _RX_CONTEXT
 {
-	DL_LIST list;
+	MT_DL_LIST list;
 	UINT8 Id;
 	BOOLEAN URBCancel;
 	ULONG ReadPosition;

@@ -373,6 +373,9 @@ VOID RTMPSetHT(
 
 	bbp_set_bw(pAd, bw);
 
+#ifdef RT305x
+	RTMP_CHIP_SPECIFIC(pAd, RT305x_HT_MODE_CHANGE, NULL, pHTPhyMode->BW);
+#endif /* RT305x */
 
 	if(pHTPhyMode->STBC == STBC_USE)
 	{

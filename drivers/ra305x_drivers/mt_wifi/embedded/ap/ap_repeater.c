@@ -53,7 +53,7 @@ REPEATER_CLIENT_ENTRY *RTMPLookupRepeaterCliEntry(
 		{
 			pEntry = pMapEntry->pReptCliEntry;
 
-			if (pEntry->CliValid && MAC_ADDR_EQUAL(pEntry->OriginalAddress, tempMAC))
+			if (pEntry->CliEnable && MAC_ADDR_EQUAL(pEntry->OriginalAddress, tempMAC))
 				break;
 			else
 			{
@@ -67,7 +67,7 @@ REPEATER_CLIENT_ENTRY *RTMPLookupRepeaterCliEntry(
 		pEntry = pAd->ApCfg.ReptCliHash[HashIdx];
 		while (pEntry)
 		{
-			if (pEntry->CliValid && MAC_ADDR_EQUAL(pEntry->CurrentAddress, tempMAC))
+			if (pEntry->CliEnable && MAC_ADDR_EQUAL(pEntry->CurrentAddress, tempMAC))
 				break;
 			else
 				pEntry = pEntry->pNext;
@@ -354,7 +354,10 @@ done:
 	pAd->ApCfg.ApCliTab[func_tb_idx].RepeaterCli[CliIdx].CliConnectState = 0;
 	NdisZeroMemory(pAd->ApCfg.ApCliTab[func_tb_idx].RepeaterCli[CliIdx].OriginalAddress, MAC_ADDR_LEN);
 
-	if (bVaild == TRUE)
+	pAd->ApCfg.ApCliTab[func_tb_idx].RepeaterCli[CliIdx].CliValid = FALSE;
+	pAd->ApCfg.ApCliTab[func_tb_idx].RepeaterCli[CliIdx].CliEnable = FALSE;
+
+	if ((bVaild == TRUE) && (pAd->ApCfg.RepeaterCliSize > 0))
 		pAd->ApCfg.RepeaterCliSize--;
 
 	NdisReleaseSpinLock(&pAd->ApCfg.ReptCliEntryLock);

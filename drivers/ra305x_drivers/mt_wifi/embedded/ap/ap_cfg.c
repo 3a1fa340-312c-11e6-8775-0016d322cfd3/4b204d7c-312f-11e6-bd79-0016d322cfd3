@@ -173,6 +173,11 @@ INT Set_AP_SSID_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 
 INT Set_TxRate_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 
+#ifdef RT305x
+INT Set_RfRead_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
+
+INT Set_RfWrite_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
+#endif /* RT305x */
 
 INT	Set_OLBCDetection_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 INT	Set_AP_MaxStaNum_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
@@ -282,6 +287,7 @@ INT Set_DisConnectAllSta_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 #ifdef APCLI_SUPPORT
 INT Set_ApCli_Enable_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 INT Set_ApCli_Ssid_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
+INT Set_ApCli_UniCode_Ssid_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 INT Set_ApCli_Bssid_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 INT Set_ApCli_DefaultKeyID_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 INT Set_ApCli_WPAPSK_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
@@ -490,6 +496,12 @@ INT Set_TmrSpeEn_Proc(
     RTMP_STRING *arg);
 #endif
 
+#ifdef RTMP_FLASH_SUPPORT
+INT Set_DPD_SAVE_TEST_Proc(
+    PRTMP_ADAPTER   	 pAd,
+    RTMP_STRING          *arg);
+#endif /* RTMP_FLASH_SUPPORT */
+
 #endif /* MT_MAC */
 
 static struct {
@@ -671,6 +683,16 @@ static struct {
 #endif /* CARRIER_DETECTION_SUPPORT */
 #endif /* defined(DFS_SUPPORT) || defined(CARRIER_DETECTION_SUPPORT) */
 
+#ifdef RT305x
+	{"RfRead",							Set_RfRead_Proc},
+	{"RfWrite",							Set_RfWrite_Proc},
+	{"HiPower",							Set_HiPower_Proc},
+#if defined(RT3352) || defined(RT5350)
+#ifdef RTMP_INTERNAL_TX_ALC
+	{"TSSIMaxRange",					Set_TSSIMaxRange_Proc},
+#endif /* RTMP_INTERNAL_TX_ALC */
+#endif /* defined(RT3352) || defined(RT5350) */
+#endif /* RT305x */
 
 
 #ifdef CONFIG_ATE
@@ -728,12 +750,16 @@ static struct {
 #endif /* LED_CONTROL_SUPPORT */
 	{"ATEAUTOALC", SetATEAutoAlc},
 	{"ATETEMPSENSOR", SetATETempSensor},
+#ifdef VCORECAL_SUPPORT
+	{"ATEVCOCAL", SetATEVcoCal},
+#endif /* VCORECAL_SUPPORT */
 	{"ATEIPG", SetATEIpg},
 	{"ATEPAYLOAD", SetATEPayload},
 	{"ATEFIXEDPAYLOAD", SetATEFixedPayload},
 	{"ATETTR", SetATETtr},
 	{"ATESHOW", SetATEShow},
 	{"ATEHELP", SetATEHelp},
+	{"ATEDPDRECORD", SetATEDPDRecord},
 #ifdef CONFIG_QA
 	{"TxStop", SetTxStop},
 	{"RxStop", SetRxStop},
@@ -749,6 +775,7 @@ static struct {
 #ifdef APCLI_SUPPORT
 	{"ApCliEnable",				Set_ApCli_Enable_Proc},
 	{"ApCliSsid",					Set_ApCli_Ssid_Proc},
+	{"ApCliUniCodeSsid",			Set_ApCli_UniCode_Ssid_Proc},
 	{"ApCliBssid",					Set_ApCli_Bssid_Proc},
 	{"ApCliAuthMode",				Set_ApCli_AuthMode_Proc},
 	{"ApCliEncrypType",				Set_ApCli_EncrypType_Proc},
@@ -908,6 +935,9 @@ static struct {
 	{"bufferWriteBack", 			Set_EepromBufferWriteBack_Proc},
 
 
+#ifdef RT5350
+	{"HwAntDiv",				Set_Hw_Antenna_Div_Proc},
+#endif /* RT5350 */
 
 #ifdef RTMP_RBUS_SUPPORT
 #ifdef LED_CONTROL_SUPPORT
@@ -1023,6 +1053,8 @@ static struct {
 	{"sendTmrAct", Set_SendTmrAction_Proc},
 	{"tmrRate", Set_TmrRate_Proc},
     {"SpeEn", Set_TmrSpeEn_Proc},
+    {"debug_pdma_register", SetPDMARegister_Proc},
+    {"debug_pse_register", SetPSERegister_Proc},    
 #endif
 #ifdef CUT_THROUGH
 	{"cut_through", 		Set_CutThrough_Proc},
@@ -1030,6 +1062,8 @@ static struct {
 #ifdef RTMP_MAC_PCI
 	{"pse_dbg", SetPSEWatchDog_Proc},
 	{"pdma_dbg", Set_PDMAWatchDog_Proc},
+	{"bcn_dbg", Set_BcnCheck_Proc},
+	{"memdumplen", Set_MemDumpLen_Proc},
 #endif
 	{"get_thermal_sensor", Set_themal_sensor},
 	{"rx_pspoll_filter", Set_rx_pspoll_filter_proc},
@@ -1040,6 +1074,7 @@ static struct {
 	{"psm_dbg", SetPsmDbg_Proc},
 	{"psm_dis", SetPsmWatchDog_Proc},
 	{"ed_chk", Set_ed_chk_proc},
+	{"ed_stat", show_ed_stat_proc},
 #ifdef BAND_STEERING
 	{"BndStrgEnable", 		Set_BndStrg_Enable},
 	{"BndStrgRssiDiff", 	Set_BndStrg_RssiDiff},
@@ -1053,6 +1088,12 @@ static struct {
 	{"BndStrgMntAddr", 	Set_BndStrg_MonitorAddr},
 #endif /* BND_STRG_DBG */
 #endif /* BAND_STEERING */
+#ifdef SMART_CARRIER_SENSE_SUPPORT
+	{"SCSEnable", SetSCSEnable_Proc},
+#endif /* SMART_CARRIER_SENSE_SUPPORT */
+#ifdef RTMP_FLASH_SUPPORT
+	{"DPD", 					Set_DPD_SAVE_TEST_Proc},
+#endif /*RTMP_FLASH_SUPPORT*/
 	{NULL,}
 };
 
@@ -1075,7 +1116,9 @@ static struct {
 	{"dschinfo", ShowDMASchInfo},
 #endif
 #endif /* MT_MAC */
+#ifdef DBG
 	{"sta_tr",				Show_sta_tr_proc},
+#endif	
 	{"peerinfo", 			show_stainfo_proc},
 	{"stacountinfo",			Show_StaCount_Proc},
 	{"stasecinfo", 			Show_StaSecurityInfo_Proc},
@@ -1084,6 +1127,10 @@ static struct {
 	{"devinfo",			show_devinfo_proc},
 	{"sysinfo",			show_sysinfo_proc},
 	{"trinfo",	show_trinfo_proc},
+#ifdef __ECOS
+	{"mboxinfo",	show_mboxinfo_proc},
+	{"memdump",	show_memdump_proc},
+#endif	
 	{"pwrinfo", show_pwr_info},
 	{"txqinfo",			show_txqinfo_proc},
 #ifdef WDS_SUPPORT
@@ -4691,7 +4738,7 @@ INT RTMPAPQueryInformation(
 			{
 				UINT32 Index;
 				UINT32 j = 0;
-				struct mac_info *Info;
+				struct mt_mac_info *Info;
 				char *buf;
 
 				os_alloc_mem(pAd, (UCHAR **)&buf, wrq->u.data.length);
@@ -4704,7 +4751,7 @@ INT RTMPAPQueryInformation(
 				}
 
 				Status = copy_from_user(buf, wrq->u.data.pointer, wrq->u.data.length);
-				Info = (struct mac_info *)buf;
+				Info = (struct mt_mac_info *)buf;
 
 				printk("Info->mac_start = %x\n",  Info->mac_start);
 				printk("Info->mac_end = %x\n",  Info->mac_end);
@@ -4823,7 +4870,7 @@ INT RTMPAPQueryInformation(
 #endif
 		case OID_WIFI_TEST_MAC_NUM:
 			{
-				struct mac_info Info;
+				struct mt_mac_info Info;
 				Info.mac_start = pAd->chipCap.MacStart;
 				Info.mac_end = pAd->chipCap.MacEnd;
 				wrq->u.data.length = sizeof(Info);
@@ -5221,6 +5268,57 @@ INT	Set_DtimPeriod_Proc(
 	return success;
 }
 
+#ifdef RT305x
+INT Set_RfRead_Proc(
+    IN  PRTMP_ADAPTER   pAdapter,
+    IN  RTMP_STRING *arg)
+{
+	int i;
+	UCHAR Value;
+
+	for (i = 0; i < 32; i++)
+	{
+		RT30xxReadRFRegister(pAdapter, i, &Value);
+		printk("%02x ", Value);
+		if (((i + 1) % 4) == 0)
+			printk("\n");
+	}
+	return TRUE;
+}
+
+INT Set_RfWrite_Proc(
+    IN  PRTMP_ADAPTER   pAdapter,
+    IN  RTMP_STRING *arg)
+{
+	ULONG offset = 0;
+	ULONG value = 0;
+	PUCHAR p2 = (PUCHAR)arg;
+
+	while((*p2 != ':') && (*p2 != '\0'))
+	{
+		p2++;
+	}
+
+	if (*p2 == ':')
+	{
+		A2Hex(offset, arg);
+		A2Hex(value, p2+ 1);
+	}
+	else
+	{
+		A2Hex(value, arg);
+	}
+
+	if (offset >= 32)
+	{
+		return FALSE;
+	}
+
+	RT30xxWriteRFRegister(pAdapter, offset, value);
+
+	return TRUE;
+}
+#endif /* RT305x */
 
 
 /*
@@ -6678,6 +6776,8 @@ INT Set_AutoChannelSelCheckTime_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
 #endif /* AP_SCAN_SUPPORT */
 
 
+extern UINT RX0_Max_Pending;
+extern UINT RX1_Max_Pending;
 INT Show_DriverInfo_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
 {
 	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("driver version: %s (%s %s) .\n", AP_DRIVER_VERSION, __DATE__, __TIME__));
@@ -6687,6 +6787,10 @@ INT Show_DriverInfo_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
 		UINT32 loop = 0;
 		RTMP_CHIP_CAP *cap = &pAd->chipCap;
 
+#ifdef __ECOS
+		printk("\n===>RX0_Max_Pending=%d<===\n",RX0_Max_Pending);
+		printk("===>RX1_Max_Pending=%d<===\n",RX1_Max_Pending);
+#endif
 		if (pAd->chipCap.need_load_fw) {
 			USHORT fw_ver, build_ver;
 			fw_ver = (*(cap->FWImageName + 11) << 8) | (*(cap->FWImageName + 10));
@@ -8193,12 +8297,19 @@ VOID RTMPAPIoctlBBP(
 			else
 #endif /* CONFIG_ATE */
 			{
+#ifdef __ECOS
+				BBP_IO_READ8_BY_REG_ID(pAdapter, bbpId, &regBBP);
+				printk("R%02d[0x%02X]:%02X    ", bbpId, bbpId, regBBP);
+				if ((bbpId%5 == 4) || (bbpId == pAdapter->chipCap.MaxNumOfBbpId))
+					printk("\n");
+#else
 				/* according to Andy, Gary, David require. */
 				/* the command bbp shall read/write BBP register directly for dubug. */
 				BBP_IO_READ8_BY_REG_ID(pAdapter, bbpId, &regBBP);
 				sprintf(msg+strlen(msg), "R%02d[0x%02X]:%02X    ", bbpId, bbpId, regBBP);
 				if (bbpId%5 == 4)
 					sprintf(msg+strlen(msg), "\n");
+#endif /* __ECOS */
 			}
 		}
 	}
@@ -8545,6 +8656,12 @@ VOID RTMPAPIoctlRF(
 			else
 #endif /* CONFIG_ATE */
 			{
+#ifdef __ECOS
+				RT30xxReadRFRegister(pAdapter, rfId, &regRF);
+				printk("R%02d[0x%02X]:%02X    ", rfId, rfId*2, regRF);
+				if ((rfId%5 == 4) || (rfId == maxRFIdx))
+					printk("\n");
+#else
 				/* according to Andy, Gary, David require. */
 				/* the command RF shall read/write RF register directly for dubug. */
 				{
@@ -8553,6 +8670,7 @@ VOID RTMPAPIoctlRF(
 					if (rfId%5 == 4)
 						sprintf(msg+strlen(msg), "\n");
 				}
+#endif /* __ECOS */
 			}
 		}
 		/* Copy the information into the user buffer */
@@ -8637,8 +8755,8 @@ VOID RTMPAPIoctlE2PROM(
 	memset(arg, 0x00, 256);
 
 	if (
-#ifdef LINUX
-		(wrq->u.data.length > 1) /* If no parameter, dump all e2p. */
+#ifdef __ECOS
+		(wrq->u.data.length > 0) /*No parameters. */
 #endif /* LINUX */
 		)
 	{
@@ -8756,6 +8874,15 @@ VOID RTMPAPIoctlE2PROM(
 
 	if (bIsPrintAllE2PROM)
 	{
+#ifdef __ECOS
+		for (eepAddr = 0x00; eepAddr < 0x200; eepAddr += 2)
+		{
+			RT28xx_EEPROM_READ16(pAdapter, eepAddr, eepValue);
+			printk("[0x%04X]:%04X  ", eepAddr , eepValue);
+			if ((eepAddr & 0x6) == 0x6)
+				printk("\n");
+		}
+#else
 		sprintf(msg, "\n");
 
 		/* E2PROM Registers */
@@ -8766,6 +8893,7 @@ VOID RTMPAPIoctlE2PROM(
 			if ((eepAddr & 0x6) == 0x6)
 				sprintf(msg+strlen(msg), "\n");
 		}
+#endif /* __ECOS */
 	}
 
 	if(strlen(msg) == 1)
@@ -9379,6 +9507,121 @@ INT Set_ApCli_Ssid_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
 	return success;
 }
 
+INT Set_ApCli_UniCode_Ssid_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg)
+{
+	POS_COOKIE pObj;
+	UCHAR ifIndex;
+	BOOLEAN apcliEn;
+	INT success = FALSE;
+	/*UCHAR keyMaterial[40]; */
+	UCHAR PskKey[100];
+	APCLI_STRUCT *apcli_entry;
+	struct wifi_dev *wdev;
+
+	pObj = (POS_COOKIE) pAd->OS_Cookie;
+	if (pObj->ioctl_if_type != INT_APCLI)
+		return FALSE;
+
+	ifIndex = pObj->ioctl_if;
+
+	{
+		apcli_entry = &pAd->ApCfg.ApCliTab[ifIndex];
+		wdev = &apcli_entry->wdev;
+
+		/* bring apcli interface down first */
+		apcliEn = apcli_entry->Enable;
+#ifdef APCLI_CONNECTION_TRIAL
+		if (pAd->ApCfg.ApCliTab[ifIndex].TrialCh == 0)
+		{
+#endif /* APCLI_CONNECTION_TRIAL */
+		if(apcliEn == TRUE )
+		{
+			apcli_entry->Enable = FALSE;
+			ApCliIfDown(pAd);
+		}
+#ifdef APCLI_CONNECTION_TRIAL
+		}
+#endif /* APCLI_CONNECTION_TRIAL */
+
+		NdisZeroMemory(apcli_entry->CfgSsid, MAX_LEN_OF_SSID);
+		apcli_entry->CfgSsidLen = 0;
+		if(strlen(arg) <= MAX_LEN_OF_SSID)
+		{
+			NdisMoveMemory(apcli_entry->CfgSsid, arg, strlen(arg));
+			apcli_entry->CfgSsidLen = (UCHAR)strlen(arg);
+			success = TRUE;
+		}
+		
+		if(arg[0] == '0' && (arg[1] == 'x' || arg[1] == 'X'))
+		{	
+			int ii,jj;
+			CHAR temp[MAX_LEN_OF_SSID*2+1];
+			
+			NdisZeroMemory(apcli_entry->CfgSsid, MAX_LEN_OF_SSID);
+			for(ii=2; ii<strlen(arg); ii++)
+			{
+				if(arg[ii] >= '0' && arg[ii] <= '9')
+					temp[ii-2] = arg[ii] - '0';
+				else if(arg[ii] >= 'A' && arg[ii] <= 'F')
+					temp[ii-2] = arg[ii] - 'A' + 10;
+				else if(arg[ii] >= 'a' && arg[ii] <= 'f')
+					temp[ii-2] = arg[ii] - 'a' + 10;
+			}
+			
+			temp[strlen(arg)-2]= '\0';
+			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF,("%s=>arg:",__FUNCTION__));
+			for(ii=0; ii<strlen(arg)-2; ii++)
+				MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF,("%x",temp[ii]));
+			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF,("\n"));
+			
+			jj=0;
+			for(ii=0; ii<strlen(arg)-2; ii+=2)
+			{
+				if (jj > MAX_LEN_OF_SSID)
+				{
+					MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF,("%s=> unicode SSID len error.",__FUNCTION__));
+					success = FALSE;
+					goto ret;
+				}
+
+				apcli_entry->CfgSsid[jj++] = (UCHAR)(temp[ii]*16+temp[ii+1]);
+			}
+			apcli_entry->CfgSsid[jj] = '\0';
+			apcli_entry->CfgSsidLen = jj;
+			
+			success = TRUE;
+			
+			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF,("%s=>SSID:",__FUNCTION__));
+			for(ii=0; ii<jj; ii++)
+				MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF,("%x",(UCHAR)apcli_entry->CfgSsid[ii]));
+			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF,("\n"));
+		}
+
+
+		/* Upadte PMK and restart WPAPSK state machine for ApCli link */
+		if (((wdev->AuthMode == Ndis802_11AuthModeWPAPSK) ||
+			(wdev->AuthMode == Ndis802_11AuthModeWPA2PSK)) &&
+			apcli_entry->PSKLen > 0)
+		{
+			NdisZeroMemory(PskKey, 100);
+			NdisMoveMemory(PskKey, apcli_entry->PSK, apcli_entry->PSKLen);
+
+			RT_CfgSetWPAPSKKey(pAd, (RTMP_STRING *)PskKey,
+									apcli_entry->PSKLen,
+									(PUCHAR)apcli_entry->CfgSsid,
+									apcli_entry->CfgSsidLen,
+									apcli_entry->PMK);
+		}
+
+		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("I/F(apcli%d) Set_ApCli_Ssid_Proc::(Len=%d,Ssid=%s)\n",
+				ifIndex, apcli_entry->CfgSsidLen, apcli_entry->CfgSsid));
+
+		apcli_entry->Enable = apcliEn;
+	}
+
+ret:
+	return success;
+}
 
 INT Set_ApCli_Bssid_Proc(
 	IN  PRTMP_ADAPTER pAd,
@@ -10522,6 +10765,18 @@ INT	Set_AP_WscGetConf_Proc(
     }
 
 #ifdef WSC_LED_SUPPORT
+#ifdef CONFIG_WIFI_LED_SHARE
+	/* Change FW default mode to HUAWEI WPS mode*/
+	pAd->LedCntl.MCULedCntl.word &= 0x80;
+	pAd->LedCntl.MCULedCntl.word |= WPS_LED_MODE_SHARE;
+
+	if (LED_MODE(pAd) == WPS_LED_MODE_SHARE)
+	{
+		WPSLEDStatus = LED_WPS_PRE_STAGE;
+		RTMPSetTimer(&pWscControl->WscLEDTimer, WSC_WPS_PREPOST_WIFI_LED_TIMEOUT);
+	}
+	else
+#endif /* CONFIG_WIFI_LED_SHARE */
 		WPSLEDStatus = LED_WPS_IN_PROCESS;
 		RTMPSetLED(pAd, WPSLEDStatus);
 #endif /* WSC_LED_SUPPORT */
@@ -12204,9 +12459,15 @@ INT Set_WlanLed_Proc(
 	IN RTMP_STRING *arg)
 {
 	BOOLEAN bWlanLed;
+#ifdef CONFIG_SWMCU_SUPPORT
+	PSWMCU_LED_CONTROL pSWMCULedCntl = &pAd->LedCntl.SWMCULedCntl;
+#endif /* CONFIG_SWMCU_SUPPORT */
 
 	bWlanLed = (BOOLEAN) simple_strtol(arg, 0, 10);
 
+#ifdef CONFIG_SWMCU_SUPPORT
+	if (bWlanLed != pSWMCULedCntl->bWlanLed)
+#endif /* CONFIG_SWMCU_SUPPORT */
 	{
 		if (bWlanLed)
 			RTMPStartLEDMode(pAd);
@@ -14127,3 +14388,85 @@ INT Set_Airplay_Enable(RTMP_ADAPTER	*pAd, RTMP_STRING *arg)
 }
 
 #endif /* AIRPLAY_SUPPORT*/
+#ifdef RTMP_FLASH_SUPPORT
+INT Set_DPD_SAVE_TEST_Proc(
+    PRTMP_ADAPTER   	 pAd,
+    RTMP_STRING          *arg)
+{
+	UINT32 test;
+	INT q = 0,group = 0;
+	UINT32 DPDValueWF0 = 0,DPDValueWF1 = 0;
+	UINT16 tmp1 = 0, tmp2 = 0, tmp3 = 0, tmp4 = 0;
+
+	test = simple_strtol(arg, 0, 10);
+	if(test != 1)
+		return 1;
+
+#ifdef CONFIG_ATE
+	if (ATE_ON(pAd)) {
+		if(pAd->ATECtrl.ControlChl >= 1 && pAd->ATECtrl.ControlChl <= 5)
+			group = 2;
+		else if(pAd->ATECtrl.ControlChl >= 6 && pAd->ATECtrl.ControlChl <= 10 )
+			group = 1;
+		else if(pAd->ATECtrl.ControlChl >= 11 && pAd->ATECtrl.ControlChl <= 14 )
+			group = 0;
+	}
+	else
+#endif /*CONFIG_ATE*/
+	{
+		if(pAd->CommonCfg.Channel >= 1 && pAd->CommonCfg.Channel <= 5)
+			group = 2;
+		else if(pAd->CommonCfg.Channel >= 6 && pAd->CommonCfg.Channel <= 10 )
+			group = 1;
+		else if(pAd->CommonCfg.Channel >= 11 && pAd->CommonCfg.Channel <= 14 )
+			group = 0;
+	}
+	for(q = 0; q < 16; q++)
+	{
+		RTMP_IO_READ32(pAd, (0x10920 + q*4), &DPDValueWF0);
+		tmp1 = (UINT16)DPDValueWF0 & 0xffff;
+		tmp2 = (DPDValueWF0 & 0xffff0000) >> 16;
+		//rtmp_ee_flash_write(pAd, (0x204 + group*136 + q*4), tmp1);
+		//rtmp_ee_flash_write(pAd, (0x204 + group*136 + q*4 + 2), tmp2);
+		memcpy(pAd->eebuf + (0x204 + group*136 + q*4), &tmp1, 2);
+		memcpy(pAd->eebuf + (0x204 + group*136 + q*4 + 2), &tmp2, 2);
+
+		RTMP_IO_READ32(pAd, (0x11920 + q*4), &DPDValueWF1);
+		tmp3 = (UINT16)DPDValueWF1 & 0xffff;
+		tmp4 = (DPDValueWF1 & 0xffff0000) >> 16;
+		//rtmp_ee_flash_write(pAd, (0x248 + group*136 + q*4), tmp3);
+		//rtmp_ee_flash_write(pAd, (0x248 + group*136 + q*4 + 2), tmp4);	
+		memcpy(pAd->eebuf + (0x248 + group*136 + q*4), &tmp3, 2);
+		memcpy(pAd->eebuf + (0x248 + group*136 + q*4 + 2), &tmp4, 2);	
+
+		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, 
+		("mac 0x%x = %08x , flash 0x%x = %08x   mac 0x%x = %08x , flash 0x%x = %08x\n"
+		, (0x10920 + q*4),DPDValueWF0, (0x204 + group*136 + q*4), (tmp2<<16|tmp1)
+		, (0x11920 + q*4),DPDValueWF1, (0x248 + group*136 + q*4), (tmp4<<16|tmp3)));		
+	}
+
+	RTMP_IO_READ32(pAd, 0x10A08, &DPDValueWF0);
+	tmp1 = (UINT16)DPDValueWF0 & 0xffff;
+	tmp2 = (DPDValueWF0 & 0xffff0000) >> 16;
+	//rtmp_ee_flash_write(pAd, (0x244 + group*136), tmp1);
+	//rtmp_ee_flash_write(pAd, (0x244 + group*136 + 2), tmp2);
+	memcpy(pAd->eebuf + (0x244 + group*136), &tmp1, 2);
+	memcpy(pAd->eebuf + (0x244 + group*136 + 2), &tmp2, 2);
+
+	RTMP_IO_READ32(pAd, 0x11A08, &DPDValueWF1);
+	tmp3 = (UINT16)DPDValueWF1 & 0xffff;
+	tmp4 = (DPDValueWF1 & 0xffff0000) >> 16;
+	//rtmp_ee_flash_write(pAd, (0x288 + group*136), tmp3);
+	//rtmp_ee_flash_write(pAd, (0x288 + group*136 + 2), tmp4);
+	memcpy(pAd->eebuf + (0x288 + group*136), &tmp3, 2);
+	rtmp_ee_flash_write(pAd, (0x288 + group*136 + 2), tmp4); /*to truly write to flash*/
+
+	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, 
+		("mac 0x%x = %08x , flash 0x%x = %08x   mac 0x%x = %08x , flash 0x%x = %08x\n"
+		, (0x10A08),DPDValueWF0, (0x244 + group*136), (tmp2<<16|tmp1)
+		, (0x11A08),DPDValueWF1, (0x288 + group*136), (tmp4<<16|tmp3)));
+	
+	return 1;
+	
+}
+#endif /*RTMP_FLASH_SUPPORT*/

@@ -738,6 +738,7 @@ static VOID ApCliEnqueueProbeRequest(
                 FrameLen += ExtraIeTmpLen;
         }
 #endif /* RT_CFG80211_P2P_CONCURRENT_DEVICE || CFG80211_MULTI_STA */		
+#ifdef WSC_AP_SUPPORT
 		if ((pAd->ApCfg.ApCliTab[ifIndex].WscControl.WscConfMode != WSC_DISABLE) &&
 			(pAd->ApCfg.ApCliTab[ifIndex].WscControl.bWscTrigger))
 		{
@@ -772,6 +773,21 @@ static VOID ApCliEnqueueProbeRequest(
 			else
 				MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("%s: Allocate memory fail!!!\n", __FUNCTION__));
 		}
+#endif /*WSC_AP_SUPPORT*/
+
+#if defined(RT_CFG80211_P2P_CONCURRENT_DEVICE) || defined(CFG80211_MULTI_STA)
+         if ((pAd->StaCfg.wpa_supplicant_info.WpaSupplicantUP != WPA_SUPPLICANT_DISABLE) &&
+		    (pAd->cfg80211_ctrl.ExtraIeLen > 0))
+        {
+                ULONG           ExtraIeTmpLen = 0;
+
+                MakeOutgoingFrame(pOutBuffer+ FrameLen,              &ExtraIeTmpLen,
+                                                pAd->cfg80211_ctrl.ExtraIeLen,  pAd->cfg80211_ctrl.pExtraIe,
+                                                END_OF_ARGS);
+
+                FrameLen += ExtraIeTmpLen;
+        }
+#endif /* RT_CFG80211_P2P_CONCURRENT_DEVICE || CFG80211_MULTI_STA */	
 
 		MiniportMMRequest(pAd, QID_AC_BE, pOutBuffer, FrameLen);
 		MlmeFreeMemory(pAd, pOutBuffer);

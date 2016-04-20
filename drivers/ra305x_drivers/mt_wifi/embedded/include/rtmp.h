@@ -145,6 +145,10 @@ typedef struct _RTMP_CHIP_CAP RTMP_CHIP_CAP;
 	/*#define MAX_BBP_ID	255 */
 	#define MAX_BBP_ID	200
 
+#if defined(RT3352) || defined(RT5350)
+	#undef MAX_BBP_ID
+	#define MAX_BBP_ID	255
+#endif /* RT3352 */
 #else
 	#define MAX_BBP_ID	136
 
@@ -406,8 +410,13 @@ typedef union _CAPTURE_MODE_PACKET_BUFFER {
 }
 
 
+#ifdef __ECOS	
+#define SQ_ENQ_PS_MAX 		128		//comment by sht : not in use
+#define SQ_ENQ_NORMAL_MAX 	128
+#else
 #define SQ_ENQ_PS_MAX 		512
 #define SQ_ENQ_NORMAL_MAX 	512
+#endif
 #define SQ_ENQ_RESERVE_PERAC 	(SQ_ENQ_NORMAL_MAX/2)
 
 #ifdef USB_BULK_BUF_ALIGMENT
@@ -1522,11 +1531,9 @@ struct wifi_dev{
 	UCHAR wdev_type;
 	UCHAR PhyMode;
 	UCHAR channel;
-#ifdef CONFIG_MULTI_CHANNEL
 	UCHAR CentralChannel;
 	UCHAR extcha;
 	UCHAR bw;
-#endif /* CONFIG_MULTI_CHANNEL */
 	UCHAR if_addr[MAC_ADDR_LEN];
 	UCHAR bssid[MAC_ADDR_LEN];
 	UCHAR hw_bssid_idx;
@@ -1594,6 +1601,17 @@ struct wifi_dev{
 #endif	
 };
 
+typedef struct _PWR_MGMT_STRUCT_ 
+{
+	USHORT		Psm;		/* power management mode   (PWR_ACTIVE|PWR_SAVE), Please use this value to replace  pAd->StaCfg.Psm in the future*/
+	BOOLEAN	bBeaconLost;
+	BOOLEAN	bTriggerRoaming;
+	BOOLEAN	bEnterPsmNull;
+	UINT8		ucDtimPeriod;
+	UINT8		ucBeaconPeriod;
+	UINT8		ucOwnMacIdx;
+	BOOLEAN	ucWmmPsCertification;
+} PWR_MGMT_STRUCT, *PPWR_MGMT_STRUCT;
 
 #if defined (RTMP_MAC_USB) || defined (RTMP_MAC_SDIO)
 /***************************************************************************
@@ -2138,6 +2156,13 @@ typedef struct _COMMON_CONFIG {
 	UINT8 WscHdrPshBtnCheckCount;
 #endif /* WSC_INCLUDED */
 
+#ifdef __ECOS
+#ifdef PLATFORM_BUTTON_SUPPORT
+        /* Hardware Restore button in APSOC */
+        ULONG RestoreHdrBtnTimestamp;
+	BOOLEAN RestoreHdrBtnFlag;	/* 0:disable, 1: enable */
+#endif // PLATFORM_BUTTON_SUPPORT //
+#endif /* __ECOS */
 
 	NDIS_SPIN_LOCK MeasureReqTabLock;
 	PMEASURE_REQ_TAB pMeasureReqTab;
@@ -2182,6 +2207,10 @@ typedef struct _COMMON_CONFIG {
 	ULONG CN;
 #endif /* RTMP_RBUS_SUPPORT */
 
+#if defined(RT305x)||defined(RT30xx)
+	/* request by Gary, for High Power issue */
+	UCHAR HighPowerPatchDisabled;
+#endif /* defined(RT305x)|| defined(RT30xx) */
 
 	BOOLEAN HT_DisallowTKIP;	/* Restrict the encryption type in 11n HT mode */
 
@@ -2990,6 +3019,8 @@ typedef struct _MAC_TABLE_ENTRY {
 	UCHAR fewPktsCnt;
 	BOOLEAN perThrdAdj;
 	UCHAR mcsGroup;/* the mcs group to be tried */
+	UINT8 TrafficLoading; /* Zero Traffic / Low Traffic / High Traffic */
+	UINT16 RaHoldTime; /* time to hold current tx rate */
 #endif /* NEW_RATE_ADAPT_SUPPORT */
 
 #ifdef AGS_SUPPORT
@@ -4121,7 +4152,11 @@ typedef struct _SCAN_CTRL_{
 }SCAN_CTRL;
 
 
+#ifdef __ECOS
+#define TX_SWQ_FIFO_LEN	128
+#else
 #define TX_SWQ_FIFO_LEN	512
+#endif
 typedef struct tx_swq_fifo{
 	UCHAR swq[TX_SWQ_FIFO_LEN]; // value 0 is used to indicate free to insert, value 1~127 used to incidate the WCID entry
 	UINT enqIdx;
@@ -4239,6 +4274,7 @@ typedef struct _CFG80211_CONTROL
 #ifdef RT_CFG80211_P2P_CONCURRENT_DEVICE
 	/* Dummy P2P Device for ANDROID JB */
 	PNET_DEV dummy_p2p_net_dev;
+	struct wifi_dev dummy_p2p_wdev;
 	BOOLEAN flg_cfg_dummy_p2p_init;
 #endif /* RT_CFG80211_P2P_CONCURRENT_DEVICE */
 
@@ -4343,20 +4379,24 @@ typedef struct rtmp_phy_ctrl{
 
 
 
+#ifdef SMART_CARRIER_SENSE_SUPPORT
+typedef struct _SMART_CARRIER_SENSE_CTRL{
+	BOOLEAN		SCSEnable;	/* 0:Disable, 1:Enable */
+	BSS_TABLE	SCSBssTab;	/* store AP information for SCS */
+	UINT8		SCSStatus; /* 0: Normal, 1:Low_gain */
+	CHAR		SCSMinRssi;
+	UINT32		SCSThreshold; /* Traffic Threshold */
+	UINT32		CR_AGC_0_default;
+	UINT32		CR_AGC_3_default;
+	UINT8		EDCCA_Status;
+}SMART_CARRIER_SENSE_CTRL;
+#endif /* SMART_CARRIER_SENSE_SUPPORT */
 /*
 	The miniport adapter structure
 */
 struct _RTMP_ADAPTER {
 	VOID *OS_Cookie;	/* save specific structure relative to OS */
 	PNET_DEV net_dev;
-
-#ifdef DMA_RESET_SUPPORT
-	UINT32 bcn_didx_val;
-	UCHAR bcn_not_idle_tx_dma_busy;
-	ULONG dma_force_reset_count;
-	BOOLEAN pse_reset_flag;
-	BOOLEAN bcn_reset_en;
-#endif
 
 #ifdef RTMP_MAC_PCI
 /*****************************************************************************************/
@@ -4474,7 +4514,7 @@ struct _RTMP_ADAPTER {
 	QUEUE_HEADER TxSwQueue[NUM_OF_TX_RING];	/* 4 AC + 1 HCCA */
 	NDIS_SPIN_LOCK TxSwQueueLock[NUM_OF_TX_RING];	/* TxSwQueue spinlock */
 #if defined(MT_MAC) && defined(IP_ASSEMBLY)
-	DL_LIST assebQueue[NUM_OF_TX_RING];
+	MT_DL_LIST assebQueue[NUM_OF_TX_RING];
 #endif
 
 	/* Maximum allowed tx software Queue length */
@@ -4688,6 +4728,10 @@ struct _RTMP_ADAPTER {
 	/* ---------------------------- */
 	/* MAC control                                 */
 	/* ---------------------------- */
+#ifdef SPECIFIC_BCN_BUF_SUPPORT
+	UCHAR ShrMSel;
+	NDIS_SPIN_LOCK ShrMemLock;
+#endif /* SPECIFIC_BCN_BUF_SUPPORT */
 
 	UCHAR wmm_cw_min; /* CW_MIN_IN_BITS, actual CwMin = 2^CW_MIN_IN_BITS - 1 */
 	UCHAR wmm_cw_max; /* CW_MAX_IN_BITS, actual CwMax = 2^CW_MAX_IN_BITS - 1 */
@@ -5127,7 +5171,7 @@ struct _RTMP_ADAPTER {
 
 #ifdef SINGLE_SKU_V2
 	BOOLEAN SKUEn;
-	DL_LIST SingleSkuPwrList;
+	MT_DL_LIST SingleSkuPwrList;
 	UCHAR DefaultTargetPwr;
 	CHAR SingleSkuRatePwrDiff[19];
 	BOOLEAN bOpenFileSuccess;
@@ -5211,6 +5255,15 @@ struct _RTMP_ADAPTER {
 	ULONG PSEResetFailCount;
 	BOOLEAN pse_reset_exclude_flag;
 	BOOLEAN PsmWatchDogDisabled;
+#ifdef DMA_RESET_SUPPORT
+	UINT32 bcn_didx_val;
+	UCHAR bcn_not_idle_tx_dma_busy;
+	ULONG dma_force_reset_count;
+	BOOLEAN pse_reset_flag;
+	BOOLEAN bcn_reset_en;
+	BOOLEAN PSEResetFailRecover;
+	ULONG PSEResetFailRetryQuota; /* max quota default is 3 */
+#endif /* DMA_RESET_SUPPORT */
 		
 
 	ULONG SkipTxRCount;
@@ -5230,6 +5283,36 @@ struct _RTMP_ADAPTER {
 
 	INT cut_through_type;
 #endif /* CUT_THROUGH */
+#ifdef SMART_CARRIER_SENSE_SUPPORT
+	SMART_CARRIER_SENSE_CTRL	SCSCtrl;
+#endif /* SMART_CARRIER_SENSE_SUPPORT */
+
+	BOOLEAN ed_chk;
+	BOOLEAN ed_debug;	
+	
+	UCHAR ed_threshold;
+	UINT ed_false_cca_threshold;
+	UINT ed_block_tx_threshold;
+	UINT ed_big_rssi_count;
+	INT ed_chk_period;  // in unit of ms
+
+	UCHAR ed_stat_sidx;
+	UCHAR ed_stat_lidx;
+	BOOLEAN ed_tx_stoped;
+	UINT ed_trigger_cnt;
+	UINT ed_silent_cnt;
+	UINT ed_false_cca_cnt;
+	BOOLEAN ed_threshold_strict;
+
+#define ED_STAT_CNT 20
+	UINT32 ed_stat[ED_STAT_CNT];
+	UINT32 ed_trigger_stat[ED_STAT_CNT];
+	UINT32 ed_silent_stat[ED_STAT_CNT];
+	UINT32 ed_big_rssi_stat[ED_STAT_CNT];
+	UINT32 ch_idle_stat[ED_STAT_CNT];
+	UINT32 ch_busy_stat[ED_STAT_CNT];
+	INT32 rssi_stat[ED_STAT_CNT];
+	ULONG chk_time[ED_STAT_CNT];
 };
 
 #if defined(RTMP_INTERNAL_TX_ALC) || defined(RTMP_TEMPERATURE_COMPENSATION)
@@ -6382,7 +6465,7 @@ typedef struct ip_v4_hdr {
 
 
 typedef struct ip_assemble_data {
-	DL_LIST list;
+	MT_DL_LIST list;
 	QUEUE_HEADER queue;
 	INT32 identify;
 	INT32 fragSize;
@@ -6496,6 +6579,15 @@ VOID RTMPSendNullFrame(
 	IN USHORT PwrMgmt);
 
 
+#ifdef __ECOS
+NDIS_STATUS RTMP_AllocateNdisPacket_AppandMbuf(
+	IN	RTMP_ADAPTER *pAd,
+	OUT PNDIS_PACKET   *ppPacket,
+	IN	struct mbuf    *pMBuf);
+
+VOID Restore_button_CheckHandler(
+	IN	RTMP_ADAPTER *pAd);
+#endif /* __ECOS */
 
 
 BOOLEAN RTMPFreeTXDUponTxDmaDone(
@@ -6762,6 +6854,9 @@ int RtmpAsicSendCommandToSwMcu(
 BOOLEAN AsicCheckCommanOk(RTMP_ADAPTER *pAd, UCHAR Command);
 #endif /* RTMP_MAC_PCI */
 
+#ifdef VCORECAL_SUPPORT
+VOID AsicVCORecalibration(RTMP_ADAPTER *pAd);
+#endif /* VCORECAL_SUPPORT */
 #ifdef WAPI_SUPPORT
 VOID AsicUpdateWAPIPN(
 	IN RTMP_ADAPTER *pAd,
@@ -7896,6 +7991,11 @@ CHAR RTMPMaxRssi(
 	IN CHAR				Rssi1,
 	IN CHAR				Rssi2);
 
+CHAR RTMPMinRssi(
+	IN RTMP_ADAPTER *pAd,
+	IN CHAR				Rssi0,
+	IN CHAR				Rssi1,
+	IN CHAR				Rssi2);
 CHAR RTMPAvgRssi(
         IN RTMP_ADAPTER *pAd,
         IN RSSI_SAMPLE		*pRssi);
@@ -7923,6 +8023,10 @@ VOID AsicMitigateMicrowave(
 	IN RTMP_ADAPTER *pAd
 );
 #endif /* MICROWAVE_OVEN_SUPPORT */
+
+#ifdef RT305x
+VOID NICInitRT305xRFRegisters(RTMP_ADAPTER *pAd);
+#endif /* RT305x */
 
 #ifdef RTMP_EFUSE_SUPPORT
 INT set_eFuseGetFreeBlockCount_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
@@ -8076,6 +8180,11 @@ INT	RT_CfgSetWscPinCode(
 
 INT	Set_Antenna_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 
+#ifdef RT5350
+VOID RT5350SetRxAnt(RTMP_ADAPTER *pAd, UCHAR Ant);
+
+INT Set_Hw_Antenna_Div_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
+#endif /* RT5350 */
 
 
 #ifdef HW_TX_RATE_LOOKUP_SUPPORT
@@ -8107,6 +8216,8 @@ INT SetManualTxOPLowBound(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 INT SetManualRdg(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 INT SetManualProtection(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 INT SetPSEWatchDog_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
+INT SetPDMARegister_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
+INT SetPSERegister_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 INT SetTxRxCr_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 INT dma_sch_reset(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 #endif
@@ -8115,6 +8226,8 @@ INT SetPsmWatchDog_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 
 #ifdef RTMP_MAC_PCI
 INT Set_PDMAWatchDog_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
+INT Set_BcnCheck_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
+INT Set_MemDumpLen_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 #endif
 
 INT	Set_RadioOn_Proc(
@@ -8172,6 +8285,9 @@ UCHAR get_cent_ch_by_htinfo(
 	ADD_HT_INFO_IE *ht_op,
 	HT_CAPABILITY_IE *ht_cap);
 
+UCHAR RTMP_GetPrimaryCh(
+	RTMP_ADAPTER *pAd, 
+	UCHAR ch);
 INT get_ht_cent_ch(RTMP_ADAPTER *pAd, UINT8 *rf_bw, UINT8 *ext_ch);
 INT ht_mode_adjust(RTMP_ADAPTER *pAd, MAC_TABLE_ENTRY *pEntry, HT_CAPABILITY_IE *peer, RT_HT_CAPABILITY *my);
 INT set_ht_fixed_mcs(RTMP_ADAPTER *pAd, MAC_TABLE_ENTRY *pEntry, UCHAR fixed_mcs, UCHAR mcs_bound);
@@ -9213,6 +9329,10 @@ INT show_sysinfo_proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 INT show_trinfo_proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 INT show_txqinfo_proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 
+#ifdef __ECOS
+INT show_mboxinfo_proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
+INT show_memdump_proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
+#endif
 INT	Set_ResetStatCounter_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 
 #ifdef DOT11_N_SUPPORT
@@ -9594,6 +9714,15 @@ NDIS_STATUS StoreConnectInfo(RTMP_ADAPTER *pAd);
 
 VOID AsicTurnOffRFClk(RTMP_ADAPTER *pAd, UCHAR Channel);
 
+#ifdef RT305x
+INT Set_HiPower_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
+
+#if defined(RT3352) || defined(RT5350)
+#ifdef RTMP_INTERNAL_TX_ALC
+INT Set_TSSIMaxRange_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
+#endif /* RTMP_INTERNAL_TX_ALC */
+#endif /* defined(RT3352) || defined(RT5350) */
+#endif /* RT305x */
 
 #ifdef NEW_WOW_SUPPORT
 VOID RT28xxAndesWOWEnable(RTMP_ADAPTER *pAd);
@@ -9700,7 +9829,14 @@ BOOLEAN CHAN_PropertyCheck(RTMP_ADAPTER *pAd, UINT32 ChanNum, UCHAR Property);
 #ifdef SINGLE_SKU_V2
 INT SetSKUEnable_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
 #endif /* SINGLE_SKU_V2 */
+#ifdef SMART_CARRIER_SENSE_SUPPORT
+INT SetSCSEnable_Proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
+#endif /* SMART_CARRIER_SENSE_SUPPORT */
 INT Set_ed_chk_proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
+INT show_ed_stat_proc(RTMP_ADAPTER *pAd, RTMP_STRING *arg);
+INT ed_status_read(RTMP_ADAPTER *pAd);
+INT ed_monitor_init(RTMP_ADAPTER *pAd);
+INT ed_monitor_exit(RTMP_ADAPTER *pAd);
 
 #ifdef CONFIG_STA_SUPPORT
 
@@ -10161,6 +10297,11 @@ BOOLEAN Monitor_Close(RTMP_ADAPTER *pAd, PNET_DEV dev_p);
 #endif /* CONFIG_SNIFFER_SUPPORT */
 
 VOID MtPsWatchDog(RTMP_ADAPTER *pAd);
+#ifdef RTMP_FLASH_SUPPORT
+INT Set_DPD_SAVE_TEST_Proc(
+    PRTMP_ADAPTER   	 pAd,
+    RTMP_STRING          *arg);
+#endif /* RTMP_FLASH_SUPPORT */
 
 #endif  /* __RTMP_H__ */
 

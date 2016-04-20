@@ -237,6 +237,9 @@ INT dynamic_vga_enable(struct _RTMP_ADAPTER *pAd);
 INT dynamic_vga_disable(struct _RTMP_ADAPTER *pAd);
 INT dynamic_vga_adjust(struct _RTMP_ADAPTER *pAd);
 #endif /* DYNAMIC_VGA_SUPPORT */
+#ifdef SMART_CARRIER_SENSE_SUPPORT
+INT Smart_Carrier_Sense(struct _RTMP_ADAPTER *pAd);
+#endif /* SMART_CARRIER_SENSE_SUPPORT */
 
 NDIS_STATUS NICInitBBP(struct _RTMP_ADAPTER *pAd);
 VOID InitRFRegisters(struct _RTMP_ADAPTER *pAd);
@@ -268,6 +271,9 @@ typedef struct phy_ops{
 	INT32 (*ShowAllBBP)(struct _RTMP_ADAPTER *pAd);
 	INT32 (*ShowPartialRF)(struct _RTMP_ADAPTER *pAd, UINT32 Start, UINT32 End);
 	INT32 (*ShowAllRF)(struct _RTMP_ADAPTER *pAd);
+#ifdef SMART_CARRIER_SENSE_SUPPORT
+	INT (*Smart_Carrier_Sense)(struct _RTMP_ADAPTER *pAd);
+#endif /* SMART_CARRIER_SENSE_SUPPORT */
 } PHY_OPS;
 
 

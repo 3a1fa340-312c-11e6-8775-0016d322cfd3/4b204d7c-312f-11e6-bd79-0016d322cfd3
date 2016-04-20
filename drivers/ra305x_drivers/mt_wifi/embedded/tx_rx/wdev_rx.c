@@ -277,10 +277,10 @@ VOID Announce_or_Forward_802_3_Packet(
 	if (wdev->rx_pkt_foward)
 		to_os = wdev->rx_pkt_foward(pAd, wdev, pPacket);
 
-	if (to_os == TRUE)
+	if (to_os == TRUE) 
 		announce_802_3_packet(pAd, pPacket,op_mode);
 	else {
-MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("%s(): No need to send to OS!\n", __FUNCTION__));
+        MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("%s(): No need to send to OS!\n", __FUNCTION__));
 		RELEASE_NDIS_PACKET(pAd, pPacket, NDIS_STATUS_FAILURE);
 	}
 }
@@ -413,7 +413,10 @@ if (0) {
 					pCliHwAddr = (bootpHdr+28);
 					pReptEntry = RTMPLookupRepeaterCliEntry(pAd, FALSE, pCliHwAddr);
 					if (pReptEntry)
+					{
+						ASSERT(pReptEntry->CliValid == TRUE);
 						NdisMoveMemory(pCliHwAddr, pReptEntry->OriginalAddress, MAC_ADDR_LEN);
+					}
 					bHdrChanged = TRUE;
 				}
 
@@ -1232,7 +1235,7 @@ VOID dev_rx_ctrl_frm(RTMP_ADAPTER *pAd, RX_BLK *pRxBlk)
 							if ((pAd->ApCfg.bMACRepeaterEn == TRUE) && IS_ENTRY_APCLI(pEntry))
 							{
 								pReptEntry = RTMPLookupRepeaterCliEntry(pAd, FALSE, pHeader->Addr1);
-								if (pReptEntry) 
+								if (pReptEntry && (pReptEntry->CliValid == TRUE))
 								{
 									break;
 								}
@@ -1240,8 +1243,13 @@ VOID dev_rx_ctrl_frm(RTMP_ADAPTER *pAd, RX_BLK *pRxBlk)
 #endif
 					}
 					else {
+#if defined (CONFIG_SNIFFER_SUPPORT) && defined(__ECOS)						
+						MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("%s(): Cannot found WCID of BAR packet!\n",
+									__FUNCTION__));
+#else
 						MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("%s(): Cannot found WCID of BAR packet!\n",
 									__FUNCTION__));
+#endif
 					}
 				}
 #endif /* MT_MAC */
@@ -1262,7 +1270,7 @@ VOID dev_rx_ctrl_frm(RTMP_ADAPTER *pAd, RX_BLK *pRxBlk)
 			/*CFG_TODO*/
 			IF_DEV_CONFIG_OPMODE_ON_AP(pAd)
 			{
-				USHORT Aid = pHeader->Duration & 0x3fff;
+				//USHORT Aid = pHeader->Duration & 0x3fff;
 				PUCHAR pAddr = pHeader->Addr2;
 				MAC_TABLE_ENTRY *pEntry;
 
@@ -1274,8 +1282,13 @@ VOID dev_rx_ctrl_frm(RTMP_ADAPTER *pAd, RX_BLK *pRxBlk)
 					if (pEntry)
 						pRxBlk->wcid = pEntry->wcid;
 					else {
+#if defined (CONFIG_SNIFFER_SUPPORT) && defined(__ECOS)							
+						MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("%s(): Cannot found WCID of PS-Poll packet!\n",
+									__FUNCTION__));
+#else
 						MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("%s(): Cannot found WCID of PS-Poll packet!\n",
 									__FUNCTION__));
+#endif
 					}
 				}
 #endif /* MT_MAC */
@@ -1285,12 +1298,7 @@ VOID dev_rx_ctrl_frm(RTMP_ADAPTER *pAd, RX_BLK *pRxBlk)
 				if (pRxBlk->wcid < MAX_LEN_OF_MAC_TABLE) {
                                  //printk("dev_rx_ctrl_frm1 SUBTYPE_PS_POLL\n");
 					pEntry = &pAd->MacTab.Content[pRxBlk->wcid];
-					if (pEntry->Aid == Aid)
 						RtmpHandleRxPsPoll(pAd, pAddr, pRxBlk->wcid, FALSE);
-					else {
-						MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("%s(): Aid mismatch(pkt:%d, Entry:%d)!\n",
-									__FUNCTION__, Aid, pEntry->Aid));
-					}
 				}
 			}
 			break;
@@ -1381,7 +1389,9 @@ static INT rtmp_chk_rx_err(RTMP_ADAPTER *pAd, RX_BLK *pRxBlk, HEADER_802_11 *pHd
 
 		if (rxd_base->rxd_2.icv_err) {
 			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("ICV Error\n"));
+#ifndef __ECOS			
 			dump_rxblk(pAd, pRxBlk);
+#endif
 			return NDIS_STATUS_FAILURE;
 		}
 		if (rxd_base->rxd_2.cm && !rxd_base->rxd_2.null_frm && !rxd_base->rxd_2.ndata) {
@@ -2771,12 +2781,20 @@ BOOLEAN rtmp_rx_done_handle(RTMP_ADAPTER *pAd)
 #ifdef UAPSD_SUPPORT
 		UAPSD_TIMING_RECORD_INDEX(RxProcessed);
 #endif /* UAPSD_SUPPORT */
+#ifdef __ECOS
+		if (RxProcessed++ > RX_RING_SIZE)
+		{
+			bReschedule = TRUE;
+			break;
+		}
+#else
 
 		if (RxProcessed++ > MAX_RX_PROCESS_CNT)
 		{
 			bReschedule = TRUE;
 			break;
 		}
+#endif
 
 #ifdef UAPSD_SUPPORT
 		/* static rate also need NICUpdateFifoStaCounters() function. */
@@ -3016,6 +3034,7 @@ BOOLEAN rtmp_rx_done_handle(RTMP_ADAPTER *pAd)
 				/* only report Probe_Req */
 				if((pHeader->FC.Type == FC_TYPE_MGMT) && (pHeader->FC.SubType == SUBTYPE_PROBE_REQ))	
 		    	{					
+					SNI_DBGPRINTF(RT_DEBUG_INFO, "MONITOR_MODE_REGULAR_RX\n");
 					pTmpRxPacket = rxblk.pRxPacket;
 					pClonePacket = ClonePacket(wdev->if_dev, rxblk.pRxPacket, rxblk.pData, rxblk.DataSize);
 					rxblk.pRxPacket = pClonePacket;
@@ -3026,7 +3045,9 @@ BOOLEAN rtmp_rx_done_handle(RTMP_ADAPTER *pAd)
 			}
 			else if(pAd->monitor_ctrl.CurrentMonitorMode == MONITOR_MODE_FULL)
 			{
+					SNI_DBGPRINTF(RT_DEBUG_INFO, "MONITOR_MODE_FULL\n");
 					pTmpRxPacket = rxblk.pRxPacket;
+					sniffer_hex_dump("Orig Pkt content", GET_OS_PKT_DATAPTR(rxblk.pRxPacket), 32);
 					pClonePacket = ClonePacket(wdev->if_dev, rxblk.pRxPacket, rxblk.pData, rxblk.DataSize);
 					rxblk.pRxPacket = pClonePacket;
 					STA_MonPktSend(pAd, &rxblk);
@@ -3086,6 +3107,11 @@ BOOLEAN rtmp_rx_done_handle(RTMP_ADAPTER *pAd)
 #ifdef UAPSD_SUPPORT
 #ifdef CONFIG_AP_SUPPORT
 	/* CFG_TODO */
+#ifdef RT_CFG80211_P2P_SUPPORT
+        if (IS_PKT_OPMODE_AP(pRxBlk))
+#else	
+	IF_DEV_CONFIG_OPMODE_ON_AP(pAd)
+#endif /* RT_CFG80211_P2P_SUPPORT */ 
 	IF_DEV_CONFIG_OPMODE_ON_AP(pAd)
 	{
 		/* dont remove the function or UAPSD will fail */

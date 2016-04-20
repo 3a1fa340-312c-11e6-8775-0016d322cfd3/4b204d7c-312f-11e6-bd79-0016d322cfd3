@@ -98,6 +98,16 @@ VOID ChipOpsMCUHook(PRTMP_ADAPTER pAd, enum MCU_TYPE MCUType)
 {
 	RTMP_CHIP_OP *pChipOps = &pAd->chipOps;
 
+#ifdef CONFIG_SWMCU_SUPPORT
+	if (MCUType == SWMCU)
+	{
+		pChipOps->eraseFirmware = NULL;
+		pChipOps->loadFirmware = NULL;
+		pChipOps->sendCommandToMcu = RtmpAsicSendCommandToSwMcu;
+
+		return;
+	}
+#endif
 
 
 #ifdef CONFIG_ANDES_SUPPORT

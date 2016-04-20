@@ -102,17 +102,17 @@ struct MCU_CTRL {
 #endif
 #endif /* LINUX */
 	NDIS_SPIN_LOCK txq_lock;
-	DL_LIST txq;
+	MT_DL_LIST txq;
 	NDIS_SPIN_LOCK rxq_lock;
-	DL_LIST rxq;
+	MT_DL_LIST rxq;
 	NDIS_SPIN_LOCK ackq_lock;
-	DL_LIST ackq;
+	MT_DL_LIST ackq;
 	NDIS_SPIN_LOCK kickq_lock;
-	DL_LIST kickq;
+	MT_DL_LIST kickq;
 	NDIS_SPIN_LOCK tx_doneq_lock;
-	DL_LIST tx_doneq;
+	MT_DL_LIST tx_doneq;
 	NDIS_SPIN_LOCK rx_doneq_lock;
-	DL_LIST rx_doneq;
+	MT_DL_LIST rx_doneq;
 	ULONG tx_kickout_fail_count;
 	ULONG tx_timeout_fail_count;
 	ULONG rx_receive_fail_count;
@@ -146,7 +146,7 @@ struct cmd_msg_cb {
 #define CMD_MSG_TIMEOUT 3000
 
 struct cmd_msg {
-	DL_LIST list;
+	MT_DL_LIST list;
 	UINT16 pq_id;
 	UINT8 cmd_type;
 	UINT8 set_query;
@@ -250,17 +250,17 @@ VOID AndesInitCmdMsg(struct cmd_msg *msg, UINT16 pq_id, UINT8 cmd_type,
 
 VOID AndesAppendCmdMsg(struct cmd_msg *msg, char *data, unsigned int len);
 VOID AndesFreeCmdMsg(struct cmd_msg *msg);
-VOID AndesQueueTailCmdMsg(DL_LIST *list, struct cmd_msg *msg,
+VOID AndesQueueTailCmdMsg(MT_DL_LIST *list, struct cmd_msg *msg,
 										enum cmd_msg_state state);
 VOID AndesIncErrorCount(struct MCU_CTRL *ctl, enum cmd_msg_error_type type);
-VOID _AndesUnlinkCmdMsg(struct cmd_msg *msg, DL_LIST *list);
-VOID AndesUnlinkCmdMsg(struct cmd_msg *msg, DL_LIST *list);
-struct cmd_msg *AndesDequeueCmdMsg(struct MCU_CTRL *ctl, DL_LIST *list);
-VOID AndesQueueHeadCmdMsg(DL_LIST *list, struct cmd_msg *msg,
+VOID _AndesUnlinkCmdMsg(struct cmd_msg *msg, MT_DL_LIST *list);
+VOID AndesUnlinkCmdMsg(struct cmd_msg *msg, MT_DL_LIST *list);
+struct cmd_msg *AndesDequeueCmdMsg(struct MCU_CTRL *ctl, MT_DL_LIST *list);
+VOID AndesQueueHeadCmdMsg(MT_DL_LIST *list, struct cmd_msg *msg,
 										enum cmd_msg_state state);
-VOID AndesQueueHeadCmdMsg(DL_LIST *list, struct cmd_msg *msg,
+VOID AndesQueueHeadCmdMsg(MT_DL_LIST *list, struct cmd_msg *msg,
 										enum cmd_msg_state state);
-UINT32 AndesQueueLen(struct MCU_CTRL *ctl, DL_LIST *list);
+UINT32 AndesQueueLen(struct MCU_CTRL *ctl, MT_DL_LIST *list);
 
 #ifdef RTMP_PCI_SUPPORT
 VOID PciKickOutCmdMsgComplete(PNDIS_PACKET net_pkt);

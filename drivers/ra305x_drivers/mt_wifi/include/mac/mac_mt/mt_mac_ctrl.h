@@ -36,7 +36,7 @@ typedef union GNU_PACKED _RXWI_STRUC {
 #define TOTAL_PID_HASH_NUMS	0x20
 typedef struct _TXS_CTL {
 	/* TXS type hash table */
-	DL_LIST TxSType[TOTAL_PID_HASH_NUMS];
+	MT_DL_LIST TxSType[TOTAL_PID_HASH_NUMS];
 	NDIS_SPIN_LOCK TxSTypeLock[TOTAL_PID_HASH_NUMS];
 	ULONG TxS2McUStatus;
 	ULONG TxS2HostStatus;
@@ -44,7 +44,7 @@ typedef struct _TXS_CTL {
 } TXS_CTL, *PTXS_CTL;
 
 typedef struct _TXS_TYPE {
-	DL_LIST List;
+	MT_DL_LIST List;
 	UINT32 Pid;
 	UINT8 Format;
 	INT32 (*TxSHandler)(struct _RTMP_ADAPTER *pAd, CHAR *Data);

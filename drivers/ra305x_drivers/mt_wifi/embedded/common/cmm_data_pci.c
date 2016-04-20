@@ -30,6 +30,26 @@
 
 #include	"rt_config.h"
 
+#ifdef ECOS_DEBUG
+
+void debug_hex_dump(char *str, unsigned char *pSrcBufVA, unsigned int SrcBufLen)
+{
+	unsigned char *pt;
+	int x;
+	
+	pt = pSrcBufVA;
+	printf("%s: %p, len = %d\n",str,  pSrcBufVA, SrcBufLen);
+	for (x=0; x<SrcBufLen; x++)
+	{
+		if (x % 16 == 0) 
+			printf("0x%04x : ", x);
+		printf("%02x ", ((unsigned char)pt[x]));
+		if (x%16 == 15) printf("\n");
+	}
+    printf("\n");
+}
+
+#endif
 
 VOID dump_txd(RTMP_ADAPTER *pAd, TXD_STRUC *pTxD)
 {
@@ -520,6 +540,10 @@ USHORT RtmpPCI_WriteSingleTxResource(
 	UINT32 BufBasePaLow;
 	RTMP_TX_RING *pTxRing;
 
+#ifdef __ECOS
+	int flag;
+	RTMP_IRQ_LOCK(0,flag);
+#endif
 #ifdef MT_MAC
 #ifdef USE_BMC
 	if (pTxBlk->QueIdx == QID_BMC)
@@ -564,6 +588,19 @@ USHORT RtmpPCI_WriteSingleTxResource(
 	pTxD->LastSec1 = (bIsLast && pTxD->SDLen1) ? 1 : 0;
 	pTxD->Burst = 0;
 
+#ifdef ECOS_DEBUG	
+
+	TMAC_TXD_1 *txd_1 = (TMAC_TXD_1 *)(pDMAHeaderBufVA + sizeof(TMAC_TXD_0));
+
+	if(pTxD->SDLen0 > 1568) 
+		diag_printf("RtmpPCI_WriteSingleTxResource <1>\n");
+	if(pTxD->SDLen1 > 1568) 
+		diag_printf("RtmpPCI_WriteSingleTxResource <2>\n");	
+	if((pTxD->SDLen0+pTxD->SDLen1)!= ((*((UINT32 *)pDMAHeaderBufVA))&0xffff))
+		diag_printf("RtmpPCI_WriteSingleTxResource <3>\n");
+	if(txd_1->ft == TMI_FT_SHORT)
+		diag_printf("RtmpPCI_WriteSingleTxResource <4>\n");	
+#endif
 #if defined(RTMP_MAC) || defined(RLT_MAC)
 	ral_write_txd(pAd, pTxD, pTxBlk, FALSE, FIFO_EDCA);
 #endif /* defined(RTMP_MAC) || defined(RLT_MAC) */
@@ -610,6 +647,9 @@ USHORT RtmpPCI_WriteSingleTxResource(
 
 	*FreeNumber -= 1;
 
+#ifdef __ECOS
+			RTMP_IRQ_UNLOCK(0,0);
+#endif
 	return RetTxIdx;
 }
 
@@ -634,6 +674,10 @@ USHORT RtmpPCI_WriteMultiTxResource(
 	UINT32 firstDMALen = 0;
 	UINT tx_hw_hdr_len = pAd->chipCap.tx_hw_hdr_len; // TXWISize + TSO_SIZE
 
+#ifdef __ECOS
+		int flag;
+		RTMP_IRQ_LOCK(0,flag);
+#endif
 	ASSERT((pTxBlk->TxFrameType == TX_AMSDU_FRAME || pTxBlk->TxFrameType == TX_RALINK_FRAME));
 	bIsLast = ((frameNum == (pTxBlk->TotalFrameNum - 1)) ? 1 : 0);
 
@@ -705,6 +749,19 @@ USHORT RtmpPCI_WriteMultiTxResource(
 	pTxD->LastSec1 = (bIsLast && pTxD->SDLen1) ? 1 : 0;
 	pTxD->Burst = 0;
 
+#ifdef ECOS_DEBUG	
+
+	TMAC_TXD_1 *txd_1 = (TMAC_TXD_1 *)(pDMAHeaderBufVA + sizeof(TMAC_TXD_0));
+
+	if(pTxD->SDLen0 > 1568) 
+		diag_printf("RtmpPCI_WriteMultiTxResource <1>\n");
+	if(pTxD->SDLen1 > 1568) 
+		diag_printf("RtmpPCI_WriteMultiTxResource <2>\n");	
+	if((pTxD->SDLen0+pTxD->SDLen1)!= ((*((UINT32 *)pDMAHeaderBufVA))&0xffff))
+		diag_printf("RtmpPCI_WriteMultiTxResource <3>\n");
+	if(txd_1->ft == TMI_FT_SHORT)
+		diag_printf("RtmpPCI_WriteMultiTxResource <4>\n");	
+#endif
 #if defined(RTMP_MAC) || defined(RLT_MAC)
 	ral_write_txd(pAd, pTxD, pTxBlk, FALSE, FIFO_EDCA);
 #endif /* defined(RTMP_MAC) || defined(RLT_MAC) */
@@ -748,6 +805,9 @@ USHORT RtmpPCI_WriteMultiTxResource(
 	pTxRing->TxCpuIdx = TxIdx;
 
 	*FreeNumber -= 1;
+#ifdef __ECOS
+	RTMP_IRQ_UNLOCK(0,0);
+#endif
 
 	return RetTxIdx;
 }
@@ -823,6 +883,10 @@ USHORT	RtmpPCI_WriteFragTxResource(
 	UINT32 BufBasePaLow;
 	RTMP_TX_RING *pTxRing;
 
+#ifdef __ECOS
+	int flag;
+	RTMP_IRQ_LOCK(0,flag);
+#endif
 	/* Get Tx Ring Resource*/
 	pTxRing = &pAd->TxRing[pTxBlk->QueIdx];
 	TxIdx = pAd->TxRing[pTxBlk->QueIdx].TxCpuIdx;
@@ -856,6 +920,20 @@ USHORT	RtmpPCI_WriteFragTxResource(
 	pTxD->LastSec0 = !(pTxD->SDLen1);
 	pTxD->LastSec1 = (pTxD->SDLen1 ? 1 : 0);
 	pTxD->Burst = 0;
+#ifdef ECOS_DEBUG	
+
+	TMAC_TXD_1 *txd_1 = (TMAC_TXD_1 *)(pDMAHeaderBufVA + sizeof(TMAC_TXD_0));
+
+	if(pTxD->SDLen0 > 1568) 
+		diag_printf("RtmpPCI_WriteFragTxResource <1>\n");
+	if(pTxD->SDLen1 > 1568) 
+		diag_printf("RtmpPCI_WriteFragTxResource <2>\n");	
+	if((pTxD->SDLen0+pTxD->SDLen1)!= ((*((UINT32 *)pDMAHeaderBufVA))&0xffff))
+		diag_printf("RtmpPCI_WriteFragTxResource <3>\n");
+	if(txd_1->ft == TMI_FT_SHORT)
+		diag_printf("RtmpPCI_WriteFragTxResource <4>\n");
+	
+#endif
 
 #if defined(RTMP_MAC) || defined(RLT_MAC)
 	ral_write_txd(pAd, pTxD, pTxBlk, FALSE, FIFO_EDCA);
@@ -898,6 +976,9 @@ USHORT	RtmpPCI_WriteFragTxResource(
 	pTxRing->TxCpuIdx = TxIdx;
 
 	*FreeNumber -= 1;
+#ifdef __ECOS
+	RTMP_IRQ_UNLOCK(0,0);
+#endif
 
 	return RetTxIdx;
 }
@@ -923,6 +1004,13 @@ int RtmpPCIMgmtKickOut(
 	UINT32 SwIdx;
 	INT pkt_len;
 	RTMP_DMACB *dma_buf;
+#ifdef __ECOS
+	int flag;
+	RTMP_IRQ_LOCK(0,flag);
+#endif
+#ifdef ECOS_DEBUG	
+	if(QueIdx!=4 && QueIdx!=7)diag_printf("WARN:%s()queue!=4&7\n",__func__);
+#endif	
 
 #if defined(MT7603) || defined(MT7628)
 	if (IS_MT7603(pAd) || (IS_MT7628(pAd)))
@@ -966,7 +1054,16 @@ int RtmpPCIMgmtKickOut(
 	pTxD->LastSec1 = 0;
 	pTxD->SDLen1 = 0;
 	pTxD->Burst = 0;
+#ifdef ECOS_DEBUG	
+	TMAC_TXD_1 *txd_1 = (TMAC_TXD_1 *)(frm_buf + sizeof(TMAC_TXD_0));
 
+	if(pTxD->SDLen0 > 1568) 
+		diag_printf("RtmpPCIMgmtKickOut <1>\n");
+	if(pTxD->SDLen0 != ((*((UINT32 *)frm_buf))&0xffff))
+		diag_printf("RtmpPCIMgmtKickOut <2>\n");
+	if(txd_1->ft == TMI_FT_SHORT)
+		diag_printf("RtmpPCIMgmtKickOut <3>\n");	
+#endif
 #if defined(RTMP_MAC) || defined(RLT_MAC)
 	ral_write_txd(pAd, pTxD, NULL, TRUE, FIFO_MGMT);
 #endif /* defined(RTMP_MAC) || defined(RLT_MAC) */
@@ -999,6 +1096,9 @@ int RtmpPCIMgmtKickOut(
 		INC_RING_INDEX(pAd->MgmtRing.TxCpuIdx, MGMT_RING_SIZE);
 		RTMP_IO_WRITE32(pAd, pAd->MgmtRing.hw_cidx_addr,  pAd->MgmtRing.TxCpuIdx);
 	}
+#ifdef __ECOS
+	RTMP_IRQ_UNLOCK(0,0);
+#endif
 
 	return 0;
 }
@@ -1201,6 +1301,37 @@ BOOLEAN RTMPFreeTXDUponTxDmaDone(
 #endif
 /*		pTxD->DMADONE = 0; */
 
+#ifdef ECOS_DEBUG
+		UCHAR *pDMAHeaderBufVA;
+		if(pTxD->SDPtr0 && pTxD->SDPtr1) 
+		{
+			pDMAHeaderBufVA = (UCHAR *)pTxRing->Cell[pTxRing->TxSwFreeIdx].DmaBuf.AllocVa;
+			if(pTxD->SDLen0 >1568)
+				diag_printf("RTMPFreeTXDUponTxDmaDone <1>\n");
+			if(pTxD->SDLen1 >1568)
+				diag_printf("RTMPFreeTXDUponTxDmaDone <2>\n");
+			if((pTxD->SDLen0 + pTxD->SDLen1)!=((*((UINT32 *)pDMAHeaderBufVA))&0xffff))
+				diag_printf("RTMPFreeTXDUponTxDmaDone <3>\n");
+		}
+		else if(pTxD->SDPtr0)
+		{
+			if(pTxD->SDLen0 >1568)
+				diag_printf("RTMPFreeTXDUponTxDmaDone <4>\n");	
+			pDMAHeaderBufVA = CYGARC_UNCACHED_ADDRESS(pTxD->SDPtr0);
+			if(pTxD->SDLen0 != ((*((UINT32 *)pDMAHeaderBufVA))&0xffff))
+			{
+				diag_printf("QueIdx =%d\n",QueIdx);
+				diag_printf("%s:%d:  pTxD->SDLen0 %d != %d \n",
+					__FUNCTION__,__LINE__,pTxD->SDLen0,((*((UINT32 *)pDMAHeaderBufVA))&0xffff));
+				dump_txd(pAd, pTxD);
+				debug_hex_dump("RTMPFreeTXDUponTxDmaDone=>",pDMAHeaderBufVA,(pAd->chipCap.tx_hw_hdr_len + sizeof(struct _HEADER_802_11)));
+				dump_tmac_info(pAd, pDMAHeaderBufVA);
+				diag_printf("RTMPFreeTXDUponTxDmaDone <5>\n");
+			}
+		}
+		else
+			diag_printf("RTMPFreeTXDUponTxDmaDone <6>\n");
+#endif
 #if defined(DOT11Z_TDLS_SUPPORT) || defined(CFG_TDLS_SUPPORT)
 #ifdef UAPSD_SUPPORT
 		UAPSD_SP_PacketCheck(pAd,
@@ -1495,6 +1626,37 @@ VOID RTMPHandleMgmtRingDmaDoneInterrupt(RTMP_ADAPTER *pAd)
 #endif
 
 		pTxD->DMADONE = 0;
+#ifdef ECOS_DEBUG
+		UCHAR *pDMAHeaderBufVA;
+		if(pTxD->SDPtr0 && pTxD->SDPtr1) 
+		{
+			pDMAHeaderBufVA = (UCHAR *)pMgmtRing->Cell[pMgmtRing->TxSwFreeIdx].DmaBuf.AllocVa;
+			if(pTxD->SDLen0 >1568)
+				diag_printf("RTMPHandleMgmtRingDmaDoneInterrupt <1>\n");
+			if(pTxD->SDLen1 >1568)
+				diag_printf("RTMPHandleMgmtRingDmaDoneInterrupt <2>\n");
+			if((pTxD->SDLen0 + pTxD->SDLen1)!=((*((UINT32 *)pDMAHeaderBufVA))&0xffff))
+				diag_printf("RTMPHandleMgmtRingDmaDoneInterrupt <3>\n");
+		}
+		else if(pTxD->SDPtr0)
+		{
+			if(pTxD->SDLen0 >1568)
+				diag_printf("RTMPHandleMgmtRingDmaDoneInterrupt <4>\n");	
+			pDMAHeaderBufVA = CYGARC_UNCACHED_ADDRESS(pTxD->SDPtr0);
+			if(pTxD->SDLen0 != ((*((UINT32 *)pDMAHeaderBufVA))&0xffff))
+			{
+				//diag_printf("QueIdx =%d\n",QueIdx);
+				diag_printf("%s:%d:  pTxD->SDLen0 %d != %d \n",
+					__FUNCTION__,__LINE__,pTxD->SDLen0,((*((UINT32 *)pDMAHeaderBufVA))&0xffff));	
+				dump_txd(pAd, pTxD);
+				debug_hex_dump("RTMPHandleMgmtRingDmaDoneInterrupt=>",pDMAHeaderBufVA,(pAd->chipCap.tx_hw_hdr_len + sizeof(struct _HEADER_802_11)));
+				dump_tmac_info(pAd, pDMAHeaderBufVA);				
+				diag_printf("RTMPHandleMgmtRingDmaDoneInterrupt <5>\n");		
+			}
+		}
+		else
+			diag_printf("RTMPHandleMgmtRingDmaDoneInterrupt <6>\n");
+#endif
 		pPacket = pMgmtRing->Cell[pMgmtRing->TxSwFreeIdx].pNdisPacket;
 
 		if (pPacket == NULL)
@@ -1614,8 +1776,12 @@ VOID RTMPHandleTBTTInterrupt(RTMP_ADAPTER *pAd)
 		}
 #endif /*MT_MAC */
 
+#ifdef ECOS_NETTASK_SCHDULE_NEW
+		RTMP_OS_TASKLET_SCHE(MT_INT_RESVD);
+#else
 		RTMP_OS_TASKLET_SCHE(&pObj->tbtt_task);
 
+#endif
 		if ((pAd->CommonCfg.Channel > 14)
 			&& (pAd->CommonCfg.bIEEE80211H == 1)
 			&& (pAd->Dot11_H.RDMode == RD_SWITCHING_MODE))
@@ -1666,7 +1832,10 @@ wdev = &pAd->ApCfg.MBSSID[0].wdev;
 
 	if (pAd->OpMode == OPMODE_AP
 #ifdef RT_CFG80211_SUPPORT
-		&& (wdev->Hostapd == Hostapd_CFG)
+		|| (wdev->Hostapd == Hostapd_CFG)
+#ifdef RT_CFG80211_P2P_SUPPORT
+		|| (RTMP_CFG80211_VIF_P2P_GO_ON(pAd))
+#endif /*RT_CFG80211_P2P_SUPPORT*/		
 #endif /*RT_CFG80211_SUPPORT*/
 	)
 	{
@@ -1691,7 +1860,11 @@ wdev = &pAd->ApCfg.MBSSID[0].wdev;
 //#ifdef USE_BMC
 	if (pAd->chipCap.hif_type == HIF_MT) {
 		POS_COOKIE pObj = (POS_COOKIE) pAd->OS_Cookie;
+#ifdef ECOS_NETTASK_SCHDULE_NEW		
+		RTMP_OS_TASKLET_SCHE(MT_INT_RESVD);
+#else		
 		RTMP_OS_TASKLET_SCHE(&pObj->tbtt_task);
+#endif
 	}
 //#endif
 #endif /*MT_MAC */
@@ -1895,8 +2068,6 @@ PNDIS_PACKET GetPacketFromRxRing(
     UINT16 RxBufferSize;
     UINT16 RxRingSize = (RxRingNo == 0) ? RX_RING_SIZE : RX1_RING_SIZE;
 
-    //diag_printf("termy say, we are here\n");
-
 	if (RxRingNo == 0)
 	{
 		RxBufferSize = RX_BUFFER_AGGRESIZE;
@@ -1912,17 +2083,14 @@ PNDIS_PACKET GetPacketFromRxRing(
 
 	if (*pRxPending == 0)
 	{
-        //diag_printf("termy say, checkpoint 5\n");
 		/* Get how may packets had been received */
 		RTMP_IO_READ32(pAd, pRxRing->hw_didx_addr, &pRxRing->RxDmaIdx);
 		if (pRxRing->RxSwReadIdx == pRxRing->RxDmaIdx)
 		{
-            //diag_printf("termy say, checkpoint 8\n");
 			bReschedule = FALSE;
 			goto done;
 		}
 
-        //diag_printf("termy say, checkpoint 9\n");
 		/* get rx pending count */
 		if (pRxRing->RxDmaIdx > pRxRing->RxSwReadIdx)
 			*pRxPending = pRxRing->RxDmaIdx - pRxRing->RxSwReadIdx;
@@ -1930,7 +2098,6 @@ PNDIS_PACKET GetPacketFromRxRing(
 			*pRxPending = pRxRing->RxDmaIdx + RxRingSize - pRxRing->RxSwReadIdx;
 	}
 
-    //diag_printf("termy say, Idx=%d, %d\n", RxRingNo, pRxRing->RxSwReadIdx);
 	pRxCell = &pRxRing->Cell[pRxRing->RxSwReadIdx];
 
 	/* flush dcache if no consistent memory is supported */
@@ -1946,11 +2113,9 @@ PNDIS_PACKET GetPacketFromRxRing(
 	/* Point to Rx indexed rx ring descriptor */
 	pRxD = (RXD_STRUC *) pRxCell->AllocVa;
 #endif
-    //diag_printf("termy say, checkpoint 11, pRxD=%x,%x,%x,%d\n", pRxCell, pRxD, pRxCell->AllocPa,  pRxCell->AllocSize);
 
 	if (pRxD->DDONE == 0)
 	{
-        //diag_printf("termy say, checkpoint 6\n");
 		*pRxPending = 0;
 		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_INFO, ("DDONE=0!\n"));
 		/* DMAIndx had done but DDONE bit not ready */
@@ -1958,10 +2123,8 @@ PNDIS_PACKET GetPacketFromRxRing(
 		goto done;
 	}
 
-    //diag_printf("termy say, checkpoint 14\n");
 	if ((pRxD->LS0 == 0) || ((pRxD->LS0 == 1) && (pAd->DropInvalidPacket >= 1)))
 	{
-        //diag_printf("termy say, checkpoint 7\n");
 		if (pRxD->LS0 == 0)
 			pAd->DropInvalidPacket++;
 		else
@@ -2002,7 +2165,6 @@ PNDIS_PACKET GetPacketFromRxRing(
 		goto done;
 	}
 
-    //diag_printf("termy say, checkpoint 12\n");
 #ifndef RT_BIG_ENDIAN
 	/* return rx descriptor */
 	NdisMoveMemory(&pRxBlk->hw_rx_info[0], pRxD, RXD_SIZE);
@@ -2027,7 +2189,6 @@ PNDIS_PACKET GetPacketFromRxRing(
 
 	if (pNewPacket && !pAd->RxReset)
 	{
-        //diag_printf("termy say, checkpoint 3\n");
 		/* unmap the rx buffer*/
 		PCI_UNMAP_SINGLE(pAd, pRxCell->DmaBuf.AllocPa,
 					 pRxCell->DmaBuf.AllocSize, RTMP_PCI_DMA_FROMDEVICE);
@@ -2078,7 +2239,6 @@ PNDIS_PACKET GetPacketFromRxRing(
 	}
 	else
 	{
-        //diag_printf("termy say, checkpoint 4\n");
 		if (pNewPacket)
 		{
 			RELEASE_NDIS_PACKET(pAd, pNewPacket, NDIS_STATUS_SUCCESS);
@@ -2099,7 +2259,6 @@ PNDIS_PACKET GetPacketFromRxRing(
 		pRxPacket = NULL;
 		bReschedule = TRUE;
 	}
-    //diag_printf("termy say, checkpoint 13\n");
 
 	*pRxPending = *pRxPending - 1;
 
@@ -2140,7 +2299,6 @@ PNDIS_PACKET GetPacketFromRxRing(
 		RXD_STRUC *pDestRxDLast;
 #endif
 		/* 16B-align */
-        //diag_printf("termy say, checkpoint 1\n");
 
 		/* update last BD 32B-align, DMA Done bit = 0 */
 		pRxCell->LastBDInfo.DDONE = 0;
@@ -2169,7 +2327,6 @@ PNDIS_PACKET GetPacketFromRxRing(
 	else
 	{
 		/* 32B-align */
-        //diag_printf("termy say, checkpoint 2\n");
 		/* do not set DDONE bit and backup it */
 		if (pRxRing->RxSwReadIdx >= (RxRingSize - 1))
 		{
@@ -2200,8 +2357,6 @@ done:
 	RTMP_SEM_UNLOCK(pRxRingLock);
 	*pbReschedule = bReschedule;
 
-    //diag_printf("termy say, we are complete\n");
-
 	return pRxPacket;
 }
 
@@ -2231,14 +2386,30 @@ NDIS_STATUS MlmeHardTransmitTxRing(RTMP_ADAPTER *pAd, UCHAR QueIdx, PNDIS_PACKET
 	UCHAR TxPwrAdj = 0;
 #endif /* SPECIFIC_TX_POWER_SUPPORT */
 #endif /* CONFIG_AP_SUPPORT */
+	UCHAR prot = 0;
+	UCHAR apidx = 0;
+#ifdef __ECOS
+	int flag;
+	RTMP_IRQ_LOCK(0,flag);
+#endif
 
 	RTMP_QueryPacketInfo(pPacket, &PacketInfo, &pSrcBufVA, &SrcBufLen);
 	if (pSrcBufVA == NULL)
+	{
+#ifdef __ECOS
+		RTMP_IRQ_UNLOCK(0,0);
+#endif	
 		return NDIS_STATUS_FAILURE;
+	}	
 
 	FreeNum = GET_TXRING_FREENO(pAd, QueIdx);
 	if (FreeNum == 0)
+	{
+#ifdef __ECOS
+		RTMP_IRQ_UNLOCK(0,0);
+#endif
 		return NDIS_STATUS_FAILURE;
+	}	
 
 	SwIdx = pAd->TxRing[QueIdx].TxCpuIdx;
 #ifdef RT_BIG_ENDIAN
@@ -2253,6 +2424,9 @@ NDIS_STATUS MlmeHardTransmitTxRing(RTMP_ADAPTER *pAd, UCHAR QueIdx, PNDIS_PACKET
 	if (pAd->TxRing[QueIdx].Cell[SwIdx].pNdisPacket)
 	{
 		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("MlmeHardTransmit Error\n"));
+#ifdef __ECOS
+	RTMP_IRQ_UNLOCK(0,0);
+#endif		
 		return NDIS_STATUS_FAILURE;
 	}
 
@@ -2372,6 +2546,9 @@ NDIS_STATUS MlmeHardTransmitTxRing(RTMP_ADAPTER *pAd, UCHAR QueIdx, PNDIS_PACKET
 		&& (pAd->Dot11_H.RDMode != RD_NORMAL_MODE))
 	{
 		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR,("MlmeHardTransmit --> radar detect not in normal mode !!!\n"));
+#ifdef __ECOS
+			RTMP_IRQ_UNLOCK(0,0);
+#endif
 		return (NDIS_STATUS_FAILURE);
 	}
 
@@ -2391,7 +2568,18 @@ NDIS_STATUS MlmeHardTransmitTxRing(RTMP_ADAPTER *pAd, UCHAR QueIdx, PNDIS_PACKET
 	{
 		wcid = RESERVED_WCID;
 		if (IS_MT7603(pAd) || IS_MT7628(pAd))
+		{
 			wcid = 0;
+			if(prot)
+			{
+				MAC_TABLE_ENTRY *pEntry = NULL;
+				
+				pEntry = MacTableLookup(pAd, pHeader_802_11->Addr1);
+
+				if (pEntry)
+					wcid = pEntry->Aid;
+			}
+		}
 		tx_rate = (UCHAR)pAd->CommonCfg.MlmeTransmit.field.MCS;
 		transmit = &pAd->CommonCfg.MlmeTransmit;
 	}
@@ -2403,6 +2591,11 @@ NDIS_STATUS MlmeHardTransmitTxRing(RTMP_ADAPTER *pAd, UCHAR QueIdx, PNDIS_PACKET
 	}
 
 	NdisZeroMemory((UCHAR *)&mac_info, sizeof(mac_info));
+	if(prot)
+		mac_info.prot = prot;
+
+	if (prot == 2)
+		mac_info.bss_idx = apidx;
 	mac_info.FRAG = FALSE;
 
 	mac_info.CFACK = FALSE;
@@ -2532,6 +2725,18 @@ NDIS_STATUS MlmeHardTransmitTxRing(RTMP_ADAPTER *pAd, UCHAR QueIdx, PNDIS_PACKET
 	pTxD->SDLen1 = 0;
 	pTxD->SDPtr0 = pAd->TxRing[QueIdx].Cell[SwIdx].PacketPa;
 	pTxD->Burst = 0;
+	pTxD->SDPtr1 = 0;//add by ziqiang	
+#ifdef ECOS_DEBUG
+	TMAC_TXD_1 *txd_1 = (TMAC_TXD_1 *)(frm_buf + sizeof(TMAC_TXD_0));
+
+	if(pTxD->SDLen0 > 1568) 
+		diag_printf("MlmeHardTransmitTxRing <1>\n");
+	if(pTxD->SDLen0 != ((*((UINT32 *)frm_buf))&0xffff))
+		diag_printf("MlmeHardTransmitTxRing <2>\n");
+	if(txd_1->ft == TMI_FT_SHORT)
+		diag_printf("MlmeHardTransmitTxRing <3>\n");		
+	
+#endif
 
 #if defined(RTMP_MAC) || defined(RLT_MAC)
 	ral_write_txd(pAd, pTxD, NULL, TRUE, FIFO_EDCA);
@@ -2558,6 +2763,9 @@ NDIS_STATUS MlmeHardTransmitTxRing(RTMP_ADAPTER *pAd, UCHAR QueIdx, PNDIS_PACKET
 
 	RTMP_IO_WRITE32(pAd, pAd->TxRing[QueIdx].hw_cidx_addr,  pAd->TxRing[QueIdx].TxCpuIdx);
 
+#ifdef __ECOS
+	RTMP_IRQ_UNLOCK(0,0);
+#endif	
 	return NDIS_STATUS_SUCCESS;
 }
 
@@ -2594,7 +2802,7 @@ BOOLEAN RxRing1DoneInterruptHandle(RTMP_ADAPTER *pAd)
 
 #ifdef RTMP_MAC_PCI
 		//if (RxProcessed++ > MAX_RX_PROCESS_CNT)
-		if (RxProcessed++ > 32)
+		if (RxProcessed++ > RX1_RING_SIZE)
 		{
 			bReschedule = TRUE;
 			break;
@@ -2611,7 +2819,6 @@ BOOLEAN RxRing1DoneInterruptHandle(RTMP_ADAPTER *pAd)
 		*/
 
 		pRxBlk = &rxblk;
-
 		pRxPacket = GetPacketFromRxRing(pAd, pRxBlk, &bReschedule, &RxPending, 1);
 		if (pRxPacket == NULL)
 			break;
@@ -2673,6 +2880,19 @@ VOID RTMPHandleTxRing8DmaDoneInterrupt(RTMP_ADAPTER *pAd)
 		pTxD = (TXD_STRUC *) (pCtrlRing->Cell[pCtrlRing->TxSwFreeIdx].AllocVa);
 #endif
 
+#ifdef ECOS_DEBUG
+#ifdef MT_MAC
+		if(pTxD->SDPtr0)
+			if(pTxD->SDLen0 >(4096-64))
+				diag_printf("RTMPHandleTxRing8DmaDoneInterrupt <1>\n");
+			
+		if(pTxD->SDPtr1)
+			diag_printf("RTMPHandleTxRing8DmaDoneInterrupt <2>\n");
+		
+		if(pTxD->SDPtr0 == NULL)
+			diag_printf("RTMPHandleTxRing8DmaDoneInterrupt <3>\n");		
+#endif
+#endif
 		pPacket = pCtrlRing->Cell[pCtrlRing->TxSwFreeIdx].pNdisPacket;
 
 		if (pPacket == NULL)
@@ -2778,10 +2998,15 @@ VOID RTMPHandleBcnDmaDoneInterrupt(RTMP_ADAPTER *pAd)
 	PNDIS_PACKET pPacket;
 	RTMP_BCN_RING *pBcnRing = &pAd->BcnRing;
 	UCHAR *tmac_info = NULL;
+#ifdef RT_CFG80211_P2P_SUPPORT
+	UINT apidx = CFG_GO_BSSID_IDX;
+#else
+	UINT apidx = MAIN_MBSSID;
+#endif /*RT_CFG80211_P2P_SUPPORT*/
 
 #ifdef CONFIG_AP_SUPPORT
 #ifdef DBG
-    BSS_STRUCT *pMbss = &pAd->ApCfg.MBSSID[0];
+    BSS_STRUCT *pMbss = &pAd->ApCfg.MBSSID[apidx];
     UCHAR bss_idx = 0;
     UINT32   Lowpart, Highpart;
 #endif
@@ -2800,6 +3025,36 @@ VOID RTMPHandleBcnDmaDoneInterrupt(RTMP_ADAPTER *pAd)
 		RTMPDescriptorEndianChange((PUCHAR)pTxD, TYPE_TXD);
 #else
 		pTxD = (TXD_STRUC *) (pBcnRing->Cell[pBcnRing->TxSwFreeIdx].AllocVa);
+#endif
+#ifdef ECOS_DEBUG
+				UCHAR *pDMAHeaderBufVA;
+				if(pTxD->SDPtr0 && pTxD->SDPtr1) 
+				{
+					pDMAHeaderBufVA = (UCHAR *)pBcnRing->Cell[pBcnRing->TxSwFreeIdx].DmaBuf.AllocVa;
+					if(pTxD->SDLen0 >1568)
+						diag_printf("RTMPHandleBcnDmaDoneInterrupt <1>\n");
+					if(pTxD->SDLen1 >1568)
+						diag_printf("RTMPHandleBcnDmaDoneInterrupt <2>\n");
+					if((pTxD->SDLen0 + pTxD->SDLen1)!=((*((UINT32 *)pDMAHeaderBufVA))&0xffff))
+						diag_printf("RTMPHandleBcnDmaDoneInterrupt <3>\n");
+				}
+				else if(pTxD->SDPtr0)
+				{
+					if(pTxD->SDLen0 >1568)
+						diag_printf("RTMPHandleBcnDmaDoneInterrupt <4>\n");	
+					pDMAHeaderBufVA = CYGARC_UNCACHED_ADDRESS(pTxD->SDPtr0);
+					if(pTxD->SDLen0 != ((*((UINT32 *)pDMAHeaderBufVA))&0xffff))
+					{
+						//diag_printf("QueIdx =%d\n",QueIdx);
+						diag_printf("%s:%d:  pTxD->SDLen0 %d != %d \n",
+							__FUNCTION__,__LINE__,pTxD->SDLen0,((*((UINT32 *)pDMAHeaderBufVA))&0xffff));	
+						debug_hex_dump("RTMPHandleBcnDmaDoneInterrupt=>",pDMAHeaderBufVA,(pAd->chipCap.tx_hw_hdr_len + sizeof(struct _HEADER_802_11)));
+						dump_tmac_info(pAd, pDMAHeaderBufVA);							
+						diag_printf("RTMPHandleBcnDmaDoneInterrupt <5>\n");
+					}	
+				}
+				else
+					diag_printf("RTMPHandleBcnDmaDoneInterrupt <6>\n");
 #endif
 
 		pPacket = pBcnRing->Cell[pBcnRing->TxSwFreeIdx].pNdisPacket;
@@ -2840,7 +3095,13 @@ VOID RTMPHandleBcnDmaDoneInterrupt(RTMP_ADAPTER *pAd)
 				bss_idx = txd_1->own_mac & 0x0f;
 			else if (txd_1->own_mac == 0)
 				bss_idx = txd_1->own_mac;
+#ifdef RT_CFG80211_P2P_SUPPORT
 
+		if (pAd->cfg80211_ctrl.isCfgInApMode == RT_CMD_80211_IFTYPE_AP)
+		{
+			bss_idx = txd_1->own_mac;
+		}
+#endif /* RT_CFG80211_P2P_SUPPORT */		
 			pMbss = &pAd->ApCfg.MBSSID[bss_idx];
 //---Add by Carter for MT7603
 

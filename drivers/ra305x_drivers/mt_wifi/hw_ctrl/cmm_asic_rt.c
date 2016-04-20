@@ -2551,6 +2551,9 @@ VOID RtAsicAddPairwiseKeyEntry(
 	UCHAR CipherAlg = pCipherKey->CipherAlg;
 #ifdef RTMP_MAC
 #ifdef RTMP_MAC_PCI
+#ifdef SPECIFIC_BCN_BUF_SUPPORT
+	unsigned long irqFlag = 0;
+#endif /* SPECIFIC_BCN_BUF_SUPPORT */
 #endif /* RTMP_MAC_PCI */
 #endif /* RTMP_MAC */
 
@@ -2565,6 +2568,9 @@ VOID RtAsicAddPairwiseKeyEntry(
 		pairwise_key_base = PAIRWISE_KEY_TABLE_BASE;
 		pairwise_key_len = HW_KEY_ENTRY_SIZE;
 #ifdef RTMP_MAC_PCI
+#ifdef SPECIFIC_BCN_BUF_SUPPORT
+		RTMP_MAC_SHR_MSEL_LOCK(pAd, LOWER_SHRMEM, irqFlag);
+#endif /* SPECIFIC_BCN_BUF_SUPPORT */
 #endif /* RTMP_MAC_PCI */
 	}
 #endif /* RTMP_MAC */
@@ -2607,6 +2613,11 @@ VOID RtAsicAddPairwiseKeyEntry(
 	}
 #ifdef RTMP_MAC
 #ifdef RTMP_MAC_PCI
+#ifdef SPECIFIC_BCN_BUF_SUPPORT
+	if (pAd->chipCap.hif_type == HIF_RTMP) {
+		RTMP_MAC_SHR_MSEL_UNLOCK(pAd, LOWER_SHRMEM, irqFlag);
+	}
+#endif /* SPECIFIC_BCN_BUF_SUPPORT*/
 #endif /* RTMP_MAC_PCI */
 #endif /* RTMP_MAC */
 	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("%s():WCID #%d Alg=%s\n",
@@ -2770,40 +2781,90 @@ VOID RtAsicTurnOffRFClk(RTMP_ADAPTER *pAd, UCHAR Channel)
 }
 
 
-#ifdef WAPI_SUPPORT
-VOID RtAsicUpdateWAPIPN(
-	IN PRTMP_ADAPTER pAd,
-	IN USHORT		 WCID,
-	IN ULONG         pn_low,
-	IN ULONG         pn_high)
+#ifdef VCORECAL_SUPPORT
+VOID RtAsicVCORecalibration(
+	IN PRTMP_ADAPTER pAd)
 {
-	if (IS_HW_WAPI_SUPPORT(pAd))
+	UCHAR RFValue = 0;
+	UINT32 TxPinCfg = 0;
+	UINT8 mode = pAd->chipCap.FlgIsVcoReCalMode;
+
+	if (mode == VCO_CAL_DISABLE)
+		return;
+
+
+
+#ifdef RTMP_INTERNAL_TX_ALC
+#ifdef RT5350
+	if (pAd->TxPowerCtrl.bInternalTxALC == TRUE)
 	{
-		UINT32 offset;
-		UINT32 wapi_pn_base = 0, wapi_pn_size = 0;
-#ifdef RLT_MAC
-		if (pAd->chipCap.hif_type == HIF_RLT) {
-			wapi_pn_base = RLT_WAPI_PN_TABLE_BASE;
-			wapi_pn_size = RLT_WAPI_PN_ENTRY_SIZE;
+		UCHAR BbpR47 = 0;
+
+	    //TSSI_REPORT_SEL = 0
+	    RTMP_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R47, &BbpR47);
+	    BbpR47 &= ~0x3;
+	    RTMP_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R47, BbpR47 );
 		}
 #endif /* RLT_MAC */
-#ifdef RTMP_MAC
-		if (pAd->chipCap.hif_type == HIF_RTMP) {
-			wapi_pn_base = WAPI_PN_TABLE_BASE;
-			wapi_pn_size = WAPI_PN_ENTRY_SIZE;
-		}
 #endif /* RTMP_MAC */
 
-		offset = wapi_pn_base + (WCID * wapi_pn_size);
+	RTMP_IO_READ32(pAd, TX_PIN_CFG, &TxPinCfg);
+	TxPinCfg &= 0xFCFFFFF0;
+	RTMP_IO_WRITE32(pAd, TX_PIN_CFG, TxPinCfg);
 
-		RTMP_IO_WRITE32(pAd, offset, pn_low);
-		RTMP_IO_WRITE32(pAd, offset + 4, pn_high);
+	switch (mode)
+	{
+		case VCO_CAL_MODE_1:
+			RT30xxReadRFRegister(pAd, RF_R07, (PUCHAR)&RFValue);
+			RFValue = RFValue | 0x01; /* bit 0 = vcocal_en */
+			RT30xxWriteRFRegister(pAd, RF_R07, (UCHAR)RFValue);
+			break;
+
+		case VCO_CAL_MODE_2:
+			RT30xxReadRFRegister(pAd, RF_R03, (PUCHAR)&RFValue);
+			RFValue = RFValue | 0x80; /* bit 7 = vcocal_en */
+			RT30xxWriteRFRegister(pAd, RF_R03, (UCHAR)RFValue);
+			break;
+
+		case VCO_CAL_MODE_3:
+			break;
+			
+		default:
+			return;
+	}
+	if (mode == VCO_CAL_MODE_3 && (!IS_RT6352(pAd)))
+		RtmpusecDelay(100);
+	else
+		RtmpOsMsDelay(1);
+
+	RTMP_IO_READ32(pAd, TX_PIN_CFG, &TxPinCfg);
+	if (pAd->CommonCfg.Channel <= 14)
+	{
+		if (pAd->Antenna.field.TxPath == 1
+#ifdef GREENAP_SUPPORT
+			|| pAd->ApCfg.bGreenAPActive == TRUE	 /* avoid to corrupt GreenAP operation */
+#endif /* GREENAP_SUPPORT */
+		)
+			TxPinCfg |= 0x2;
+		else if (pAd->Antenna.field.TxPath == 2)
+			TxPinCfg |= 0xA;
+		else if (pAd->Antenna.field.TxPath == 3)
+			TxPinCfg |= 0x0200000A;
 	}
 	else
 	{
-		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_WARN, ("%s : Not support HW_WAPI_PN_TABLE\n", 
-								__FUNCTION__));
+		if (pAd->Antenna.field.TxPath == 1
+#ifdef GREENAP_SUPPORT
+			|| pAd->ApCfg.bGreenAPActive == TRUE	 /* avoid to corrupt GreenAP operation */
+#endif /* GREENAP_SUPPORT */
+		)
+			TxPinCfg |= 0x1;
+		else if (pAd->Antenna.field.TxPath == 2)
+			TxPinCfg |= 0x5;
+		else if (pAd->Antenna.field.TxPath == 3)
+			TxPinCfg |= 0x01000005;
 	}
+	RTMP_IO_WRITE32(pAd, TX_PIN_CFG, TxPinCfg);
 	
 }
 #endif /* WAPI_SUPPORT */

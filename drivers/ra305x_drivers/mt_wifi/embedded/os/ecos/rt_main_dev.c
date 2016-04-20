@@ -110,10 +110,10 @@ int rt28xx_open(IN VOID *dev)
 	POS_COOKIE		pOSCookie = NULL;    
 	int i, retval = 0;
 	ULONG OpMode;
+    struct ifnet *ifp;
 
 //	if (sizeof(ra_dma_addr_t) < sizeof(dma_addr_t))
 //		DBGPRINT(RT_DEBUG_ERROR, ("Fatal error for DMA address size!!!\n"));
-
 
 	/* Sanity check for pAd */
 	pAd = (PRTMP_ADAPTER) RtmpOsGetNetDevPriv(net_dev);
@@ -151,6 +151,9 @@ int rt28xx_open(IN VOID *dev)
 	RT28xx_ApCli_Init(pAd, (PNET_DEV)net_dev);
 #endif /* APCLI_SUPPORT */
 
+#ifdef CONFIG_SNIFFER_SUPPORT
+	RT28xx_Monitor_Init(pAd, net_dev);
+#endif /* CONFIG_SNIFFER_SUPPORT */
 	RTMPDrvOpen(pAd);
 
 	/* Set handle interrupts */
@@ -248,13 +251,11 @@ Note:
 */
 int rt28xx_send_packets(PECOS_PKT_BUFFER skb, PNET_DEV ndev)
 {
-    diag_printf("termy say, pre_%s\n", __FUNCTION__);
 	if (!(RTMP_OS_NETDEV_STATE_RUNNING(ndev)))
 	{
 		RELEASE_NDIS_PACKET(NULL, (PNDIS_PACKET)skb, NDIS_STATUS_FAILURE);
 		return 0;
 	}
-    diag_printf("termy say, %s\n", __FUNCTION__);
 
 	skb->net_dev = ndev;
 	NdisZeroMemory((PUCHAR)&skb->cb[CB_OFF], 26);
@@ -531,7 +532,7 @@ void tbtt_tasklet(unsigned long data)
 }
 
 /* This function will be called when query /proc */
-struct iw_statistics *rt28xx_get_wireless_stats(struct net_device *net_dev)
+struct iw_statistics *rt28xx_get_wireless_stats(PNET_DEV net_dev)
 {
 	VOID *pAd = NULL;
 	struct iw_statistics *pStats;
@@ -544,7 +545,7 @@ struct iw_statistics *rt28xx_get_wireless_stats(struct net_device *net_dev)
 	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("rt28xx_get_wireless_stats --->\n"));
 
 	pDrvIwStats->priv_flags = RT_DEV_PRIV_FLAGS_GET(net_dev);
-	pDrvIwStats->dev_addr = (PUCHAR)net_dev->dev_addr;
+	pDrvIwStats->dev_addr = (PUCHAR)&net_dev->sc_arpcom.ac_enaddr;
 
 	if (RTMP_DRIVER_IW_STATS_GET(pAd, pDrvIwStats) != NDIS_STATUS_SUCCESS)
 		return NULL;
@@ -672,6 +673,9 @@ BOOLEAN RtmpPhyNetDevExit(
 
 	/*pEndDev = (END_OBJ *)net_dev; */
 
+#ifdef CONFIG_SNIFFER_SUPPORT
+	RT28xx_Monitor_Remove(pAd);
+#endif	/* CONFIG_SNIFFER_SUPPORT */
 
 #ifdef CONFIG_AP_SUPPORT
 #ifdef APCLI_SUPPORT

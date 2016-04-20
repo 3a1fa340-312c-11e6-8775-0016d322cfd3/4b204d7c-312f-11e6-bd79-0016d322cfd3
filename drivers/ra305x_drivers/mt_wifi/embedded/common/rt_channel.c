@@ -2243,3 +2243,36 @@ VOID RTMP_MapKHZ2ChannelID(
 		(*pCh) = 1;
 }
 
+
+UCHAR RTMP_GetPrimaryCh(RTMP_ADAPTER *pAd, UCHAR ch)
+{
+	UCHAR primCh = 0;
+
+	if ((ch != pAd->CommonCfg.Channel) 
+		&& (ch != pAd->CommonCfg.CentralChannel) 
+	)
+	{
+		if ((ch > 2) && 
+			(pAd->CommonCfg.BBPCurrentBW == BW_40) && 
+			(pAd->CommonCfg.CentralChannel == EXTCHA_ABOVE)
+		)
+		{
+			primCh = (ch - 2);
+		}
+		else if ((pAd->CommonCfg.BBPCurrentBW == BW_40) && 
+				(pAd->CommonCfg.AddHTInfo.AddHtInfo.ExtChanOffset == EXTCHA_BELOW))
+		{
+			if (ch == 14)
+				primCh = (ch + 1);
+			else
+				primCh = (ch + 2);
+		}
+		else
+			primCh = ch;
+	}
+	else
+		primCh = pAd->CommonCfg.Channel;
+	
+
+	return primCh;
+}

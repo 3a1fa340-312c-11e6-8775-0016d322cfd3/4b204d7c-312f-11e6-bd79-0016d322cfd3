@@ -79,4 +79,11 @@ typedef struct _HQA_RX_STAT{
 /* FW Event Callback */
 VOID HQA_GetThermalValue_CB(struct cmd_msg *msg, char *Data, UINT16 Len);
 
+#ifdef PIPE_IN_COMMAND_QUEUE
+#define RTMP_AP_STOP_ATE(_pAd, _ATEOp)	\
+ 	RTEnqueueInternalCmd(_pAd, CMDTHREAD_STOP_ATE, (VOID *)&_ATEOp, sizeof(ATE_OPERATION));
+#else
+#define RTMP_AP_STOP_ATE(_pAd, _ATEOp)	\
+	(_ATEOp)->ATEStop(_pAd);
+#endif
 #endif /*  __QA_AGENT_H__ */

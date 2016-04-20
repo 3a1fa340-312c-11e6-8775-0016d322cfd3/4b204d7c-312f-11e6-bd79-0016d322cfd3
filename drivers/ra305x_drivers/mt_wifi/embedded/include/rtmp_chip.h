@@ -50,11 +50,20 @@
 
 
 
+#ifdef RT305x
+#include "chip/rt305x.h"
+#endif /* RT305x */
 
 
 
 
+#ifdef RT3352
+#include "chip/rt3352.h"
+#endif /* RT3352 */
 
+#ifdef RT5350
+#include "chip/rt5350.h"
+#endif /* RT5350 */
 
 
 
@@ -739,6 +748,12 @@ struct _RTMP_CHIP_CAP {
 #if defined(RTMP_INTERNAL_TX_ALC) || defined(RTMP_TEMPERATURE_COMPENSATION)
 	UINT8 TxAlcTxPowerUpperBound_2G;
 	const TX_POWER_TUNING_ENTRY_STRUCT *TxPowerTuningTable_2G;
+#ifdef RT305x
+#if defined(RT3352) || defined(RT5350)
+	UINT8 TxPowerMaxCompenStep;
+	UINT8 TxPowerTableMaxIdx;
+#endif /* defined(RT3352) || defined(RT5350) */
+#endif /* RT305x */
 #ifdef A_BAND_SUPPORT
 	UINT8 TxAlcTxPowerUpperBound_5G;
 	const TX_POWER_TUNING_ENTRY_STRUCT *TxPowerTuningTable_5G;
@@ -896,6 +911,20 @@ struct _RTMP_CHIP_CAP {
     UINT32  TxOPScenario;
 };
 
+#ifdef RT305x
+typedef VOID (*CHIP_SPEC_FUNC)(VOID *pAd, VOID *pData, ULONG Data);
+
+/* The chip specific function ID */
+typedef enum _CHIP_SPEC_ID
+{
+	RT305x_WLAN_MODE_CHANGE,
+	RT305x_INITIALIZATION,
+	RT305x_HT_MODE_CHANGE,
+	CHIP_SPEC_RESV_FUNC
+} CHIP_SPEC_ID;
+
+#define CHIP_SPEC_ID_NUM 	CHIP_SPEC_RESV_FUNC
+#endif /* RT305x */
 
 struct _RSSI_SAMPLE;
 struct _EXT_CMD_EFUSE_BUFFER_MODE_T;
@@ -1003,6 +1032,10 @@ struct _RTMP_CHIP_OP {
 #endif /* CAL_FREE_IC_SUPPORT */
 
 	/* The chip specific function list */
+#ifdef RT305x
+	// TODO: shiang-usw, need to rewrite this function definition becasue "CHIP_SPEC_ID_NUM" is declared in enum!
+	CHIP_SPEC_FUNC ChipSpecFunc[CHIP_SPEC_ID_NUM];
+#endif /* RT305x */
 
 	VOID (*AsicResetBbpAgent)(IN struct _RTMP_ADAPTER *pAd);
 
@@ -1226,6 +1259,16 @@ do {	\
 			__pAd->chipOps.TemperCompensation(__pAd);	\
 } while (0)
 
+#ifdef RT305x
+#define RTMP_CHIP_SPECIFIC(__pAd, __FuncId, __pData, __Data)	\
+do {	\
+		if ((__FuncId >= 0) && (__FuncId < CHIP_SPEC_RESV_FUNC))	\
+		{	\
+			if (__pAd->chipOps.ChipSpecFunc[__FuncId] != NULL)	\
+				__pAd->chipOps.ChipSpecFunc[__FuncId](__pAd, __pData, __Data);	\
+		}	\
+} while (0)
+#endif /* RT305x */
 
 #define RTMP_CHIP_UPDATE_BEACON(__pAd, Offset, Value, Unit)	\
 do {	\

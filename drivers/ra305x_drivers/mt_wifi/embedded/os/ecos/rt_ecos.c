@@ -25,6 +25,7 @@
 
 #include "time.h"
 #include "rt_config.h"
+#include "mbuf.h"
 
 #ifdef BRANCH_ADV
 #include <eventlog.h>
@@ -869,11 +870,14 @@ void  update_os_packet_info(
 	ASSERT(pRxBlk->pRxPacket);
 	pkt = RTPKT_TO_OSPKT(pRxBlk->pRxPacket);
 
+	if(pkt)
+	{
 	pNetDev = get_netdev_from_bssid(pAd, wdev_idx);
 	SET_OS_PKT_NETDEV(pkt, pNetDev);
 
 	SET_OS_PKT_DATAPTR(pkt, pRxBlk->pData);
 	SET_OS_PKT_LEN(pkt, pRxBlk->DataSize);
+	}
 }
 
 
@@ -941,15 +945,16 @@ static VOID RTMP_NetPktInput(
     PECOS_PKT_BUFFER    pBuffer = NULL;
     struct pbuf         *pBuf = NULL;
     struct netif        *ifp = NULL;
+    int i;
 
-
-    pBuf = pbuf_alloc(PBUF_RAW, 0, PBUF_REF);
+    pBuf = pbuf_alloc(PBUF_RAW, PBUF_POOL_BUFSIZE, PBUF_POOL);
+    //pBuf = pbuf_alloc(PBUF_RAW, 0, PBUF_REF);
 
     if (pBuf == NULL) {
         diag_printf("alloc pbuffer failure\n");
         return;
     } 
-
+    
 	pNetDev = GET_OS_PKT_NETDEV(pPacket);
     if (GET_OS_PKT_TOTAL_LEN(pPacket) < LENGTH_802_3) {
         MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("%s: packet size %lu < LENGTH_802_3\n", __FUNCTION__, GET_OS_PKT_TOTAL_LEN(pPacket)));
@@ -960,20 +965,44 @@ static VOID RTMP_NetPktInput(
     ifp = (struct net_if *)&pNetDev->sc_arpcom.ac_if;
     pBuffer = (PECOS_PKT_BUFFER) pPacket;
 
+    /* 
+    pBuf->payload = pBuffer->pDataPtr;
+    pBuf->tot_len = pBuffer->pktLen;
+    pBuf->len     = pBuffer->pktLen;
+    */ 
+
+    memcpy(pBuf->payload, pBuffer->pDataPtr, pBuffer->pktLen);
+    pBuf->len = pBuffer->pktLen;
+    pBuf->tot_len = pBuffer->pktLen;
+
+    /*  
+    pBuf = (struct pbuf *)pBuffer->pDataMBuf->m_ext.ext_buf;
+    pBuf->next = NULL;
 
     pBuf->payload = pBuffer->pDataPtr;
     pBuf->tot_len = pBuffer->pktLen;
     pBuf->len     = pBuffer->pktLen;
-/*
-    diag_printf("termy say, %s len=%d\n", __FUNCTION__, pBuf->len);
-    for(i=0; i<16; i++)
+    pBuf->ref     = 1;
+    pBuf->flags   = PBUF_POOL;
+    */
+
+    /*
+    for(i=0; i<34; i++) {
+        if (i == 14)
+            diag_printf("\n");
         diag_printf("%X ", (unsigned int)pBuffer->pDataPtr[i]);
+    }
     diag_printf("\n");
-*/
+    */
+
     if (ifp != WLanface)
         diag_printf("termy say, ifp don't match\n");
     ecosif_input(ifp, pBuf);
+    //pBuf->payload = NULL;
+    //pBuf->tot_len = pBuf->len = 0;
+    /*  
     pbuf_free(pBuf);
+    */ 
 
 #if 0
 	struct ifnet        *ifp = NULL;
@@ -1002,12 +1031,51 @@ static VOID RTMP_NetPktInput(
     /* Push data into protocol stacks */
     ether_input(ifp, eh, pMBuf);
 #endif
-
 	MEM_DBG_PKT_FREE_INC(pAd);
+    /*
     pBuffer->pDataMBuf = NULL;
+    */
     RTMPFreeNdisPacket(pAd, pPacket);
 
 }
+
+#ifdef CONFIG_SNIFFER_SUPPORT
+VOID RTMP_SnifferPktInput(
+	IN PNDIS_PACKET pPacket)
+{
+	PRTMP_ADAPTER       pAd = NULL;
+    PNET_DEV            pNetDev = NULL;
+    PECOS_PKT_BUFFER    pBuffer = NULL;
+	struct ifnet        *ifp = NULL;
+    struct mbuf         *pMBuf = NULL;
+    struct ether_header *eh = NULL;
+ 
+	pNetDev = GET_OS_PKT_NETDEV(pPacket);
+    if (GET_OS_PKT_TOTAL_LEN(pPacket) < LENGTH_802_3) {
+        MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("%s: packet size %lu < LENGTH_802_3\n", __FUNCTION__, GET_OS_PKT_TOTAL_LEN(pPacket)));
+        return;
+    }
+
+	pAd = (PRTMP_ADAPTER) RtmpOsGetNetDevPriv(pNetDev);
+	ifp = &pNetDev->sc_arpcom.ac_if;
+    pBuffer = (PECOS_PKT_BUFFER) pPacket;
+	SNI_DBGPRINTF(RT_DEBUG_INFO,"ifp:%s\n",ifp->if_name);
+    pMBuf = pBuffer->pDataMBuf;
+    ifp->if_ipackets++;
+    pMBuf->m_pkthdr.rcvif = ifp;
+    pMBuf->m_data = pBuffer->pDataPtr;
+    eh = (struct ether_hdr *) pMBuf->m_data;
+    //pMBuf->m_data += sizeof(struct ether_header);
+    //pMBuf->m_pkthdr.len = pBuffer->pktLen - sizeof(struct ether_header);
+    //pMBuf->m_len = pMBuf->m_pkthdr.len;
+
+    /* Push data into protocol stacks */
+    ether_input(ifp, eh, pMBuf);
+	MEM_DBG_PKT_FREE_INC(pAd);
+    pBuffer->pDataMBuf = NULL;
+    RTMPFreeNdisPacket(pAd, pPacket);
+}
+#endif 
  
 void announce_802_3_packet(
         IN VOID *pAdSrc,
@@ -1241,18 +1309,8 @@ int RtmpOSNetDevAddrSet(
 	IN PUCHAR					pMacAddr,
 	IN PUCHAR					dev_name)
 {
-    struct net_device *net_dev = (struct net_device *)pNetDev;
-
-#ifdef CONFIG_STA_SUPPORT
-    RT_CONFIG_IF_OPMODE_ON_STA(OpMode) {
-        if (dev_name != NULL) {
-            NdisZeroMemory (dev_name, 16);
-            NdisMoveMemory (dev_name, net_dev->name, strlen(net_dev->name));
-        }
-    }
-#endif /* CONFIG_STA_SUPPORT */
-
-    NdisMoveMemory (net_dev->dev_addr, pMacAddr, 6);
+    if (NULL != pMacAddr)
+        bcopy(pMacAddr, &pNetDev->sc_arpcom.ac_enaddr, MAC_ADDR_LEN);
 
 	return 0;
 }
@@ -1269,9 +1327,8 @@ int RtmpOSNetDevAttach(
 	IN PNET_DEV					pNetDev, 
 	IN RTMP_OS_NETDEV_OP_HOOK	*pDevOpHook)
 {
-    /*
 	RtmpOSNetDevAddrSet(OpMode, pNetDev, &pDevOpHook->devAddr[0], NULL);
-    */
+	ether_ifsetmac(&pNetDev->sc_arpcom.ac_if);
 	return NDIS_STATUS_SUCCESS;
 }
 
@@ -1337,6 +1394,24 @@ END_OBJ *RtmpVirtualENDDevCreate(
     MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("%s: Eddy Notice\n", __FUNCTION__));
     return NULL;
 }
+#ifdef CONFIG_SNIFFER_SUPPORT
+
+UCHAR get_sniffer_mode(VOID *pDev)
+{
+	struct mt_dev_priv *priv_info;
+
+	priv_info = (struct mt_dev_priv *) ((PNET_DEV) pDev)->driver_private;
+	return priv_info->sniffer_mode;
+}
+
+VOID set_sniffer_mode(VOID *net_dev, UCHAR sniffer_mode)
+{
+	struct mt_dev_priv *priv_info;
+
+	priv_info = (struct mt_dev_priv *) ((PNET_DEV) net_dev)->driver_private;
+	priv_info->sniffer_mode = sniffer_mode;
+}
+#endif
 
 
 
@@ -1569,14 +1644,12 @@ BOOLEAN RtmpOsStatsAlloc(
 	return TRUE;
 }
 
-extern unsigned int thread_ID;
 
 BOOLEAN RtmpOSTaskWait(
 	IN	VOID					*pReserved,
 	IN	RTMP_OS_TASK			*pTaskOrg,
 	IN	INT32					*pStatus)
 {
-	thread_ID = cyg_thread_get_id(cyg_thread_self());
 	RTMP_OS_TASK_SEM_EVENT_WAIT(&(pTaskOrg->taskSema), *pStatus);
 	if (*pStatus == 0)
 		return TRUE;
@@ -1649,8 +1722,10 @@ VOID RtmpOsSendWirelessEvent(
 	IN	RTMP_OS_SEND_WLAN_EVENT		pFunc)
 {
 
+#ifdef WSC_INCLUDED
 	if (IW_WSC_STATUS_SUCCESS == Event_flag)	
 		wsc_set_acl_list(pAd,wdev_idx);
+#endif	
 	pFunc(pAd, Event_flag, pAddr, wdev_idx, Rssi);
 }
 
@@ -1919,11 +1994,12 @@ void RtmpOSNetDevProtect(BOOLEAN lock_it)
 
 }
 
+#ifdef WSC_INCLUDED
 void wsc_set_acl_list(void *pAd_ptr,UCHAR apidx)
 {
 #ifdef CONFIG_AP_SUPPORT
-	char tmp_buf[512];
-	char old_cfg[512];
+	char tmp_buf[512+50];
+	char old_cfg[512+50];
 	char tmp[50];
 	int i =0;
 	PRT_802_11_ACL	pACL = NULL;
@@ -1948,6 +2024,12 @@ void wsc_set_acl_list(void *pAd_ptr,UCHAR apidx)
 	memset(tmp,0,sizeof(tmp));
 		sprintf(tmp,"%02x:%02x:%02x:%02x:%02x:%02x;",pACL->Entry[i].Addr[0],pACL->Entry[i].Addr[1],
 			pACL->Entry[i].Addr[2],pACL->Entry[i].Addr[3],pACL->Entry[i].Addr[4],pACL->Entry[i].Addr[5]);
+		if (strlen(tmp) > (sizeof(tmp_buf) - strlen(tmp_buf)))
+			{
+			diag_printf("%s:%d ERROR tmp_buf over flow\n\n",__FUNCTION__,__LINE__);
+			panic("panic down\n");
+			return ;
+			}		
 		strcat(tmp_buf,tmp);
 	}
 
@@ -1963,9 +2045,9 @@ void wsc_set_acl_list(void *pAd_ptr,UCHAR apidx)
 	diag_printf("%s:AccessControlList config:%s\n",__FUNCTION__,old_cfg);
 #endif /* CONFIG_AP_SUPPORT */
 }
-/*
-inline void NdisGetSystemUpTime(ULONG *time)
+#endif
+
+UINT RtmpOsWirelessExtVerGet(VOID)
 {
-	*time = cyg_current_time();
+	return WIRELESS_EXT;
 }
-*/

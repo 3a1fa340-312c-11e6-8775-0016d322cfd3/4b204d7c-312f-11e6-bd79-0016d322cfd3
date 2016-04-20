@@ -57,8 +57,6 @@ INT wdev_tx_pkts(NDIS_HANDLE dev_hnd, PPNDIS_PACKET pkt_list, UINT pkt_cnt, stru
 	BOOLEAN force_tx;
 #endif /* CONFIG_FPGA_MODE */
 
-    diag_printf("termy say, %s\n", __FUNCTION__);	
-
 	for (Index = 0; Index < pkt_cnt; Index++)
 	{
 		pPacket = pkt_list[Index];
@@ -114,6 +112,37 @@ INT wdev_tx_pkts(NDIS_HANDLE dev_hnd, PPNDIS_PACKET pkt_list, UINT pkt_cnt, stru
 			RTMP_SET_PACKET_WDEV(pPacket, wdev->wdev_idx);
 			NDIS_SET_PACKET_STATUS(pPacket, NDIS_STATUS_PENDING);
 			pAd->RalinkCounters.PendingNdisPacketCount++;
+			/*
+				WIFI HNAT need to learn packets going to which interface from skb cb setting.
+				@20150325
+			*/
+#if defined(BB_SOC) && defined(BB_RA_HWNAT_WIFI)
+			if (ra_sw_nat_hook_tx != NULL) 
+			{
+#ifdef TCSUPPORT_MT7510_FE
+				if (ra_sw_nat_hook_tx(pPacket, NULL, FOE_MAGIC_WLAN) == 0) 			
+#else
+				if (ra_sw_nat_hook_tx(pPacket, 1) == 0) 			
+#endif
+				{
+					RELEASE_NDIS_PACKET(pAd, pPacket, NDIS_STATUS_FAILURE);
+					return 0;
+				}
+			}
+#endif
+
+#ifdef CONFIG_RAETH
+#if !defined(CONFIG_RA_NAT_NONE)
+			if(ra_sw_nat_hook_tx!= NULL)
+			{
+				unsigned long flags;
+			
+				RTMP_INT_LOCK(&pAd->page_lock, flags);
+				ra_sw_nat_hook_tx(pPacket);
+				RTMP_INT_UNLOCK(&pAd->page_lock, flags);
+			}
+#endif
+#endif /* CONFIG_RAETH */
 
 			if (wdev->tx_pkt_handle)
 				wdev->tx_pkt_handle(pAd, pPacket);

@@ -192,6 +192,9 @@ static struct dev_type_name_map prefix_map[] =
 	{INT_WDS, 		{INF_WDS_DEV_NAME, SECOND_INF_WDS_DEV_NAME}},
 #endif /* WDS_SUPPORT */
 #endif /* CONFIG_AP_SUPPORT */
+#ifdef CONFIG_SNIFFER_SUPPORT
+		{INT_MONITOR,	{INF_MONITOR_DEV_NAME, SECOND_INF_MONITOR_DEV_NAME}},
+#endif /* CONFIG_SNIFFER_SUPPORT */
 
 	{0},
 };
@@ -276,6 +279,9 @@ NDIS_STATUS	RTMPReadParametersHook(
 			diag_printf("RTMPReadParametersHook->first wifi\n");
 		}	
 
+#ifdef SINGLE_SKU_V2
+			RTMPSetSingleSKUParameters(pAd);
+#endif /* SINGLE_SKU_V2 */
 
 	return (NDIS_STATUS_SUCCESS);	
 }
@@ -319,4 +325,258 @@ int RTMPSendPackets(
 
 	return 0;
 }
+#ifdef CONFIG_SNIFFER_SUPPORT
+
+
+int sniffer_debug_level = DBG_LVL_ERROR;
+extern int Sniffer_Packet_Process;
+extern int Sniffer_Packet_In;
+extern int Sniffer_Packet_Drop;
+
+int SnifferDebugCmd(int argc, char* argv[])
+{
+	if (( argc == 2 ) && (!strcmp(argv[0], "debug" )))
+	{
+		int level = 0;
+
+		level = atoi(argv[1]);	  
+		if (level > 0)
+				sniffer_debug_level = level;
+		else
+				sniffer_debug_level = DBG_LVL_OFF;
+
+
+		diag_printf("sniffer debug level = %d\n", sniffer_debug_level);
+	}
+	if (( argc == 2 ) && (!strcmp(argv[0], "stat" )))
+	{
+		if(!strcmp(argv[1], "show" ))
+		{
+			diag_printf("====Sniffer Statistics====\n");
+			diag_printf("Sniffer_Packet_Process = %d\n", Sniffer_Packet_Process);
+			diag_printf("Sniffer_Packet_In = %d\n", Sniffer_Packet_In);
+			diag_printf("Sniffer_Packet_Drop = %d\n", Sniffer_Packet_Drop);
+			diag_printf("====Sniffer Statistics end====\n");
+		}
+		if(!strcmp(argv[1], "reset" ))
+		{
+			Sniffer_Packet_Process = 0;
+			Sniffer_Packet_In = 0;
+			Sniffer_Packet_Drop = 0;
+			diag_printf("====Sniffer Statistics====\n");
+			diag_printf("Sniffer_Packet_Process = %d\n", Sniffer_Packet_Process);
+			diag_printf("Sniffer_Packet_In = %d\n", Sniffer_Packet_In);
+			diag_printf("Sniffer_Packet_Drop = %d\n", Sniffer_Packet_Drop);	
+			diag_printf("====Sniffer Statistics end====\n");
+		}
+	}	
+	
+	return TRUE;
+}
+
+void sniffer_hex_dump(char *str, unsigned char *pSrcBufVA, unsigned int SrcBufLen)
+{
+	unsigned char *pt;
+	int x;
+
+	if (sniffer_debug_level < 4)
+		return;
+	
+	pt = pSrcBufVA;
+	printf("%s: %p, len = %d\n",str,  pSrcBufVA, SrcBufLen);
+	for (x=0; x<SrcBufLen; x++)
+	{
+		if (x % 16 == 0) 
+			printf("0x%04x : ", x);
+		printf("%02x ", ((unsigned char)pt[x]));
+		if (x%16 == 15) printf("\n");
+	}
+    printf("\n");
+}
+
+
+
+INT Monitor_VirtualIF_Open(PNET_DEV dev_p)
+{
+	VOID *pAd;
+
+	pAd = RTMP_OS_NETDEV_GET_PRIV(dev_p);
+	ASSERT(pAd);
+
+	DBGPRINT(RT_DEBUG_ERROR, ("%s: ===> %s\n", __FUNCTION__, RTMP_OS_NETDEV_GET_DEVNAME(dev_p)));
+
+	if (VIRTUAL_IF_UP(pAd) != 0)
+		return -1;
+
+	/* increase MODULE use count */
+	RT_MOD_INC_USE_COUNT();
+	RTMP_COM_IoctlHandle(pAd, NULL, CMD_RTPRIV_IOCTL_SNIFF_OPEN, 0, dev_p, 0);
+
+
+	//Monitor_Open(pAd,dev_p);
+
+	return 0;
+}
+
+INT Monitor_VirtualIF_Close(PNET_DEV dev_p)
+{
+	VOID *pAd;
+
+	pAd = RTMP_OS_NETDEV_GET_PRIV(dev_p);
+	ASSERT(pAd);
+
+	DBGPRINT(RT_DEBUG_TRACE, ("%s: ===> %s\n", __FUNCTION__, RTMP_OS_NETDEV_GET_DEVNAME(dev_p)));
+
+	RTMP_COM_IoctlHandle(pAd, NULL, CMD_RTPRIV_IOCTL_SNIFF_CLOSE, 0, dev_p, 0);
+	//Monitor_Close(pAd,dev_p);
+
+	VIRTUAL_IF_DOWN(pAd);
+
+	RT_MOD_DEC_USE_COUNT();
+
+	return 0;
+}
+
+
+VOID RT28xx_Monitor_Init(VOID *pAd, PNET_DEV main_dev_p)
+{
+	RTMP_OS_NETDEV_OP_HOOK netDevOpHook;	
+
+	/* init operation functions */
+	NdisZeroMemory(&netDevOpHook, sizeof(RTMP_OS_NETDEV_OP_HOOK));
+	netDevOpHook.open = Monitor_VirtualIF_Open;
+	netDevOpHook.stop = Monitor_VirtualIF_Close;
+	netDevOpHook.xmit = rt28xx_send_packets;
+	netDevOpHook.ioctl = rt28xx_ioctl;
+	DBGPRINT(RT_DEBUG_OFF, ("%s: %d !!!!####!!!!!!\n",__FUNCTION__, __LINE__)); 
+	RTMP_COM_IoctlHandle(pAd, NULL, CMD_RTPRIV_IOCTL_SNIFF_INIT,	0, &netDevOpHook, 0);
+
+}
+VOID RT28xx_Monitor_Remove(VOID *pAd)
+{
+
+	RTMP_COM_IoctlHandle(pAd, NULL, CMD_RTPRIV_IOCTL_SNIFF_REMOVE, 0, NULL, 0);
+	
+}
+
+int Sniffer_Packet_Monitor=0;
+
+void STA_MonPktSend(RTMP_ADAPTER *pAd, RX_BLK *pRxBlk)
+{
+	PNET_DEV pNetDev;
+	PNDIS_PACKET pRxPacket;
+	PHEADER_802_11 pHeader;
+	USHORT DataSize;
+	CHAR MaxRssi, RSSI1;
+	UINT32 timestamp = 0;
+	CHAR RssiForRadiotap = 0;
+	UCHAR L2PAD, PHYMODE, BW, ShortGI, MCS, LDPC, LDPC_EX_SYM, AMPDU, STBC;
+	UCHAR BssMonitorFlag11n, Channel, CentralChannel = 0;
+	UCHAR *pData, *pDevName;
+	UCHAR sniffer_type = pAd->sniffer_ctl.sniffer_type;
+	UCHAR sideband_index = 0;
+	
+	SNI_DBGPRINTF(RT_DEBUG_INFO, "STA_MonPktSend =>\n");
+	
+	ASSERT(pRxBlk->pRxPacket);
+	
+	Sniffer_Packet_Monitor++;
+	
+	if (pRxBlk->DataSize < 10) {
+		DBGPRINT(RT_DEBUG_ERROR, ("%s : Size is too small! (%d)\n", __FUNCTION__, pRxBlk->DataSize));
+		goto err_free_sk_buff;
+	}
+
+	if (sniffer_type == RADIOTAP_TYPE) {
+		if (pRxBlk->DataSize + sizeof(struct mtk_radiotap_header) > RX_BUFFER_AGGRESIZE) {
+			DBGPRINT(RT_DEBUG_ERROR, ("%s : Size is too large! (%d)\n", __FUNCTION__, pRxBlk->DataSize + sizeof(struct mtk_radiotap_header)));
+			goto err_free_sk_buff;
+		}
+	}
+
+	if (sniffer_type == PRISM_TYPE) {
+		if (pRxBlk->DataSize + sizeof(wlan_ng_prism2_header) > RX_BUFFER_AGGRESIZE) {
+			DBGPRINT(RT_DEBUG_ERROR, ("%s : Size is too large! (%d)\n", __FUNCTION__, pRxBlk->DataSize + sizeof(wlan_ng_prism2_header)));
+			goto err_free_sk_buff;
+		}
+	}
+
+	MaxRssi = RTMPMaxRssi(pAd,
+				ConvertToRssi(pAd, (struct raw_rssi_info *)(&pRxBlk->rx_signal.raw_rssi[0]), RSSI_IDX_0),
+				ConvertToRssi(pAd, (struct raw_rssi_info *)(&pRxBlk->rx_signal.raw_rssi[0]), RSSI_IDX_1),
+				ConvertToRssi(pAd, (struct raw_rssi_info *)(&pRxBlk->rx_signal.raw_rssi[0]), RSSI_IDX_2));
+
+	if (sniffer_type == RADIOTAP_TYPE){
+		RssiForRadiotap = RTMPMaxRssi(pAd,
+				ConvertToRssi(pAd, (struct raw_rssi_info *)(&pRxBlk->rx_signal.raw_rssi[0]), RSSI_IDX_0),
+				ConvertToRssi(pAd, (struct raw_rssi_info *)(&pRxBlk->rx_signal.raw_rssi[0]), RSSI_IDX_1),
+				ConvertToRssi(pAd, (struct raw_rssi_info *)(&pRxBlk->rx_signal.raw_rssi[0]), RSSI_IDX_2));
+	}
+
+	pNetDev = pAd->monitor_ctrl.wdev.if_dev;  //send packet to mon0
+	//pNetDev = get_netdev_from_bssid(pAd, BSS0);
+	pRxPacket = pRxBlk->pRxPacket;
+	pHeader = pRxBlk->pHeader;
+	pData = pRxBlk->pData;
+	DataSize = pRxBlk->DataSize;
+	L2PAD = pRxBlk->pRxInfo->L2PAD;
+	PHYMODE = pRxBlk->rx_rate.field.MODE;
+	BW = pRxBlk->rx_rate.field.BW;
+
+	ShortGI = pRxBlk->rx_rate.field.ShortGI;
+	MCS = pRxBlk->rx_rate.field.MCS;
+	LDPC = pRxBlk->rx_rate.field.ldpc;
+	if (pAd->chipCap.hif_type == HIF_RLT)
+		LDPC_EX_SYM = pRxBlk->ldpc_ex_sym;
+	else
+		LDPC_EX_SYM = 0;
+		
+	AMPDU = pRxBlk->pRxInfo->AMPDU;
+	STBC = pRxBlk->rx_rate.field.STBC;
+	RSSI1 = pRxBlk->rx_signal.raw_rssi[1];
+	//if(pRxBlk->pRxWI->RXWI_N.bbp_rxinfo[12] != 0)
+#ifdef RLT_MAC
+	if(pAd->chipCap.hif_type == HIF_RLT)
+		NdisCopyMemory(&timestamp,&pRxBlk->pRxWI->RXWI_N.bbp_rxinfo[12],4);
+#endif
+#ifdef MT_MAC
+	if(pAd->chipCap.hif_type == HIF_MT)
+		timestamp = pRxBlk->TimeStamp;
+#endif
+
+	BssMonitorFlag11n = 0;
+#ifdef MONITOR_FLAG_11N_SNIFFER_SUPPORT
+	BssMonitorFlag11n = (pAd->StaCfg.BssMonitorFlag & MONITOR_FLAG_11N_SNIFFER);
+#endif /* MONITOR_FLAG_11N_SNIFFER_SUPPORT */
+	pDevName = (UCHAR *)RtmpOsGetNetDevName(pAd->net_dev);
+	Channel = pAd->CommonCfg.Channel;
+
+	if (BW == BW_20)
+		CentralChannel = Channel;
+	else if (BW == BW_40)
+	CentralChannel = pAd->CommonCfg.CentralChannel;
+
+
+
+	if (sniffer_type == RADIOTAP_TYPE) {
+		send_radiotap_monitor_packets(pNetDev, pRxPacket, (void *)pHeader, pData, DataSize,
+									  L2PAD, PHYMODE, BW, ShortGI, MCS, LDPC, LDPC_EX_SYM, 
+									  AMPDU, STBC, RSSI1, pDevName, Channel, CentralChannel,
+							 		  sideband_index, RssiForRadiotap,timestamp);
+	}
+
+	if (sniffer_type == PRISM_TYPE) {
+		send_prism_monitor_packets(pNetDev, pRxPacket, (void *)pHeader, pData, DataSize,
+						L2PAD, PHYMODE, BW, ShortGI, MCS, AMPDU, STBC, RSSI1,
+						BssMonitorFlag11n, pDevName, Channel, CentralChannel,
+						MaxRssi);
+	}
+
+	return;
+
+err_free_sk_buff:
+	RELEASE_NDIS_PACKET(pAd, pRxBlk->pRxPacket, NDIS_STATUS_FAILURE);
+	return;
+}
+#endif /* CONFIG_SNIFFER_SUPPORT */
 

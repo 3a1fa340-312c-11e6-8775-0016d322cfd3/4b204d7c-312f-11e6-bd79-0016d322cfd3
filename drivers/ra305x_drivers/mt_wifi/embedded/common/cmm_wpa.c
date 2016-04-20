@@ -1750,6 +1750,17 @@ VOID PeerPairMsg3Action(
 #endif /* CONFIG_AP_SUPPORT */
 	}
 
+#ifdef __ECOS
+#ifdef APCLI_SUPPORT
+
+		if (IS_ENTRY_APCLI(pEntry))
+		{	
+			extern opmode;
+			if (opmode == 2)
+				mon_snd_cmd(MON_CMD_LINK_CHK);		
+		}
+#endif	//APCLI_SUPPORT	
+#endif	//__ECOS	
 	/* Init 802.3 header and send out*/
 	MAKE_802_3_HEADER(Header802_3, pEntry->Addr, pCurrentAddr, EAPOL);
 	RTMPToWirelessSta(pAd, pEntry,
@@ -2230,6 +2241,7 @@ VOID EnqueueStartForPSKExec(
 				MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("Enqueue EAPoL-Start-PSK for sta(%02x:%02x:%02x:%02x:%02x:%02x) \n", PRINT_MAC(pEntry->Addr)));
 
 				MlmeEnqueue(pAd, WPA_STATE_MACHINE, MT2_EAPOLStart, 6, &pEntry->Addr, 0);
+				RTMP_MLME_HANDLER(pAd);
 				break;
 #ifdef CONFIG_AP_SUPPORT
 #ifdef DOT1X_SUPPORT
@@ -5683,31 +5695,53 @@ void inc_byte_array(UCHAR *counter, int len)
 	}
 }
 
-#ifdef WPA_SUPPLICANT_SUPPORT
-#define	LENGTH_EAP_H    4
 /* If the received frame is EAP-Packet ,find out its EAP-Code (Request(0x01), Response(0x02), Success(0x03), Failure(0x04)). */
-INT WpaCheckEapCode(
-	IN RTMP_ADAPTER *pAd,
-	IN UCHAR *pFrame,
-	IN USHORT FrameLen,
-	IN USHORT OffSet)
+#ifdef RT_CFG80211_SUPPORT
+BOOLEAN RTMPIsValidIEs(UCHAR *Ies, INT32 Len)
 {
 
-	PUCHAR	pData;
-	INT	result = 0;
-
-	if( FrameLen < OffSet + LENGTH_EAPOL_H + LENGTH_EAP_H )
-		return result;
-
-	pData = pFrame + OffSet;		/* skip offset bytes */
-
-	if(*(pData+1) == EAPPacket) 	/* 802.1x header - Packet Type */
-	{
-		 result = *(pData+4);		/* EAP header - Code */
-	}
-
-	return result;
+    INT32 Pos = 0;
+    INT32 IeLen = 0;
+    while (Pos < Len)
+    {
+        if ((IeLen = (INT32)(Ies[Pos+1]) + 2) < 0)
+            return FALSE;
+        Pos += IeLen;
+    }
+    if (Pos == Len)
+        return TRUE;
+    else
+        return FALSE;
 }
 
-#endif /* WPA_SUPPLICANT_SUPPORT */
+
+const UCHAR *RTMPFindIE(UCHAR Eid, const UCHAR *Ies, INT32 Len)
+	{
+	while (Len > 2 && Ies[0] != Eid) {
+		Len -= Ies[1] + 2;
+		Ies += Ies[1] + 2;
+	}
+
+	if (Len < 2)
+		return NULL;
+	if (Len < 2 + Ies[1])
+		return NULL;
+	return Ies;
+}
+
+const UCHAR *RTMPFindWPSIE(const UCHAR *Ies, INT32 Len)
+{
+    const UCHAR *Ptr = Ies;
+    UCHAR WPSOUI[]={0x00, 0x50, 0xf2, 0x04};
+    if (!Ies || ! Len)
+        return NULL;
+    while ((Ptr = RTMPFindIE(WLAN_EID_VENDOR_SPECIFIC, Ptr, Len-(Ptr-Ies))) != NULL)
+    {
+        if (!NdisCmpMemory(Ptr+2, WPSOUI, 4))
+            break;
+        Ptr += Ptr[1] + 2;
+    }
+    return Ptr;
+}
+#endif /* RT_CFG80211_SUPPORT */
 

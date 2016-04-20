@@ -867,6 +867,10 @@ VOID APPeerBeaconAction(
 								pVIE,
 								FALSE))
 	{
+#ifdef SMART_CARRIER_SENSE_SUPPORT	
+		ULONG Idx;
+		CHAR  Rssi = -127;
+#endif /* SMART_CARRIER_SENSE_SUPPORT */
 
 		/* ignore BEACON not in this channel */
 		if (ie_list->Channel != pAd->CommonCfg.Channel
@@ -892,6 +896,19 @@ VOID APPeerBeaconAction(
 								(CHAR)Elem->rssi_info.raw_rssi[0],
 								(CHAR)Elem->rssi_info.raw_rssi[1],
 								(CHAR)Elem->rssi_info.raw_rssi[2]);
+#endif /* IDS_SUPPORT */
+			
+#ifdef SMART_CARRIER_SENSE_SUPPORT
+		/* Collect BEACON for SCS reference. */
+		 if ((RealRssi + pAd->BbpRssiToDbmDelta) > Rssi)
+		Rssi = RealRssi + pAd->BbpRssiToDbmDelta;
+		Idx = BssTableSetEntry(pAd, &pAd->SCSCtrl.SCSBssTab, ie_list, Rssi, LenVIE, pVIE);
+		if (Idx != BSS_NOT_FOUND)
+		{
+			NdisMoveMemory(pAd->SCSCtrl.SCSBssTab.BssEntry[Idx].PTSF, &Elem->Msg[24], 4);
+			NdisMoveMemory(&pAd->SCSCtrl.SCSBssTab.BssEntry[Idx].TTSF[0], &Elem->TimeStamp.u.LowPart, 4);
+			NdisMoveMemory(&pAd->SCSCtrl.SCSBssTab.BssEntry[Idx].TTSF[4], &Elem->TimeStamp.u.LowPart, 4);
+		}
 #endif /* IDS_SUPPORT */
 			
 #ifdef DOT11_N_SUPPORT
@@ -1505,6 +1522,8 @@ VOID APPeerBeaconAtScanAction(RTMP_ADAPTER *pAd, MLME_QUEUE_ELEM *Elem)
 #if defined(RT_CFG80211_P2P_CONCURRENT_DEVICE) || defined(CFG80211_MULTI_STA)
 		if (RTMPEqualMemory(ie_list->Ssid, "DIRECT-", 7))
 			DBGPRINT(RT_DEBUG_OFF, ("%s P2P_SCANNING: %s [%d], channel =%u\n", __FUNCTION__, ie_list->Ssid, Idx,Elem->Channel));
+		if (ie_list->Channel != 0)
+			Elem->Channel = ie_list->Channel;
 		
                 DBGPRINT(RT_DEBUG_TRACE, ("APPeerBeaconAtScanAction : Update the SSID %s in Kernel Table, Elem->Channel=%u\n", ie_list->Ssid,Elem->Channel));
                 RT_CFG80211_SCANNING_INFORM(pAd, Idx, /*ie_list->Channel*/Elem->Channel, (UCHAR *)Elem->Msg, Elem->MsgLen, RealRssi);

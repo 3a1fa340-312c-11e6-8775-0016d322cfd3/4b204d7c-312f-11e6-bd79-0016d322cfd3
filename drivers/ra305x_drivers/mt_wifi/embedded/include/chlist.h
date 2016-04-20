@@ -83,7 +83,7 @@ typedef struct _COUNTRY_PROP {
 
 // TODO: shiang-usw, need to re-organize these for MT7610/MT7601/MT7620!!
 typedef struct _CH_POWER_{
-	DL_LIST		List;
+	MT_DL_LIST		List;
 	UCHAR		StartChannel;
 	UCHAR		num;
 	UCHAR		*Channel;

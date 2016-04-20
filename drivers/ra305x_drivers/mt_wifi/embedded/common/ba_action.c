@@ -1513,16 +1513,6 @@ typedef struct GNU_PACKED _BEACON_REQUEST {
 	UCHAR   SSIDIE[2];			/* 2 byte*/
 } BEACON_REQUEST;
 
-typedef struct GNU_PACKED _MEASUREMENT_REQ
-{
-	UCHAR	ID;
-	UCHAR	Length;
-	UCHAR	Token;
-	UCHAR	RequestMode;
-	UCHAR	Type;
-} MEASUREMENT_REQ;
-
-
 #ifdef CONFIG_AP_SUPPORT
 VOID SendBeaconRequest(RTMP_ADAPTER *pAd, UCHAR Wcid)
 {

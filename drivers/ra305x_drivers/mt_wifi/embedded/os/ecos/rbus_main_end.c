@@ -91,6 +91,7 @@ static bool rt_ecos_init( struct cyg_netdevtab_entry *tab )
     UINT32 Value;
     int                 status;
     struct mt_dev_priv  *priv_info = NULL;
+    struct eth_drv_sc *sc;
 
     cyg_tsleep_init();
 
@@ -156,12 +157,13 @@ static bool rt_ecos_init( struct cyg_netdevtab_entry *tab )
 
     /*NetDevInit============================================== */
     priv_info = ( struct mt_dev_priv * ) kmalloc( sizeof( struct mt_dev_priv ), GFP_ATOMIC );
+
     pAd->net_dev = pNetDev;
-    pNetDev->driver_private = priv_info;
+	pNetDev->driver_private = priv_info;
     pOSCookie->pci_dev = pNetDev;
 
     /* put private data structure */
-    RTMP_OS_NETDEV_SET_PRIV( pNetDev, pAd );
+	RTMP_OS_NETDEV_SET_PRIV(pNetDev, pAd);
     RTMP_DRIVER_NET_DEV_SET( pAd, pNetDev );
 
     RTMP_DRIVER_MAIN_INF_CREATE( pAd, &pNetDev );
@@ -196,7 +198,7 @@ static bool rt_ecos_init( struct cyg_netdevtab_entry *tab )
     cyg_interrupt_unmask( RTMP_INTERRUPT_INIC );
 
     /* Initialize upper level driver */
-    ( pNetDev->funs->eth_drv->init )( pNetDev, MacAddr );
+	(pNetDev->funs->eth_drv->init)(pNetDev, MacAddr);
 
     MTWF_LOG( DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ( "<=== rt_ecos_init()\n" ) );
 
@@ -213,8 +215,7 @@ static void rt_ecos_start( struct eth_drv_sc *sc, unsigned char *enaddr, int fla
     PRTMP_ADAPTER       pAd = NULL;
     char                devName[IFNAMSIZ];
     int                 i, value;
-    struct ifnet        *ifp;
-
+    struct ifnet *ifp = &sc->sc_arpcom.ac_if;
     /*
 	PNET_DEV pNetDev = (PNET_DEV)pDev;
 	struct ifnet *ifp = &pNetDev->sc_arpcom.ac_if;
@@ -268,7 +269,7 @@ static void rt_ecos_start( struct eth_drv_sc *sc, unsigned char *enaddr, int fla
 
     sprintf( devName, "%s0", INF_MAIN_DEV_NAME );
     if ( strcmp( pNetDev->dev_name, devName ) != 0 ) {
-        DBGPRINT_ERR( ( "%s: device name(%s) is not found\n", __FUNCTION__, pNetDev->dev_name ) );
+        DBGPRINT_ERR( ( "%s: device name(%s) is not found\n", __FUNCTION__, sc->dev_name ) );
         goto exit;
     }
 
@@ -338,7 +339,7 @@ static void rt_ecos_start( struct eth_drv_sc *sc, unsigned char *enaddr, int fla
 #endif /* PLATFORM_BUTTON_SUPPORT */
 #endif /*RTMP_RESET_WPS_SHARE_PIN_SUPPORT*/
 
-    ifp = &pNetDev->sc_arpcom.ac_if;
+    ifp = &sc->sc_arpcom.ac_if;
     ifp->if_flags |= IFF_UP;
     ifp->if_flags |= IFF_RUNNING;
     ifp->if_flags &= ~IFF_OACTIVE;
@@ -364,29 +365,33 @@ static void  rt_ecos_stop( struct eth_drv_sc *sc )
         return;
 
     pNetDev = sc;
-    pAd = ( PRTMP_ADAPTER ) RtmpOsGetNetDevPriv( pNetDev );
-    pOSCookie = ( POS_COOKIE ) pAd->OS_Cookie;
+	pAd = (PRTMP_ADAPTER) RtmpOsGetNetDevPriv(pNetDev);
 
     if ( pAd == NULL )
         return;
+	pOSCookie = (POS_COOKIE) pAd->OS_Cookie;
     MlmeRadioOn( pAd );
 
 #ifdef APCLI_SUPPORT
     sprintf( devName, "%s0", INF_APCLI_DEV_NAME );
-    if ( strcmp( pNetDev->dev_name, devName ) == 0 ) {
+    if (strcmp(pNetDev->dev_name, devName) == 0)
+    {
         ApCli_VirtualIF_Close( sc );
         return;
     }
 #endif /* APCLI_SUPPORT */
 
 #ifdef MBSS_SUPPORT
-    for ( i = 1; i < pAd->ApCfg.BssidNum; i++ ) {
+	for (i = 1; i < pAd->ApCfg.BssidNum; i++)
+	{
         sprintf( devName, "%s%d", INF_MBSSID_DEV_NAME, i );
-        if ( strcmp( pNetDev->dev_name, devName ) == 0 ) {
+		if (strcmp(pNetDev->dev_name, devName) == 0)
+		{
             MBSS_VirtualIF_Close( sc );
             return;
         }
     }
+	pAd->FlgMbssInit = FALSE;
 #endif /* MBSS_SUPPORT */
 
     RTMPInfClose( pAd );
@@ -412,8 +417,10 @@ static int rt_ecos_control( struct eth_drv_sc *sc,
         return;
 
     pOSCookie = ( POS_COOKIE ) pAd->OS_Cookie;
-    switch ( cmd ) {
-    case SIOCGIFPHY: {
+	switch(cmd)
+	{
+		case SIOCGIFPHY:
+		{			
 #ifdef APCLI_SUPPORT
         INT i = 0;
         UCHAR ifIndex;
@@ -422,19 +429,23 @@ static int rt_ecos_control( struct eth_drv_sc *sc,
         *p = 0;
 
         sprintf( devName, "%s0", INF_APCLI_DEV_NAME );
-        if ( strcmp( sc->dev_name, devName ) == 0 ) {
+			if (strcmp(sc->dev_name, devName) == 0)
+			{
             pOSCookie->ioctl_if_type = INT_APCLI;
             pOSCookie->ioctl_if = 0;
             ifIndex = pOSCookie->ioctl_if;
 
             if ( ( pAd->ApCfg.ApCliTab[ifIndex].CtrlCurrState == APCLI_CTRL_CONNECTED )
-                    && ( pAd->ApCfg.ApCliTab[ifIndex].SsidLen != 0 ) ) {
-                for ( i = 0; i < MAX_LEN_OF_MAC_TABLE; i++ ) {
+					&& (pAd->ApCfg.ApCliTab[ifIndex].SsidLen != 0))
+				{
+					for (i=0; i<MAX_LEN_OF_MAC_TABLE; i++)
+					{
                     PMAC_TABLE_ENTRY pEntry = &pAd->MacTab.Content[i];
 
                     if ( IS_ENTRY_APCLI( pEntry )
                             && ( pEntry->Sst == SST_ASSOC )
-                            && ( pEntry->wdev->PortSecured == WPA_802_1X_PORT_SECURED ) ) {
+							&& (pEntry->wdev->PortSecured == WPA_802_1X_PORT_SECURED))
+							{	
                         *p = 1;
                     }
                 }
@@ -600,10 +611,9 @@ static void rt_ecos_send( struct eth_drv_sc *sc,
                           int total_len,
                           unsigned long key )
 {
-#if 1
+
     PECOS_PKT_BUFFER    pPacket = NULL;
 
-    diag_printf("termy say, %s\n", __FUNCTION__);
     MTWF_LOG( DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_INFO, ( "==>rt_ecos_send()\n" ) );
 
     pPacket = rt_convert_sglist_to_mbuf( sc, sg_list, sg_len, total_len, key );
@@ -611,7 +621,7 @@ static void rt_ecos_send( struct eth_drv_sc *sc,
         rt28xx_send_packets( pPacket, sc );
 
     MTWF_LOG( DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_INFO, ( "<==rt_ecos_send()\n" ) );
-#endif
+
     return;
 }
 
@@ -805,19 +815,13 @@ static void rt_ecos_deliver( struct eth_drv_sc *sc )
         if ( pNetTask == NULL )
             break;
 
-        memset( pNetTask_debug, 0, 20 );
-        pNetTask_debug[0] = '\0';
-        pNetTask_len1 = sprintf( ( char * )pNetTask_debug, "01%s\n", ( char * )( pNetTask->taskName ) );
-        pNetTask_debug[pNetTask_len1] = '\0';
         //diag_printf("%s",(char *)pNetTask_debug);
         //diag_printf("01%s\n",(char *)(pNetTask->taskName));
         pNetTask->funcPtr( pNetTask->data );
         //diag_printf("02\n");
-        pNetTask_len2 = sprintf( ( char * )( pNetTask_debug + pNetTask_len1 ), "02\n" );
-        pNetTask_debug[pNetTask_len1 + pNetTask_len2] = '\0';
         //diag_printf("%s",(char *)pNetTask_debug);
         i++;
-        if ( i > 15 )break;
+		if (i > 60)break;
     }
 
     MTWF_LOG( DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_INFO, ( "<=== rt_ecos_deliver()\n" ) );
@@ -984,31 +988,34 @@ static bool rt_ecos_mbss_init( struct cyg_netdevtab_entry *tab )
     struct mt_dev_priv  *priv_info = NULL;
 
     MTWF_LOG( DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ( "===> rt_ecos_mbss_init()\n" ) );
-    pNetDev = ( struct eth_drv_sc * )tab->device_instance;
+	pNetDev = (struct eth_drv_sc *)tab->device_instance;
 
     sprintf( devName, "%s0", INF_MAIN_DEV_NAME );
-    for ( pNetdevEntry = &__NETDEVTAB__[0]; pNetdevEntry != &__NETDEVTAB_END__; pNetdevEntry++ ) {
+    for (pNetdevEntry = &__NETDEVTAB__[0]; pNetdevEntry != &__NETDEVTAB_END__; pNetdevEntry++)
+    {
         sc = ( struct eth_drv_sc * )pNetdevEntry->device_instance;
-        if ( strcmp( sc->dev_name, devName ) == 0 ) {
+        if (strcmp(sc->dev_name, devName) == 0)
+        {
             pAd = ( PRTMP_ADAPTER ) RtmpOsGetNetDevPriv( sc );
             break;
         }
     }
 
-    if ( pAd == NULL ) {
+	if (pAd == NULL)
+    {
         DBGPRINT_ERR( ( "%s: pAd is NULL.\n", __FUNCTION__ ) );
         goto err_out;
     }
 
     /*NetDevInit============================================== */
     priv_info = ( struct mt_dev_priv * ) kmalloc( sizeof( struct mt_dev_priv ), GFP_ATOMIC );
-    pNetDev->driver_private = priv_info;
+	pNetDev->driver_private = priv_info;
 
     /* put private data structure */
-    RTMP_OS_NETDEV_SET_PRIV( pNetDev, pAd );
+	RTMP_OS_NETDEV_SET_PRIV(pNetDev, pAd);
 
     /* Initialize upper level driver */
-    ( pNetDev->funs->eth_drv->init )( pNetDev, MacAddr );
+        	(pNetDev->funs->eth_drv->init)(pNetDev, MacAddr);
 
     MTWF_LOG( DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ( "<=== rt_ecos_mbss_init()\n" ) );
     return true;
@@ -1052,31 +1059,34 @@ static bool rt_ecos_apcli_init( struct cyg_netdevtab_entry *tab )
     struct mt_dev_priv  *priv_info = NULL;
 
     MTWF_LOG( DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ( "===> rt_ecos_apcli_init()\n" ) );
-    pNetDev = ( struct eth_drv_sc * )tab->device_instance;
+	pNetDev = (struct eth_drv_sc *)tab->device_instance;
 
     sprintf( devName, "%s0", INF_MAIN_DEV_NAME );
-    for ( pNetdevEntry = &__NETDEVTAB__[0]; pNetdevEntry != &__NETDEVTAB_END__; pNetdevEntry++ ) {
+    for (pNetdevEntry = &__NETDEVTAB__[0]; pNetdevEntry != &__NETDEVTAB_END__; pNetdevEntry++)
+    {
         sc = ( struct eth_drv_sc * )pNetdevEntry->device_instance;
-        if ( strcmp( sc->dev_name, devName ) == 0 ) {
+        if (strcmp(sc->dev_name, devName) == 0)
+        {
             pAd = ( PRTMP_ADAPTER ) RtmpOsGetNetDevPriv( sc );
             break;
         }
     }
 
-    if ( pAd == NULL ) {
+	if (pAd == NULL)
+    {
         DBGPRINT_ERR( ( "%s: pAd is NULL.\n", __FUNCTION__ ) );
         goto err_out;
     }
 
     /*NetDevInit============================================== */
     priv_info = ( struct mt_dev_priv * ) kmalloc( sizeof( struct mt_dev_priv ), GFP_ATOMIC );
-    pNetDev->driver_private = priv_info;
+	pNetDev->driver_private = priv_info;
 
     /* put private data structure */
-    RTMP_OS_NETDEV_SET_PRIV( pNetDev, pAd );
+	RTMP_OS_NETDEV_SET_PRIV(pNetDev, pAd);
 
     /* Initialize upper level driver */
-    ( pNetDev->funs->eth_drv->init )( pNetDev, MacAddr );
+        	(pNetDev->funs->eth_drv->init)(pNetDev, MacAddr);
 
     MTWF_LOG( DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ( "<=== rt_ecos_apcli_init()\n" ) );
     return true;
@@ -1174,31 +1184,34 @@ static bool rt_ecos_wds_init( struct cyg_netdevtab_entry *tab )
     struct mt_dev_priv  *priv_info = NULL;
 
     MTWF_LOG( DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ( "===> rt_ecos_wds_init()\n" ) );
-    pNetDev = ( struct eth_drv_sc * )tab->device_instance;
+	pNetDev = (struct eth_drv_sc *)tab->device_instance;
 
     sprintf( devName, "%s0", INF_MAIN_DEV_NAME );
-    for ( pNetdevEntry = &__NETDEVTAB__[0]; pNetdevEntry != &__NETDEVTAB_END__; pNetdevEntry++ ) {
+    for (pNetdevEntry = &__NETDEVTAB__[0]; pNetdevEntry != &__NETDEVTAB_END__; pNetdevEntry++)
+    {
         sc = ( struct eth_drv_sc * )pNetdevEntry->device_instance;
-        if ( strcmp( sc->dev_name, devName ) == 0 ) {
+        if (strcmp(sc->dev_name, devName) == 0)
+        {
             pAd = ( PRTMP_ADAPTER ) RtmpOsGetNetDevPriv( sc );
             break;
         }
     }
 
-    if ( pAd == NULL ) {
+	if (pAd == NULL)
+    {
         DBGPRINT_ERR( ( "%s: pAd is NULL.\n", __FUNCTION__ ) );
         goto err_out;
     }
 
     /*NetDevInit============================================== */
     priv_info = ( struct mt_dev_priv * ) kmalloc( sizeof( struct mt_dev_priv ), GFP_ATOMIC );
-    pNetDev->driver_private = priv_info;
+	pNetDev->driver_private = priv_info;
 
     /* put private data structure */
-    RTMP_OS_NETDEV_SET_PRIV( pNetDev, pAd );
+	RTMP_OS_NETDEV_SET_PRIV(pNetDev, pAd);
 
     /* Initialize upper level driver */
-    ( pNetDev->funs->eth_drv->init )( pNetDev, MacAddr );
+        	(pNetDev->funs->eth_drv->init)(pNetDev, MacAddr);
 
     MTWF_LOG( DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ( "<=== rt_ecos_wds_init()\n" ) );
     return true;
@@ -1210,4 +1223,75 @@ err_out:
 }
 
 #endif /* WDS_SUPPORT */
+#ifdef CONFIG_SNIFFER_SUPPORT
+/* Interface: mon0 */
+ETH_DRV_SC(devive_wireless_mon_sc0,
+           &rt_ecos_priv_data,
+           INF_MONITOR_DEV_NAME "0",
+           rt_ecos_start,
+           rt_ecos_stop,
+           rt_ecos_control,
+           rt_ecos_can_send,
+           rt_ecos_send,
+           rt_ecos_recv,
+           rt_ecos_deliver,
+           rt_ecos_poll,
+           rt_ecos_int_vector
+           );
+
+NETDEVTAB_ENTRY(devive_wireless_mon_netdev0,
+                INF_MONITOR_DEV_NAME "0",
+                rt_ecos_mon_init,
+                &devive_wireless_mon_sc0);
+
+static bool rt_ecos_mon_init(struct cyg_netdevtab_entry *tab)
+{
+	PRTMP_ADAPTER		pAd = NULL;
+	PNET_DEV 			pNetDev = NULL;
+    UINT8				    MacAddr[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    cyg_netdevtab_entry_t   *pNetdevEntry;
+    struct                  eth_drv_sc *sc;
+	char                    devName[IFNAMSIZ];
+	struct mt_dev_priv	*priv_info = NULL;
+
+	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("===> rt_ecos_mon_init()\n"));
+	pNetDev = (struct eth_drv_sc *)tab->device_instance;
+
+    sprintf(devName, "%s0", INF_MAIN_DEV_NAME);
+    for (pNetdevEntry = &__NETDEVTAB__[0]; pNetdevEntry != &__NETDEVTAB_END__; pNetdevEntry++)
+    {
+        sc = (struct eth_drv_sc *)pNetdevEntry->device_instance;
+        if (strcmp(sc->dev_name, devName) == 0)
+        {
+			pAd = (PRTMP_ADAPTER) RtmpOsGetNetDevPriv(sc);
+            break;
+        }
+	}
+    
+	if (pAd == NULL)
+    {
+		DBGPRINT_ERR(("%s: pAd is NULL.\n", __FUNCTION__));
+		goto err_out;
+    }
+	
+	/*NetDevInit============================================== */
+	priv_info = (struct mt_dev_priv *) kmalloc(sizeof(struct mt_dev_priv), GFP_ATOMIC);
+	pNetDev->driver_private = priv_info;
+		
+	/* put private data structure */
+	RTMP_OS_NETDEV_SET_PRIV(pNetDev, pAd);
+	
+        	/* Initialize upper level driver */
+        	(pNetDev->funs->eth_drv->init)(pNetDev, MacAddr);
+
+    	    MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("<=== rt_ecos_mon_init()\n"));
+        	return true;
+/*        } */
+/*    } */
+
+err_out:
+	return false;
+}
+
+#endif /* CONFIG_SNIFFER_SUPPORT */
 

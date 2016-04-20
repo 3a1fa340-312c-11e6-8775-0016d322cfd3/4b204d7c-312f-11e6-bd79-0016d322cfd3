@@ -139,6 +139,10 @@ INT CmdMccStop(struct _RTMP_ADAPTER *ad, u8 parking_idx, u8 auto_resume_mode, u1
 
 #endif /* CONFIG_MULTI_CHANNEL */
 
+#ifdef RTMP_FLASH_SUPPORT
+INT32 CmdLoadDPDDataFromFlash(struct _RTMP_ADAPTER *pAd, UINT8 channel, UINT16 doReload);
+#endif /* CONFIG_MULTI_CHANNEL */
+
 
 
 

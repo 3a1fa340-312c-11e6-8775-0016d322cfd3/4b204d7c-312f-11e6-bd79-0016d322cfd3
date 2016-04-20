@@ -475,6 +475,9 @@ static INT32 MT_ATEStartTx(RTMP_ADAPTER *pAd)
 #ifdef CONFIG_AP_SUPPORT
 	INT32 IdBss, MaxNumBss = pAd->ApCfg.BssidNum;
 #endif
+#ifdef RTMP_FLASH_SUPPORT
+	USHORT doCal1 = 0, doReload = 0;
+#endif /*RTMP_FLASH_SUPPORT*/
 
 	MTWF_LOG(DBG_CAT_TEST, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("%s\n", __FUNCTION__));
 	/* TxRx switch workaround */
@@ -484,6 +487,13 @@ static INT32 MT_ATEStartTx(RTMP_ADAPTER *pAd)
 	}
 	CmdChannelSwitch(pAd, ATECtrl->ControlChl, ATECtrl->Channel, ATECtrl->BW,
 							pAd->CommonCfg.TxStream, pAd->CommonCfg.RxStream, FALSE);
+#ifdef RTMP_FLASH_SUPPORT
+	rtmp_ee_flash_read(pAd, 0x9F, &doCal1);	
+	doReload = (doCal1 & (0x1 << 7)) >> 7;
+	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("reload DPD from flash , 0x9F = [%04x] doReload bit7[%x]\n", doCal1, doReload));
+	/* reload DPD cal data from flash  , follow primary channel -by CSD */
+	CmdLoadDPDDataFromFlash(pAd, ATECtrl->ControlChl, doReload);  
+#endif /* RTMP_FLASH_SUPPORT */
 
 	AsicSetMacTxRx(pAd, ASIC_MAC_RX_RXV, FALSE);
 
@@ -876,11 +886,21 @@ static INT32 MT_ATESetChannel(RTMP_ADAPTER *pAd, INT16 Value)
 {
 	ATE_CTRL *ATECtrl = &pAd->ATECtrl;
 	INT32 Ret = 0;
+#ifdef RTMP_FLASH_SUPPORT
+	USHORT doCal1 = 0, doReload = 0;
+#endif /*RTMP_FLASH_SUPPORT*/
 
 	MTWF_LOG(DBG_CAT_TEST, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("%s\n", __FUNCTION__));
 
 	CmdChannelSwitch(pAd, ATECtrl->ControlChl, ATECtrl->Channel, ATECtrl->BW,
 							pAd->CommonCfg.TxStream, pAd->CommonCfg.RxStream, FALSE);
+#ifdef RTMP_FLASH_SUPPORT
+	rtmp_ee_flash_read(pAd, 0x9F, &doCal1);	
+	doReload = (doCal1 & (0x1 << 7)) >> 7;
+	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("reload DPD from flash , 0x9F = [%04x] doReload bit7[%x]\n", doCal1, doReload));
+	/* reload DPD cal data from flash  , follow primary channel -by CSD */
+	CmdLoadDPDDataFromFlash(pAd, ATECtrl->ControlChl, doReload);  
+#endif /* RTMP_FLASH_SUPPORT */
 
 	return Ret;
 }

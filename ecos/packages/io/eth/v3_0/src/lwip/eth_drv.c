@@ -117,11 +117,12 @@ eth_drv_init(struct eth_drv_sc *sc, unsigned char *enaddr)
 
   netif->state = sc;
   ecosif_init(netif);
-
+  
   // enaddr == 0 -> hardware init was incomplete (no ESA)
   if (enaddr != 0) {
     // Set up hardware address
     memcpy(netif->hwaddr, enaddr, ETHER_ADDR_LEN);
+    memcpy(sc->sc_arpcom.ac_enaddr, enaddr, ETHER_ADDR_LEN);
     // Perform any hardware initialization
     (sc->funs->start) (sc, (unsigned char *) &netif->hwaddr, 0);
   }
@@ -163,7 +164,7 @@ eth_drv_init(struct eth_drv_sc *sc, unsigned char *enaddr)
 //
 // Send a packet of data to the hardware
 //
-
+extern struct netif* WLanface;
 static void
 eth_drv_send(struct netif *netif, struct pbuf *p)
 {
@@ -177,8 +178,11 @@ eth_drv_send(struct netif *netif, struct pbuf *p)
     int debug_chan;
 #endif
 #ifdef ZOT_TCPIP
-  LWIP_ASSERT("netif->state != eth_drv_sc", netif->state != Lanface);
+  //LWIP_ASSERT("netif->state != eth_drv_sc", netif->state != Lanface);
+  //LWIP_ASSERT("netif != WLanface", netif != WLanface);
+  //LWIP_ASSERT("netif->state != eth_drv_sc", netif->state != WLanface);
 #endif
+
 
   while (!(sc->funs->can_send) (sc)); 
 

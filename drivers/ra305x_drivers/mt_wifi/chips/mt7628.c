@@ -49,6 +49,9 @@ static VOID mt7628_bbp_adjust(RTMP_ADAPTER *pAd)
 
 static void mt7628_switch_channel(RTMP_ADAPTER *pAd, UCHAR channel, BOOLEAN scan)
 {
+#ifdef RTMP_FLASH_SUPPORT
+		USHORT doCal1 = 0, doReload = 0;
+#endif /*RTMP_FLASH_SUPPORT*/
 
 
 	if (pAd->CommonCfg.BBPCurrentBW == BW_20)
@@ -61,6 +64,16 @@ static void mt7628_switch_channel(RTMP_ADAPTER *pAd, UCHAR channel, BOOLEAN scan
 	/* Channel latch */
 	pAd->LatchRfRegs.Channel = channel;
 
+#ifdef RTMP_FLASH_SUPPORT
+	rtmp_ee_flash_read(pAd, 0x9F, &doCal1);	
+	doReload = (doCal1 & (0x1 << 7)) >> 7;
+	if (scan == FALSE)
+	{
+		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("reload DPD from flash , 0x9F = [%04x] doReload bit7[%x]\n", doCal1, doReload));
+		/* reload DPD cal data from flash  , follow primary channel -by CSD */
+		CmdLoadDPDDataFromFlash(pAd, pAd->CommonCfg.Channel, doReload);  
+	}
+#endif /* RTMP_FLASH_SUPPORT */
 
 	MTWF_LOG(DBG_CAT_ALL, DBG_CAT_HW, DBG_LVL_TRACE,
 			("%s(): Switch to Ch#%d(%dT%dR), BBP_BW=%d\n",
@@ -1150,21 +1163,38 @@ VOID mt7628_init(RTMP_ADAPTER *pAd)
 void mt7628_set_ed_cca(RTMP_ADAPTER *pAd, BOOLEAN enable)
 {
 	
-	UINT32 macVal = 0;	
+	UINT32 macVal = 0, macVal2 = 0;	
 	UINT32 NBIDmacVal = 0;
+	RTMP_IO_READ32(pAd, WF_PHY_BASE + 0x0634, &macVal2);
 	if (enable)
 	{
-		macVal = 0xD7E87D10;  //EDCCA ON  //d7e87d10			
+		macVal = 0xD7C87D0F;  //EDCCA ON , TH - L, USER case  //D7C87D0F
 		RTMP_IO_WRITE32(pAd, WF_PHY_BASE + 0x0618, macVal);
 		
+		macVal2 |= 0x1;
+		RTMP_IO_WRITE32(pAd, WF_PHY_BASE + 0x0634, macVal2);
+
+#ifdef SMART_CARRIER_SENSE_SUPPORT	
+		pAd->SCSCtrl.EDCCA_Status = 1;
+		DBGPRINT(RT_DEBUG_ERROR, ("%s: TURN ON EDCCA mac 0x10618 = 0x%x, EDCCA_Status=%d\n", __FUNCTION__, macVal, pAd->SCSCtrl.EDCCA_Status));
+#else
 		DBGPRINT(RT_DEBUG_ERROR, ("%s: TURN ON EDCCA mac 0x10618 = 0x%x\n", __FUNCTION__, macVal));
+#endif /* SMART_CARRIER_SENSE_SUPPORT */
 	}
 	else
 	{
 		macVal = 0xD7083F0F;  //EDCCA OFF //d7083f0f		
 		RTMP_IO_WRITE32(pAd, WF_PHY_BASE + 0x0618, macVal);
 		
+		macVal2 &= 0xFFFFFFFE;
+		RTMP_IO_WRITE32(pAd, WF_PHY_BASE + 0x0634, macVal2);
+		
+#ifdef SMART_CARRIER_SENSE_SUPPORT		
+		pAd->SCSCtrl.EDCCA_Status = 0;
+		DBGPRINT(RT_DEBUG_ERROR, ("%s: TURN OFF EDCCA  mac 0x10618 = 0x%x, EDCCA_Status=%d\n", __FUNCTION__, macVal, pAd->SCSCtrl.EDCCA_Status));
+#else
 		DBGPRINT(RT_DEBUG_ERROR, ("%s: TURN OFF EDCCA  mac 0x10618 = 0x%x\n", __FUNCTION__, macVal));
+#endif /* SMART_CARRIER_SENSE_SUPPORT */
 	}
 	
 	if (strncmp(pAd->CommonCfg.CountryCode, "JP", 2) == 0)

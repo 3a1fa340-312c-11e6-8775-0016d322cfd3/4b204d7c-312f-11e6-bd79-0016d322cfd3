@@ -153,6 +153,17 @@ typedef enum{
 }DEBUG_SUB_CATEGORY;
 
 
+#define CATPROTO_ACM	0x00000001u
+#define CATPROTO_BA		0x00000002u
+#define CATPROTO_TDLS	0x00000004u
+#define CATPROTO_WNM	0x00000008u
+#define CATPROTO_IGMP	0x00000010u
+#define CATPROTO_MAT	0x00000020u
+#define CATPROTO_RRM	0x00000040u
+#define CATPROTO_DFS	0x00000080u
+#define CATPROTO_FT		0x00000100u
+#define CATPROTO_SCAN	0x00000200u
+#define CATPROTO_FTM	0x00000400u
 
 /* ======================== Definition ====================================== */ 
 #ifndef TRUE
@@ -162,6 +173,8 @@ typedef enum{
 #define FALSE						0
 #endif
 
+#ifndef __BIT__
+#define __BIT__
 #define BIT0		(1 << 0)
 #define BIT1		(1 << 1)
 #define BIT2		(1 << 2)
@@ -195,6 +208,7 @@ typedef enum{
 #define BIT30	(1 << 30)
 #define BIT31	(1 << 31)
 
+#endif
 
 /* definition of pAd->OpMode */
 #define OPMODE_STA                  0

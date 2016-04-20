@@ -1838,6 +1838,9 @@ VOID MlmePeriodicExec(
 			if ((pAd->Mlme.OneSecPeriodicRound % 10) == 0)
 			{
 				{
+#ifdef VCORECAL_SUPPORT
+					AsicVCORecalibration(pAd);
+#endif /* VCORECAL_SUPPORT */
 				}
 			}
 		}
@@ -1855,6 +1858,13 @@ VOID MlmePeriodicExec(
 		{
 			APMlmePeriodicExec(pAd);
 
+#ifdef SMART_CARRIER_SENSE_SUPPORT
+			if (pAd->SCSCtrl.SCSEnable == SCS_ENABLE)
+			{
+				Smart_Carrier_Sense(pAd);
+				BssTableInit(&pAd->SCSCtrl.SCSBssTab); /* Reset Table for next time */
+			}	
+#endif /* SMART_CARRIER_SENSE_SUPPORT */			
 			if ((pAd->RalinkCounters.OneSecBeaconSentCnt == 0)
 				&& (!RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_BSS_SCAN_IN_PROGRESS))
 				&& (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_MEDIA_STATE_CONNECTED))
@@ -1963,6 +1973,12 @@ VOID MlmePeriodicExec(
 	WSC_HDR_BTN_MR_HANDLE(pAd);
 #endif /* WSC_INCLUDED */
 
+#ifdef __ECOS /* Polling restore button in APSOC */
+#ifdef PLATFORM_BUTTON_SUPPORT
+        if (pAd->CommonCfg.RestoreHdrBtnFlag)
+                Restore_button_CheckHandler(pAd);
+#endif /* PLATFORM_BUTTON_SUPPORT */
+#endif /* __ECOS */
 
 
 
@@ -1970,6 +1986,8 @@ VOID MlmePeriodicExec(
 	RTMP_OS_TXRXHOOK_CALL(WLAN_TX_MLME_PERIOD,NULL,1,pAd);
 
 	pAd->bUpdateBcnCntDone = FALSE;
+	if(pAd->ed_chk != FALSE)
+		ed_status_read(pAd);
 }
 
 
@@ -2766,6 +2784,23 @@ VOID MlmeSetPsmBit(RTMP_ADAPTER *pAd, USHORT psm)
 }
 #endif /* CONFIG_STA_SUPPORT */
 
+VOID RTMPSetEnterPsmNullBit(PPWR_MGMT_STRUCT pPwrMgmt)
+{
+	//pAd->StaCfg.PwrMgmt.bEnterPsmNull = TRUE;
+	pPwrMgmt->bEnterPsmNull = TRUE;	
+}
+
+VOID RTMPClearEnterPsmNullBit(PPWR_MGMT_STRUCT pPwrMgmt)
+{
+	//pAd->StaCfg.PwrMgmt.bEnterPsmNull = FALSE;
+	pPwrMgmt->bEnterPsmNull = FALSE;
+}
+
+BOOLEAN RTMPEnterPsmNullBitStatus(PPWR_MGMT_STRUCT pPwrMgmt)
+{
+	//return (pAd->StaCfg.PwrMgmt.bEnterPsmNull);
+	return (pPwrMgmt->bEnterPsmNull);
+}
 
 /*
 	==========================================================================
@@ -5405,6 +5440,14 @@ BOOLEAN MlmeEnqueue(
 
 	NdisAcquireSpinLock(&(Queue->Lock));
 	Tail = Queue->Tail;
+	/*
+		Double check for safety in multi-thread system.
+	*/
+	if (Queue->Entry[Tail].Occupied)
+	{
+		NdisReleaseSpinLock(&(Queue->Lock));
+		return FALSE;
+	}
 	Queue->Tail++;
 	Queue->Num++;
 	if (Queue->Tail == MAX_LEN_OF_MLME_QUEUE) 
@@ -5589,6 +5632,14 @@ BOOLEAN MlmeEnqueueForRecv(
 	/* OK, we got all the informations, it is time to put things into queue*/
 	NdisAcquireSpinLock(&(Queue->Lock));
 	Tail = Queue->Tail;
+	/*
+		Double check for safety in multi-thread system.
+	*/
+	if (Queue->Entry[Tail].Occupied)
+	{
+		NdisReleaseSpinLock(&(Queue->Lock));
+		return FALSE;
+	}
 	Queue->Tail++;
 	Queue->Num++;
 	if (Queue->Tail == MAX_LEN_OF_MLME_QUEUE) 
@@ -5682,6 +5733,14 @@ BOOLEAN MlmeEnqueueForWsc(
     /* OK, we got all the informations, it is time to put things into queue*/
 	NdisAcquireSpinLock(&(Queue->Lock));
     Tail = Queue->Tail;
+	/*
+		Double check for safety in multi-thread system.
+	*/
+	if (Queue->Entry[Tail].Occupied)
+	{
+		NdisReleaseSpinLock(&(Queue->Lock));
+		return FALSE;
+	}
     Queue->Tail++;
     Queue->Num++;
     if (Queue->Tail == MAX_LEN_OF_MLME_QUEUE) 
@@ -5867,7 +5926,7 @@ BOOLEAN MlmeQueueFull(MLME_QUEUE *Queue, UCHAR SendId)
 	if (SendId == 0)
 		Ans = ((Queue->Num >= (MAX_LEN_OF_MLME_QUEUE / 2)) || Queue->Entry[Queue->Tail].Occupied);
 	else
-		Ans = (Queue->Num == MAX_LEN_OF_MLME_QUEUE);
+		Ans = ((Queue->Num == MAX_LEN_OF_MLME_QUEUE) || Queue->Entry[Queue->Tail].Occupied);
 	NdisReleaseSpinLock(&(Queue->Lock));
 
 	return Ans;
@@ -6596,7 +6655,30 @@ CHAR RTMPMaxRssi(RTMP_ADAPTER *pAd, CHAR Rssi0, CHAR Rssi1, CHAR Rssi2)
 	return larger;
 }
 
+CHAR RTMPMinRssi(RTMP_ADAPTER *pAd, CHAR Rssi0, CHAR Rssi1, CHAR Rssi2)
+{
+	CHAR	smaller = -127;
 
+	if ((pAd->Antenna.field.RxPath == 1) && (Rssi0 != 0))
+	{
+		smaller = Rssi0;
+	}
+
+	if ((pAd->Antenna.field.RxPath >= 2) && (Rssi1 != 0))
+	{
+		smaller = min(Rssi0, Rssi1);
+	}
+	
+	if ((pAd->Antenna.field.RxPath == 3) && (Rssi2 != 0))
+	{
+		smaller = min(smaller, Rssi2);
+	}
+
+	if (smaller == -127)
+		smaller = 0;
+
+	return smaller;
+}
 CHAR RTMPMinSnr(RTMP_ADAPTER *pAd, CHAR Snr0, CHAR Snr1)
 {
 	CHAR	smaller = Snr0;

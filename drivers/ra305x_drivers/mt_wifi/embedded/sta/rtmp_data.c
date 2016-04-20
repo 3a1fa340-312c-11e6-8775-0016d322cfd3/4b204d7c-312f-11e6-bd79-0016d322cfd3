@@ -172,8 +172,9 @@ INT STASendPacket_New(RTMP_ADAPTER *pAd, PNDIS_PACKET pPacket)
 	static UCHAR ucACQCount = 0;
 #endif /* CONFIG_DVT_MODE */
 
+    PNET_DEV            pNetDev = NULL;
 
-    diag_printf("termy say %s\n", __FUNCTION__);
+	pNetDev = GET_OS_PKT_NETDEV(pPacket);
 
 	RTMP_QueryPacketInfo(pPacket, &PacketInfo, &pSrcBufVA, &SrcBufLen);
 	if ((!pSrcBufVA) || (SrcBufLen <= 14)) {

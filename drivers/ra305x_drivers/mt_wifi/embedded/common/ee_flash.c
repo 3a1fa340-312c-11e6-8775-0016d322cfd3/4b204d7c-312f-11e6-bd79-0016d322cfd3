@@ -48,6 +48,18 @@ static NDIS_STATUS rtmp_ee_flash_init(PRTMP_ADAPTER pAd, PUCHAR start);
 
 
 static USHORT EE_FLASH_ID_LIST[]={
+#ifdef RT305x
+	0x3052,
+	0x3051,
+	0x3050,
+	0x3350,
+#endif /* RT305x */
+#ifdef RT3352
+	0x3352,
+#endif /* RT3352 */
+#ifdef RT5350
+	0x5350,
+#endif /* RT5350 */
 
 
 
@@ -221,91 +233,6 @@ static NDIS_STATUS rtmp_ee_flash_reset(RTMP_ADAPTER *pAd, UCHAR *start)
 	return NDIS_STATUS_SUCCESS;
 }
 
-#ifdef LINUX
-/* 0 -- Show ee buffer */
-/* 1 -- force reset to default */
-/* 2 -- Change ee settings */
-int	Set_EECMD_Proc(
-	IN	PRTMP_ADAPTER	pAd,
-	IN	PUCHAR			arg)
-{
-	USHORT i;
-
-	i = simple_strtol(arg, 0, 10);
-	switch(i)
-	{
-		case 0:
-			{
-				USHORT value, k;
-				for (k = 0; k < EEPROM_SIZE; k+=2)
-				{
-					RT28xx_EEPROM_READ16(pAd, k, value);
-					MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("%4.4x ", value));
-					if (((k+2) % 0x20) == 0)
-						MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF,("\n"));
-				}
-
-			}
-			break;
-		case 1:
-			if (pAd->infType == RTMP_DEV_INF_RBUS)
-			{
-				MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("EEPROM reset to default......\n"));
-				MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("The last byte of MAC address will be re-generated...\n"));
-				if (rtmp_ee_flash_reset(pAd, pAd->eebuf) != NDIS_STATUS_SUCCESS)
-				{
-					MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("Set_EECMD_Proc: rtmp_ee_flash_reset() failed\n"));
-					return FALSE;
-				}
-
-				/* Random number for the last bytes of MAC address*/
-				{
-					USHORT  Addr45;
-
-					rtmp_ee_flash_read(pAd, 0x08, &Addr45);
-					Addr45 = Addr45 & 0xff;
-					Addr45 = Addr45 | (RandomByte(pAd)&0xf8) << 8;
-					MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("Addr45 = %4x\n", Addr45));
-					rtmp_ee_flash_write(pAd, 0x08, Addr45);
-				}
-
-				rtmp_ee_flash_read(pAd, 0, &i);
-
-				if ((i != 0x2880) && (i != 0x2860))
-				{
-					MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("Set_EECMD_Proc: invalid eeprom\n"));
-					return FALSE;
-				}
-			}
-			break;
-		case 2:
-			{
-				USHORT offset, value = 0;
-				PUCHAR p;
-
-				p = arg+2;
-				offset = simple_strtol(p, 0, 10);
-				p+=2;
-				while (*p != '\0')
-				{
-					if (*p >= '0' && *p <= '9')
-						value = (value << 4) + (*p - 0x30);
-					else if (*p >= 'a' && *p <= 'f')
-						value = (value << 4) + (*p - 0x57);
-					else if (*p >= 'A' && *p <= 'F')
-						value = (value << 4) + (*p - 0x37);
-					p++;
-				}
-				RT28xx_EEPROM_WRITE16(pAd, offset, value);
-			}
-			break;
-		default:
-			break;
-	}
-
-	return TRUE;
-}
-#endif /* LINUX */
 
 
 static BOOLEAN  validFlashEepromID(RTMP_ADAPTER *pAd)
@@ -363,6 +290,7 @@ static NDIS_STATUS rtmp_ee_flash_init(PRTMP_ADAPTER pAd, PUCHAR start)
 			rtmp_ee_flash_read(pAd, 0x08, &Addr45);
 			Addr45 = Addr45 & 0xff;
 			Addr45 = Addr45 | (RandomByte(pAd)&0xf8) << 8;
+			*(UINT16 *)(&pAd->EEPROMImage[0x08]) = le2cpu16(Addr45);
 			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("The EEPROM in Flash is wrong, use default\n"));
 		}
 
@@ -388,6 +316,41 @@ NDIS_STATUS rtmp_nv_init(RTMP_ADAPTER *pAd)
 
 	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("--> rtmp_nv_init\n"));
 
+#ifdef __ECOS
+	int stat;
+
+	pAd->eebuf = pAd->EEPROMImage;
+	if ((stat = cyg_flash_init(NULL)) != 0)
+	{
+		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("FLASH: driver init failed: %s\n", cyg_flash_errmsg(stat)));
+        	return -1;
+   	}
+	
+	if (pAd->chipCap.EEPROM_DEFAULT_BIN == NULL)
+	{
+		DBGPRINT(RT_DEBUG_ERROR, ("pAd->chipCap.EEPROM_DEFAULT_BIN == NULL!!!\n"));
+		return NDIS_STATUS_FAILURE;
+	}
+
+	{
+		UCHAR *eepromBuf;
+
+		if (os_alloc_mem(pAd, &eepromBuf, EEPROM_SIZE) == NDIS_STATUS_SUCCESS)
+		{
+			NdisZeroMemory(eepromBuf, EEPROM_SIZE);
+			NdisMoveMemory(eepromBuf, pAd->chipCap.EEPROM_DEFAULT_BIN, EEPROM_SIZE);
+			RtmpFlashRead(pAd->eebuf, pAd->flash_offset, EEPROM_SIZE);
+			pAd->chipCap.ee_inited = 1;
+			if (validFlashEepromID(pAd) == FALSE)
+			{
+				MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("The EEPROM in Flash are wrong, use default\n"));
+				NdisMoveMemory(pAd->eebuf, eepromBuf, EEPROM_SIZE);
+			}
+			os_free_mem(pAd, eepromBuf);
+		}
+	}
+	return NDIS_STATUS_SUCCESS;
+#else
 
 /*
 	if (pAd->chipCap.EEPROMImage == NULL)
@@ -414,10 +377,15 @@ NDIS_STATUS rtmp_nv_init(RTMP_ADAPTER *pAd)
 	MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_OFF, ("E2P_OFFSET = 0x%08x\n", pAd->E2P_OFFSET_IN_FLASH[pAd->MC_RowID]));
 	RtmpFlashRead(pAd->eebuf, pAd->E2P_OFFSET_IN_FLASH[pAd->MC_RowID], EEPROM_SIZE);
 #else
+#ifdef RTMP_FLASH_SUPPORT
+	RtmpFlashRead(pAd->eebuf, pAd->flash_offset, 0x400);
+#else
 	RtmpFlashRead(pAd->eebuf, pAd->flash_offset, EEPROM_SIZE);
+#endif /* RTMP_FLASH_SUPPORT */
 #endif /* MULTIPLE_CARD_SUPPORT */
 
 	return rtmp_ee_flash_init(pAd, pAd->eebuf);
+#endif /* __ECOS */
 }
 
 #endif /* RTMP_FLASH_SUPPORT */

@@ -30,6 +30,9 @@
 */
 
 #include    "rt_config.h"
+#ifdef __ECOS
+#include    "cfg_id.h"
+#endif /* __ECOS */
 
 #ifdef WSC_INCLUDED
 #include    "wsc_tlv.h"
@@ -1616,6 +1619,7 @@ VOID WscEapEnrolleeAction(
 							MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, 
 								("%s(%d): WscAutoTrigger is disabled.\n", __FUNCTION__, __LINE__));
 							WscUPnPErrHandle(pAdapter, pWscControl, Elem->TimeStamp.u.LowPart);
+							os_free_mem(NULL, WscData);
 							return;
 						}
 						else if (pEntry && IS_ENTRY_CLIENT(pEntry))
@@ -1623,6 +1627,7 @@ VOID WscEapEnrolleeAction(
 							MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, 
 								("%s(%d): WscAutoTrigger is disabled! Send EapFail to STA.\n", __FUNCTION__, __LINE__));
 							WscSendEapFail(pAdapter, pWscControl, TRUE);
+							os_free_mem(NULL, WscData);
 							return;
 						}
 						else
@@ -3728,6 +3733,9 @@ VOID Wsc2MinsTimeOutAction(
 				RTMPSetLED(pAd, WPSLEDStatus);
 			}
 			else if ((LED_MODE(pAd) == WPS_LED_MODE_9) /* WPS LED mode 9. */
+#ifdef CONFIG_WIFI_LED_SHARE
+					|| (LED_MODE(pAd) == WPS_LED_MODE_SHARE)
+#endif /* CONFIG_WIFI_LED_SHARE */
 					)
 			{	
 				if (pWscControl->WscMode == WSC_PIN_MODE) /* PIN method. */
@@ -3735,6 +3743,11 @@ VOID Wsc2MinsTimeOutAction(
 					/* The NIC using PIN method fails to finish the WPS handshaking within 120 seconds. */
 					WPSLEDStatus = LED_WPS_ERROR;
 					RTMPSetLED(pAd, WPSLEDStatus);
+#ifdef CONFIG_WIFI_LED_SHARE
+					if(LED_MODE(pAd) == WPS_LED_MODE_SHARE)
+						RTMPSetTimer(&pWscControl->WscLEDTimer, WSC_WPS_FAIL_WIFI_LED_TIMEOUT);
+					else
+#endif /* CONFIG_WIFI_LED_SHARE */
 					/* Turn off the WPS LED after 15 seconds. */
 					RTMPSetTimer(&pWscControl->WscLEDTimer, WSC_WPS_FAIL_LED_PATTERN_TIMEOUT);
 
@@ -3755,6 +3768,11 @@ VOID Wsc2MinsTimeOutAction(
 							/* Failed to find any partner. */
 							WPSLEDStatus = LED_WPS_ERROR;
 							RTMPSetLED(pAd, WPSLEDStatus);
+#ifdef CONFIG_WIFI_LED_SHARE
+							if(LED_MODE(pAd) == WPS_LED_MODE_SHARE)
+								RTMPSetTimer(&pWscControl->WscLEDTimer, WSC_WPS_FAIL_WIFI_LED_TIMEOUT);
+							else
+#endif /* CONFIG_WIFI_LED_SHARE */
 
 							/* Turn off the WPS LED after 15 seconds. */
 							RTMPSetTimer(&pWscControl->WscLEDTimer, WSC_WPS_FAIL_LED_PATTERN_TIMEOUT);
@@ -7879,6 +7897,10 @@ BOOLEAN	WscPBCExec(
 			/* Session overlap detected. */
 			WPSLEDStatus = LED_WPS_SESSION_OVERLAP_DETECTED;
 			RTMPSetLED(pAd, WPSLEDStatus);
+#ifdef CONFIG_WIFI_LED_SHARE
+				if (LED_MODE(pAd) == WPS_LED_MODE_SHARE)
+					RTMPSetTimer(&pWscControl->WscLEDTimer, WSC_WPS_OVERLAP_WIFI_LED_TIMEOUT);
+#endif /* CONFIG_WIFI_LED_SHARE */
 
 
 			}
@@ -9999,14 +10021,14 @@ VOID WscWriteConfToDatFile(RTMP_ADAPTER *pAd, UCHAR CurOpMode)
 			BOOLEAN	bNewFormat = TRUE;
 
 			NdisZeroMemory(pTempStr, 512);
+			if ((size_t)(offset - cfgData) < fileLen)
+			{
 			ptr = (RTMP_STRING *) offset;
 			while(*ptr && *ptr != '\n')
 			{
 				pTempStr[i++] = *ptr++;
 			}
 			pTempStr[i] = 0x00;
-			if ((size_t)(offset - cfgData) < fileLen)
-			{
 				offset += strlen(pTempStr) + 1;
 				if ((strncmp(pTempStr, "SSID=", strlen("SSID=")) == 0) || 
 					strncmp(pTempStr, "SSID1=", strlen("SSID1=")) == 0 ||

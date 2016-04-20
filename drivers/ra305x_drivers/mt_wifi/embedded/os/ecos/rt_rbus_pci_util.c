@@ -32,7 +32,7 @@
 #define MemPool_TYPE_MBUF 4
 #define BUFFER_HEAD_RESVERD 64
 
-int bufCnt = 0;
+//extern u_long	mbtypes[MT_NTYPES];
 
 PUCHAR RTMP_MemPool_Alloc (
 	IN PRTMP_ADAPTER pAd,
@@ -50,7 +50,6 @@ PUCHAR RTMP_MemPool_Alloc (
 #endif
 
 #endif
-    bufCnt ++;
 
 	switch (Type)
 	{        
@@ -58,7 +57,6 @@ PUCHAR RTMP_MemPool_Alloc (
 			MGETHDR(pMBuf, M_DONTWAIT, MT_DATA);
 			if (pMBuf== NULL)
 			{
-				//diag_printf("%s %d MGETHDR fail!\n", __FUNCTION__,__LINE__);
 				return NULL;
 			}
             pMBuf->m_len = 0;
@@ -67,14 +65,12 @@ PUCHAR RTMP_MemPool_Alloc (
 			MGETHDR(pMBuf, M_DONTWAIT, MT_DATA);                        
 			if (pMBuf== NULL)
 			{
-				//diag_printf("%s %d MGETHDR fail!\n", __FUNCTION__,__LINE__);
 				return NULL;
 			}	
 			MCLGET(pMBuf, M_DONTWAIT);
 			if ((pMBuf->m_flags & M_EXT) == 0)
             {
 				m_freem(pMBuf);
-				//diag_printf("%s %d MCLGET fail!\n", __FUNCTION__,__LINE__);
                 return NULL;
             }
             pMBuf->m_len = 0;
@@ -109,12 +105,10 @@ VOID RTMP_MemPool_Free (
         case MemPool_TYPE_Header:
             m_freem(pBuffer);
 			MEM_DBG_PKT_FREE_INC(pAd);
-            //bufCnt --;
             break;
         case MemPool_TYPE_MBUF:
             m_freem(pBuffer);
 			MEM_DBG_PKT_FREE_INC(pAd);
-            //bufCnt --;
             break;
         default:
 	        DBGPRINT_ERR(("%s: Unknown Type %d\n", __FUNCTION__, Type));
@@ -368,7 +362,6 @@ PNDIS_PACKET RTMP_AllocateRxPacketBuffer(
 	{
 		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_WARN,("%s: Can't allocate packet structure\n"
 		, __FUNCTION__));
-        diag_printf("termy say, Can't allocate packet structure\n");
         goto err;
     }
 
@@ -388,7 +381,6 @@ PNDIS_PACKET RTMP_AllocateRxPacketBuffer(
 #ifdef DOT11_N_SUPPORT
                 pAd->ContinueMemAllocFailCount++;
 #endif /* DOT11_N_SUPPORT */
-        diag_printf("termy say, Can't allocate buffer from memory pool\n");
         goto release_pkt_header;
     }
 
@@ -525,7 +517,6 @@ NDIS_STATUS RTMPAllocateNdisPacket(
 				__FUNCTION__, pPacket, (HeaderLen + DataLen)));
 	*ppPacket = (PNDIS_PACKET) pPacket;
         
-    //diag_printf("termy say, %s-> pPacket = %p, len = %d\n", __FUNCTION__, pPacket, (HeaderLen + DataLen));
 	return NDIS_STATUS_SUCCESS;
 }
 
@@ -673,7 +664,6 @@ VOID RTMPFreeNdisPacket(
        	switch (pPkt->MemPoolType)
        	{
             case MemPool_TYPE_MBUF:
-                //diag_printf("termy say, %s-> pPacket = %x\n", __FUNCTION__, pPacket); 
 
                 if (pPkt->pDataMBuf != NULL)
                 {
@@ -709,12 +699,12 @@ PNDIS_PACKET RtmpOSNetPktAlloc(
 	IN VOID 		*pAdSrc,
 	IN int size)
 {
-	//PRTMP_ADAPTER pAd = (PRTMP_ADAPTER)pAdSrc;
+	PRTMP_ADAPTER pAd = (PRTMP_ADAPTER)pAdSrc;
     PECOS_PKT_BUFFER        pPacket;
-	//PVOID					AllocVa;
-	//NDIS_PHYSICAL_ADDRESS	AllocPa;
+	PVOID					AllocVa;
+	NDIS_PHYSICAL_ADDRESS	AllocPa;
 
-    //pPacket = (PECOS_PKT_BUFFER) RTMP_AllocateRxPacketBuffer(pAd, ((POS_COOKIE)(pAd->OS_Cookie))->pci_dev, size, FALSE, &AllocVa, &AllocPa);
+    pPacket = (PECOS_PKT_BUFFER) RTMP_AllocateRxPacketBuffer(pAd, ((POS_COOKIE)(pAd->OS_Cookie))->pci_dev, size, FALSE, &AllocVa, &AllocPa);
     return (PNDIS_PACKET) pPacket;    
 }
 
@@ -759,6 +749,45 @@ void * skb_put(PECOS_PKT_BUFFER skb, INT len)
 	return p;
 }
 
+void * skb_pull(PECOS_PKT_BUFFER skb, INT len)
+{
+	ASSERT(skb);
+	
+	GET_OS_PKT_DATAPTR(skb) += len;
+	GET_OS_PKT_LEN(skb) -= len;
+		
+	return GET_OS_PKT_DATAPTR(skb);
+
+}
+
+void * skb_trim(PECOS_PKT_BUFFER skb, INT newlen)
+{
+	ASSERT(skb);
+	
+	//GET_OS_PKT_DATAPTR(skb) += len;
+	GET_OS_PKT_LEN(skb) = newlen;
+		
+	return GET_OS_PKT_DATAPTR(skb);
+
+}
+
+
+INT skb_headroom(PECOS_PKT_BUFFER skb)
+{
+	INT headroom=0;
+	struct mbuf *pMBuf = NULL;
+	PUCHAR pDataPtr = NULL;
+	ASSERT(skb);
+	pMBuf = RTPKT_TO_OSPKT(skb)->pDataMBuf;
+	pDataPtr = (PUCHAR) CYGARC_CACHED_ADDRESS(GET_OS_PKT_DATAPTR(skb));
+	//diag_printf("dataptr:%x %x,m_data:%x,ext_buf:%x\n", GET_OS_PKT_DATAPTR(skb), pDataPtr, pMBuf->m_data, pMBuf->m_ext.ext_buf);
+	if (pMBuf->m_flags & M_EXT)
+		headroom = (caddr_t)(pDataPtr) - (pMBuf->m_ext.ext_buf);
+	else
+		diag_printf("skb has not ext buf\n");
+		
+	return headroom;
+}
 
 void * skb_push(PECOS_PKT_BUFFER skb, INT len)
 {
@@ -907,13 +936,71 @@ void RTMP_QueryPacketInfo(
 }
 
 
+PNDIS_PACKET skb_clone_ndev(PNET_DEV ndev, PNDIS_PACKET pSrcPkt, INT flags)
+{
+    PRTMP_ADAPTER           pAd = NULL;
+    PNET_DEV                pNetDev = NULL;
+	POS_COOKIE			    pOSCookie = NULL;
+    PECOS_PKT_BUFFER        pPacket = NULL;
+    PECOS_PKT_BUFFER        pNewPacket = NULL;
+	PVOID					AllocVa;
+	NDIS_PHYSICAL_ADDRESS	AllocPa;
+    NDIS_STATUS             Status;
+
+    pPacket = (PECOS_PKT_BUFFER) pSrcPkt;
+    if (pPacket == NULL) {
+        MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("%s: pSrcPkt is NULL\n", __FUNCTION__));
+        goto err;
+    }
+
+	pNetDev = ndev;//GET_OS_PKT_NETDEV(pPacket);
+    if (pNetDev == NULL) {
+        MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("%s: pNetDev is NULL\n", __FUNCTION__));
+        goto err;
+    }
+
+	pAd = (PRTMP_ADAPTER) RtmpOsGetNetDevPriv(ndev);
+    if (pAd == NULL) {
+        MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("%s: pAd is NULL\n", __FUNCTION__));
+        goto err;
+    }
+	pOSCookie = (POS_COOKIE) pAd->OS_Cookie;
+
+	pNewPacket = RTMP_AllocatePacketHeader(pAd);
+	if (pNewPacket == NULL)
+	{
+		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_WARN, ("%s: Can't allocate packet structure\n"
+		, __FUNCTION__));
+        goto err;
+    }
+
+    pNewPacket->pDataMBuf = m_copym(pPacket->pDataMBuf, 0, M_COPYALL, M_DONTWAIT);
+	if (pNewPacket->pDataMBuf == NULL)
+	{
+		MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_WARN, ("%s: Can't allocate buffer from memory pool\n", __FUNCTION__));
+        goto release_pkt_header;
+    }
+
+    pNewPacket->MemPoolType = MemPool_TYPE_MBUF;
+        pNewPacket->net_dev = pPacket->net_dev;
+    NdisCopyMemory(pNewPacket->cb, pPacket->cb, 48);
+    pNewPacket->pDataPtr = pPacket->pDataPtr;
+        pNewPacket->pktLen = pPacket->pktLen;
+
+    return (PNDIS_PACKET) pNewPacket;
+
+release_pkt_header:
+	RTMP_MemPool_Free(pAd, (PUCHAR) pNewPacket->pHeaderMBuf, MemPool_TYPE_Header);
+err:
+    return NULL;
+}
 PNDIS_PACKET ClonePacket(PNET_DEV ndev, PNDIS_PACKET pkt, UCHAR *buf, ULONG sz)
 {
 	PECOS_PKT_BUFFER pClonedMblk;
 
 	ASSERT(sz < 1530);	
     
-	pClonedMblk = (PECOS_PKT_BUFFER) skb_clone(pkt, MEM_ALLOC_FLAG);
+	pClonedMblk = (PECOS_PKT_BUFFER) skb_clone_ndev(ndev, pkt, MEM_ALLOC_FLAG);
 	if (pClonedMblk != NULL)
 	{
 		/* set the correct dataptr and data len */
@@ -928,7 +1015,6 @@ PNDIS_PACKET ClonePacket(PNET_DEV ndev, PNDIS_PACKET pkt, UCHAR *buf, ULONG sz)
 PNDIS_PACKET DuplicatePacket(PNET_DEV pNetDev, PNDIS_PACKET pPacket)
 {
 	PNDIS_PACKET	pRetPacket = NULL;
-    /*
 	USHORT			DataSize;
 	UCHAR			*pData;
 
@@ -938,7 +1024,6 @@ PNDIS_PACKET DuplicatePacket(PNET_DEV pNetDev, PNDIS_PACKET pPacket)
 	pRetPacket = skb_copy(RTPKT_TO_OSPKT(pPacket), MEM_ALLOC_FLAG);
 	if (pRetPacket)
 		SET_OS_PKT_NETDEV(pRetPacket, pNetDev);
-    */	
 	return pRetPacket;
 }
 

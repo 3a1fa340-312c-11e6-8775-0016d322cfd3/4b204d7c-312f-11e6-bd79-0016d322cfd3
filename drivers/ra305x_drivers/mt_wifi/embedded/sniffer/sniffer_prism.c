@@ -39,7 +39,11 @@ void send_prism_monitor_packets(IN PNET_DEV pNetDev,
 			  IN UCHAR Channel,
 			  IN UCHAR CentralChannel,
 			  IN UINT32 MaxRssi) {
+#ifdef __ECOS
+	PECOS_PKT_BUFFER pOSPkt;
+#else
 	struct sk_buff *pOSPkt;
+#endif
 	wlan_ng_prism2_header *ph;
 #ifdef MONITOR_FLAG_11N_SNIFFER_SUPPORT
 	ETHEREAL_RADIO h, *ph_11n33; /* for new 11n sniffer format */
@@ -49,10 +53,12 @@ void send_prism_monitor_packets(IN PNET_DEV pNetDev,
 	UCHAR temp_header[40] = {0};
 	DOT_11_HDR *pHeader = (DOT_11_HDR *)dot11_hdr;
 
+	ULONG jiffies = 0;
+	SNI_DBGPRINTF(RT_DEBUG_ERROR, "send_prism_monitor_packets =>\n");
 	MEM_DBG_PKT_FREE_INC(pRxPacket);
 
 	pOSPkt = RTPKT_TO_OSPKT(pRxPacket);
-	pOSPkt->dev = pNetDev;
+	pOSPkt->net_dev = pNetDev;
 	if (pHeader->FC.Type == 0x2 /* FC_TYPE_DATA */) {
 		DataSize -= LENGTH_802_11;
 		if ((pHeader->FC.ToDs == 1) && (pHeader->FC.FrDs == 1))
@@ -85,24 +91,33 @@ void send_prism_monitor_packets(IN PNET_DEV pNetDev,
 			pData += header_len;
 	}
 
-	if (DataSize < pOSPkt->len) {
+	if (DataSize < pOSPkt->pktLen) {
+#ifdef __ECOS
+		diag_printf("==>skb_trim need support<==\n");
+#else
 		skb_trim(pOSPkt, DataSize);
+#endif
 	} else {
-		skb_put(pOSPkt, (DataSize - pOSPkt->len));
+		skb_put(pOSPkt, (DataSize - pOSPkt->pktLen));
 	}
 
-	if ((pData - pOSPkt->data) > 0) {
-		skb_put(pOSPkt, (pData - pOSPkt->data));
-		skb_pull(pOSPkt, (pData - pOSPkt->data));
+	if ((pData - pOSPkt->pDataPtr) > 0) {
+		skb_put(pOSPkt, (pData - pOSPkt->pDataPtr));
+		skb_pull(pOSPkt, (pData - pOSPkt->pDataPtr));
 	}
 
 	if (skb_headroom(pOSPkt) < (sizeof (wlan_ng_prism2_header) + header_len)) {
+#ifdef __ECOS
+		diag_printf("pskb_expand_head not support\n");	
+		goto err_free_sk_buff;
+#else
 		if (pskb_expand_head(pOSPkt, (sizeof (wlan_ng_prism2_header) + header_len), 0, GFP_ATOMIC)) {
 			MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_ERROR,
 				 ("%s : Reallocate header size of sk_buff fail!\n",
 				  __FUNCTION__));
 			goto err_free_sk_buff;
 		}
+#endif		
 	}
 
 	if (header_len > 0)
@@ -124,6 +139,7 @@ void send_prism_monitor_packets(IN PNET_DEV pNetDev,
 		ph->hosttime.did = DIDmsg_lnxind_wlansniffrm_hosttime;
 		ph->hosttime.status = 0;
 		ph->hosttime.len = 4;
+		RTMP_GetCurrentSystemTick(&jiffies);
 		ph->hosttime.data = jiffies;
 
 		ph->mactime.did = DIDmsg_lnxind_wlansniffrm_mactime;
@@ -243,10 +259,18 @@ void send_prism_monitor_packets(IN PNET_DEV pNetDev,
 	}
 #endif /* MONITOR_FLAG_11N_SNIFFER_SUPPORT */
 
+sniffer_hex_dump("Prism Pkt content", GET_OS_PKT_DATAPTR(pOSPkt), 48);
+
+#ifdef __ECOS
+	RTMP_SnifferPktInput(pOSPkt);
+#else
 	pOSPkt->pkt_type = PACKET_OTHERHOST;
 	pOSPkt->protocol = eth_type_trans(pOSPkt, pOSPkt->dev);
 	pOSPkt->ip_summed = CHECKSUM_NONE;
 	netif_rx(pOSPkt);
+#endif	
+
+	SNI_DBGPRINTF(RT_DEBUG_ERROR, "send_prism_monitor_packets <=\n");
 	return;
 
 err_free_sk_buff:

@@ -15,8 +15,9 @@ void zip_info_query(cyg_addrword_t data)
 	uint16 net;
 	uint8 *needwait =data;	//615wu
 
-	while(!ATD_INIT_OK && (*needwait))	//615wu
-		cyg_thread_yield();
+    cyg_semaphore_wait(&ATD_INIT_OK);
+    if (*needwait)
+        cyg_thread_yield();
 
 	do {
 		if(*needwait) ppause(60*1000L);	 //wait 1 min

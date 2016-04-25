@@ -28,6 +28,8 @@
 #undef TELNETD
 #endif /* !USE_PS_LIBS */
 
+cyg_sem_t ATD_INIT_OK;
+
 /////////////////////////Utility/////////////////////////////////////////
 inline void sti(void)
 {
@@ -729,6 +731,8 @@ void ps_init(void)
 	if(PSMode & PS_ATALK_MODE)
 #endif	// defined(O_ZOTCH)
 	{
+        cyg_semaphore_init(&ATD_INIT_OK, 0);
+
 		//Create ATD Thread
 	    cyg_thread_create(ATD_TASK_PRI,
 	                  atalkd_init,

@@ -2091,7 +2091,6 @@ static void ra305x_txint(txctrl_t *ptxc)
  *=============================================================*/
 static bool if_ra305x_init(struct cyg_netdevtab_entry *pnde)
 {
-#if 0
 	struct eth_drv_sc *sc;
 	if_ra305x_t *pifra305x;
 	int unit;
@@ -2122,7 +2121,6 @@ static bool if_ra305x_init(struct cyg_netdevtab_entry *pnde)
 	if (eth_restart== 0)
 	(sc->funs->eth_drv->init)(sc, pifra305x->macaddr);
 	return true;
-#endif	
 err_out:
 	return false;	
 }
@@ -2138,8 +2136,7 @@ static void if_ra305x_start(struct eth_drv_sc *sc, unsigned char *enaddr, int fl
 	pifra305x = (if_ra305x_t *) sc->driver_private;
 	CYG_ASSERTC(pifra305x->sc == sc);
 	
-//	DBGPRINTF(DBG_INFO, "ifra305x%d: start\n", pifra305x->unit);
-	diag_printf("ifra305x%d: start\n", pifra305x->unit);
+	DBGPRINTF(DBG_INFO, "ifra305x%d: start\n", pifra305x->unit);
 	
 	/*  Start hardware  */
 	ra305x_startifp(pifra305x);

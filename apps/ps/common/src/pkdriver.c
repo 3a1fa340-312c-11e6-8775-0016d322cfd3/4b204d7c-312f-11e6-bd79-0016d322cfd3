@@ -203,7 +203,6 @@ err_t SendPacket(struct netif *netif, struct pbuf *p)
 	memcpy( &ep, p->payload, sizeof(struct ether) );
 
 	dst = bridge_dst_lookup(&ep);
-    dst = WLanface;
 
 	if(usb_usb_send == 1)
 		dst = ULanface;
@@ -828,10 +827,8 @@ void ecosif_input(struct netif *netif, struct pbuf *p)
             etharp_arp_input(netif, (struct eth_addr *) &netif->hwaddr, p);
             break;
         default:
-            diag_printf("termy say, OtherPckt_input\n");
-            /*
+            LWIP_DEBUGF(0, ("ecosif_input: Other packet\n"));
             OtherPckt_input(p->payload, p->len);
-            */
             pbuf_free(p);
             break;
     }

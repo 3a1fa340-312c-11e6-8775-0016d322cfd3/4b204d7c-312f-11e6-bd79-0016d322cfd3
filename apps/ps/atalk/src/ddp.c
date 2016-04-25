@@ -218,8 +218,7 @@ void ddp_input2ambf(char *data,unsigned int len)
 {
 	struct ambuf *bpp;
 		
-	if (!ATD_INIT_OK)	//615wu
-		return;	
+    cyg_semaphore_wait(&ATD_INIT_OK);
 		
 	if((data == NULL) || (len <= 0) || (len > AMbufSize))
 		return;	//615wu

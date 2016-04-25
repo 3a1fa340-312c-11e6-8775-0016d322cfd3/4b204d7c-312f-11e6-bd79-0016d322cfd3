@@ -6,7 +6,6 @@
 #include "eeprom.h"
 
 extern void papd_init(void);
-uint32 ATD_INIT_OK = 0;		//615wu
 uint8 ZIP_NEED_WAIT = 0;	//615wu
 
 //atalkd_init();
@@ -44,6 +43,5 @@ void atalkd_init(cyg_addrword_t data)
 	zip_info_query(&ZIP_NEED_WAIT);
 
 	papd_init();
-
-	ATD_INIT_OK = 1;	//615wu
+    cyg_semaphore_post(&ATD_INIT_OK);
 }

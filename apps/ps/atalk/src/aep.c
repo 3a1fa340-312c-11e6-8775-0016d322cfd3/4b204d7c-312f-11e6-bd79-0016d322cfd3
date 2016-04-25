@@ -11,8 +11,7 @@ void aep_input(cyg_addrword_t data)
 	struct sockaddr_at	addr;
 	int	   s,fromlen,rcv_len;
 
-	while(!ATD_INIT_OK)		//615wu
-		cyg_thread_yield();
+    cyg_semaphore_wait(&ATD_INIT_OK);
 
 	if((s = socket2( AF_APPLETALK, SOCK_DGRAM, 0 )) < 0) {
 #ifdef PC_OUTPUT

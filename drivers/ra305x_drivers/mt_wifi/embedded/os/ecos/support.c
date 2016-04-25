@@ -899,8 +899,7 @@ static void
 cyg_ktime_init(void)
 {
     cyg_handle_t ktime_alarm_handle;
-    static cyg_alarm ktime_alarm __attribute__((aligned(16)));
-    //static cyg_alarm ktime_alarm;
+    static cyg_alarm ktime_alarm;
     cyg_handle_t counter;
 
     // Do not start at 0 - net stack thinks 0 an invalid time;

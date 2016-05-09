@@ -301,18 +301,21 @@ int flsh_block_start(int faddr, int *len)
 // int flsh_erase(unsigned int addr, unsigned int len);
 
 #include "psglobal.h"
+#include "pstarget.h"
 void read_flash(u32 address, u8 * read_buffer, u32 len)
 {
+    flsh_read((unsigned int)address - FLASHBASE_2, (unsigned int)read_buffer, (unsigned int)len);
 }
 
 int vProgramFlash( char *flashptr, char *buf, int nbytes )
 {
-    return 0;
+    return flsh_write((unsigned int)flashptr - FLASHBASE_2, (unsigned int)buf, (unsigned int)nbytes);
 }
 
 int vEraseFlash( volatile uint16 *fp, int nsectors )
 {
-    return 0;
+    unsigned int len = nsectors << 12;
+    return flsh_erase(fp - FLASHBASE_2, len);
 }
 
 

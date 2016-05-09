@@ -211,6 +211,13 @@ static struct chip_info chips_data[] = {
 		num_block_info: 1,
 		block_info: Sfl128p_blk
 	},	
+    {
+        name: "W25Q16DVSIG",
+        jedec_id: 0x40150000,
+        id: 0xef,
+        num_block_info: 1,
+        block_info: mx25l160_blk
+    },
 	{
 		name: "W25Q32BV",
 		jedec_id: 0x40160000,

@@ -38,15 +38,6 @@ typedef struct _header_ver{
 #define EEPROMMARK      0xB3
 #define LOADERMARK      0xB4
 
-//#define FLASHSIZE               1 //M bytes, define on Target.def
-#define ALLFLASHADDROFF        	0
-#define LOADERADDROFF			0x00000000
-#define CODE1ADDROFF           	0x00010000
-#define CODE2ADDROFF           	0x00030000
-#define WEBOFF					0x00090000
-#define DEFAULTADDROFF         	0x000FC000
-#define EEPROMADDROFF         	0x000FE000
-#define MAXFLASHOFF             0x00100000
 
 //temp extern int flashWriteWord (int offset, unsigned short dat);
 //temp extern unsigned int crc32(unsigned char *address, unsigned int size, unsigned int crc); //Ron Add
@@ -62,10 +53,12 @@ extern uint32 get32(uint8 *cp);
 // #define PROGRAM_MAX_RETRY_TIMES			3
 #define PROGRAM_MAX_RETRY_TIMES			1
 
+#ifdef ARCH_ARM
 int vEraseWeb()
 {
 	return vEraseFlash( WEB_START_ADDRESS, NUM_OF_WEB_SECTOR );
 }
+#endif /* ARCH_ARM */
 
 int vErase_QC0_Default()
 {
@@ -514,6 +507,7 @@ int vProgramCode2( char *pCode2Data, uint32 length )
 	return error;
 }
 
+#ifdef ARCH_ARM
 int vProgramWeb( char *pWebData, uint32 length)
 {
 	uint8	*CurTempAddress;
@@ -555,6 +549,7 @@ int vProgramWeb( char *pWebData, uint32 length)
 	}
 	return error;
 }
+#endif /* ARCH_ARM */
 
 int vProgramDef( char *pDefData, uint32 length)
 {
@@ -590,9 +585,11 @@ int vProgramCFG( EEPROM *pDefData, uint32 length)
 
 void Reset(void)
 {
+#ifdef ARCH_ARM
 //	CacheDisable();
 	cyg_interrupt_disable();
 	HAL_PWRMGT_GLOBAL_SOFTWARE_RESET();	//ZOT716u2
+#endif /* ARCH_ARM */
 }
 
 unsigned long PSCheckImageIntegrity(HEADER_VER *hdr1){
@@ -726,10 +723,12 @@ ApUpgradeFirmware(char *pData, unsigned long len)
 				vProgramCode2( hdr1, nbytes);
 				cyg_scheduler_unlock();
 				break;
+            #ifdef ARCH_ARM
 			case WEBOFF:
 				nbytes += sizeof(HEADER_VER);
 				vProgramWeb( hdr1, nbytes);
 				break;
+            #endif /* ARCH_ARM */
 			case DEFAULTADDROFF:
 				vProgramDef( hdr1, nbytes);
 				break;

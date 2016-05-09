@@ -223,19 +223,54 @@ extern unsigned char kFarHeap_base[];
 #define NUM_OF_USB_PRN_DEVICE	6
 
 //--- flash for System Variable -----------------------------
+#define ALLFLASHADDROFF        	0
+#define LOADERADDROFF			0x00000000
+#define WEBOFF					0x00090000
+#define QC0ADDROFF              0x000FA000
+#define DEFAULTADDROFF         	0x000FC000
+#define EEPROMADDROFF         	0x000FE000
+#define MAXFLASHOFF             0x00100000
+
+#ifdef ARCH_ARM
 #define FLASHSIZE                1//M bytes
 #define FLASHBASE              	(0x30000000)	//ZOT716u2
+#define FLASHBASE_2             (0x30000000)
+#define LOADER_SIZE           	64
+#define CODE1ADDROFF           	0x00010000
+#define CODE1_SIZE              128	
+#define CODE2ADDROFF           	0x00030000
+#define CODE2_SIZE              768
+
 #define SIZEOF_FLASH_SECTOR     16
+#endif /* ARCH_ARM */
+
+#ifdef ARCH_MIPS
+#define FLASHSIZE               2//M bytes
+#define FLASHBASE               (0xBC000000)
+#define FLASHBASE_2             (0xBC100000)
+
+#define LOADER_SIZE           	192
+#define CODE1ADDROFF           	0x00030000
+#define CODE1_SIZE              128	
+#define CODE2ADDROFF           	0x00050000
+#define CODE2_SIZE              1024
+
+#endif /* ARCH_MIPS */
 
 
 //--- LOADER Address for System Variable -----------------------------
 #define OFFSET_LOADER_ADDRESS	FLASHBASE
 #define SECTOR_LOADER_CONFIG	0
-#define NUM_OF_LOD_SECTOR		1
+#ifdef ARCH_ARM
+#define NUM_OF_LOADER_SECTOR	1
+#endif /* ARCH_ARM */
+#ifdef ARCH_MIPS
+#define NUM_OF_LOADER_SECTOR    (LOADER_SIZE / 4)
+#endif /* ARCH_MIPS */
 
 
 //--- EEPROM Address for System Variable -----------------------------
-#define SYS_FLASH_ADDRESS 		(0x300FE000)	//ZOT716u2
+#define SYS_FLASH_ADDRESS 		FLASHBASE_2 + EEPROMADDROFF
 #define SYS_FLASH_SIZE    		8		//8K
 #define NUM_OF_EEP_SECTOR		2
 
@@ -243,7 +278,7 @@ extern unsigned char kFarHeap_base[];
 #define SECTOR_EEPROM_CONFIG	0
 
 //--- Deafult EEP Address for System Variable -----------------------------
-#define DEFAULT_FLASH_ADDRESS	(0x300FC000)	//ZOT716u2
+#define DEFAULT_FLASH_ADDRESS	FLASHBASE_2 + DEFAULTADDROFF
 #define DEFAULT_FLASH_SIZE  	8		//8K
 #define NUM_OF_DEFAULT_SECTOR	2
 
@@ -251,30 +286,26 @@ extern unsigned char kFarHeap_base[];
 #define SECTOR_DEFAULT_CONFIG	0
 
 //--- QC0 Deafult EEP Address for System Variable -----------------------------
-#define QC0_DEF_FLASH_ADDRESS		(0x300FA000)	//ZOT716u2
+#define QC0_DEF_FLASH_ADDRESS   FLASHBASE_2 + QC0ADDROFF
 #define QC0_DEFAULT_FLASH_SIZE  	8		//8K
 #define NUM_OF_QC0_DEFAULT_SECTOR	2
 
 //--- LOADER Start Address -------------------------------------------
-#define LOADER_START_ADDRESS	(0x30000000)	//ZOT716u2
+#define LOADER_START_ADDRESS	FLASHBASE
 #define NUM_OF_LOADER_SECTOR	16
-#define LOADER_START_ADDRESS	(0x30000000)
-#define LOADER_SIZE           	64
 #define SECTOR_LOADER_CONFIG	0
 
 //--- CODE1 Start Address -------------------------------------------
-#define CODE1_START_ADDRESS		(0x30010000)	//ZOT716u2
+#define CODE1_START_ADDRESS		FLASHBASE + CODE1ADDROFF
 #define NUM_OF_CODE1_SECTOR	    32	
-#define CODE1_START_ADDRESS		(0x30010000)
-#define CODE1_SIZE              128	
 #define SECTOR_CODE1_CONFIG		0
 
 //--- CODE2 Start Address ------------------------------------------------
 #define PROGRAM_CODE2_KSIZE		4
-#define CODE2_START_ADDRESS		(0x30030000)	//ZOT716u2
+#define CODE2_START_ADDRESS		FLASHBASE + CODE2ADDROFF
 #define SECTOR_CODE2_CONFIG		0
-#define NUM_OF_CODE2_SECTOR		192//176//144	//128	eason 20100608
-#define CODE2_MAX_SIZE        	768//704//576	//512	eason 20100608
+#define NUM_OF_CODE2_SECTOR		(CODE2_SIZE / PROGRAM_CODE2_KSIZE) //192//176//144
+#define CODE2_MAX_SIZE        	CODE2_SIZE
 
 //--- WEB Start Address ------------------------------------------------
 #define PROGRAM_WEB_KSIZE		4

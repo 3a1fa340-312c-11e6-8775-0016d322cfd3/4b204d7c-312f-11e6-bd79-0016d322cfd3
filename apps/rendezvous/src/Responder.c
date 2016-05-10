@@ -861,15 +861,13 @@ int8 WlanLinkReady(void){
 
 extern cyg_sem_t rendezvous_sem;
 extern int Need_Rendezous_Reload ;
-extern int Network_TCPIP_ON;
+extern cyg_sem_t network_tcpip_on;
 
 /* Rendezvous main */
 //int Rendezous_init(void){
 void Rendezous_init(cyg_addrword_t data){
 
-	while( Network_TCPIP_ON == 0 )
-		ppause(100);
-	
+    cyg_semaphore_wait(&network_tcpip_on);
 	cyg_semaphore_wait(&rendezvous_sem);
 		
 	infList=(mDNSservicesList *) malloc(sizeof( mDNSservicesList));

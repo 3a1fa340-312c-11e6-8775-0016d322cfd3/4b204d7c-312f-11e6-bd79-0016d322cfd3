@@ -59,7 +59,7 @@ static	uint8			TELNET_SERVER_MAIN_Stack[TELNET_SERVER_MAIN_TASK_STACK_SIZE];
 static  cyg_thread		TELNET_SERVER_MAIN_Task;
 static  cyg_handle_t	TELNET_SERVER_MAIN_TaskHdl;
 
-extern int Network_TCPIP_ON;
+extern cyg_sem_t network_tcpip_on;
 
 // ********* External variable **********
 extern  int  QuitMenu;
@@ -111,8 +111,7 @@ void telnetstart(cyg_addrword_t data)
 	char   Buffer[50];
 	int16  clen;
 	
-	while( Network_TCPIP_ON == 0 )
-		ppause(100);
+    cyg_semaphore_wait(&network_tcpip_on);
 	
 	if (telnetlink != -1)
 	 return;

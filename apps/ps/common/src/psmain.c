@@ -74,6 +74,7 @@ uint32 msclock( void )
  */
 int urandom(unsigned int n)
 {
+    if(n == 0) n = 255;
 	return (rand() % n);
 }
 

@@ -165,7 +165,7 @@ static  cyg_handle_t	LpdRecv_TaskHdl[LPRTask];
 uint8	HadLogged = 0;
 #endif SUPPORT_JOB_LOG
 
-extern int Network_TCPIP_ON;
+extern cyg_sem_t network_tcpip_on;
 
 // Start up LPD service
 void lpdstart(cyg_addrword_t data)
@@ -203,8 +203,7 @@ void lpdstart(cyg_addrword_t data)
 		return ;
 	}
 
-	while( Network_TCPIP_ON == 0 )
-		ppause(100);
+    cyg_semaphore_wait(&network_tcpip_on);
 	
 	buf = malloc( BUFFER_SIZE );
 	if( buf == NULL )

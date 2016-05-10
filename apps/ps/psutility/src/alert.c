@@ -34,7 +34,7 @@
 #define 	FILE 					ZOT_FILE
 #define		Fputc(x,y) 				zot_fputc(x,y)
 
-extern int Network_TCPIP_ON;
+extern cyg_sem_t network_tcpip_on;
 
 #ifndef USE_PS_LIBS
 #undef Print_ALERT
@@ -97,8 +97,6 @@ void mail_alert(cyg_addrword_t data)
 {
 	BYTE 	port, status;
 	
-//	while( Network_TCPIP_ON == 0 )
-//		ppause(100);
 	ppause(5000);
 			
 	while (1){
@@ -181,8 +179,7 @@ void smtp_alert(cyg_addrword_t data)
 	//cb->ipdest = resolve(smtpdest);
 	cb->ipdest = 0;
 	
-	while( Network_TCPIP_ON == 0 )
-		ppause(100);
+    cyg_semaphore_wait(&network_tcpip_on);
 
 loop:
 	//while(alertSignal == 0)

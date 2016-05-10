@@ -484,7 +484,7 @@ void NTSendAckEndPrintUDP (BYTE Version, BYTE PrinterID, struct sockaddr_in *fro
 }
 */
 
-extern int Network_TCPIP_ON;
+extern cyg_sem_t network_tcpip_on;
 
 void NTUtilityUDP(cyg_addrword_t data)
 {
@@ -493,8 +493,7 @@ void NTUtilityUDP(cyg_addrword_t data)
 	int fromlen;
 	BYTE Version;
 	
-	while( Network_TCPIP_ON == 0 )
-		ppause(100);
+    cyg_semaphore_wait(&network_tcpip_on);
 	
 	util_sockaddr.sin_family = AF_INET;
 	util_sockaddr.sin_addr.s_addr = htonl (INADDR_ANY);

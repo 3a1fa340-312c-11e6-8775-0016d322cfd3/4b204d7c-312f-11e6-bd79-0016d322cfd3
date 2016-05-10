@@ -1104,7 +1104,7 @@ void httpd_init()
 
 }
 
-extern int Network_TCPIP_ON;
+extern cyg_sem_t network_tcpip_on;
 // Start up http service
 // Usage: "start http [port#] [drive_letter] [root_directory]
 void httpstart (cyg_addrword_t data)
@@ -1116,8 +1116,7 @@ void httpstart (cyg_addrword_t data)
 	uint16 clen;
 	int i=0,j=0;
 	
-	while( Network_TCPIP_ON == 0 )
-		ppause(100);
+    cyg_semaphore_wait(&network_tcpip_on);
 
 	cli();
 	HttpGetMessage();  //9/20/99 added

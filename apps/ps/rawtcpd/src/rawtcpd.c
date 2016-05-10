@@ -20,7 +20,7 @@
 #define  BLOCK_SIZE				1460	//same with TCPIP 'TCP_MSS'
 #define  DEFAULT_PORT			0
 
-extern int Network_TCPIP_ON;
+cyg_sem_t network_tcpip_on;
 
 //os int rawtcpd( int port, void *noused1, void *noused2 )
 void rawtcpd(cyg_addrword_t data)
@@ -36,8 +36,7 @@ void rawtcpd(cyg_addrword_t data)
 	int retrycnt, dataremain;
 	int blocksize = 8192;
 #endif
-	while( Network_TCPIP_ON == 0 )
-		ppause(100);
+    cyg_semaphore_wait(&network_tcpip_on);
 
 	lsocket.sin_family = AF_INET;
 	lsocket.sin_addr.s_addr = htonl (INADDR_ANY);

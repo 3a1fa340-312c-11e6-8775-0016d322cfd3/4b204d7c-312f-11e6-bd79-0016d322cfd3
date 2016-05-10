@@ -27,14 +27,12 @@ extern int nb_init();
 #include "rpc_sec.h"
 #include "rpc_reg.h"
 
-extern int Network_TCPIP_ON;
+extern cyg_sem_t network_tcpip_on;
 
 // void SMBInit()
 void SMBInit(cyg_addrword_t data)
 {
-    while( Network_TCPIP_ON == 0 )
-		ppause(100);
-    
+    cyg_semaphore_wait(&network_tcpip_on);
     nb_init();
     smbmain();
 }

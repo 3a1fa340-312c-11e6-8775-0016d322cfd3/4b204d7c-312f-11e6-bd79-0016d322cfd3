@@ -73,7 +73,7 @@
 extern void ecosglue_init(void);
 #endif
 
-int Network_TCPIP_ON;
+cyg_sem_t network_tcpip_on;
 
 // =============================================================================================================
 // copy from zot_tcpip 
@@ -255,8 +255,7 @@ void dhcp_init(cyg_addrword_t arg)
 	uint no_timeout = 1;
 	int need_LinkLocal = 1;
 	
-	while( Network_TCPIP_ON == 0 )
-		ppause(100);
+    cyg_semaphore_wait(&network_tcpip_on);
 	
 //ZOTIPS	dhcp_start(WLanface);
 	dhcp_start(Lanface);	//ZOTIPS
@@ -449,6 +448,8 @@ zot_network_init(void)
 #endif
 
 	static int inited = 0;
+    cyg_semaphore_init(&network_tcpip_on, 0);
+
 	sys_sem_t sem;
 	if (inited)
 		return 1;
@@ -466,7 +467,7 @@ zot_network_init(void)
 	sys_sem_wait(sem);
 	sys_sem_free(sem);
 
-    Network_TCPIP_ON = 1;
+    cyg_semaphore_post(&network_tcpip_on);
 
 #if 0 //LWIP_HAVE_LOOPIF
 	IP4_ADDR(&gw, 127,0,0,1);

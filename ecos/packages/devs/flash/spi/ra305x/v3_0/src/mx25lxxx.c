@@ -677,7 +677,7 @@ static int raspi_wait_ready(int sleep_ms)
 	int count;
 	int sr;
 
-	udelay(1000 * sleep_ms);
+	//udelay(1000 * sleep_ms);
 
 	/* one chip guarantees max 5 msec wait here after page writes,
 	 * but potentially three seconds (!) after page erase.
@@ -999,7 +999,7 @@ static int mx25lxxx_program(struct cyg_flash_dev *dev, cyg_flashaddr_t base, con
 		data = (const void *)((char *)data+page_size);
 	}
 	raspi_wait_ready(100);
-	printf("\n");
+	//printf("\n");
 	retval = CYG_FLASH_ERR_OK;
 	return retval;
 }
@@ -1023,7 +1023,7 @@ CYG_FLASH_DRIVER(
 	&cyg_devs_flash_spi_mx25lxxx_funs,
 	0,
 	0,
-	0x400000,
+	0x200000,
 	1,
 	mx25l160_blk,
 	NULL

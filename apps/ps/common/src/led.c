@@ -77,6 +77,7 @@ void LED_Init(void)
 
 void Light_On(unsigned char LED)
 {
+#ifdef ARCH_ARM
 	unsigned int value;
 	
 	value = GPIOA_DATA_INPUT_REG;
@@ -111,10 +112,12 @@ void Light_On(unsigned char LED)
 			break;
 		}
 	GPIOA_DATA_OUTPUT_REG = value;
+#endif /* ARCH_ARM */
 }
 
 void Light_Off(unsigned char LED)
 {
+#ifdef ARCH_ARM
 	unsigned int value;
 	
 	value = GPIOA_DATA_INPUT_REG;
@@ -142,6 +145,7 @@ void Light_Off(unsigned char LED)
 			break;
 		}
 	GPIOA_DATA_OUTPUT_REG = value;
+#endif /* ARCH_ARM */
 }
 
 //// ----  LED ON Forever -----

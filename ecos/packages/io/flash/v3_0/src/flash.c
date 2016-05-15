@@ -512,7 +512,7 @@ cyg_flash_erase(cyg_flashaddr_t flash_base,
   block         = flash_block_begin(flash_base, dev);
   erase_count   = (end_addr + 1) - block;
 
-  CHATTER(dev, "... Erase from %p-%p: ", (void*)block, (void*)end_addr);
+  //CHATTER(dev, "... Erase from %p-%p: ", (void*)block, (void*)end_addr);
   
   HAL_FLASH_CACHES_OFF(d_cache, i_cache);
   FLASH_Enable(flash_base, end_addr);
@@ -553,7 +553,7 @@ cyg_flash_erase(cyg_flashaddr_t flash_base,
   }
   FLASH_Disable(flash_base, end_addr);
   HAL_FLASH_CACHES_ON(d_cache, i_cache);
-  CHATTER(dev, "\n");
+  //CHATTER(dev, "\n");
   
   HAL_RESTORE_INTERRUPTS(old_ints);
   UNLOCK(dev);
@@ -611,7 +611,7 @@ cyg_flash_program(cyg_flashaddr_t flash_base,
       offset = addr - block;
   }
   
-  CHATTER(dev, "... Program from %p-%p to %p: ", ram_base, ((CYG_ADDRESS)ram_base)+write_count, addr);
+  //CHATTER(dev, "... Program from %p-%p to %p: ", ram_base, ((CYG_ADDRESS)ram_base)+write_count, addr);
   
   HAL_FLASH_CACHES_OFF(d_cache, i_cache);
   FLASH_Enable(flash_base, end_addr);
@@ -646,7 +646,7 @@ cyg_flash_program(cyg_flashaddr_t flash_base,
   }
   FLASH_Disable(flash_base, end_addr);
   HAL_FLASH_CACHES_ON(d_cache, i_cache);
-  CHATTER(dev, "\n");
+  //CHATTER(dev, "\n");
   
   HAL_RESTORE_INTERRUPTS(old_ints);
   UNLOCK(dev);

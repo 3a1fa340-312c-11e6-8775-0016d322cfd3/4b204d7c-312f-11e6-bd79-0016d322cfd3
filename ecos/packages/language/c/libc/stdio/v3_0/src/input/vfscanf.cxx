@@ -177,6 +177,7 @@ __sccl (char *tab, u_char *fmt);
 typedef int (*mbtowc_fn_type)(wchar_t *, const char *, size_t, int *);
 externC mbtowc_fn_type __get_current_locale_mbtowc_fn();
 #endif
+externC int  diag_printf( const char *fmt, ... ) CYGBLD_ATTRIB_PRINTF_FORMAT(1,2); 
 
 externC int
 vfscanf (FILE *fp, const char *fmt0, va_list ap) __THROW
@@ -779,10 +780,11 @@ literal:
                 *p = 0;
 		
 #ifdef CYGFUN_LIBC_STDIO_LONGLONG
-		if (flags & LONGDBL)
+		if ((flags & LONGDBL) && ccfnL)
 		  res = (*ccfnL) (buf, (char **) NULL, base);
 		else
 #endif
+		if(ccfn)	
 		  res = (*ccfn) (buf, (char **) NULL, base);
 
                 if (flags & POINTER)
@@ -989,7 +991,10 @@ __sccl (char *tab, u_char *fmt)
     v = 1 - v;
     for (;;)
     {
+    	if(c < 256)
         tab[c] = v;             /* take character c */
+		else
+			diag_printf("__sccl array overflow!\n");
     doswitch:
         n = *fmt++;             /* and examine the next */
         switch (n)
@@ -1021,7 +1026,10 @@ __sccl (char *tab, u_char *fmt)
             fmt++;
             do
             {                   /* fill in the range */
+            	if(c < 255)
                 tab[++c] = v;
+				else
+					diag_printf("__sccl array overflow 2!\n");
             }
             while (c < n);
 #if 1                   /* XXX another disgusting compatibility hack */

@@ -20,7 +20,9 @@
 #define  BLOCK_SIZE				1460	//same with TCPIP 'TCP_MSS'
 #define  DEFAULT_PORT			0
 
-cyg_sem_t network_tcpip_on;
+#ifdef ARCH_ARM
+extern int Network_TCPIP_ON;
+#endif /* ARCH_ARM */
 
 //os int rawtcpd( int port, void *noused1, void *noused2 )
 void rawtcpd(cyg_addrword_t data)
@@ -36,7 +38,11 @@ void rawtcpd(cyg_addrword_t data)
 	int retrycnt, dataremain;
 	int blocksize = 8192;
 #endif
-    cyg_semaphore_wait(&network_tcpip_on);
+
+#ifdef ARCH_ARM
+    while (Network_TCPIP_ON == 0)
+        ppause (100);
+#endif /* ARCH_ARM */
 
 	lsocket.sin_family = AF_INET;
 	lsocket.sin_addr.s_addr = htonl (INADDR_ANY);

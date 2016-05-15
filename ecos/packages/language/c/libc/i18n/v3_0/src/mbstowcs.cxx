@@ -150,6 +150,8 @@ mbstowcs ( wchar_t *pwcs, const char *s, size_t n )
   if (s != NULL)
     CYG_CHECK_DATA_PTR( s, "s is not a valid pointer!" );
   
+  if(pwcs == NULL || s == NULL)
+	return 0;
 #ifdef CYGINT_LIBC_I18N_MB_REQUIRED  
 
   CYG_TRACE2( TL1, "Retrieved mbstowcs_last address %08x containing %d",

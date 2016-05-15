@@ -237,6 +237,11 @@ read_ebr(disk_channel *chan,cyg_disk_partition_t *part)
     cyg_disk_partition_t *oldpart,*newpart=part;
     D(("read EBR\n"));
     
+	if (buf == NULL)
+		{
+		diag_printf("%s:%d malloc fail\n",__FUNCTION__,__LINE__);
+		return -1;
+		}
     while(1)
     {
         cyg_drv_mutex_lock( &ctlr->lock );
@@ -321,6 +326,11 @@ read_mbr(disk_channel *chan)
 
     D(("read MBR\n"));
     
+	if (buf == NULL)
+		{
+		diag_printf("%s:%d malloc fail\n",__FUNCTION__,__LINE__);
+		return -1;
+		}
     for (i = 0; i < info->partitions_num; i++)
         info->partitions[i].type = 0x00;  
 

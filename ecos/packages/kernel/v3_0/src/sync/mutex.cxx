@@ -522,6 +522,7 @@ char* Cyg_Mutex::queue_highpri_thread_name()
     CYG_ASSERTCLASS( this, "Bad this pointer");
 	if( !queue.empty() ) 
 	{
+		if( queue.highpri() )
 		return (queue.highpri())->get_name(); 
 	}
 	else

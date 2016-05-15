@@ -455,8 +455,8 @@ externC void hal_idle_thread_action(cyg_uint32 loop_count);
 // No separate interrupt stack exists.  Make sure all threads contain
 // a stack sufficiently large.
 
-#define CYGNUM_HAL_STACK_SIZE_MINIMUM (4096)
-#define CYGNUM_HAL_STACK_SIZE_TYPICAL (4096)
+#define CYGNUM_HAL_STACK_SIZE_MINIMUM (1024)
+#define CYGNUM_HAL_STACK_SIZE_TYPICAL (1024)
 
 #endif
 

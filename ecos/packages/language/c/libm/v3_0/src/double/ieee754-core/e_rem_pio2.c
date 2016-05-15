@@ -170,7 +170,7 @@ pio2_3t =  8.47842766036889956997e-32; /* 0x397B839A, 0x252049C1 */
             fn = (double)n;
             r  = t-fn*pio2_1;
             w  = fn*pio2_1t;    /* 1st round good to 85 bit */
-            if(n<32&&ix!=npio2_hw[n-1]) {       
+            if(n>0 && n<32&&ix!=npio2_hw[n-1]) {       
                 y[0] = r-w;     /* quick check no cancellation */
             } else {
                 j  = ix>>20;

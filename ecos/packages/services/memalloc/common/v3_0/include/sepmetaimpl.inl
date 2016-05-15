@@ -485,6 +485,7 @@ Cyg_Mempool_Sepmeta_Implementation::resize_alloc( cyg_uint8 *alloc_ptr,
     struct memdq *dq=find_alloced_dq( alloc_ptr );
     CYG_ASSERT( dq != NULL, "passed address not previously alloced");
     
+    if(dq == NULL) {diag_printf("passed address not previously alloced");return NULL;}
     currsize = origsize = dq->memnext->mem - dq->mem;
     if ( NULL != oldsize )
         *oldsize = currsize;

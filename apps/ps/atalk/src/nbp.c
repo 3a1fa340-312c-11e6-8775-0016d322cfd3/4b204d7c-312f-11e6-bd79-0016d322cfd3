@@ -181,7 +181,8 @@ void nbp_input(cyg_addrword_t _data)
 
 //	for(i= 0 ; i < NUM_OF_PRN_PORT; i++) nbp_socket[i] = GetATport();
 
-    cyg_semaphore_wait(&ATD_INIT_OK);
+    while (!ATD_INIT_OK)
+        cyg_thread_yield();
 
 	if((s = socket2( AF_APPLETALK, SOCK_DGRAM, 0 )) < 0) {
 #ifdef PC_OUTPUT

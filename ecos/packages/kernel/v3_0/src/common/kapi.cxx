@@ -342,8 +342,13 @@ cyg_bool_t cyg_thread_get_next( cyg_handle_t *current, cyg_uint16 *id ) __THROW
     if( *current == 0 )
     {
         thread = Cyg_Thread::get_list_head();
+		if(thread == NULL) 
+			result = false;
+		else
+			{	
         *current = (cyg_handle_t)thread;
         *id = thread->get_unique_id();
+    }
     }
     else if( (thread->get_unique_id() == *id) &&
              (thread = thread->get_list_next()) != NULL )
@@ -999,6 +1004,10 @@ externC void cyg_semaphore_peek( cyg_sem_t *sem, cyg_count32 *val ) __THROW
     *val = ((Cyg_Counting_Semaphore *)sem)->peek();
 }
 
+externC bool cyg_semaphore_waiting( cyg_sem_t *sem) __THROW
+{
+    return ((Cyg_Counting_Semaphore *)sem)->waiting();
+}
 
 /*---------------------------------------------------------------------------*/
 /* Flags                                                                     */

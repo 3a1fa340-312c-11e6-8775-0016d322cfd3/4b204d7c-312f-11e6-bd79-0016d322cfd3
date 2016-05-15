@@ -254,6 +254,7 @@ ipflow_reap(
 	/*
 	 * Remove the entry from the flow table.
 	 */
+	if(ipf == NULL) return NULL;
 	s = splimp();
 	LIST_REMOVE(ipf, ipf_next);
 	splx(s);

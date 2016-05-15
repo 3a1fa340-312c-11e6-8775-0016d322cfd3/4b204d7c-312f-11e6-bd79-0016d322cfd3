@@ -702,7 +702,7 @@ static int mx25lxxx_erase_sector(struct cyg_flash_dev *dev, cyg_flashaddr_t bloc
 	cyg_uint8 buf[4];
 	int retval = CYG_FLASH_ERR_INVALID;
 
-	diag_printf("%s: addr:%x\n", __func__, block_base);
+	//diag_printf("%s: addr:%x\n", __func__, block_base);
 
 	/* Wait until finished previous write command. */
 	if (raspi_wait_ready(3))
@@ -829,7 +829,7 @@ static int mx25lxxx_read(struct cyg_flash_dev *dev, const cyg_flashaddr_t base, 
 	int retval = CYG_FLASH_ERR_INVALID;
 	cyg_flashaddr_t base_tmp = base;
 
-	ra_dbg("%s: addr:%x len:%d \n", __func__, base, len);
+	//ra_dbg("%s: addr:%x len:%d \n", __func__, base, len);
 
 	/* sanity checks */
 	if (len == 0)
@@ -906,7 +906,7 @@ static int mx25lxxx_program(struct cyg_flash_dev *dev, cyg_flashaddr_t base, con
 #endif
 
 
-	diag_printf("%s: addr:%x len:%d \n", __func__, base, len);
+	//diag_printf("%s: addr:%x len:%d \n", __func__, base, len);
 
 	/* sanity checks */
 	if (len == 0)

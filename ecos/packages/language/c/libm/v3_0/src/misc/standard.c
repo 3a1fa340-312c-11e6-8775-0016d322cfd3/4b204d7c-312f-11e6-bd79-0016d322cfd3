@@ -159,7 +159,7 @@ static const double zero = 0.0;
 double
 __kernel_standard(double x, double y, int type) 
 {
-        struct exception exc;
+        struct exception exc ={0};
 
 #ifdef CYGSEM_LIBM_USE_STDERR
         (void) fflush(stdout);

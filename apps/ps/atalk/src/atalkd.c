@@ -6,6 +6,7 @@
 #include "eeprom.h"
 
 extern void papd_init(void);
+uint32 ATD_INIT_OK = 0;
 uint8 ZIP_NEED_WAIT = 0;	//615wu
 
 //atalkd_init();
@@ -20,7 +21,6 @@ void atalkd_init(cyg_addrword_t data)
 	uint8 probe_ok = 0;
 //Jesse modify 2008/2/18
     ppause(5000);	//615wu
-
 //	strcpy(at_iface.zonename, EEPROM_Data.ATZoneName);	//4/23/99 get from ZIP.C
 
 	at_iface.my.s_net = EEPROM_Data.ATNet;
@@ -43,5 +43,5 @@ void atalkd_init(cyg_addrword_t data)
 	zip_info_query(&ZIP_NEED_WAIT);
 
 	papd_init();
-    cyg_semaphore_post(&ATD_INIT_OK);
+    ATD_INIT_OK = 1;
 }

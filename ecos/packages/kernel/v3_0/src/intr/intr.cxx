@@ -145,7 +145,7 @@ Cyg_Interrupt* volatile Cyg_Interrupt::dsr_list_tail[CYGNUM_KERNEL_CPU_MAX];
 
 #endif
 
-unsigned int thread_ID=0xffff;
+//unsigned int thread_ID=0xffff;
 
 // -------------------------------------------------------------------------
 // Call any pending DSRs
@@ -170,7 +170,7 @@ Cyg_Interrupt::call_pending_DSRs_inner(void)
         CYG_INSTRUMENT_INTR(CALL_DSR, intr->vector, 0);
         
         CYG_ASSERT( intr->dsr != NULL , "No DSR defined");
-		thread_ID=(unsigned int)intr->dsr;
+		//thread_ID=(unsigned int)intr->dsr;
         intr->dsr( intr->vector, 1, (CYG_ADDRWORD)intr->data );
     }
     

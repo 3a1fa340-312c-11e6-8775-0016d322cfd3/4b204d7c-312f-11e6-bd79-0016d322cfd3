@@ -188,7 +188,7 @@ strptime (const char *buf, const char *format, struct tm *timeptr)
 
     for (; (c = *format) != '\0'; ++format) {
 	char *s;
-	int ret;
+	int ret = 0;
 
 	if (isspace (c)) {
 	    while (isspace (*buf))

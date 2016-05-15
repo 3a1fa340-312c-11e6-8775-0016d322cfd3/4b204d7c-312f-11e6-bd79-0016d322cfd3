@@ -143,7 +143,7 @@ cyg_pci_get_device_info ( cyg_pci_device_id devid, cyg_pci_device *dev_info )
     if ((dev_info->command & CYG_PCI_CFG_COMMAND_ACTIVE) == 0) {
 
         bar_count = 0;
-        for (i = 0; i < dev_info->num_bars; i++){
+        for (i = 0; i < dev_info->num_bars && i < 5; i++){
             cyg_uint32 size;
 
             if (CYG_PCI_IGNORE_BAR(dev_info, i))
@@ -193,7 +193,7 @@ cyg_pci_get_device_info ( cyg_pci_device_id devid, cyg_pci_device *dev_info )
 	cyg_uint32 bar;
 
         bar_count = 0;
-        for (i = 0; i < dev_info->num_bars; i++){
+        for (i = 0; i < dev_info->num_bars && i < 5; i++){
 
 	    dev_info->base_size[i] = 0;
 
@@ -666,7 +666,7 @@ cyg_pci_configure_device( cyg_pci_device *dev_info )
 	return true;
 
     if (dev_info->num_bars > 0) {
-        for (bar = 0; bar < CYG_PCI_MAX_BAR; bar++) {
+        for (bar = 0; bar < CYG_PCI_MAX_BAR - 1; bar++) {
             if (!dev_info->base_size[bar]) {
                 continue;
             }

@@ -28,8 +28,6 @@
 #undef TELNETD
 #endif /* !USE_PS_LIBS */
 
-cyg_sem_t ATD_INIT_OK;
-
 /////////////////////////Utility/////////////////////////////////////////
 inline void sti(void)
 {
@@ -483,7 +481,7 @@ static cyg_handle_t     NTUDP_TaskHdl;
 //615wu::No PSMain
 //NovellPSMAIN Task create information definition
 #define NovellPSMAIN_TASK_PRI         20	//ZOT716u2
-#define NovellPSMAIN_TASK_STACK_SIZE	1024
+#define NovellPSMAIN_TASK_STACK_SIZE    2048	
 static uint8 			NovellPSMAIN_Stack[NovellPSMAIN_TASK_STACK_SIZE];
 static cyg_thread       NovellPSMAIN_Task;
 static cyg_handle_t     NovellPSMAIN_TaskHdl;
@@ -526,42 +524,42 @@ static  cyg_handle_t	Rawtcpd_TaskHdl;
 
 //SMBInit Thread initiation information
 #define SMBInit_TASK_PRI         	20	//ZOT716u2
-#define SMBInit_TASK_STACK_SIZE  	1024 //ZOT716u2 3072
+#define SMBInit_TASK_STACK_SIZE  	4096 //ZOT716u2 3072
 static	uint8			SMBInit_Stack[SMBInit_TASK_STACK_SIZE];
 static  cyg_thread		SMBInit_Task;
 static  cyg_handle_t	SMBInit_TaskHdl;
 
 //ATD Thread initiation information
 #define ATD_TASK_PRI         	20	//ZOT716u2
-#define ATD_TASK_STACK_SIZE  	2048 //ZOT716u2 3852
+#define ATD_TASK_STACK_SIZE  	4096 //ZOT716u2 3852
 static	uint8			ATD_Stack[ATD_TASK_STACK_SIZE];
 static  cyg_thread		ATD_Task;
 static  cyg_handle_t	ATD_TaskHdl;
 
 //PAPD1 Thread initiation information
 #define PAPD1_TASK_PRI         	20	//ZOT716u2
-#define PAPD1_TASK_STACK_SIZE  	1024 //ZOT716u2 8192
+#define PAPD1_TASK_STACK_SIZE  	8192 //ZOT716u2 8192
 static	uint8			PAPD1_Stack[PAPD1_TASK_STACK_SIZE];
 static  cyg_thread		PAPD1_Task;
 static  cyg_handle_t	PAPD1_TaskHdl;
 
 //AEP Thread initiation information
 #define AEP_TASK_PRI         	20	//ZOT716u2
-#define AEP_TASK_STACK_SIZE  	2048 //ZOT716u2 8192
+#define AEP_TASK_STACK_SIZE  	8192 //ZOT716u2 8192
 static	uint8			AEP_Stack[AEP_TASK_STACK_SIZE];
 static  cyg_thread		AEP_Task;
 static  cyg_handle_t	AEP_TaskHdl;
 
 //NBP Thread initiation information
 #define NBP_TASK_PRI         	20	//ZOT716u2
-#define NBP_TASK_STACK_SIZE  	2048 //ZOT716u2 8192
+#define NBP_TASK_STACK_SIZE  	8192 //ZOT716u2 8192
 static	uint8			NBP_Stack[NBP_TASK_STACK_SIZE];
 static  cyg_thread		NBP_Task;
 static  cyg_handle_t	NBP_TaskHdl;
 
 //ZIP Thread initiation information
 #define ZIP_TASK_PRI         	20	//ZOT716u2
-#define ZIP_TASK_STACK_SIZE  	1024 //ZOT716u2 10240
+#define ZIP_TASK_STACK_SIZE  	10240 //ZOT716u2 10240
 static	uint8			ZIP_Stack[ZIP_TASK_STACK_SIZE];
 static  cyg_thread		ZIP_Task;
 static  cyg_handle_t	ZIP_TaskHdl;
@@ -663,6 +661,7 @@ void ps_init(void)
 
 #ifdef SMBD
 #if !defined(N716U2S) && !defined(O_ELEC)
+#if 1
 	//Create SMBInit Thread
 	if(PSMode & PS_SMB_MODE)
 	{
@@ -678,6 +677,7 @@ void ps_init(void)
 		//Start SMBInit Thread
 		cyg_thread_resume(SMBInit_TaskHdl);
 	}
+#endif /* 0 */
 #endif	// !defined(N716U2S) && !defined(O_ELEC)
 #endif SMBD
 
@@ -732,10 +732,9 @@ void ps_init(void)
 	if(PSMode & PS_ATALK_MODE)
 #endif	// defined(O_ZOTCH)
 	{
-        cyg_semaphore_init(&ATD_INIT_OK, 0);
 
 		//Create ATD Thread
-	    cyg_thread_create(ATD_TASK_PRI,
+	    cyg_thread_create( ATD_TASK_PRI,
 	                  atalkd_init,
 	                  0,
 	                  "ATD",
@@ -746,7 +745,7 @@ void ps_init(void)
 		
 		//Start ATD Thread
 		cyg_thread_resume(ATD_TaskHdl);
-		
+
 		//Create PAPD1 Thread
 	    cyg_thread_create(PAPD1_TASK_PRI,
 	                  papd,
@@ -759,7 +758,6 @@ void ps_init(void)
 		
 		//Start PAPD1 Thread
 		cyg_thread_resume(PAPD1_TaskHdl);
-	
 
 		//Create AEP Thread
 	    cyg_thread_create(AEP_TASK_PRI,
@@ -773,7 +771,7 @@ void ps_init(void)
 		
 		//Start AEP Thread
 		cyg_thread_resume(AEP_TaskHdl);
-		
+	
 		//Create NBP Thread
 	    cyg_thread_create(NBP_TASK_PRI,
 	                  nbp_input,
@@ -786,7 +784,7 @@ void ps_init(void)
 		
 		//Start NBP Thread
 		cyg_thread_resume(NBP_TaskHdl);
-		
+
 		ZIP_WAIT = 1;
 		
 		//Create ZIP Thread

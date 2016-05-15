@@ -27,12 +27,18 @@ extern int nb_init();
 #include "rpc_sec.h"
 #include "rpc_reg.h"
 
-extern cyg_sem_t network_tcpip_on;
+#ifdef ARCH_ARM
+extern int Network_TCPIP_ON;
+#endif /* ARCH_ARM */
 
 // void SMBInit()
 void SMBInit(cyg_addrword_t data)
 {
-    cyg_semaphore_wait(&network_tcpip_on);
+#ifdef ARCH_ARM
+    while (Network_TCPIP_ON == 0)
+        ppause (100);
+#endif /* ARCH_ARM */
+
     nb_init();
     smbmain();
 }

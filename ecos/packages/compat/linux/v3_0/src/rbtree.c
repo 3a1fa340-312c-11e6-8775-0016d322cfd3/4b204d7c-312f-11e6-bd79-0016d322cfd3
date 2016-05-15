@@ -326,7 +326,7 @@ void rb_erase(struct rb_node *elm, struct rb_root *head)
 	} else
 		RB_HEAD(head) = child;
 color:
-	if (color == RB_BLACK)
+	if (color == RB_BLACK && parent)
 		rb_remove_color(head, parent, child);
 }
 

@@ -165,7 +165,9 @@ static  cyg_handle_t	LpdRecv_TaskHdl[LPRTask];
 uint8	HadLogged = 0;
 #endif SUPPORT_JOB_LOG
 
-extern cyg_sem_t network_tcpip_on;
+#ifdef ARCH_ARM
+extern int Network_TCPIP_ON;
+#endif /* ARCH_ARM */
 
 // Start up LPD service
 void lpdstart(cyg_addrword_t data)
@@ -203,8 +205,11 @@ void lpdstart(cyg_addrword_t data)
 		return ;
 	}
 
-    cyg_semaphore_wait(&network_tcpip_on);
-	
+#ifdef ARCH_ARM
+    while (Network_TCPIP_ON == 0)
+        ppause (100);
+#endif /* ARCH_ARM */
+
 	buf = malloc( BUFFER_SIZE );
 	if( buf == NULL )
 		return ;

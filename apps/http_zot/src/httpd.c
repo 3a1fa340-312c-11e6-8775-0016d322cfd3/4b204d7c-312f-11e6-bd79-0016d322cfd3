@@ -1101,10 +1101,11 @@ void httpd_init()
 		cyg_thread_resume(IPPD_Start_TaskHdl);
 	}
 #endif
-
 }
 
-extern cyg_sem_t network_tcpip_on;
+#ifdef ARCH_ARM
+extern int Network_TCPIP_ON;
+#endif /* ARCH_ARM */
 // Start up http service
 // Usage: "start http [port#] [drive_letter] [root_directory]
 void httpstart (cyg_addrword_t data)
@@ -1116,7 +1117,10 @@ void httpstart (cyg_addrword_t data)
 	uint16 clen;
 	int i=0,j=0;
 	
-    cyg_semaphore_wait(&network_tcpip_on);
+#ifdef ARCH_ARM
+    while(Network_TCPIP_ON == 0)
+        ppause(100);
+#endif /* ARCH_ARM */
 
 	cli();
 	HttpGetMessage();  //9/20/99 added

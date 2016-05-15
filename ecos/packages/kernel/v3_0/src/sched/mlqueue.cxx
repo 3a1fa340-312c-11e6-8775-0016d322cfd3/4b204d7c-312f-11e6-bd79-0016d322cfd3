@@ -847,7 +847,10 @@ Cyg_ThreadQueue_Implementation::dequeue(void)
 void
 Cyg_ThreadQueue_Implementation::remove( Cyg_Thread *thread )
 {
+    if (thread) {
+
     CYG_REPORT_FUNCTION();
+
     CYG_REPORT_FUNCARG1("thread=%08x", thread);
 
     CYG_INSTRUMENT_MLQ( REMOVE, this, thread );
@@ -857,6 +860,9 @@ Cyg_ThreadQueue_Implementation::remove( Cyg_Thread *thread )
     Cyg_CList_T<Cyg_Thread>::remove( thread );
 
     CYG_REPORT_RETURN();
+    }
+    else
+        diag_printf("termy say, %s -> catch NULL\n", __FUNCTION__);
 }
 
 // -------------------------------------------------------------------------

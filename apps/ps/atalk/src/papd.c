@@ -106,8 +106,8 @@ void papd(cyg_addrword_t data)
 #ifdef _PC
 	//Get PPD File Name
 #endif _PC
-
-    cyg_semaphore_wait(&ATD_INIT_OK);
+    while (!ATD_INIT_OK) 
+        cyg_thread_yield();
 
 	//*
 	//* Begin accepting connections.

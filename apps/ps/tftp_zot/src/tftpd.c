@@ -308,7 +308,9 @@ BYTE SendPrintTestData (int Port)
 	return(PRINTER_FREE);
 }
 
-extern cyg_sem_t network_tcpip_on;
+#ifdef ARCH_ARM
+extern int Network_TCPIP_ON;
+#endif /* ARCH_ARM */
 
 //void tftpd(int nouse,void *nouse1,void *nouse2)
 void tftpd(cyg_addrword_t data)
@@ -321,7 +323,10 @@ void tftpd(cyg_addrword_t data)
 	struct timeval rcv_timeout;
 	char buf[500] = {0};
 
-    cyg_semaphore_wait(&network_tcpip_on);
+#ifdef ARCH_ARM
+    while (Netowkr_TCPIP_ON == 0)
+        ppause (100);
+#endif /* ARCH_ARM */
 
 	tftpd_lsocket.sin_family = AF_INET;
 	tftpd_lsocket.sin_addr.s_addr = htonl(INADDR_ANY);

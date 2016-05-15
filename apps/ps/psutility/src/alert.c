@@ -34,7 +34,9 @@
 #define 	FILE 					ZOT_FILE
 #define		Fputc(x,y) 				zot_fputc(x,y)
 
-extern cyg_sem_t network_tcpip_on;
+#ifdef ARCH_ARM
+extern int Network_TCPIP_ON;
+#endif /* ARCH_ARM */
 
 #ifndef USE_PS_LIBS
 #undef Print_ALERT
@@ -179,7 +181,10 @@ void smtp_alert(cyg_addrword_t data)
 	//cb->ipdest = resolve(smtpdest);
 	cb->ipdest = 0;
 	
-    cyg_semaphore_wait(&network_tcpip_on);
+#ifdef ARCH_ARM
+    while (Network_TCPIP_ON == 0)
+        ppause (100);
+#endif /* ARCH_ARM */
 
 loop:
 	//while(alertSignal == 0)

@@ -148,9 +148,17 @@ wcstombs ( char *s, const wchar_t *pwcs, size_t n )
   CYG_REPORT_FUNCARG3( "s=%08x, pwcs=%08x, n=%ud", s, pwcs, n );
 
   if (s != NULL)
+  {
     CYG_CHECK_DATA_PTR( s, "s is not a valid pointer!" );
+  }	
+  else
+  	return -1;
   if (pwcs != NULL)
+  {
     CYG_CHECK_DATA_PTR( pwcs, "pwcs is not a valid pointer!" );
+  }
+  else
+  	return -1;
   
 #ifdef CYGINT_LIBC_I18N_MB_REQUIRED  
 

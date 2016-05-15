@@ -9,7 +9,7 @@
 #include "nbp.h"
 #include "aep.h"
 
-extern cyg_sem_t ATD_INIT_OK;
+extern uint32 ATD_INIT_OK;
 #define bcopy(x,y,z)  memcpy((y),(x),(z))
 #define mtod(m,t) ((t)((m)->data))	//615wu
 

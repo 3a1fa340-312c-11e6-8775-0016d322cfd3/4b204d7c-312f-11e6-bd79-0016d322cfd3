@@ -33,6 +33,7 @@ static cyg_handle_t thread_handle;
 
 void cyg_net_init(void);
 int flsh_init (void);
+void WLan_get_EEPData (void);
 
 void zotmain( void )
 //void zotmain(cyg_addrword_t p)
@@ -42,6 +43,7 @@ void zotmain( void )
     flsh_init();
 
     EEPROMInit();
+    WLan_get_EEPData(); 
 
     zot_network_init();
     

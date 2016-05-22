@@ -25,6 +25,8 @@
 
 #include "rt_config.h"
 
+extern unsigned char WirelessInitFailed;
+PNET_DEV g_wireless_dev = NULL;
 
 /*
 ========================================================================
@@ -163,6 +165,9 @@ int rt28xx_open(IN VOID *dev)
 	else
 #endif /* SECOND_WIFI */
 		cyg_drv_interrupt_unmask(RTMP_INTERRUPT_INIC);
+
+    g_wireless_dev = net_dev;
+    WirelessInitFailed = 0;
 
 	return (retval);
 

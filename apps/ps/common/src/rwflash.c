@@ -583,6 +583,10 @@ int vProgramCFG( EEPROM *pDefData, uint32 length)
 }
 #endif	// CFG_EXPIMP
 
+#ifdef ARCH_MIPS
+void hal_ra305x_reset(void);
+#endif /* ARCH_MIPS */
+
 void Reset(void)
 {
 #ifdef ARCH_ARM
@@ -590,6 +594,9 @@ void Reset(void)
 	cyg_interrupt_disable();
 	HAL_PWRMGT_GLOBAL_SOFTWARE_RESET();	//ZOT716u2
 #endif /* ARCH_ARM */
+#ifdef ARCH_MIPS
+    hal_ra305x_reset();
+#endif /* ARCH_MIPS */
 }
 
 unsigned long PSCheckImageIntegrity(HEADER_VER *hdr1){

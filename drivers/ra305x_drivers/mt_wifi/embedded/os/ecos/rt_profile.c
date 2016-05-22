@@ -35,6 +35,7 @@
 #ifdef BRANCH_ADV
 extern unsigned char *wlanbuf;
 #else /* !BRANCH_ADV */
+/*
 static PUCHAR nv_buffer = 
 "#The word of \"Default\" must not be removed\n"
 "Default\n"
@@ -172,6 +173,7 @@ static PUCHAR nv_buffer =
 "pppoeREnabled=0\n"
 "RDRegion=JAP\n"
 ;
+*/
 #endif /* BRANCH_ADV */
 struct dev_type_name_map{
 	INT type;
@@ -255,13 +257,17 @@ static UCHAR *get_dev_profile(RTMP_ADAPTER *pAd)
 
 
 
+char* WLan_config ();
 
 NDIS_STATUS	RTMPReadParametersHook(
 	IN	PRTMP_ADAPTER pAd)
 {
 
 #ifndef BRANCH_ADV
+    /*
     unsigned char *wlanbuf = nv_buffer;
+    */
+    unsigned char *wlanbuf = WLan_config();
 #endif
 
 #ifdef DOT1X_SUPPORT
@@ -278,6 +284,10 @@ NDIS_STATUS	RTMPReadParametersHook(
 			RTMPSetProfileParameters(pAd, (PSTRING)wlanbuf);
 			diag_printf("RTMPReadParametersHook->first wifi\n");
 		}	
+    
+    if (wlanbuf)
+        free (wlanbuf);
+    
 
 #ifdef SINGLE_SKU_V2
 			RTMPSetSingleSKUParameters(pAd);

@@ -699,8 +699,7 @@ $(MOD_NAME)-objs += \
 	../../common/rt_os_util.o\
 	../../os/ecos/sta_ioctl.o\
 	../../os/ecos/rt_ecos.o\
-	../../os/ecos/rt_main_dev.o \
-	../../os/ecos/wlanif.o
+	../../os/ecos/rt_main_dev.o 
 
 ifeq ($(HAS_SNIFFER_SUPPORT),y)
 $(MOD_NAME)-objs += \
@@ -931,6 +930,7 @@ endif
 
 $(MOD_NAME)-objs += ../../../mbuf/uipc_mbuf.o
 $(MOD_NAME)-objs += ../../os/ecos/support.o
+$(MOD_NAME)-objs += ../../os/ecos/wlanif.o
 #$(MOD_NAME)-objs += ../../../mbuf/uipc_domain.o
 
 

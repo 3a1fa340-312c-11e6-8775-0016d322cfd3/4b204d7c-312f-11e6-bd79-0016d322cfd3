@@ -30,7 +30,7 @@
 #define	__RTMP_CHIP_H__
 
 #include "rtmp_type.h"
-#include "eeprom.h"
+#include "mt_eeprom.h"
 #include "tx_power.h"
 
 #ifdef RTMP_MAC_PCI

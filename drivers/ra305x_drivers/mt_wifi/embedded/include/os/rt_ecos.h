@@ -1301,8 +1301,10 @@ typedef struct _RTMP_VX_INIT_STRING_{
 #define GET_OS_PKT_CB(_p)		(RTPKT_TO_OSPKT(_p)->cb)
 #define PACKET_CB(_p, _offset)	((RTPKT_TO_OSPKT(_p)->cb[CB_OFF + (_offset)]))
 
+/*
 #define GET_PAD_FROM_NET_DEV(_pAd, _net_dev)	(_pAd) = (PRTMP_ADAPTER)(_net_dev)->driver_private;
-
+*/
+#define GET_PAD_FROM_NET_DEV(_pAd, _net_dev) (_pAd) = (PRTMP_ADAPTER) RtmpOsGetNetDevPriv(_net_dev);
 
 
 /***********************************************************************************

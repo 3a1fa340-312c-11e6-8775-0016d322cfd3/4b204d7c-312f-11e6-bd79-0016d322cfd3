@@ -66,7 +66,7 @@
 #endif /* CONFIG_AP_SUPPORT */
 #include "rt_os_util.h"
 
-#include "eeprom.h"
+#include "mt_eeprom.h"
 #if defined(RTMP_PCI_SUPPORT) || defined(RTMP_USB_SUPPORT)
 #include "mcu/mcu.h"
 #endif

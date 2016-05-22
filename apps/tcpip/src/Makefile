@@ -22,7 +22,9 @@ OBJ_DIR       = $(PROD_BUILD_DIR)/obj
 LIB_DIR       = $(PROD_BUILD_DIR)/lib
 
 ###### FLAGS
-EXTRACFLAGS += -I$(PROD_BUILD_DIR) -I$(APPS_DIR)/ps/common/incl -I$(PKG_INSTALL_DIR)/include
+EXTRACFLAGS += -I$(PROD_BUILD_DIR) \
+			   -I$(APPS_DIR)/ps/common/incl \
+			   -I$(PKG_INSTALL_DIR)/include 
 
 ifeq ($(CHIP),arm9)
 EXTRACFLAGS += -I../incl

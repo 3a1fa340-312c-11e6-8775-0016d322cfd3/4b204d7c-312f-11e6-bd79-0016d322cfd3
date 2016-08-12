@@ -21,8 +21,10 @@ static cyg_handle_t     ZOT_IDLE_TaskHdl;
 int flash_wps_led = 0;
 #endif	// WPSBUTTON_LEDFLASH_FLICK
 
+#if defined(ARCH_ARM)
 //eason test
 extern void set_realtek_wps(int event);	//eason 20100407
+#endif /* defined ARCH_ARM */
 
 void zot_idle_task(cyg_addrword_t data)
 {
@@ -35,10 +37,16 @@ void zot_idle_task(cyg_addrword_t data)
 		//===================================================	
 		//Reset button (GPIO 0) WPS button (GPIO 17)
 		//===================================================	
+        #if defined(ARCH_ARM)
 		value = GPIOA_DATA_INPUT_REG;
 		value &= 0x01;
 		value1 = GPIOA_MEM_MAP_VALUE(0x06);
 		value1 &= 0xc2;
+        #endif /* defined ARCH_ARM */
+        #if defined(ARCH_MIPS)
+        value  = get_reset_input();
+        value1 = get_wps_input();
+        #endif /* defined ARCH_MIPS */
 		if(value == 0){
 			if (start == 0){
 				start = cyg_current_time();	
@@ -86,7 +94,9 @@ void zot_idle_task(cyg_addrword_t data)
 			if(needwps)
 			{
                 #ifndef MTK7601 
+                #if defined(ARCH_ARM)
 				set_realtek_wps(1);
+                #endif /* defined ARCH_ARM */
                 #endif 
                 wlan_set_wps_on();
 				needwps = 0;

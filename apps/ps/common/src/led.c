@@ -2,7 +2,12 @@
 #include "pstarget.h"
 #include "psglobal.h"
 #include "led.h"
+#if defined(ARCH_ARM)
 #include "star_gpio.h"	//ZOT716u2
+#endif /* defined ARCH_ARM */
+#if defined(ARCH_MIPS)
+#include "ralink_gpio.h"
+#endif /* defined ARCH_MIPS */
 
 //LED Task Task create information definition
 #define LED_TASK_PRI         20	//ZOT716u2
@@ -36,14 +41,7 @@ void LightToggleProc(cyg_addrword_t data);
 
 void LED_Init(void)
 {
-#if 0	//ZOT716u2
-#ifdef USB_LED
-	unsigned int val;
-		
-	val = W81_REGS32(0x8000A878);
-	W81_REGS32(0x8000A878) = val & ~0x20000;	
-#endif		
-#endif	//ZOT716u2
+#if defined(ARCH_ARM)
     int value;
 
 	//LED (GPIO 16) Light on	
@@ -58,94 +56,121 @@ void LED_Init(void)
 #endif
 
 	GPIOA_DATA_OUTPUT_REG = value;
+#endif /* defined ARCH_ARM */
 
-		//Create LED Task Thread
-	    cyg_thread_create(LED_TASK_PRI,
-	                  LightToggleProc,
-	                  0,
-	                  "LightToggleProc",
-	                  (void *) (LED_Stack),
-	                  LED_TASK_STACK_SIZE,
-	                  &LED_TaskHdl,
-	                  &LED_Task);
-		
-		//Start LED Task Thread
-		cyg_thread_resume(LED_TaskHdl);
+    //Create LED Task Thread
+    cyg_thread_create(LED_TASK_PRI,
+            LightToggleProc,
+            0,
+            "LightToggleProc",
+            (void *) (LED_Stack),
+            LED_TASK_STACK_SIZE,
+            &LED_TaskHdl,
+            &LED_Task);
 
+    //Start LED Task Thread
+    cyg_thread_resume(LED_TaskHdl);
 }
 
 
 void Light_On(unsigned char LED)
 {
-#ifdef ARCH_ARM
+    #if defined(ARCH_ARM)
 	unsigned int value;
 	
 	value = GPIOA_DATA_INPUT_REG;
 	value &= LED_MASK;
+    #endif /* defined ARCH_ARM */
 	switch(LED){
 		case Status_Lite:
-#if defined(N716U2W) || defined(N716U2)
+            #if defined(ARCH_ARM)
+            #if defined(N716U2W) || defined(N716U2)
 			value &= ~(GPIO_16_MASK);
-#endif
-#if defined(NDWP2020)
+            #endif
+            #if defined(NDWP2020)
             value &= ~(GPIO_15_MASK);
-#endif
+            #endif
+            #endif /* defined ARCH_ARM */
+            #if defined(ARCH_MIPS)
+            light_status_on();
+            #endif /* defined ARCH_MIPS */
 			break;
 		case Usb11_Lite:
-#if defined(N716U2W) || defined(N716U2)
+        case Usb20_Lite:
+            #if defined(ARCH_ARM)
+            #if defined(N716U2W) || defined(N716U2)
 			value &= ~(GPIO_15_MASK);
-#endif
-#if defined(NDWP2020)
+            #endif
+            #if defined(NDWP2020)
 			value &= ~(GPIO_16_MASK);
-#endif
+            #endif
+            #endif /* defined ARCH_ARM */
+            #if defined(ARCH_MIPS)
+            light_usb_on();
+            #endif
 			break;
-		case Usb20_Lite:
-#if defined(N716U2W) || defined(N716U2)
-			value &= ~(GPIO_15_MASK);
-#endif
-#if defined(NDWP2020)
-			value &= ~(GPIO_16_MASK);
-#endif
-			break;			
 		case Wireless_Lite:
+            #if defined(ARCH_ARM)
 			value &= ~(GPIO_14_MASK);
+            #endif /* defined ARCH_ARM */
+            #if defined(ARCH_MIPS)
+            light_wireless_on();
+            #endif
 			break;
 		}
+    #if defined(ARCH_ARM)
 	GPIOA_DATA_OUTPUT_REG = value;
-#endif /* ARCH_ARM */
+    #endif /* defined ARCH_ARM */
 }
 
 void Light_Off(unsigned char LED)
 {
-#ifdef ARCH_ARM
+    #if defined(ARCH_ARM)
 	unsigned int value;
 	
 	value = GPIOA_DATA_INPUT_REG;
 	value &= LED_MASK;
+    #endif /* defined ARCH_ARM */
 	switch(LED){
 		case Status_Lite:
-#if defined(N716U2W) || defined(N716U2)
-			value |= (GPIO_16_MASK);
-#endif
-#if defined(NDWP2020)
-			value |= (GPIO_15_MASK);
-#endif
+            #if defined(ARCH_ARM)
+            #if defined(N716U2W) || defined(N716U2)
+            value |= (GPIO_16_MASK);
+            #endif
+            #if defined(NDWP2020)
+            value |= (GPIO_15_MASK);
+            #endif
+            #endif /* defined ARCH_ARM */
+            #if defined(ARCH_MIPS)
+            light_status_off();
+            #endif
 			break;
 		case Usb11_Lite:
 		case Usb20_Lite:			
-#if defined(N716U2W) || defined(N716U2)
+            #if defined(ARCH_ARM)
+            #if defined(N716U2W) || defined(N716U2)
 			value |= (GPIO_15_MASK);
-#endif
-#if defined(NDWP2020)
+            #endif
+            #if defined(NDWP2020)
 			value |= (GPIO_16_MASK);
-#endif
+            #endif
+            #endif /* defined ARCH_ARM */
+            #if defined(ARCH_MIPS)
+            light_usb_off();
+            #endif /* defined ARCH_MIPS */
 			break;			
 		case Wireless_Lite:
+            #if defined(ARCH_ARM)
 			value |= (GPIO_14_MASK);
+            #endif /* defined ARCH_ARM */
+            #if defined(ARCH_MIPS)
+            light_wireless_off();
+            #endif /* defined ARCH_MIPS */
 			break;
 		}
+    #if defined(ARCH_ARM)
 	GPIOA_DATA_OUTPUT_REG = value;
-#endif /* ARCH_ARM */
+    #endif /* defined ARCH_ARM */
 }
 
 //// ----  LED ON Forever -----
@@ -331,36 +356,55 @@ void LightToggleProc(cyg_addrword_t data)
 		}
 #else	//ZOT716u2	
 		if (nLEDValue){
+            #if defined(ARCH_ARM)
 			CurLEDvalue = GPIOA_DATA_INPUT_REG;	
 			nTempLEDValue = CurLEDvalue;
 			CurLEDvalue &= LED_MASK;
+            #endif /* defined ARCH_ARM */
 			
 			//Light off
 			if(nLEDValue & (1 << Status_Lite)){
+                #if defined(ARCH_ARM)
                 #if defined(N716U2W) || defined(N716U2)
 				CurLEDvalue |= (GPIO_16_MASK);
                 #endif
                 #if defined(NDWP2020)
 				CurLEDvalue |= (GPIO_15_MASK);
                 #endif
+                #endif /* defined ARCH_ARM */
+                #if defined(ARCH_MIPS)
+                light_status_off();
+                #endif /* defined ARCH_MIPS */
 			}
 
 #if defined(WIRELESS_CARD)
 			if(nLEDValue & (1 << Wireless_Lite)){
+                #if defined (ARCH_ARM)
 				CurLEDvalue |= (GPIO_14_MASK);
+                #endif /* defined ARCH_ARM */
+                #if defined(ARCH_MIPS)
+                light_wireless_off();
+                #endif /* defined ARCH_MIPS */
 			}
 #endif
 			
 			if((nLEDValue & (1 << Usb11_Lite)) || (nLEDValue & (1 << Usb20_Lite))){		
+                #if defined(ARCH_ARM)
                 #if defined(N716U2W) || defined(N716U2)
 				CurLEDvalue |= (GPIO_15_MASK);
                 #endif
                 #if defined(NDWP2020)
 				CurLEDvalue |= (GPIO_16_MASK);
                 #endif
+                #endif /* defined ARCH_ARM */
+                #if defined(ARCH_MIPS)
+                light_usb_off();
+                #endif /* defined ARCH_MIPS */
 			}				
 						
+            #if defined(ARCH_ARM)
 			GPIOA_DATA_OUTPUT_REG = CurLEDvalue;		
+            #endif /* defined ARCH_ARM */
 			ppause(50);
 
 /*
@@ -384,8 +428,24 @@ void LightToggleProc(cyg_addrword_t data)
 				CurLEDvalue &= ~(GPIO_15_MASK);
 			}			
 */						
+            #if defined(ARCH_ARM)
 			CurLEDvalue = nTempLEDValue;
 			GPIOA_DATA_OUTPUT_REG = CurLEDvalue;		
+            #endif /* defined ARCH_ARM */
+            #if defined(ARCH_MIPS)
+            if (nLEDValue & (1 << Status_Lite)){
+                light_status_on();
+            }
+            if (nLEDValue & (1 << Wireless_Lite)){
+                light_wireless_on();
+            }
+            if (nLEDValue & (1 << Usb11_Lite)) {
+                light_usb_on();
+            }
+            else if(nLEDValue & (1 << Usb20_Lite)) {
+                light_usb_on(); 
+            }
+            #endif /* defined ARCH_MIPS */
 			ppause(30);
 			
 		} else {					

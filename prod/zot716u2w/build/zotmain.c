@@ -15,7 +15,7 @@
 #ifdef STAR_MAC
 #include "star_intc.h"
 #include "star_misc.h"
-#endif
+#endif /* def STAR_MAC */
 
 
 
@@ -29,11 +29,12 @@ int opmode = 1; /*1:Gateway, 2:Apcli as WAN port, 3:Repeater Mode */
 static char stack[STACK_SIZE];
 static cyg_thread thread_data;
 static cyg_handle_t thread_handle;
-#endif
+#endif /* 1 */
 
 void cyg_net_init(void);
 int flsh_init (void);
 void WLan_get_EEPData (void);
+int ralink_gpio_init(void);
 
 void zotmain( void )
 //void zotmain(cyg_addrword_t p)
@@ -41,6 +42,7 @@ void zotmain( void )
 
     cyg_net_init();
     flsh_init();
+    ralink_gpio_init();
 
     EEPROMInit();
     WLan_get_EEPData(); 
@@ -51,7 +53,7 @@ void zotmain( void )
 	LanPktInit();
     star_nic_lan_init();
 	LanPktStart();
-	#endif
+	#endif /* def STAR_MAC */
 
     //
     //Print Server module
@@ -62,8 +64,9 @@ void zotmain( void )
 	Spooler_init();
     */
 	ps_init();
+    LED_Init();
 
-	//zot_idle_task_init();
+	zot_idle_task_init();
 
     diag_printf("use zot function\n");
 }

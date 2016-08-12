@@ -1,158 +1,97 @@
 
+#include "pstarget.h"
+#include "psglobal.h"
+
 #include "ralink_gpio.h"
+#include "eth_ra305x/if_ra305x.h"
+
 
 int ralink_gpio_init (void)
 {
 
-    uint32 gpio_mode;
+    uint32 gpio_mode, io_value;
 
-    gpio_mode = le32_to_cpu(*(volatile uint32 *)(RALINK_REG_GPIOMODE));
-    gpio_mode |= PS_GPIOMODE_BUTTON2;
-    *(volatile uint32 *)(RALINK_REG_GPIOMODE) = cpu_to_le32(gpio_mode);
+    //
+    // set GPIO_MODE
+    // use LINK0 as N/A         (GPIO43, input, reserve)
+    // use LINK1 as N/A         (GPIO42, input, reserve)
+    // use LINK2 as STATUS_LED  (GPIO41, output)
+    // use LINK3 as USB_LED     (GPIO40, output)
+    // use LINK4 as SW_RESET    (GPIO39, input)
+    // use WDT_RST_N as WPS_KEY (GPIO38, input)
+    //
+    REG(RALINK_REG_GPIOMODE)  |= RALINK_GPIOMODE_WDT;
+    REG(RALINK_REG_GPIOMODE2) |= (RALINK_GPIOMODE_EPHY0|
+                                  RALINK_GPIOMODE_EPHY1|
+                                  RALINK_GPIOMODE_EPHY2|
+                                  RALINK_GPIOMODE_EPHY3|
+                                  RALINK_GPIOMODE_EPHY4);
+    // use wireless led as GPIO
+    REG(RALINK_REG_GPIOMODE2) |= RALINK_GPIOMODE_WLED;
+    //
+    // set GPIO direction
+    // 1 -> output
+    // 0 -> input
+    //
+    REG(RALINK_REG_PIO6332DIR) = 0;
+    REG(RALINK_REG_PIO6332DIR) |= (1 << PS_GPIO_POS_USB | 1 << PS_GPIO_POS_STATUS | 1 << PS_GPIO_POS_WIRELESS);
 
-    gpio_mode = le32_to_cpu(*(volatile uint32 *)(RALINK_REG_GPIOMODE2));
-    gpio_mode &= 0x003C;
-    gpio_mode |= (PS_GPIOMODE_BUTTON1|PS_GPIOMODE_STATUS|PS_GPIOMODE_WIRLESS|PS_GPIOMODE_USB);
-    *(volatile uint32 *)(RALINK_REG_GPIOMODE2) = cpu_to_le32(gpio_mode);
-
+    // 
+    // test function
+    // 
+    // light_usb_on();
+    // light_status_on();
+    // light_wireless_on();
+    // if (get_reset_input())
+    //     diag_printf("reset key press !\n");
+    // if (get_wps_input())
+    //     diag_printf("wps key press !\n");
 }
 
-int ralink_gpio_ioctl (unsigned int req, unsigned long arg)
+inline void light_usb_on(void)
 {
-
-	unsigned long tmp;
-	ralink_gpio_reg_info info;
-
-	req &= RALINK_GPIO_DATA_MASK;
-
-	switch(req) {
-	case RALINK_GPIO_SET_DIR:
-		*(volatile u32 *)(RALINK_REG_PIODIR) = cpu_to_le32(arg);
-		break;
-	case RALINK_GPIO_SET_DIR_IN:
-		tmp = le32_to_cpu(*(volatile u32 *)(RALINK_REG_PIODIR));
-		tmp &= ~cpu_to_le32(arg);
-		*(volatile u32 *)(RALINK_REG_PIODIR) = tmp;
-		break;
-	case RALINK_GPIO_SET_DIR_OUT:
-		tmp = le32_to_cpu(*(volatile u32 *)(RALINK_REG_PIODIR));
-		tmp |= cpu_to_le32(arg);
-		*(volatile u32 *)(RALINK_REG_PIODIR) = tmp;
-		break;
-	case RALINK_GPIO_READ: //RALINK_GPIO_READ_INT
-		tmp = le32_to_cpu(*(volatile u32 *)(RALINK_REG_PIODATA));
-		put_user(tmp, (int __user *)arg);
-		break;
-	case RALINK_GPIO_WRITE: //RALINK_GPIO_WRITE_INT
-		*(volatile u32 *)(RALINK_REG_PIODATA) = cpu_to_le32(arg);
-		break;
-	case RALINK_GPIO_SET: //RALINK_GPIO_SET_INT
-		*(volatile u32 *)(RALINK_REG_PIOSET) = cpu_to_le32(arg);
-		break;
-	case RALINK_GPIO_CLEAR: //RALINK_GPIO_CLEAR_INT
-		*(volatile u32 *)(RALINK_REG_PIORESET) = cpu_to_le32(arg);
-		break;
-	case RALINK_GPIO_ENABLE_INTP:
-		*(volatile u32 *)(RALINK_REG_INTENA) = cpu_to_le32(RALINK_INTCTL_PIO);
-		break;
-	case RALINK_GPIO_DISABLE_INTP:
-		*(volatile u32 *)(RALINK_REG_INTDIS) = cpu_to_le32(RALINK_INTCTL_PIO);
-		break;
-	case RALINK_GPIO_REG_IRQ:
-		copy_from_user(&info, (ralink_gpio_reg_info *)arg, sizeof(info));
-		if (0 <= info.irq && info.irq < RALINK_GPIO_NUMBER) {
-			ralink_gpio_info[info.irq].pid = info.pid;
-
-			if (info.irq <= 31) {
-				tmp = le32_to_cpu(*(volatile u32 *)(RALINK_REG_PIORENA));
-				tmp |= (0x1 << info.irq);
-				*(volatile u32 *)(RALINK_REG_PIORENA) = cpu_to_le32(tmp);
-				tmp = le32_to_cpu(*(volatile u32 *)(RALINK_REG_PIOFENA));
-				tmp |= (0x1 << info.irq);
-				*(volatile u32 *)(RALINK_REG_PIOFENA) = cpu_to_le32(tmp);
-			} else if (info.irq <= 63) {
-				tmp = le32_to_cpu(*(volatile u32 *)(RALINK_REG_PIO6332RENA));
-				tmp |= (0x1 << (info.irq-32));
-				*(volatile u32 *)(RALINK_REG_PIO6332RENA) = cpu_to_le32(tmp);
-				tmp = le32_to_cpu(*(volatile u32 *)(RALINK_REG_PIO6332FENA));
-				tmp |= (0x1 << (info.irq-32));
-				*(volatile u32 *)(RALINK_REG_PIO6332FENA) = cpu_to_le32(tmp);
-			} else {
-				tmp = le32_to_cpu(*(volatile u32 *)(RALINK_REG_PIO9564RENA));
-				tmp |= (0x1 << (info.irq-64));
-				*(volatile u32 *)(RALINK_REG_PIO9564RENA) = cpu_to_le32(tmp);
-				tmp = le32_to_cpu(*(volatile u32 *)(RALINK_REG_PIO9564FENA));
-				tmp |= (0x1 << (info.irq-64));
-				*(volatile u32 *)(RALINK_REG_PIO9564FENA) = cpu_to_le32(tmp);
-			}
-		}
-		else
-			printk(KERN_ERR NAME ": irq number(%d) out of range\n",
-					info.irq);
-		break;
-
-	case RALINK_GPIO6332_SET_DIR:
-		*(volatile u32 *)(RALINK_REG_PIO6332DIR) = cpu_to_le32(arg);
-		break;
-	case RALINK_GPIO6332_SET_DIR_IN:
-		tmp = le32_to_cpu(*(volatile u32 *)(RALINK_REG_PIO6332DIR));
-		tmp &= ~cpu_to_le32(arg);
-		*(volatile u32 *)(RALINK_REG_PIO6332DIR) = tmp;
-		break;
-	case RALINK_GPIO6332_SET_DIR_OUT:
-		tmp = le32_to_cpu(*(volatile u32 *)(RALINK_REG_PIO6332DIR));
-		tmp |= cpu_to_le32(arg);
-		*(volatile u32 *)(RALINK_REG_PIO6332DIR) = tmp;
-		break;
-	case RALINK_GPIO6332_READ:
-		tmp = le32_to_cpu(*(volatile u32 *)(RALINK_REG_PIO6332DATA));
-		put_user(tmp, (int __user *)arg);
-		break;
-	case RALINK_GPIO6332_WRITE:
-		*(volatile u32 *)(RALINK_REG_PIO6332DATA) = cpu_to_le32(arg);
-		break;
-	case RALINK_GPIO6332_SET:
-		*(volatile u32 *)(RALINK_REG_PIO6332SET) = cpu_to_le32(arg);
-		break;
-	case RALINK_GPIO6332_CLEAR:
-		*(volatile u32 *)(RALINK_REG_PIO6332SET) = cpu_to_le32(arg);
-		break;
-	case RALINK_GPIO9564_SET_DIR:
-		*(volatile u32 *)(RALINK_REG_PIO9564DIR) = cpu_to_le32(arg);
-		break;
-	case RALINK_GPIO9564_SET_DIR_IN:
-		tmp = le32_to_cpu(*(volatile u32 *)(RALINK_REG_PIO9564DIR));
-		tmp &= ~cpu_to_le32(arg);
-		*(volatile u32 *)(RALINK_REG_PIO9564DIR) = tmp;
-		break;
-	case RALINK_GPIO9564_SET_DIR_OUT:
-		tmp = le32_to_cpu(*(volatile u32 *)(RALINK_REG_PIO9564DIR));
-		tmp |= cpu_to_le32(arg);
-		*(volatile u32 *)(RALINK_REG_PIO9564DIR) = tmp;
-		break;
-	case RALINK_GPIO9564_READ:
-		tmp = le32_to_cpu(*(volatile u32 *)(RALINK_REG_PIO9564DATA));
-		put_user(tmp, (int __user *)arg);
-		break;
-	case RALINK_GPIO9564_WRITE:
-		*(volatile u32 *)(RALINK_REG_PIO9564DATA) = cpu_to_le32(arg);
-		break;
-	case RALINK_GPIO9564_SET:
-		*(volatile u32 *)(RALINK_REG_PIO9564SET) = cpu_to_le32(arg);
-		break;
-	case RALINK_GPIO9564_CLEAR:
-		*(volatile u32 *)(RALINK_REG_PIO9564SET) = cpu_to_le32(arg);
-		break;
-
-	case RALINK_GPIO_LED_SET:
-		printk(KERN_ERR NAME ": gpio led support not built\n");
-		break;
-
-	default:
-		return -ENOIOCTLCMD;
-	}
-	return 0;
-
+    REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_USB)); 
 }
 
+inline void light_usb_off(void)
+{
+    REG(RALINK_REG_PIO6332DATA) |= (1 << PS_GPIO_POS_USB);
+}
+
+inline void light_status_on(void)
+{
+    REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_STATUS));
+}
+
+inline void light_status_off(void)
+{
+    REG(RALINK_REG_PIO6332DATA) |= (1 << PS_GPIO_POS_STATUS);
+}
+
+inline void light_wireless_on(void)
+{
+    REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_WIRELESS));   
+}
+
+inline void light_wireless_off(void)
+{
+    REG(RALINK_REG_PIO6332DATA) |= (1 << PS_GPIO_POS_WIRELESS);
+    
+}
+
+//
+// return value > 0 indicate key press down
+//
+inline int get_reset_input(void)
+{
+    return REG(RALINK_REG_PIO6332DATA) & (1 << PS_GPIO_POS_RESET);   
+}
+
+//
+// return value > 0 indicate key press down
+//
+inline int get_wps_input(void)
+{
+    return REG(RALINK_REG_PIO6332DATA) & (1 << PS_GPIO_POS_WPS); 
+}
 

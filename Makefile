@@ -15,7 +15,7 @@ endif
 # zot716u2w, zot716u2, dwp2020
 PROD_NAME ?= zot716u2w
 
-ROOT_DIR = $(PWD)
+ROOT_DIR = $(shell pwd)
 TOPDIR = $(ROOT_DIR)
 HDR_MAK = $(ROOT_DIR)/rules.mak
 #ENDIAN=$(shell echo $(ECOS_GLOBAL_CFLAGS) | sed -e "s/.*-EL.*/-EL/" )
@@ -69,6 +69,7 @@ endif
 endif # CONFIG_WIRELESS
 
 DRVSUBDIRS += ./drivers/ra305x_drivers/flash
+DRVSUBDIRS += ./drivers/ra305x_drivers/gpio
 DRIVERS += drivers.o
 #EXTOBJS += $(OBJ_DIR)/drivers.o
 EXTOBJS += $(patsubst %, $(OBJ_DIR)/%, $(DRIVERS))

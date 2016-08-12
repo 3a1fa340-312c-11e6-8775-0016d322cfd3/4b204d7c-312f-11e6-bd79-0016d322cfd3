@@ -29,7 +29,9 @@ EXTRACFLAGS += -I../incl -I$(PROD_BUILD_DIR) -I$(APPS_DIR)/ps/common/incl \
 				-I$(APPS_DIR)/tcpip/incl\
 				-I$(APPS_DIR)/mac/incl	\
 				-I$(APPS_DIR)/star/incl
-				
+ifeq ($(CHIP),mt7688)
+EXTRACFLAGS += -I$(TOPDIR)/drivers/ra305x_drivers/gpio
+endif	
 ###### LOCAL BUILD RULES
 #
 $(OBJ_DIR)/%.o: %.c

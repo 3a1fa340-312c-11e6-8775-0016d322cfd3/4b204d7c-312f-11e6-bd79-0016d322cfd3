@@ -2,6 +2,18 @@
 #ifndef _OS_DEP_H_
 #define _OS_DEP_H_
 
+#define module_param(name, type, perm)
+#define MODULE_PARM_DESC(_parm, desc)
+
+/* 
+ * system spinlocks
+ */
+#define spin_lock_init(x)           cyg_spinlock_init(x, false)
+#define spin_lock(x)                cyg_spinlock_spin(x)
+#define spin_unlock(x)              cyg_spinlock_clear(x)
+#define spin_lock_irqsave(x, y)     cyg_spinlock_spin_intsave(x, &y)
+#define spin_unlock_irqstore(x, y)  cyg_spinlock_clear_intsave(x, y)
+
 struct kref {
     atomic_t refcount;
 };
@@ -39,4 +51,11 @@ enum irqreturn {
 };
 typedef enum irqreturn irqreturn_t;
 
+/*
+ * os dependent fuction call
+ */
+bool test_and_set_bit(long nr, volatile unsigned long* addr)
+{
+
+}
 #endif /* end of include guard: _OS_DEP_H_ */

@@ -70,6 +70,7 @@ endif # CONFIG_WIRELESS
 
 DRVSUBDIRS += ./drivers/ra305x_drivers/flash
 DRVSUBDIRS += ./drivers/ra305x_drivers/gpio
+DRVSUBDIRS += ./drivers/ra305x_drivers/usb
 DRIVERS += drivers.o
 #EXTOBJS += $(OBJ_DIR)/drivers.o
 EXTOBJS += $(patsubst %, $(OBJ_DIR)/%, $(DRIVERS))

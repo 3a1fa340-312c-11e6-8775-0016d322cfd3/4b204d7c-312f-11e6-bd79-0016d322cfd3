@@ -13,7 +13,9 @@
 
 #ifndef __ASSEMBLY__
 
+#ifdef _LINUX_
 #include <linux/compiler.h>
+#endif /* _LINUX_ */
 #include <asm/hazards.h>
 
 __asm__(

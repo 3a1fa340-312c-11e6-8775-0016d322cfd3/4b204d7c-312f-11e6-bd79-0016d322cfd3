@@ -2,6 +2,9 @@
 #ifndef _OS_DEP_H_
 #define _OS_DEP_H_
 
+#define CONFIG_CPU_MIPS32       1
+#define CONFIG_CPU_MIPS32_R2    1
+
 #define module_param(name, type, perm)
 #define MODULE_PARM_DESC(_parm, desc)
 
@@ -14,8 +17,16 @@
 #define spin_lock_irqsave(x, y)     cyg_spinlock_spin_intsave(x, &y)
 #define spin_unlock_irqstore(x, y)  cyg_spinlock_clear_intsave(x, y)
 
+typedef struct {
+    int counter;
+} atomic_t;
+
 struct kref {
     atomic_t refcount;
+};
+
+struct list_head {
+    struct list_head *next, *prev;
 };
 
 struct timer_list {
@@ -34,9 +45,6 @@ struct timer_list {
 struct dma_pool {
 };
 
-struct list_head {
-    struct list_head *next, *prev;
-};
 
 /**
  * enum irqreturn
@@ -54,8 +62,8 @@ typedef enum irqreturn irqreturn_t;
 /*
  * os dependent fuction call
  */
-bool test_and_set_bit(long nr, volatile unsigned long* addr)
-{
-
-}
+// bool test_and_set_bit(long nr, volatile unsigned long* addr)
+// {
+//
+// }
 #endif /* end of include guard: _OS_DEP_H_ */

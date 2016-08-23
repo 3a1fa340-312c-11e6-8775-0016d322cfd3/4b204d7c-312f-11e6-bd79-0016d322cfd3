@@ -36,6 +36,8 @@ int flsh_init (void);
 void WLan_get_EEPData (void);
 int ralink_gpio_init(void);
 
+extern void usb_test();
+
 void zotmain( void )
 //void zotmain(cyg_addrword_t p)
 {
@@ -66,6 +68,7 @@ void zotmain( void )
 	ps_init();
     LED_Init();
 
+    usb_test();
 	zot_idle_task_init();
 
     diag_printf("use zot function\n");

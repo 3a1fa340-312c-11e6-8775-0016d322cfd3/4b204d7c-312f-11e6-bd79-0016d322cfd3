@@ -9,6 +9,7 @@
 #ifndef _ASM_BITOPS_H
 #define _ASM_BITOPS_H
 
+#ifdef _LINUX_
 #ifndef _LINUX_BITOPS_H
 #error only <linux/bitops.h> can be included directly
 #endif
@@ -21,6 +22,7 @@
 #include <asm/byteorder.h>		/* sigh ... */
 #include <asm/cpu-features.h>
 #include <asm/sgidefs.h>
+#endif /* _LINUX_ */
 #include <asm/war.h>
 
 #if _MIPS_SZLONG == 32
@@ -541,7 +543,11 @@ static inline int test_and_change_bit(unsigned long nr,
 	return res != 0;
 }
 
+#ifdef _LINUX_
 #include <asm-generic/bitops/non-atomic.h>
+#else
+#include <asm/non-atomic.h>
+#endif /* _LINUX_ */
 
 /*
  * __clear_bit_unlock - Clears a bit in memory
@@ -676,7 +682,9 @@ static inline int fls(int x)
 	return r;
 }
 
+#ifdef _LINUX_
 #include <asm-generic/bitops/fls64.h>
+#endif /* _LINUX_ */
 
 /*
  * ffs - find first bit set.
@@ -694,6 +702,7 @@ static inline int ffs(int word)
 	return fls(word & -word);
 }
 
+#ifdef _LINUX_
 #include <asm-generic/bitops/ffz.h>
 #include <asm-generic/bitops/find.h>
 
@@ -709,5 +718,6 @@ static inline int ffs(int word)
 #include <asm-generic/bitops/minix.h>
 
 #endif /* __KERNEL__ */
+#endif /* _LINUX_ */
 
 #endif /* _ASM_BITOPS_H */

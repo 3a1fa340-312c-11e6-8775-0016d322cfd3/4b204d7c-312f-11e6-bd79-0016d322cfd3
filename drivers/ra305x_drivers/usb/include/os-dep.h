@@ -14,9 +14,19 @@
 #define __WEAK_LLSC_MB          "       \n"
 #define smp_llsc_mb()           __asm__ __volatile__(__WEAK_LLSC_MB : : :"memory")
 #define smp_mb__before_llsc()   smp_llsc_mb()
+#define jiffies                 cyg_current_time()
 
 #define module_param(name, type, perm)
 #define MODULE_PARM_DESC(_parm, desc)
+
+/*
+ * platform resource
+ */
+ #define IRQ_RT3XXX_USB         18
+ #define MEM_EHCI_START         0x101c0000
+ #define MEM_EHCI_END           0x101c0fff
+ #define MEM_OHCI_START         0x101c1000
+ #define MEM_OHCI_END           0x101c1fff
 
 /* 
  * system spinlocks
@@ -26,6 +36,278 @@
 #define spin_unlock(x)              cyg_spinlock_clear(x)
 #define spin_lock_irqsave(x, y)     cyg_spinlock_spin_intsave(x, &y)
 #define spin_unlock_irqstore(x, y)  cyg_spinlock_clear_intsave(x, y)
+
+#define mutex_init(x)               cyg_mutex_init(x)
+#define mutex_lock(x)               cyg_mutex_lock(x)
+#define mutex_unlock(x)             cyg_mutex_unlock(x)
+
+#ifndef OS_HZ
+#define OS_HZ                       100
+#endif /* !OS_HZ */
+
+#define HZ                          OS_HZ
+#define BUG_ON(x)                   assert(!(x))
+
+/*
+ * NULL descriptor
+ */
+#define EXPORT_SYMBOL_GPL(x)
+#define dev_dbg(dev, format, arg...)
+#define dev_warn(dev, format, arg...)
+#define dev_info(dev, format, arg...)
+
+/*
+ * list
+ */
+#define LIST_POISON1    ((void *) 0x00100100)
+#define LIST_POISON2    ((void *) 0x00200200)
+
+/*
+ * wait queue
+ */
+typedef struct __wait_queue wait_queue_t;
+typedef int (*wait_queue_func_t)(wait_queue_t *wait, unsigned mode, int flags, void *key);
+int default_wake_function(wait_queue_t *wait, unsigned mode, int flags, void *key);
+int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key);
+void finish_wait(wait_queue_head_t *q, wait_queue_t *wait);
+
+static inline void __add_wait_queue(wait_queue_head_t *head, wait_queue_t *new)
+{
+	list_add(&new->task_list, &head->task_list);
+}
+
+#define __wait_event(wq, confition) \
+do {                                \
+    DEFINE_WAIT(__wait);            \
+                                    \
+    for (;;) {                      \
+        prepare_to_wait(&wq, &__wait, TASK_UNINTERRUPTIBLE);    \
+        if (condition)                                          \
+            break;                                              \
+        cyg_thread_yield();                                     \
+    }                                                           \
+    finish_wait(&wq, &__wait);                                  \    
+} while (0)
+
+/**
+ * wait_event - sleep until a condition gets true
+ * @wq: the waitqueue to wait on
+ * @condition: a C expression for the event to wait for
+ *
+ * The process is put to sleep (TASK_UNINTERRUPTIBLE) until the
+ * @condition evaluates to true. The @condition is checked each time
+ * the waitqueue @wq is woken up.
+ *
+ * wake_up() has to be called after changing any variable that could
+ * change the result of the wait condition.
+ */
+#define wait_event(wq, condition)   \
+do {                                \
+    if (condition)                  \
+        break;                      \
+    __wait_event(wq, condition);    \
+} while(0)
+
+#define __wait_event_timeout(wq, condition, ret)			\
+do {									                    \
+	DEFINE_WAIT(__wait);						            \
+									                        \
+	for (;;) {							                    \
+		prepare_to_wait(&wq, &__wait, TASK_UNINTERRUPTIBLE);\
+		if (condition)						\
+			break;						    \
+        ret = cyg_thread_delay(ret);        \
+		if (!ret)						    \
+			break;						    \
+	}								        \
+	finish_wait(&wq, &__wait);				\
+} while (0)
+
+/**
+ * wait_event_timeout - sleep until a condition gets true or a timeout elapses
+ * @wq: the waitqueue to wait on
+ * @condition: a C expression for the event to wait for
+ * @timeout: timeout, in jiffies
+ *
+ * The process is put to sleep (TASK_UNINTERRUPTIBLE) until the
+ * @condition evaluates to true. The @condition is checked each time
+ * the waitqueue @wq is woken up.
+ *
+ * wake_up() has to be called after changing any variable that could
+ * change the result of the wait condition.
+ *
+ * The function returns 0 if the @timeout elapsed, and the remaining
+ * jiffies if the condition evaluated to true before the timeout elapsed.
+ */
+#define wait_event_timeout(wq, condition, timeout)			\
+({									\
+	long __ret = timeout;						\
+	if (!(condition)) 						\
+		__wait_event_timeout(wq, condition, __ret);		\
+	__ret;								\
+})
+
+#define __WAIT_QUEUE_HEAD_INITIALIZE(name) { \
+    .task_list = { &(name).task_list, &(name).task_list } }
+
+#define DECLARE_WAIT_QUEUE_HEAD(name) \
+    wait_queue_head_t name = __WAIT_QUEUE_HEAD_INITIALIZER(name)
+
+#define DEFINE_WAIT_FUNC(name, function)                        \
+    wait_queue_t name = {                                       \
+        .private = cyg_thread_self();                           \
+        .func    = function,                                    \
+        .task_list = LIST_HEAD_INIT((name).task_list),          \
+    }
+
+#define DEFINE_WAIT(name) DEFINE_WAIT_FUNC(name, autoremove_wake_function)
+
+/*
+ * ulitility define
+ */
+#define DEFINE_MUTEX(mutexname) \
+    cyg_mutex_t mutexname;
+
+#define DEFINE_SPINLOCK(lockname) \
+    cyg_spinlock_t lockname;
+
+#define __NEW_UTS_LEN       64
+
+#ifndef min
+#define min(_a, _b)     (((_a) < (_b)) ? (_a) : (_b))
+#endif
+
+#ifndef max
+#define max(_a, _b)     (((_a) > (_b)) ? (_a) : (_b))
+#endif
+
+#define unlikely(cond)  (cond)
+
+/**
+ * container_of - cast a member of a structure out to the containing structure
+ * @ptr:	the pointer to the member.
+ * @type:	the type of the container struct this is embedded in.
+ * @member:	the name of the member within the struct.
+ *
+ */
+#define container_of(ptr, type, member) ({			\
+	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
+	(type *)( (char *)__mptr - offsetof(type,member) );})
+
+#define to_device_private_bus(obj)	\
+	container_of(obj, struct device_private, knode_bus)
+
+/*
+ * unaligned
+ */
+#include "le_struct.h"
+#include "be_byteshift.h"
+#define get_unaligned __get_unaligned_le
+#define put_unaligned __put_unaligned_le
+
+/*
+ * MIPS IO space
+ */
+#define mem_map     0x81000000
+#define __AC(X,Y)   (X##Y)
+#define _AC(X,Y)    __AC(X,Y)
+
+#define PHYS_OFFSET     _AC(0, UL)
+#define CAC_BASE        _AC(0x80000000, UL)
+#define IO_BASE         _AC(0xa0000000, UL)
+#define UNCAC_BASE      _AC(0xa0000000, UL)
+
+#ifndef PAGE_OFFSET
+#define PAGE_OFFSET     (CAC_BASE + PHYS_OFFSET)
+#endif /* PAGE_OFFSET */
+#define PAGE_SHIFT      12 /* CONFIG_PAGE_SIZE_4KB */
+#define PAGE_SIZE       (_AC(1, UL) << PAGE_SHIFT)
+#define PAGE_MASK       (~((1 << PAGE_SHIFT) - 1))
+#define PFN_UP(x)       (((x) + PAGE_SIZE-1) >> PAGE_SHIFT)
+#define ARCH_PFN_OFFSET PFN_UP(PHYS_OFFSET)
+
+/*
+ *     virt_to_phys    -       map virtual addresses to physical
+ *     @address: address to remap
+ *
+ *     The returned physical address is the physical (CPU) mapping for
+ *     the memory address given. It is only valid to use this function on
+ *     addresses directly mapped or allocated via kmalloc.
+ *
+ *     This function does not give bus mappings for DMA transfers. In
+ *     almost all conceivable cases a device driver should not be using
+ *     this function
+ */
+static inline unsigned long virt_to_phys(volatile const void *address)
+{
+	return (unsigned long)address - PAGE_OFFSET + PHYS_OFFSET;
+}
+
+static inline dma_addr_t plat_map_dma_mem(struct device *dev, void *addr, size_t size)
+{
+    return virt_to_phys(addr);
+}
+
+// static inline dma_addr_t plat_map_dma_mem_page(struct device *dev, struct page *page)
+// {
+//     return page_to_phys(page);
+// }
+
+static inline unsigned long plat_dma_addr_to_phys(struct device *dev, dma_addr_t dma_addr)
+{
+    return dma_addr;
+}
+
+static inline void plat_unmap_dma_mem(struct device *dev, dma_addr_t dma_addr, 
+    size_t size, enum dma_data_direction direction)
+{
+
+}
+
+#define __pfn_to_page(pfn)	(mem_map + ((pfn) - ARCH_PFN_OFFSET))
+#define __page_to_pfn(page)	((unsigned long)((page) - mem_map) + \
+				 ARCH_PFN_OFFSET)
+/*
+ * Change "struct page" to physical address.
+ */
+#define page_to_phys(page)	((dma_addr_t)__page_to_pfn(page) << PAGE_SHIFT)
+
+/*
+ *     phys_to_virt    -       map physical address to virtual
+ *     @address: address to remap
+ *
+ *     The returned virtual address is a current CPU mapping for
+ *     the memory address given. It is only valid to use this function on
+ *     addresses that have a kernel mapping
+ *
+ *     This function does not handle bus mappings for DMA transfers. In
+ *     almost all conceivable cases a device driver should not be using
+ *     this function
+ */
+static inline void * phys_to_virt(unsigned long address)
+{
+	return (void *)(address + PAGE_OFFSET - PHYS_OFFSET);
+}
+
+static inline dma_addr_t dma_map_single(struct device *dev, void *ptr, size_t size,
+    enum dma_data_direction direction)
+{
+    return plat_map_dma_mem(dev, ptr, size);
+}
+
+// struct new_utsname {
+//     char sysname[__NEW_UTS_LEN + 1];
+//     char nodename[__NEW_UTS_LEN + 1];
+//     char release[__NEW_UTS_LEN +1];
+//     char version[__NEW_UTS_LEN + 1];
+//     char machine[__NEW_UTS_LEN + 1];
+//     char domainname[__NEW_UTS_LEN + 1];
+// };
+// 
+// static inline struct new_utsname *init_utsname(void)
+// {
+//     return &init_uts_ns.name
+// }
 
 typedef struct {
     int counter;
@@ -39,6 +321,29 @@ struct list_head {
     struct list_head *next, *prev;
 };
 
+struct hlist_head {
+    struct hlist_node *first;
+};
+
+struct hlist_node {
+    struct hlist_node *next, **pprev;
+};
+
+struct __wait_queue {
+    unsigned int flags;
+    #define WQ_FLAG_EXCLUSIVE   0x01
+    void *private;
+    wait_queue_func_t func;
+    struct list_head task_list;
+};
+
+struct __wait_queue_head {
+    cyg_spinlock_t  lock;
+    cyg_sem_t       semaphore;
+    struct list_head task_list;
+};
+typedef struct __wait_queue_head wait_queue_head_t;
+
 struct timer_list {
 	struct list_head entry;
 	unsigned long expires;
@@ -46,10 +351,15 @@ struct timer_list {
     sturct tvec_base *base;
     */
 
-	void (*function)(unsigned long);
+	void (*function)(cyg_handle_t, cyg_addrword_t);
 	unsigned long data;
 
     int slack;
+    cyg_handle_t    counter_hdl;
+    cyg_handle_t    alarm_hdl;
+    cyg_alarm       alarm_obj;
+    bool            valid;
+    bool            pending;
 };
 
 struct dma_pool {
@@ -77,26 +387,28 @@ typedef enum irqreturn irqreturn_t;
 //
 // }
 
-/**
- * timer_pending - is a timer pending?
- * @timer: the timer in question
- *
- * timer_pending will tell whether a given timer is currently pending,
- * or not. Callers must ensure serialization wrt. other operations done
- * to this timer, eg. interrupt contexts, or other CPUs on SMP.
- *
- * return value: 1 if the timer is pending, 0 if not.
- */
-static inline int timer_pending(const struct timer_list * timer)
-{
-	return timer->entry.next != NULL;
-}
-
+extern void init_timer(struct timer_list *timer);
 extern void add_timer_on(struct timer_list *timer, int cpu);
-extern int del_timer(struct timer_list * timer);
+extern void add_timer(struct timer_list *timer);
+extern int del_timer(struct timer_list *timer);
 extern int mod_timer(struct timer_list *timer, unsigned long expires);
 extern int mod_timer_pending(struct timer_list *timer, unsigned long expires);
 extern int mod_timer_pinned(struct timer_list *timer, unsigned long expires);
+
+/*
+ * complete.h
+ */
+
+struct completion {
+    unsigned int done;
+    wait_queue_head_t wait;
+};
+
+extern void init_completion(struct completion *x);
+extern void wait_for_completion(struct completion *);
+extern unsigned long wait_for_completion_timeout(struct completion *x,
+						   unsigned long timeout);
+extern void complete(struct completion *);
 
 #if 0
 /**
@@ -190,4 +502,266 @@ static inline int test_and_change_bit(int nr, volatile unsigned long *addr)
 
 }
 #endif /* 0 */
+
+/*
+ * device.h
+ */
+
+struct kobject {
+	const char		*name;
+	struct list_head	entry;
+	struct kobject		*parent;
+	// struct kset		*kset;
+	// struct kobj_type	*ktype;
+	// struct sysfs_dirent	*sd;
+	// struct kref		kref;
+	unsigned int state_initialized:1;
+	unsigned int state_in_sysfs:1;
+	unsigned int state_add_uevent_sent:1;
+	unsigned int state_remove_uevent_sent:1;
+	unsigned int uevent_suppress:1;
+};
+
+struct bus_type_private {
+	// struct kset subsys;
+	// struct kset *drivers_kset;
+	// struct kset *devices_kset;
+	// struct klist klist_devices;
+	// struct klist klist_drivers;
+	// struct blocking_notifier_head bus_notifier;
+	unsigned int drivers_autoprobe:1;
+	struct bus_type *bus;
+};
+
+struct driver_private {
+	struct kobject kobj;
+	// struct klist klist_devices;
+	// struct klist_node knode_bus;
+	// struct module_kobject *mkobj;
+	struct device_driver *driver;
+};
+#define to_driver(obj) container_of(obj, struct driver_private, kobj)
+
+struct bus_type {
+	const char		*name;
+	// struct bus_attribute	*bus_attrs;
+	// struct device_attribute	*dev_attrs;
+	// struct driver_attribute	*drv_attrs;
+
+	int (*match)(struct device *dev, struct device_driver *drv);
+	int (*uevent)(struct device *dev, struct kobj_uevent_env *env);
+	int (*probe)(struct device *dev);
+	int (*remove)(struct device *dev);
+	void (*shutdown)(struct device *dev);
+
+	int (*suspend)(struct device *dev, pm_message_t state);
+	int (*resume)(struct device *dev);
+
+	const struct dev_pm_ops *pm;
+
+	struct bus_type_private *p;
+};
+
+struct device_driver {
+	const char		*name;
+	struct bus_type		*bus;
+
+	struct module		*owner;
+	const char		*mod_name;	/* used for built-in modules */
+
+	bool suppress_bind_attrs;	/* disables bind/unbind via sysfs */
+
+#if defined(CONFIG_OF)
+	const struct of_device_id	*of_match_table;
+#endif
+
+	int (*probe) (struct device *dev);
+	int (*remove) (struct device *dev);
+	void (*shutdown) (struct device *dev);
+	int (*suspend) (struct device *dev, pm_message_t state);
+	int (*resume) (struct device *dev);
+	const struct attribute_group **groups;
+
+	const struct dev_pm_ops *pm;
+
+	struct driver_private *p;
+};
+
+/*
+ * pm_wakeup.h
+ */
+
+#ifdef CONFIG_PM
+
+/* Changes to device_may_wakeup take effect on the next pm state change.
+ *
+ * By default, most devices should leave wakeup disabled.  The exceptions
+ * are devices that everyone expects to be wakeup sources: keyboards,
+ * power buttons, possibly network interfaces, etc.
+ */
+static inline void device_init_wakeup(struct device *dev, bool val)
+{
+	dev->power.can_wakeup = dev->power.should_wakeup = val;
+}
+
+static inline void device_set_wakeup_capable(struct device *dev, bool capable)
+{
+	dev->power.can_wakeup = capable;
+}
+
+static inline bool device_can_wakeup(struct device *dev)
+{
+	return dev->power.can_wakeup;
+}
+
+static inline void device_set_wakeup_enable(struct device *dev, bool enable)
+{
+	dev->power.should_wakeup = enable;
+}
+
+static inline bool device_may_wakeup(struct device *dev)
+{
+	return dev->power.can_wakeup && dev->power.should_wakeup;
+}
+
+#else /* !CONFIG_PM */
+
+/* For some reason the following routines work even without CONFIG_PM */
+static inline void device_init_wakeup(struct device *dev, bool val)
+{
+	dev->power.can_wakeup = val;
+}
+
+static inline void device_set_wakeup_capable(struct device *dev, bool capable)
+{
+	dev->power.can_wakeup = capable;
+}
+
+static inline bool device_can_wakeup(struct device *dev)
+{
+	return dev->power.can_wakeup;
+}
+
+static inline void device_set_wakeup_enable(struct device *dev, bool enable)
+{
+}
+
+static inline bool device_may_wakeup(struct device *dev)
+{
+	return false;
+}
+
+#endif /* !CONFIG_PM */
+
+/*
+ * workqueue.h
+ */
+
+// struct work_struct;
+// typedef void (*work_func_t)(struct work_struct *work);
+
+/*
+ * initialize a work item's function pointer
+ */
+
+// struct work_struct {
+//     atomic_long_t data;
+//     struct list_head entry;
+//     work_func_t func;
+// #ifdef CONFIG_LOCKDEP
+//     struct lockdep_map lockdep_map;
+// #endif
+// };
+// 
+// struct delayed_work {
+//     struct work_struct work;
+//     struct timer_list timer;
+// };
+// 
+// static inline void __init_work(struct work_struct *work, int onstack) { }
+// 
+// #define __INIT_WORK(_work, _func, _onstack)				\
+//     do {								\
+//         __init_work((_work), _onstack);				\
+//         (_work)->data = (atomic_long_t) WORK_DATA_INIT();	\
+//         INIT_LIST_HEAD(&(_work)->entry);			\
+//         PREPARE_WORK((_work), (_func));				\
+//     } while (0)
+// 
+// #define INIT_WORK(_work, _func)					\
+//     do {							\
+//         __INIT_WORK((_work), (_func), 0);		\
+//     } while (0)
+// 
+// #define INIT_DELAYED_WORK(_work, _func)				\
+//     do {							\
+//         INIT_WORK(&(_work)->work, (_func));		\
+//         init_timer(&(_work)->timer);			\
+//     } while (0)
+// 
+// #define PREPARE_WORK(_work, _func)				\
+//     do {							\
+//         (_work)->func = (_func);			\
+//     } while (0)
+// 
+// #define PREPARE_DELAYED_WORK(_work, _func)			\
+//     PREPARE_WORK(&(_work)->work, (_func))
+// 
+// int schedule_delayed_work(struct delayed_work *dwork,
+//                     unsigned long delay);
+
+unsigned long find_last_bit(const unsigned long *addr, unsigned long size);
+
+/*
+ * nlf_base.h
+ */
+
+/*
+ * Sample implementation from Unicode home page.
+ * http://www.stonehand.com/unicode/standard/fss-utf.html
+ */
+struct utf8_table {
+	int     cmask;
+	int     cval;
+	int     shift;
+	long    lmask;
+	long    lval;
+};
+
+static const struct utf8_table utf8_table[] =
+{
+    {0x80,  0x00,   0*6,    0x7F,           0,         /* 1 byte sequence */},
+    {0xE0,  0xC0,   1*6,    0x7FF,          0x80,      /* 2 byte sequence */},
+    {0xF0,  0xE0,   2*6,    0xFFFF,         0x800,     /* 3 byte sequence */},
+    {0xF8,  0xF0,   3*6,    0x1FFFFF,       0x10000,   /* 4 byte sequence */},
+    {0xFC,  0xF8,   4*6,    0x3FFFFFF,      0x200000,  /* 5 byte sequence */},
+    {0xFE,  0xFC,   5*6,    0x7FFFFFFF,     0x4000000, /* 6 byte sequence */},
+    {0,						       /* end of table    */}
+};
+
+#define UNICODE_MAX	0x0010ffff
+#define PLANE_SIZE	0x00010000
+
+#define SURROGATE_MASK	0xfffff800
+#define SURROGATE_PAIR	0x0000d800
+#define SURROGATE_LOW	0x00000400
+#define SURROGATE_BITS	0x000003ff
+
+static inline int driver_match_device(struct device_driver *drv,
+				      struct device *dev)
+{
+	return drv->bus->match ? drv->bus->match(dev, drv) : 1;
+}
+
+static inline void device_lock(struct device *dev)
+{
+	mutex_lock(&dev->mutex);
+}
+
+static inline void device_unlock(struct device *dev)
+{
+	mutex_unlock(&dev->mutex);
+}
+
+
 #endif /* end of include guard: _OS_DEP_H_ */

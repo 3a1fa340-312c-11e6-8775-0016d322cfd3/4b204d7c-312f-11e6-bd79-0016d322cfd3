@@ -2,6 +2,7 @@
  * message.c - synchronous message handling
  */
 
+#ifdef _LINUX_
 #include <linux/pci.h>	/* for scatterlist macros */
 #include <linux/usb.h>
 #include <linux/module.h>
@@ -16,8 +17,12 @@
 #include <linux/usb/quirks.h>
 #include <linux/usb/hcd.h>	/* for usbcore internals */
 #include <asm/byteorder.h>
+#endif /* _LINUX_ */
 
+#include "os-dep.h"
 #include "usb.h"
+#include "hcd.h"
+#include "core-usb.h"
 
 static void cancel_async_set_config(struct usb_device *udev);
 
@@ -250,24 +255,24 @@ EXPORT_SYMBOL_GPL(usb_bulk_msg);
 
 /*-------------------------------------------------------------------*/
 
-static void sg_clean(struct usb_sg_request *io)
-{
-	if (io->urbs) {
-		while (io->entries--)
-			usb_free_urb(io->urbs [io->entries]);
-		kfree(io->urbs);
-		io->urbs = NULL;
-	}
-	io->dev = NULL;
-}
+// static void sg_clean(struct usb_sg_request *io)
+// {
+//     if (io->urbs) {
+//         while (io->entries--)
+//             usb_free_urb(io->urbs [io->entries]);
+//         kfree(io->urbs);
+//         io->urbs = NULL;
+//     }
+//     io->dev = NULL;
+// }
 
-static void sg_complete(struct urb *urb)
-{
-	struct usb_sg_request *io = urb->context;
-	int status = urb->status;
-
-	spin_lock(&io->lock);
-
+// static void sg_complete(struct urb *urb)
+// {
+//     struct usb_sg_request *io = urb->context;
+//     int status = urb->status;
+// 
+//     spin_lock(&io->lock);
+// 
 	/* In 2.5 we require hcds' endpoint queues not to progress after fault
 	 * reports, until the completion callback (this!) returns.  That lets
 	 * device driver code (like this routine) unlink queued urbs first,
@@ -278,55 +283,55 @@ static void sg_complete(struct urb *urb)
 	 * complete before the HCD can get requests away from hardware,
 	 * though never during cleanup after a hard fault.
 	 */
-	if (io->status
-			&& (io->status != -ECONNRESET
-				|| status != -ECONNRESET)
-			&& urb->actual_length) {
-		dev_err(io->dev->bus->controller,
-			"dev %s ep%d%s scatterlist error %d/%d\n",
-			io->dev->devpath,
-			usb_endpoint_num(&urb->ep->desc),
-			usb_urb_dir_in(urb) ? "in" : "out",
-			status, io->status);
-		/* BUG (); */
-	}
-
-	if (io->status == 0 && status && status != -ECONNRESET) {
-		int i, found, retval;
-
-		io->status = status;
-
+//     if (io->status
+//             && (io->status != -ECONNRESET
+//                 || status != -ECONNRESET)
+//             && urb->actual_length) {
+//         dev_err(io->dev->bus->controller,
+//             "dev %s ep%d%s scatterlist error %d/%d\n",
+//             io->dev->devpath,
+//             usb_endpoint_num(&urb->ep->desc),
+//             usb_urb_dir_in(urb) ? "in" : "out",
+//             status, io->status);
+//         [> BUG (); <]
+//     }
+// 
+//     if (io->status == 0 && status && status != -ECONNRESET) {
+//         int i, found, retval;
+// 
+//         io->status = status;
+// 
 		/* the previous urbs, and this one, completed already.
 		 * unlink pending urbs so they won't rx/tx bad data.
 		 * careful: unlink can sometimes be synchronous...
 		 */
-		spin_unlock(&io->lock);
-		for (i = 0, found = 0; i < io->entries; i++) {
-			if (!io->urbs [i] || !io->urbs [i]->dev)
-				continue;
-			if (found) {
-				retval = usb_unlink_urb(io->urbs [i]);
-				if (retval != -EINPROGRESS &&
-				    retval != -ENODEV &&
-				    retval != -EBUSY)
-					dev_err(&io->dev->dev,
-						"%s, unlink --> %d\n",
-						__func__, retval);
-			} else if (urb == io->urbs [i])
-				found = 1;
-		}
-		spin_lock(&io->lock);
-	}
-	urb->dev = NULL;
-
-	/* on the last completion, signal usb_sg_wait() */
-	io->bytes += urb->actual_length;
-	io->count--;
-	if (!io->count)
-		complete(&io->complete);
-
-	spin_unlock(&io->lock);
-}
+//         spin_unlock(&io->lock);
+//         for (i = 0, found = 0; i < io->entries; i++) {
+//             if (!io->urbs [i] || !io->urbs [i]->dev)
+//                 continue;
+//             if (found) {
+//                 retval = usb_unlink_urb(io->urbs [i]);
+//                 if (retval != -EINPROGRESS &&
+//                     retval != -ENODEV &&
+//                     retval != -EBUSY)
+//                     dev_err(&io->dev->dev,
+//                         "%s, unlink --> %d\n",
+//                         __func__, retval);
+//             } else if (urb == io->urbs [i])
+//                 found = 1;
+//         }
+//         spin_lock(&io->lock);
+//     }
+//     urb->dev = NULL;
+// 
+//     [> on the last completion, signal usb_sg_wait() <]
+//     io->bytes += urb->actual_length;
+//     io->count--;
+//     if (!io->count)
+//         complete(&io->complete);
+// 
+//     spin_unlock(&io->lock);
+// }
 
 
 /**
@@ -354,109 +359,109 @@ static void sg_complete(struct urb *urb)
  * The request may be canceled with usb_sg_cancel(), either before or after
  * usb_sg_wait() is called.
  */
-int usb_sg_init(struct usb_sg_request *io, struct usb_device *dev,
-		unsigned pipe, unsigned	period, struct scatterlist *sg,
-		int nents, size_t length, gfp_t mem_flags)
-{
-	int i;
-	int urb_flags;
-	int use_sg;
-
-	if (!io || !dev || !sg
-			|| usb_pipecontrol(pipe)
-			|| usb_pipeisoc(pipe)
-			|| nents <= 0)
-		return -EINVAL;
-
-	spin_lock_init(&io->lock);
-	io->dev = dev;
-	io->pipe = pipe;
-
-	if (dev->bus->sg_tablesize > 0) {
-		use_sg = true;
-		io->entries = 1;
-	} else {
-		use_sg = false;
-		io->entries = nents;
-	}
-
-	/* initialize all the urbs we'll use */
-	io->urbs = kmalloc(io->entries * sizeof *io->urbs, mem_flags);
-	if (!io->urbs)
-		goto nomem;
-
-	urb_flags = URB_NO_INTERRUPT;
-	if (usb_pipein(pipe))
-		urb_flags |= URB_SHORT_NOT_OK;
-
-	for_each_sg(sg, sg, io->entries, i) {
-		struct urb *urb;
-		unsigned len;
-
-		urb = usb_alloc_urb(0, mem_flags);
-		if (!urb) {
-			io->entries = i;
-			goto nomem;
-		}
-		io->urbs[i] = urb;
-
-		urb->dev = NULL;
-		urb->pipe = pipe;
-		urb->interval = period;
-		urb->transfer_flags = urb_flags;
-		urb->complete = sg_complete;
-		urb->context = io;
-		urb->sg = sg;
-
-		if (use_sg) {
-			/* There is no single transfer buffer */
-			urb->transfer_buffer = NULL;
-			urb->num_sgs = nents;
-
-			/* A length of zero means transfer the whole sg list */
-			len = length;
-			if (len == 0) {
-				struct scatterlist	*sg2;
-				int			j;
-
-				for_each_sg(sg, sg2, nents, j)
-					len += sg2->length;
-			}
-		} else {
+// int usb_sg_init(struct usb_sg_request *io, struct usb_device *dev,
+//         unsigned pipe, unsigned	period, struct scatterlist *sg,
+//         int nents, size_t length, gfp_t mem_flags)
+// {
+//     int i;
+//     int urb_flags;
+//     int use_sg;
+// 
+//     if (!io || !dev || !sg
+//             || usb_pipecontrol(pipe)
+//             || usb_pipeisoc(pipe)
+//             || nents <= 0)
+//         return -EINVAL;
+// 
+//     spin_lock_init(&io->lock);
+//     io->dev = dev;
+//     io->pipe = pipe;
+// 
+//     if (dev->bus->sg_tablesize > 0) {
+//         use_sg = true;
+//         io->entries = 1;
+//     } else {
+//         use_sg = false;
+//         io->entries = nents;
+//     }
+// 
+//     [> initialize all the urbs we'll use <]
+//     io->urbs = kmalloc(io->entries * sizeof *io->urbs, mem_flags);
+//     if (!io->urbs)
+//         goto nomem;
+// 
+//     urb_flags = URB_NO_INTERRUPT;
+//     if (usb_pipein(pipe))
+//         urb_flags |= URB_SHORT_NOT_OK;
+// 
+//     for_each_sg(sg, sg, io->entries, i) {
+//         struct urb *urb;
+//         unsigned len;
+// 
+//         urb = usb_alloc_urb(0, mem_flags);
+//         if (!urb) {
+//             io->entries = i;
+//             goto nomem;
+//         }
+//         io->urbs[i] = urb;
+// 
+//         urb->dev = NULL;
+//         urb->pipe = pipe;
+//         urb->interval = period;
+//         urb->transfer_flags = urb_flags;
+//         urb->complete = sg_complete;
+//         urb->context = io;
+//         urb->sg = sg;
+// 
+//         if (use_sg) {
+//             [> There is no single transfer buffer <]
+//             urb->transfer_buffer = NULL;
+//             urb->num_sgs = nents;
+// 
+//             [> A length of zero means transfer the whole sg list <]
+//             len = length;
+//             if (len == 0) {
+//                 struct scatterlist	*sg2;
+//                 int			j;
+// 
+//                 for_each_sg(sg, sg2, nents, j)
+//                     len += sg2->length;
+//             }
+//         } else {
 			/*
 			 * Some systems can't use DMA; they use PIO instead.
 			 * For their sakes, transfer_buffer is set whenever
 			 * possible.
 			 */
-			if (!PageHighMem(sg_page(sg)))
-				urb->transfer_buffer = sg_virt(sg);
-			else
-				urb->transfer_buffer = NULL;
-
-			len = sg->length;
-			if (length) {
-				len = min_t(unsigned, len, length);
-				length -= len;
-				if (length == 0)
-					io->entries = i + 1;
-			}
-		}
-		urb->transfer_buffer_length = len;
-	}
-	io->urbs[--i]->transfer_flags &= ~URB_NO_INTERRUPT;
-
-	/* transaction state */
-	io->count = io->entries;
-	io->status = 0;
-	io->bytes = 0;
-	init_completion(&io->complete);
-	return 0;
-
-nomem:
-	sg_clean(io);
-	return -ENOMEM;
-}
-EXPORT_SYMBOL_GPL(usb_sg_init);
+//             if (!PageHighMem(sg_page(sg)))
+//                 urb->transfer_buffer = sg_virt(sg);
+//             else
+//                 urb->transfer_buffer = NULL;
+// 
+//             len = sg->length;
+//             if (length) {
+//                 len = min_t(unsigned, len, length);
+//                 length -= len;
+//                 if (length == 0)
+//                     io->entries = i + 1;
+//             }
+//         }
+//         urb->transfer_buffer_length = len;
+//     }
+//     io->urbs[--i]->transfer_flags &= ~URB_NO_INTERRUPT;
+// 
+//     [> transaction state <]
+//     io->count = io->entries;
+//     io->status = 0;
+//     io->bytes = 0;
+//     init_completion(&io->complete);
+//     return 0;
+// 
+// nomem:
+//     sg_clean(io);
+//     return -ENOMEM;
+// }
+// EXPORT_SYMBOL_GPL(usb_sg_init);
 
 /**
  * usb_sg_wait - synchronously execute scatter/gather request
@@ -501,71 +506,71 @@ EXPORT_SYMBOL_GPL(usb_sg_init);
  * under an xHCI host controller, as the bandwidth is reserved when the
  * configuration or interface alt setting is selected.
  */
-void usb_sg_wait(struct usb_sg_request *io)
-{
-	int i;
-	int entries = io->entries;
-
-	/* queue the urbs.  */
-	spin_lock_irq(&io->lock);
-	i = 0;
-	while (i < entries && !io->status) {
-		int retval;
-
-		io->urbs[i]->dev = io->dev;
-		retval = usb_submit_urb(io->urbs [i], GFP_ATOMIC);
-
+// void usb_sg_wait(struct usb_sg_request *io)
+// {
+//     int i;
+//     int entries = io->entries;
+// 
+//     [> queue the urbs.  <]
+//     spin_lock_irq(&io->lock);
+//     i = 0;
+//     while (i < entries && !io->status) {
+//         int retval;
+// 
+//         io->urbs[i]->dev = io->dev;
+//         retval = usb_submit_urb(io->urbs [i], GFP_ATOMIC);
+// 
 		/* after we submit, let completions or cancelations fire;
 		 * we handshake using io->status.
 		 */
-		spin_unlock_irq(&io->lock);
-		switch (retval) {
-			/* maybe we retrying will recover */
-		case -ENXIO:	/* hc didn't queue this one */
-		case -EAGAIN:
-		case -ENOMEM:
-			io->urbs[i]->dev = NULL;
-			retval = 0;
-			yield();
-			break;
-
+//         spin_unlock_irq(&io->lock);
+//         switch (retval) {
+//             [> maybe we retrying will recover <]
+//         case -ENXIO:	[> hc didn't queue this one <]
+//         case -EAGAIN:
+//         case -ENOMEM:
+//             io->urbs[i]->dev = NULL;
+//             retval = 0;
+//             yield();
+//             break;
+// 
 			/* no error? continue immediately.
 			 *
 			 * NOTE: to work better with UHCI (4K I/O buffer may
 			 * need 3K of TDs) it may be good to limit how many
 			 * URBs are queued at once; N milliseconds?
 			 */
-		case 0:
-			++i;
-			cpu_relax();
-			break;
-
-			/* fail any uncompleted urbs */
-		default:
-			io->urbs[i]->dev = NULL;
-			io->urbs[i]->status = retval;
-			dev_dbg(&io->dev->dev, "%s, submit --> %d\n",
-				__func__, retval);
-			usb_sg_cancel(io);
-		}
-		spin_lock_irq(&io->lock);
-		if (retval && (io->status == 0 || io->status == -ECONNRESET))
-			io->status = retval;
-	}
-	io->count -= entries - i;
-	if (io->count == 0)
-		complete(&io->complete);
-	spin_unlock_irq(&io->lock);
-
+//         case 0:
+//             ++i;
+//             cpu_relax();
+//             break;
+// 
+//             [> fail any uncompleted urbs <]
+//         default:
+//             io->urbs[i]->dev = NULL;
+//             io->urbs[i]->status = retval;
+//             dev_dbg(&io->dev->dev, "%s, submit --> %d\n",
+//                 __func__, retval);
+//             usb_sg_cancel(io);
+//         }
+//         spin_lock_irq(&io->lock);
+//         if (retval && (io->status == 0 || io->status == -ECONNRESET))
+//             io->status = retval;
+//     }
+//     io->count -= entries - i;
+//     if (io->count == 0)
+//         complete(&io->complete);
+//     spin_unlock_irq(&io->lock);
+// 
 	/* OK, yes, this could be packaged as non-blocking.
 	 * So could the submit loop above ... but it's easier to
 	 * solve neither problem than to solve both!
 	 */
-	wait_for_completion(&io->complete);
-
-	sg_clean(io);
-}
-EXPORT_SYMBOL_GPL(usb_sg_wait);
+//     wait_for_completion(&io->complete);
+// 
+//     sg_clean(io);
+// }
+// EXPORT_SYMBOL_GPL(usb_sg_wait);
 
 /**
  * usb_sg_cancel - stop scatter/gather i/o issued by usb_sg_wait()
@@ -575,33 +580,33 @@ EXPORT_SYMBOL_GPL(usb_sg_wait);
  * It can also prevents one initialized by usb_sg_init() from starting,
  * so that call just frees resources allocated to the request.
  */
-void usb_sg_cancel(struct usb_sg_request *io)
-{
-	unsigned long flags;
-
-	spin_lock_irqsave(&io->lock, flags);
-
-	/* shut everything down, if it didn't already */
-	if (!io->status) {
-		int i;
-
-		io->status = -ECONNRESET;
-		spin_unlock(&io->lock);
-		for (i = 0; i < io->entries; i++) {
-			int retval;
-
-			if (!io->urbs [i]->dev)
-				continue;
-			retval = usb_unlink_urb(io->urbs [i]);
-			if (retval != -EINPROGRESS && retval != -EBUSY)
-				dev_warn(&io->dev->dev, "%s, unlink --> %d\n",
-					__func__, retval);
-		}
-		spin_lock(&io->lock);
-	}
-	spin_unlock_irqrestore(&io->lock, flags);
-}
-EXPORT_SYMBOL_GPL(usb_sg_cancel);
+// void usb_sg_cancel(struct usb_sg_request *io)
+// {
+//     unsigned long flags;
+// 
+//     spin_lock_irqsave(&io->lock, flags);
+// 
+//     [> shut everything down, if it didn't already <]
+//     if (!io->status) {
+//         int i;
+// 
+//         io->status = -ECONNRESET;
+//         spin_unlock(&io->lock);
+//         for (i = 0; i < io->entries; i++) {
+//             int retval;
+// 
+//             if (!io->urbs [i]->dev)
+//                 continue;
+//             retval = usb_unlink_urb(io->urbs [i]);
+//             if (retval != -EINPROGRESS && retval != -EBUSY)
+//                 dev_warn(&io->dev->dev, "%s, unlink --> %d\n",
+//                     __func__, retval);
+//         }
+//         spin_lock(&io->lock);
+//     }
+//     spin_unlock_irqrestore(&io->lock, flags);
+// }
+// EXPORT_SYMBOL_GPL(usb_sg_cancel);
 
 /*-------------------------------------------------------------------*/
 
@@ -1837,8 +1842,10 @@ free_interfaces:
 		}
 		create_intf_ep_devs(intf);
 
-		if (device_is_registered(&intf->dev) == 1 && intf->dev.driver)
-			shout_out_for_no_silent_failure = 0;
+		// if (device_is_registered(&intf->dev) == 1 && intf->dev.driver)
+		//     shout_out_for_no_silent_failure = 0;
+        if (int->dev.driver)
+            shout_out_for_no_silent_failure = 0;
 	}
 
 	/* USB-IF Embedded Host Compliance Plan */
@@ -1864,23 +1871,23 @@ struct set_config_request {
 };
 
 /* Worker routine for usb_driver_set_configuration() */
-static void driver_set_config_work(struct work_struct *work)
-{
-	struct set_config_request *req =
-		container_of(work, struct set_config_request, work);
-	struct usb_device *udev = req->udev;
-
-	usb_lock_device(udev);
-	spin_lock(&set_config_lock);
-	list_del(&req->node);
-	spin_unlock(&set_config_lock);
-
-	if (req->config >= -1)		/* Is req still valid? */
-		usb_set_configuration(udev, req->config);
-	usb_unlock_device(udev);
-	usb_put_dev(udev);
-	kfree(req);
-}
+// static void driver_set_config_work(struct work_struct *work)
+// {
+//     struct set_config_request *req =
+//         container_of(work, struct set_config_request, work);
+//     struct usb_device *udev = req->udev;
+// 
+//     usb_lock_device(udev);
+//     spin_lock(&set_config_lock);
+//     list_del(&req->node);
+//     spin_unlock(&set_config_lock);
+// 
+//     if (req->config >= -1)		/* Is req still valid? */ 
+//         usb_set_configuration(udev, req->config);
+//     usb_unlock_device(udev);
+//     usb_put_dev(udev);
+//     kfree(req);
+// }
 
 /* Cancel pending Set-Config requests for a device whose configuration
  * was just changed
@@ -1917,23 +1924,23 @@ static void cancel_async_set_config(struct usb_device *udev)
  * The caller has no way to know whether the queued request will eventually
  * succeed.
  */
-int usb_driver_set_configuration(struct usb_device *udev, int config)
-{
-	struct set_config_request *req;
-
-	req = kmalloc(sizeof(*req), GFP_KERNEL);
-	if (!req)
-		return -ENOMEM;
-	req->udev = udev;
-	req->config = config;
-	INIT_WORK(&req->work, driver_set_config_work);
-
-	spin_lock(&set_config_lock);
-	list_add(&req->node, &set_config_list);
-	spin_unlock(&set_config_lock);
-
-	usb_get_dev(udev);
-	schedule_work(&req->work);
-	return 0;
-}
-EXPORT_SYMBOL_GPL(usb_driver_set_configuration);
+// int usb_driver_set_configuration(struct usb_device *udev, int config)
+// {
+//     struct set_config_request *req;
+// 
+//     req = kmalloc(sizeof(*req), GFP_KERNEL);
+//     if (!req)
+//         return -ENOMEM;
+//     req->udev = udev;
+//     req->config = config;
+//     INIT_WORK(&req->work, driver_set_config_work);
+// 
+//     spin_lock(&set_config_lock);
+//     list_add(&req->node, &set_config_list);
+//     spin_unlock(&set_config_lock);
+// 
+//     usb_get_dev(udev);
+//     schedule_work(&req->work);
+//     return 0;
+// }
+// EXPORT_SYMBOL_GPL(usb_driver_set_configuration);

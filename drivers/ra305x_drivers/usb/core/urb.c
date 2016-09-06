@@ -1,3 +1,4 @@
+#ifdef _LINUX_
 #include <linux/module.h>
 #include <linux/string.h>
 #include <linux/bitops.h>
@@ -7,6 +8,12 @@
 #include <linux/usb.h>
 #include <linux/wait.h>
 #include <linux/usb/hcd.h>
+#else
+#include "os-dep.h"
+#include "usb.h"
+#include "hcd.h"
+#endif /* _LINUX_ */
+
 
 #define to_urb(d) container_of(d, struct urb, kref)
 

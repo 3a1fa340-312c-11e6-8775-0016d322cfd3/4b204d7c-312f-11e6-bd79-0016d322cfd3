@@ -8,6 +8,7 @@
  *
  */
 
+#ifdef _LINUX_
 #include <linux/kernel.h>
 #include <linux/errno.h>
 #include <linux/module.h>
@@ -28,8 +29,12 @@
 
 #include <asm/uaccess.h>
 #include <asm/byteorder.h>
+#endif /* _LINUX_ */
 
+#include "os-dep.h"
 #include "usb.h"
+#include "hcd.h"
+#include "core-usb.h"
 
 /* if we are in debug mode, always announce new devices */
 #ifdef DEBUG
@@ -50,8 +55,8 @@ struct usb_hub {
         struct usb_hub_status   hub;
         struct usb_port_status  port;
     }           *status;    /* buffer for status reports */
-    struct mutex        status_mutex;   /* for the status buffer */
-
+    //struct mutex        status_mutex;   /* for the status buffer */
+    cyg_mutex_t           status_mutex;
     int         error;      /* last reported error */
     int         nerrors;    /* track consecutive errors */
 
@@ -78,8 +83,9 @@ struct usb_hub {
 
     unsigned        has_indicators:1;
     u8          indicator[USB_MAXCHILDREN];
-    struct delayed_work leds;
-    struct delayed_work init_work;
+    // struct delayed_work leds;
+    // struct delayed_work init_work;
+    struct timer_list   init_work;
     void            **port_owners;
 };
 
@@ -96,12 +102,12 @@ static LIST_HEAD(hub_event_list);   /* List of hubs needing servicing */
 /* Wakes up khubd */
 static DECLARE_WAIT_QUEUE_HEAD(khubd_wait);
 
-static struct task_struct *khubd_task;
+// static struct task_struct *khubd_task;
 
 /* cycle leds on hubs that aren't blinking for attention */
-static int blinkenlights = 0;
-module_param (blinkenlights, bool, S_IRUGO);
-MODULE_PARM_DESC (blinkenlights, "true to cycle leds on hubs");
+// static int blinkenlights = 0;
+// module_param (blinkenlights, bool, S_IRUGO);
+// MODULE_PARM_DESC (blinkenlights, "true to cycle leds on hubs");
 
 /*
  * Device SATA8000 FW1.0 from DATAST0R Technology Corp requires about
@@ -227,93 +233,93 @@ static void set_port_led(
     int selector
 )
 {
-    int status = set_port_feature(hub->hdev, (selector << 8) | port1,
-            USB_PORT_FEAT_INDICATOR);
-    if (status < 0)
-        dev_dbg (hub->intfdev,
-            "port %d indicator %s status %d\n",
-            port1,
-            ({ char *s; switch (selector) {
-            case HUB_LED_AMBER: s = "amber"; break;
-            case HUB_LED_GREEN: s = "green"; break;
-            case HUB_LED_OFF: s = "off"; break;
-            case HUB_LED_AUTO: s = "auto"; break;
-            default: s = "??"; break;
-            }; s; }),
-            status);
+    // int status = set_port_feature(hub->hdev, (selector << 8) | port1,
+    //         USB_PORT_FEAT_INDICATOR);
+    // if (status < 0)
+    //     dev_dbg (hub->intfdev,
+    //         "port %d indicator %s status %d\n",
+    //         port1,
+    //         ({ char *s; switch (selector) {
+    //         case HUB_LED_AMBER: s = "amber"; break;
+    //         case HUB_LED_GREEN: s = "green"; break;
+    //         case HUB_LED_OFF: s = "off"; break;
+    //         case HUB_LED_AUTO: s = "auto"; break;
+    //         default: s = "??"; break;
+    //         }; s; }),
+    //         status);
 }
 
 #define LED_CYCLE_PERIOD    ((2*HZ)/3)
 
-static void led_work (struct work_struct *work)
-{
-    struct usb_hub      *hub =
-        container_of(work, struct usb_hub, leds.work);
-    struct usb_device   *hdev = hub->hdev;
-    unsigned        i;
-    unsigned        changed = 0;
-    int         cursor = -1;
-
-    if (hdev->state != USB_STATE_CONFIGURED || hub->quiescing)
-        return;
-
-    for (i = 0; i < hub->descriptor->bNbrPorts; i++) {
-        unsigned    selector, mode;
-
-        /* 30%-50% duty cycle */
-
-        switch (hub->indicator[i]) {
-        /* cycle marker */
-        case INDICATOR_CYCLE:
-            cursor = i;
-            selector = HUB_LED_AUTO;
-            mode = INDICATOR_AUTO;
-            break;
-        /* blinking green = sw attention */
-        case INDICATOR_GREEN_BLINK:
-            selector = HUB_LED_GREEN;
-            mode = INDICATOR_GREEN_BLINK_OFF;
-            break;
-        case INDICATOR_GREEN_BLINK_OFF:
-            selector = HUB_LED_OFF;
-            mode = INDICATOR_GREEN_BLINK;
-            break;
-        /* blinking amber = hw attention */
-        case INDICATOR_AMBER_BLINK:
-            selector = HUB_LED_AMBER;
-            mode = INDICATOR_AMBER_BLINK_OFF;
-            break;
-        case INDICATOR_AMBER_BLINK_OFF:
-            selector = HUB_LED_OFF;
-            mode = INDICATOR_AMBER_BLINK;
-            break;
-        /* blink green/amber = reserved */
-        case INDICATOR_ALT_BLINK:
-            selector = HUB_LED_GREEN;
-            mode = INDICATOR_ALT_BLINK_OFF;
-            break;
-        case INDICATOR_ALT_BLINK_OFF:
-            selector = HUB_LED_AMBER;
-            mode = INDICATOR_ALT_BLINK;
-            break;
-        default:
-            continue;
-        }
-        if (selector != HUB_LED_AUTO)
-            changed = 1;
-        set_port_led(hub, i + 1, selector);
-        hub->indicator[i] = mode;
-    }
-    if (!changed && blinkenlights) {
-        cursor++;
-        cursor %= hub->descriptor->bNbrPorts;
-        set_port_led(hub, cursor + 1, HUB_LED_GREEN);
-        hub->indicator[cursor] = INDICATOR_CYCLE;
-        changed++;
-    }
-    if (changed)
-        schedule_delayed_work(&hub->leds, LED_CYCLE_PERIOD);
-}
+// static void led_work (struct work_struct *work)
+// {
+//     struct usb_hub      *hub =
+//         container_of(work, struct usb_hub, leds.work);
+//     struct usb_device   *hdev = hub->hdev;
+//     unsigned        i;
+//     unsigned        changed = 0;
+//     int         cursor = -1;
+// 
+//     if (hdev->state != USB_STATE_CONFIGURED || hub->quiescing)
+//         return;
+// 
+//     for (i = 0; i < hub->descriptor->bNbrPorts; i++) {
+//         unsigned    selector, mode;
+// 
+//         [> 30%-50% duty cycle <]
+// 
+//         switch (hub->indicator[i]) {
+//         [> cycle marker <]
+//         case INDICATOR_CYCLE:
+//             cursor = i;
+//             selector = HUB_LED_AUTO;
+//             mode = INDICATOR_AUTO;
+//             break;
+//         [> blinking green = sw attention <]
+//         case INDICATOR_GREEN_BLINK:
+//             selector = HUB_LED_GREEN;
+//             mode = INDICATOR_GREEN_BLINK_OFF;
+//             break;
+//         case INDICATOR_GREEN_BLINK_OFF:
+//             selector = HUB_LED_OFF;
+//             mode = INDICATOR_GREEN_BLINK;
+//             break;
+//         [> blinking amber = hw attention <]
+//         case INDICATOR_AMBER_BLINK:
+//             selector = HUB_LED_AMBER;
+//             mode = INDICATOR_AMBER_BLINK_OFF;
+//             break;
+//         case INDICATOR_AMBER_BLINK_OFF:
+//             selector = HUB_LED_OFF;
+//             mode = INDICATOR_AMBER_BLINK;
+//             break;
+//         [> blink green/amber = reserved <]
+//         case INDICATOR_ALT_BLINK:
+//             selector = HUB_LED_GREEN;
+//             mode = INDICATOR_ALT_BLINK_OFF;
+//             break;
+//         case INDICATOR_ALT_BLINK_OFF:
+//             selector = HUB_LED_AMBER;
+//             mode = INDICATOR_ALT_BLINK;
+//             break;
+//         default:
+//             continue;
+//         }
+//         if (selector != HUB_LED_AUTO)
+//             changed = 1;
+//         set_port_led(hub, i + 1, selector);
+//         hub->indicator[i] = mode;
+//     }
+//     if (!changed && blinkenlights) {
+//         cursor++;
+//         cursor %= hub->descriptor->bNbrPorts;
+//         set_port_led(hub, cursor + 1, HUB_LED_GREEN);
+//         hub->indicator[cursor] = INDICATOR_CYCLE;
+//         changed++;
+//     }
+//     if (changed)
+//         schedule_delayed_work(&hub->leds, LED_CYCLE_PERIOD);
+// }
 
 /* use a short timeout for hub/port status fetches */
 #define USB_STS_TIMEOUT     1000
@@ -458,43 +464,43 @@ hub_clear_tt_buffer (struct usb_device *hdev, u16 devinfo, u16 tt)
  * talking to TTs must queue control transfers (not just bulk and iso), so
  * both can talk to the same hub concurrently.
  */
-static void hub_tt_work(struct work_struct *work)
-{
-    struct usb_hub      *hub =
-        container_of(work, struct usb_hub, tt.clear_work);
-    unsigned long       flags;
-    int         limit = 100;
-
-    spin_lock_irqsave (&hub->tt.lock, flags);
-    while (--limit && !list_empty (&hub->tt.clear_list)) {
-        struct list_head    *next;
-        struct usb_tt_clear *clear;
-        struct usb_device   *hdev = hub->hdev;
-        const struct hc_driver  *drv;
-        int         status;
-
-        next = hub->tt.clear_list.next;
-        clear = list_entry (next, struct usb_tt_clear, clear_list);
-        list_del (&clear->clear_list);
-
-        /* drop lock so HCD can concurrently report other TT errors */
-        spin_unlock_irqrestore (&hub->tt.lock, flags);
-        status = hub_clear_tt_buffer (hdev, clear->devinfo, clear->tt);
-        if (status)
-            dev_err (&hdev->dev,
-                "clear tt %d (%04x) error %d\n",
-                clear->tt, clear->devinfo, status);
-
-        /* Tell the HCD, even if the operation failed */
-        drv = clear->hcd->driver;
-        if (drv->clear_tt_buffer_complete)
-            (drv->clear_tt_buffer_complete)(clear->hcd, clear->ep);
-
-        kfree(clear);
-        spin_lock_irqsave(&hub->tt.lock, flags);
-    }
-    spin_unlock_irqrestore (&hub->tt.lock, flags);
-}
+// static void hub_tt_work(struct work_struct *work)
+// {
+//     struct usb_hub      *hub =
+//         container_of(work, struct usb_hub, tt.clear_work);
+//     unsigned long       flags;
+//     int         limit = 100;
+// 
+//     spin_lock_irqsave (&hub->tt.lock, flags);
+//     while (--limit && !list_empty (&hub->tt.clear_list)) {
+//         struct list_head    *next;
+//         struct usb_tt_clear *clear;
+//         struct usb_device   *hdev = hub->hdev;
+//         const struct hc_driver  *drv;
+//         int         status;
+// 
+//         next = hub->tt.clear_list.next;
+//         clear = list_entry (next, struct usb_tt_clear, clear_list);
+//         list_del (&clear->clear_list);
+// 
+//         [> drop lock so HCD can concurrently report other TT errors <]
+//         spin_unlock_irqrestore (&hub->tt.lock, flags);
+//         status = hub_clear_tt_buffer (hdev, clear->devinfo, clear->tt);
+//         if (status)
+//             dev_err (&hdev->dev,
+//                 "clear tt %d (%04x) error %d\n",
+//                 clear->tt, clear->devinfo, status);
+// 
+//         [> Tell the HCD, even if the operation failed <]
+//         drv = clear->hcd->driver;
+//         if (drv->clear_tt_buffer_complete)
+//             (drv->clear_tt_buffer_complete)(clear->hcd, clear->ep);
+// 
+//         kfree(clear);
+//         spin_lock_irqsave(&hub->tt.lock, flags);
+//     }
+//     spin_unlock_irqrestore (&hub->tt.lock, flags);
+// }
 
 /**
  * usb_hub_clear_tt_buffer - clear control/bulk TT state in high speed hub
@@ -508,47 +514,47 @@ static void hub_tt_work(struct work_struct *work)
  * It may not be possible for that hub to handle additional full (or low)
  * speed transactions until that state is fully cleared out.
  */
-int usb_hub_clear_tt_buffer(struct urb *urb)
-{
-    struct usb_device   *udev = urb->dev;
-    int         pipe = urb->pipe;
-    struct usb_tt       *tt = udev->tt;
-    unsigned long       flags;
-    struct usb_tt_clear *clear;
-
+// int usb_hub_clear_tt_buffer(struct urb *urb)
+// {
+//     struct usb_device   *udev = urb->dev;
+//     int         pipe = urb->pipe;
+//     struct usb_tt       *tt = udev->tt;
+//     unsigned long       flags;
+//     struct usb_tt_clear *clear;
+// 
     /* we've got to cope with an arbitrary number of pending TT clears,
      * since each TT has "at least two" buffers that can need it (and
      * there can be many TTs per hub).  even if they're uncommon.
      */
-    if ((clear = kmalloc (sizeof *clear, GFP_ATOMIC)) == NULL) {
-        dev_err (&udev->dev, "can't save CLEAR_TT_BUFFER state\n");
-        /* FIXME recover somehow ... RESET_TT? */
-        return -ENOMEM;
-    }
-
-    /* info that CLEAR_TT_BUFFER needs */
-    clear->tt = tt->multi ? udev->ttport : 1;
-    clear->devinfo = usb_pipeendpoint (pipe);
-    clear->devinfo |= udev->devnum << 4;
-    clear->devinfo |= usb_pipecontrol (pipe)
-            ? (USB_ENDPOINT_XFER_CONTROL << 11)
-            : (USB_ENDPOINT_XFER_BULK << 11);
-    if (usb_pipein (pipe))
-        clear->devinfo |= 1 << 15;
-
-    /* info for completion callback */
-    clear->hcd = bus_to_hcd(udev->bus);
-    clear->ep = urb->ep;
-
-    /* tell keventd to clear state for this TT */
-    spin_lock_irqsave (&tt->lock, flags);
-    list_add_tail (&clear->clear_list, &tt->clear_list);
-    schedule_work(&tt->clear_work);
-    spin_unlock_irqrestore (&tt->lock, flags);
-    return 0;
-}
-EXPORT_SYMBOL_GPL(usb_hub_clear_tt_buffer);
-
+//     if ((clear = kmalloc (sizeof *clear, GFP_ATOMIC)) == NULL) {
+//         dev_err (&udev->dev, "can't save CLEAR_TT_BUFFER state\n");
+//         [> FIXME recover somehow ... RESET_TT? <]
+//         return -ENOMEM;
+//     }
+// 
+//     [> info that CLEAR_TT_BUFFER needs <]
+//     clear->tt = tt->multi ? udev->ttport : 1;
+//     clear->devinfo = usb_pipeendpoint (pipe);
+//     clear->devinfo |= udev->devnum << 4;
+//     clear->devinfo |= usb_pipecontrol (pipe)
+//             ? (USB_ENDPOINT_XFER_CONTROL << 11)
+//             : (USB_ENDPOINT_XFER_BULK << 11);
+//     if (usb_pipein (pipe))
+//         clear->devinfo |= 1 << 15;
+// 
+//     [> info for completion callback <]
+//     clear->hcd = bus_to_hcd(udev->bus);
+//     clear->ep = urb->ep;
+// 
+//     [> tell keventd to clear state for this TT <]
+//     spin_lock_irqsave (&tt->lock, flags);
+//     list_add_tail (&clear->clear_list, &tt->clear_list);
+//     schedule_work(&tt->clear_work);
+//     spin_unlock_irqrestore (&tt->lock, flags);
+//     return 0;
+// }
+// EXPORT_SYMBOL_GPL(usb_hub_clear_tt_buffer);
+// 
 /* If do_delay is false, return the number of milliseconds the caller
  * needs to delay.
  */
@@ -707,9 +713,12 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
          */
         if (type == HUB_INIT) {
             delay = hub_power_on(hub, false);
-            PREPARE_DELAYED_WORK(&hub->init_work, hub_init_func2);
-            schedule_delayed_work(&hub->init_work,
-                    msecs_to_jiffies(delay));
+            // PREPARE_DELAYED_WORK(&hub->init_work, hub_init_func2);
+            // schedule_delayed_work(&hub->init_work,
+            //         msecs_to_jiffies(delay));
+            hub->init_work.function = hub_init_func2;
+            hub->init_work.data = (unsigned long)hub;
+            mod_timer(&hub->init_work, msecs_to_jiffies(delay));
 
             /* Suppress autosuspend until init is done */
             usb_autopm_get_interface_no_resume(
@@ -822,9 +831,12 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
 
         /* Don't do a long sleep inside a workqueue routine */
         if (type == HUB_INIT2) {
-            PREPARE_DELAYED_WORK(&hub->init_work, hub_init_func3);
-            schedule_delayed_work(&hub->init_work,
-                    msecs_to_jiffies(delay));
+            // PREPARE_DELAYED_WORK(&hub->init_work, hub_init_func3);
+            // schedule_delayed_work(&hub->init_work,
+            //         msecs_to_jiffies(delay));
+            hub->init_work.function = hub_init_func3;
+            hub->init_work.data = (unsigned long)hub;
+            mod_timer(&hub->init_work, msecs_to_jiffies(delay));
             return;     /* Continues at init3: below */
         } else {
             msleep(delay);
@@ -836,8 +848,8 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
     status = usb_submit_urb(hub->urb, GFP_NOIO);
     if (status < 0)
         dev_err(hub->intfdev, "activate --> %d\n", status);
-    if (hub->has_indicators && blinkenlights)
-        schedule_delayed_work(&hub->leds, LED_CYCLE_PERIOD);
+    // if (hub->has_indicators && blinkenlights)
+    //     schedule_delayed_work(&hub->leds, LED_CYCLE_PERIOD);
 
     /* Scan all ports that need attention */
     kick_khubd(hub);
@@ -848,16 +860,20 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
 }
 
 /* Implement the continuations for the delays above */
-static void hub_init_func2(struct work_struct *ws)
+//static void hub_init_func2(struct work_struct *ws)
+static void hub_init_func2(cyg_handle_t alarmobj, unsigned long data)
 {
-    struct usb_hub *hub = container_of(ws, struct usb_hub, init_work.work);
+    //struct usb_hub *hub = container_of(ws, struct usb_hub, init_work.work);
+    struct usb_hub *hub = (struct usb_hub *)data;
 
     hub_activate(hub, HUB_INIT2);
 }
 
-static void hub_init_func3(struct work_struct *ws)
+//static void hub_init_func3(struct work_struct *ws)
+static void hub_init_func3(cyg_handle_t alarmobj, unsigned long data)
 {
-    struct usb_hub *hub = container_of(ws, struct usb_hub, init_work.work);
+    //struct usb_hub *hub = container_of(ws, struct usb_hub, init_work.work);
+    struct usb_hub *hub = (struct usb_hub *)data;
 
     hub_activate(hub, HUB_INIT3);
 }
@@ -871,7 +887,8 @@ static void hub_quiesce(struct usb_hub *hub, enum hub_quiescing_type type)
     struct usb_device *hdev = hub->hdev;
     int i;
 
-    cancel_delayed_work_sync(&hub->init_work);
+    // cancel_delayed_work_sync(&hub->init_work);
+    del_timer(&hub->init_work);
 
     /* khubd and related activity won't re-trigger */
     hub->quiescing = 1;
@@ -886,10 +903,10 @@ static void hub_quiesce(struct usb_hub *hub, enum hub_quiescing_type type)
 
     /* Stop khubd and related activity */
     usb_kill_urb(hub->urb);
-    if (hub->has_indicators)
-        cancel_delayed_work_sync(&hub->leds);
-    if (hub->tt.hub)
-        cancel_work_sync(&hub->tt.clear_work);
+    // if (hub->has_indicators)
+    //     cancel_delayed_work_sync(&hub->leds);
+    // if (hub->tt.hub)
+    //     cancel_work_sync(&hub->tt.clear_work);
 }
 
 /* caller has locked the hub device */
@@ -1009,7 +1026,8 @@ static int hub_configure(struct usb_hub *hub,
 
     spin_lock_init (&hub->tt.lock);
     INIT_LIST_HEAD (&hub->tt.clear_list);
-    INIT_WORK(&hub->tt.clear_work, hub_tt_work);
+    // INIT_WORK(&hub->tt.clear_work, hub_tt_work);
+
     switch (hdev->descriptor.bDeviceProtocol) {
         case 0:
             break;
@@ -1165,8 +1183,8 @@ static int hub_configure(struct usb_hub *hub,
         hub, endpoint->bInterval);
 
     /* maybe cycle the hub leds */
-    if (hub->has_indicators && blinkenlights)
-        hub->indicator [0] = INDICATOR_CYCLE;
+    // if (hub->has_indicators && blinkenlights)
+    //     hub->indicator [0] = INDICATOR_CYCLE;
 
     hub_activate(hub, HUB_INIT);
     return 0;
@@ -1278,8 +1296,9 @@ descriptor_error:
     INIT_LIST_HEAD(&hub->event_list);
     hub->intfdev = &intf->dev;
     hub->hdev = hdev;
-    INIT_DELAYED_WORK(&hub->leds, led_work);
-    INIT_DELAYED_WORK(&hub->init_work, NULL);
+    // INIT_DELAYED_WORK(&hub->leds, led_work);
+    // INIT_DELAYED_WORK(&hub->init_work, NULL);
+    init_timer(&hub->init_work);
     usb_get_intf(intf);
 
     usb_set_intfdata (intf, hub);
@@ -1832,8 +1851,8 @@ int usb_new_device(struct usb_device *udev)
 
 fail:
     usb_set_device_state(udev, USB_STATE_NOTATTACHED);
-    pm_runtime_disable(&udev->dev);
-    pm_runtime_set_suspended(&udev->dev);
+    // pm_runtime_disable(&udev->dev);
+    // pm_runtime_set_suspended(&udev->dev);
     return err;
 }
 
@@ -1848,86 +1867,86 @@ fail:
  * We share a lock (that we have) with device_del(), so we need to
  * defer its call.
  */
-int usb_deauthorize_device(struct usb_device *usb_dev)
-{
-    usb_lock_device(usb_dev);
-    if (usb_dev->authorized == 0)
-        goto out_unauthorized;
-
-    usb_dev->authorized = 0;
-    usb_set_configuration(usb_dev, -1);
-
-    kfree(usb_dev->product);
-    usb_dev->product = kstrdup("n/a (unauthorized)", GFP_KERNEL);
-    kfree(usb_dev->manufacturer);
-    usb_dev->manufacturer = kstrdup("n/a (unauthorized)", GFP_KERNEL);
-    kfree(usb_dev->serial);
-    usb_dev->serial = kstrdup("n/a (unauthorized)", GFP_KERNEL);
-
-    usb_destroy_configuration(usb_dev);
-    usb_dev->descriptor.bNumConfigurations = 0;
-
-out_unauthorized:
-    usb_unlock_device(usb_dev);
-    return 0;
-}
-
-
-int usb_authorize_device(struct usb_device *usb_dev)
-{
-    int result = 0, c;
-
-    usb_lock_device(usb_dev);
-    if (usb_dev->authorized == 1)
-        goto out_authorized;
-
-    result = usb_autoresume_device(usb_dev);
-    if (result < 0) {
-        dev_err(&usb_dev->dev,
-            "can't autoresume for authorization: %d\n", result);
-        goto error_autoresume;
-    }
-    result = usb_get_device_descriptor(usb_dev, sizeof(usb_dev->descriptor));
-    if (result < 0) {
-        dev_err(&usb_dev->dev, "can't re-read device descriptor for "
-            "authorization: %d\n", result);
-        goto error_device_descriptor;
-    }
-
-    kfree(usb_dev->product);
-    usb_dev->product = NULL;
-    kfree(usb_dev->manufacturer);
-    usb_dev->manufacturer = NULL;
-    kfree(usb_dev->serial);
-    usb_dev->serial = NULL;
-
-    usb_dev->authorized = 1;
-    result = usb_enumerate_device(usb_dev);
-    if (result < 0)
-        goto error_enumerate;
+// int usb_deauthorize_device(struct usb_device *usb_dev)
+// {
+//     usb_lock_device(usb_dev);
+//     if (usb_dev->authorized == 0)
+//         goto out_unauthorized;
+// 
+//     usb_dev->authorized = 0;
+//     usb_set_configuration(usb_dev, -1);
+// 
+//     kfree(usb_dev->product);
+//     usb_dev->product = kstrdup("n/a (unauthorized)", GFP_KERNEL);
+//     kfree(usb_dev->manufacturer);
+//     usb_dev->manufacturer = kstrdup("n/a (unauthorized)", GFP_KERNEL);
+//     kfree(usb_dev->serial);
+//     usb_dev->serial = kstrdup("n/a (unauthorized)", GFP_KERNEL);
+// 
+//     usb_destroy_configuration(usb_dev);
+//     usb_dev->descriptor.bNumConfigurations = 0;
+// 
+// out_unauthorized:
+//     usb_unlock_device(usb_dev);
+//     return 0;
+// }
+// 
+// 
+// int usb_authorize_device(struct usb_device *usb_dev)
+// {
+//     int result = 0, c;
+// 
+//     usb_lock_device(usb_dev);
+//     if (usb_dev->authorized == 1)
+//         goto out_authorized;
+// 
+//     result = usb_autoresume_device(usb_dev);
+//     if (result < 0) {
+//         dev_err(&usb_dev->dev,
+//             "can't autoresume for authorization: %d\n", result);
+//         goto error_autoresume;
+//     }
+//     result = usb_get_device_descriptor(usb_dev, sizeof(usb_dev->descriptor));
+//     if (result < 0) {
+//         dev_err(&usb_dev->dev, "can't re-read device descriptor for "
+//             "authorization: %d\n", result);
+//         goto error_device_descriptor;
+//     }
+// 
+//     kfree(usb_dev->product);
+//     usb_dev->product = NULL;
+//     kfree(usb_dev->manufacturer);
+//     usb_dev->manufacturer = NULL;
+//     kfree(usb_dev->serial);
+//     usb_dev->serial = NULL;
+// 
+//     usb_dev->authorized = 1;
+//     result = usb_enumerate_device(usb_dev);
+//     if (result < 0)
+//         goto error_enumerate;
     /* Choose and set the configuration.  This registers the interfaces
      * with the driver core and lets interface drivers bind to them.
      */
-    c = usb_choose_configuration(usb_dev);
-    if (c >= 0) {
-        result = usb_set_configuration(usb_dev, c);
-        if (result) {
-            dev_err(&usb_dev->dev,
-                "can't set config #%d, error %d\n", c, result);
+//     c = usb_choose_configuration(usb_dev);
+//     if (c >= 0) {
+//         result = usb_set_configuration(usb_dev, c);
+//         if (result) {
+//             dev_err(&usb_dev->dev,
+//                 "can't set config #%d, error %d\n", c, result);
             /* This need not be fatal.  The user can try to
              * set other configurations. */
-        }
-    }
-    dev_info(&usb_dev->dev, "authorized to connect\n");
-
-error_enumerate:
-error_device_descriptor:
-    usb_autosuspend_device(usb_dev);
-error_autoresume:
-out_authorized:
-    usb_unlock_device(usb_dev); // complements locktree
-    return result;
-}
+//         }
+//     }
+//     dev_info(&usb_dev->dev, "authorized to connect\n");
+// 
+// error_enumerate:
+// error_device_descriptor:
+//     usb_autosuspend_device(usb_dev);
+// error_autoresume:
+// out_authorized:
+//     usb_unlock_device(usb_dev); // complements locktree
+//     return result;
+// }
 
 
 /* Returns 1 if @hub is a WUSB root hub, 0 otherwise */
@@ -2909,10 +2928,10 @@ check_highspeed (struct usb_hub *hub, struct usb_device *udev, int port1)
         dev_info(&udev->dev, "not running at top speed; "
             "connect to a high speed hub\n");
         /* hub LEDs are probably harder to miss than syslog */
-        if (hub->has_indicators) {
-            hub->indicator[port1-1] = INDICATOR_GREEN_BLINK;
-            schedule_delayed_work (&hub->leds, 0);
-        }
+        // if (hub->has_indicators) {
+        //     hub->indicator[port1-1] = INDICATOR_GREEN_BLINK;
+        //     schedule_delayed_work (&hub->leds, 0);
+        // }
     }
     kfree(qual);
 }
@@ -3139,11 +3158,11 @@ static void hub_port_connect_change(struct usb_hub *hub, int port1,
                 dev_err(&udev->dev,
                     "can't connect bus-powered hub "
                     "to this port\n");
-                if (hub->has_indicators) {
-                    hub->indicator[port1-1] =
-                        INDICATOR_AMBER_BLINK;
-                    schedule_delayed_work (&hub->leds, 0);
-                }
+                // if (hub->has_indicators) {
+                //     hub->indicator[port1-1] =
+                //         INDICATOR_AMBER_BLINK;
+                //     schedule_delayed_work (&hub->leds, 0);
+                // }
                 status = -ENOTCONN; /* Don't retry */
                 goto loop_disable;
             }
@@ -3475,6 +3494,13 @@ static struct usb_driver hub_driver = {
     .supports_autosuspend = 1,
 };
 
+#define USBHUB_TASK_PRI             20
+#define USBHUB_TASK_STACK_SIZE      4096
+
+static uint8        usb_hub_stack[USBHUB_TASK_STACK_SIZE];
+static cyg_thread   usb_hub_task;
+static cyg_handle_t usb_hub_task_handle;
+
 int usb_hub_init(void)
 {
     if (usb_register(&hub_driver) < 0) {
@@ -3483,21 +3509,30 @@ int usb_hub_init(void)
         return -1;
     }
 
-    khubd_task = kthread_run(hub_thread, NULL, "khubd");
-    if (!IS_ERR(khubd_task))
-        return 0;
+    // khubd_task = kthread_run(hub_thread, NULL, "khubd");
+    // if (!IS_ERR(khubd_task))
+    //     return 0;
+    cyg_thread_create(USBHUB_TASK_PRI,
+                hub_thread,
+                0,
+                "HUB",
+                (void *)(usb_hub_statck),
+                USBHUB_TASK_STACK_SIZE,
+                &usb_hub_task_handle,
+                &usb_hub_task
+                );
 
     /* Fall through if kernel_thread failed */
-    usb_deregister(&hub_driver);
-    printk(KERN_ERR "%s: can't start khubd\n", usbcore_name);
+    // usb_deregister(&hub_driver);
+    // printk(KERN_ERR "%s: can't start khubd\n", usbcore_name);
 
     return -1;
 }
-
-void usb_hub_cleanup(void)
-{
-    kthread_stop(khubd_task);
-
+// 
+// void usb_hub_cleanup(void)
+// {
+//     kthread_stop(khubd_task);
+// 
     /*
      * Hub resources are freed for us by usb_deregister. It calls
      * usb_driver_purge on every device which in turn calls that
@@ -3505,9 +3540,9 @@ void usb_hub_cleanup(void)
      * The hub_disconnect function takes care of releasing the
      * individual hub resources. -greg
      */
-    usb_deregister(&hub_driver);
-} /* usb_hub_cleanup() */
-
+//     usb_deregister(&hub_driver);
+// } [> usb_hub_cleanup() <]
+// 
 static int descriptors_changed(struct usb_device *udev,
         struct usb_device_descriptor *old_device_descriptor)
 {
@@ -3846,8 +3881,8 @@ EXPORT_SYMBOL_GPL(usb_reset_device);
  *     running means the interface (and thus, the device) exist and
  *     are referenced.
  */
-void usb_queue_reset_device(struct usb_interface *iface)
-{
-    schedule_work(&iface->reset_ws);
-}
-EXPORT_SYMBOL_GPL(usb_queue_reset_device);
+// void usb_queue_reset_device(struct usb_interface *iface)
+// {
+//     schedule_work(&iface->reset_ws);
+// }
+// EXPORT_SYMBOL_GPL(usb_queue_reset_device);

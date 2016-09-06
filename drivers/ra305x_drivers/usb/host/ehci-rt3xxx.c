@@ -10,11 +10,11 @@
  * or implied.
  */
 
-#include <linux/platform_device.h>
+// #include <linux/platform_device.h>
 #include "ralink_usb.h"
 
 
-#include "mtk/mtk-phy.h"
+#include "mtk-phy.h"
 
 void static inline rt_writel(u32 val, unsigned long reg)
 {
@@ -94,7 +94,14 @@ static const struct hc_driver rt3xxx_ehci_hc_driver = {
 
 };
 
-static int rt3xxx_ehci_probe(struct platform_device *pdev)
+static u64 rt3xxx_ehci_dmamask = ~(u32)0;
+struct device g_ehci_dev = {
+    .dma_mask = &rt3xxx_ehci_dmamask,
+    .coherent_dma_mask = 0xffffffff,
+};
+
+// static int rt3xxx_ehci_probe(struct platform_device *pdev)
+int rt3xxx_ehci_probe(/*struct platform_device *pdev*/)
 {
 	struct usb_hcd *hcd;
 	const struct hc_driver *driver = &rt3xxx_ehci_hc_driver;
@@ -103,43 +110,49 @@ static int rt3xxx_ehci_probe(struct platform_device *pdev)
 	int retval;
 
 printk("*************%s************\n", __func__);
-	if (usb_disabled())
-		return -ENODEV;
+	// if (usb_disabled())
+	//     return -ENODEV;
 
-	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-	if (!res) {
-		dev_err(&pdev->dev, "Found HC with no IRQ.\n");
-		return -ENODEV;
-	}
-	irq = res->start;
+	// res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+	// if (!res) {
+	//     dev_err(&pdev->dev, "Found HC with no IRQ.\n");
+	//     return -ENODEV;
+	// }
+	// irq = res->start;
+    irq = IRQ_RT3XXX_USB;
 
-	hcd = usb_create_hcd(driver, &pdev->dev, "rt3xxx" /*dev_name(&pdev->dev)*/);
+	hcd = usb_create_hcd(driver, &g_ehci_dev, "rt3xxx" /*dev_name(&pdev->dev)*/);
 	if (!hcd) {
 		retval = -ENOMEM;
 		goto fail_create_hcd;
 	}
 
-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
-		dev_err(&pdev->dev,	"Found HC with no register addr.\n");
-		retval = -ENODEV;
-		goto fail_request_resource;
-	}
-	hcd->rsrc_start = res->start;
-	hcd->rsrc_len = res->end - res->start + 1;
+	// res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+	// if (!res) {
+	//     dev_err(&pdev->dev,	"Found HC with no register addr.\n");
+	//     retval = -ENODEV;
+	//     goto fail_request_resource;
+	// }
+	// hcd->rsrc_start = res->start;
+	// hcd->rsrc_len = res->end - res->start + 1;
 
-	if (!request_mem_region(hcd->rsrc_start, hcd->rsrc_len, driver->description)) {
-		dev_dbg(&pdev->dev, "controller already in use\n");
-		retval = -EBUSY;
-		goto fail_request_resource;
-	}
+    hcd->rsrc_start = MEM_EHCI_START;
+    hcd->rsrc_len   = MEM_EHCI_END - MEM_EHCI_START + 1;
 
-	hcd->regs = ioremap_nocache(hcd->rsrc_start, hcd->rsrc_len);
-	if (hcd->regs == NULL) {
-		dev_dbg(&pdev->dev, "error mapping memory\n");
-		retval = -EFAULT;
-		goto fail_ioremap;
-	}
+	// if (!request_mem_region(hcd->rsrc_start, hcd->rsrc_len, driver->description)) {
+	//     dev_dbg(/*&pdev->dev*/ &g_ehci_dev, "controller already in use\n");
+	//     retval = -EBUSY;
+	//     goto fail_request_resource;
+	// }
+    // 
+	// hcd->regs = ioremap_nocache(hcd->rsrc_start, hcd->rsrc_len);
+	// if (hcd->regs == NULL) {
+	//     dev_dbg(/*&pdev->dev*/ &g_ehci_dev, "error mapping memory\n");
+	//     retval = -EFAULT;
+	//     goto fail_ioremap;
+	// }
+
+    hcd->regs = 0xB01C0000; /* ohci->regs = 0xB01C1000 */
 
 	// reset host controller
 	//rt_usbhost_reset();
@@ -168,44 +181,44 @@ printk("*************%s************\n", __func__);
 	return retval;
 
 fail_add_hcd:
-	iounmap(hcd->regs);
+	// iounmap(hcd->regs);
 fail_ioremap:
-	release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
+	// release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
 fail_request_resource:
-	usb_put_hcd(hcd);
+	// usb_put_hcd(hcd);
 fail_create_hcd:
-	dev_err(&pdev->dev, "RT3xxx EHCI init fail. %d\n", retval);
+	dev_err(/*&pdev->dev*/ &g_ehci_dev, "RT3xxx EHCI init fail. %d\n", retval);
 	return retval;
 }
 
-static int rt3xxx_ehci_remove(struct platform_device *pdev)
-{
-	struct usb_hcd *hcd = platform_get_drvdata(pdev);
+// static int rt3xxx_ehci_remove(struct platform_device *pdev)
+// {
+//     struct usb_hcd *hcd = platform_get_drvdata(pdev);
+// 
+//     /* ehci_shutdown() is supposed to be called implicitly in
+//        ehci-hcd common code while removing module, but it isn't. */
+//     ehci_shutdown(hcd);
+// 
+//     usb_remove_hcd(hcd);
+//     iounmap(hcd->regs);
+//     release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
+//     usb_put_hcd(hcd);
+// 
+//     if(!usb_find_any_hcd())
+//         try_sleep();
+// 
+//     return 0;
+// }
+// 
+//MODULE_ALIAS("rt3xxx-ehci");
 
-	/* ehci_shutdown() is supposed to be called implicitly in 
-	   ehci-hcd common code while removing module, but it isn't. */
-	ehci_shutdown(hcd);
-
-	usb_remove_hcd(hcd);
-	iounmap(hcd->regs);
-	release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
-	usb_put_hcd(hcd);
-
-	if(!usb_find_any_hcd())
-		try_sleep();
-
-	return 0;
-}
-
-MODULE_ALIAS("rt3xxx-ehci");
-
-static struct platform_driver rt3xxx_ehci_driver = {
-	.probe = rt3xxx_ehci_probe,
-	.remove = rt3xxx_ehci_remove,
-	.shutdown = usb_hcd_platform_shutdown,
-	.driver = {
-		.name = "rt3xxx-ehci",
-	},
-};
+// static struct platform_driver rt3xxx_ehci_driver = {
+//     .probe = rt3xxx_ehci_probe,
+//     .remove = rt3xxx_ehci_remove,
+//     .shutdown = usb_hcd_platform_shutdown,
+//     .driver = {
+//         .name = "rt3xxx-ehci",
+//     },
+// };
 
 

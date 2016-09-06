@@ -9,12 +9,18 @@
  *
  */
 
+#ifdef _LINUX_
 #include <linux/kernel.h>
 #include <linux/spinlock.h>
 #include <linux/slab.h>
 #include <linux/idr.h>
 #include <linux/usb.h>
 #include "usb.h"
+#else
+#include "os-dep.h"
+#include "usb.h"
+#include "core-usb.h"
+#endif /* _LINUX_ */
 
 struct ep_device {
 	struct usb_endpoint_descriptor *desc;
@@ -192,17 +198,17 @@ int usb_create_ep_devs(struct device *parent,
 	ep_dev->dev.parent = parent;
 	ep_dev->dev.release = ep_device_release;
 	dev_set_name(&ep_dev->dev, "ep_%02x", endpoint->desc.bEndpointAddress);
-	device_enable_async_suspend(&ep_dev->dev);
 
 	retval = device_register(&ep_dev->dev);
 	if (retval)
 		goto error_register;
 
+	device_enable_async_suspend(&ep_dev->dev);
 	endpoint->ep_dev = ep_dev;
 	return retval;
 
 error_register:
-	kfree(ep_dev);
+	put_device(&ep_dev->dev);
 exit:
 	return retval;
 }
@@ -212,7 +218,9 @@ void usb_remove_ep_devs(struct usb_host_endpoint *endpoint)
 	struct ep_device *ep_dev = endpoint->ep_dev;
 
 	if (ep_dev) {
+//		printk(KERN_ERR "[DBG ENDPOINT] device unregister\n");
 		device_unregister(&ep_dev->dev);
+//		printk(KERN_ERR "[DBG ENDPOINT] device unregister done\n");
 		endpoint->ep_dev = NULL;
 	}
 }

@@ -65,7 +65,7 @@ void zotmain( void )
 	NETBEUInit();
 	Spooler_init();
     */
-	ps_init();
+	//ps_init();
     LED_Init();
 
     usb_test();

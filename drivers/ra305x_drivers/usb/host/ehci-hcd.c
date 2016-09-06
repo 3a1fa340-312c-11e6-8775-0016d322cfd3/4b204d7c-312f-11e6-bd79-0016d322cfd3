@@ -1142,186 +1142,21 @@ MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_AUTHOR (DRIVER_AUTHOR);
 MODULE_LICENSE ("GPL");
 
-#ifdef CONFIG_PCI
-#include "ehci-pci.c"
-#define PCI_DRIVER      ehci_pci_driver
-#endif
 
-#ifdef CONFIG_USB_EHCI_FSL
-#include "ehci-fsl.c"
-#define PLATFORM_DRIVER     ehci_fsl_driver
-#endif
-
-#ifdef CONFIG_USB_EHCI_MXC
-#include "ehci-mxc.c"
-#define PLATFORM_DRIVER     ehci_mxc_driver
-#endif
-
-#ifdef CONFIG_SOC_AU1200
-#include "ehci-au1xxx.c"
-#define PLATFORM_DRIVER     ehci_hcd_au1xxx_driver
-#endif
-
-#if defined (CONFIG_RT3XXX_EHCI) || defined (CONFIG_RT3XXX_EHCI_MODULE)
 #include "ehci-rt3xxx.c"
 #define PLATFORM_DRIVER     rt3xxx_ehci_driver
-#endif
+#define ehci_hcd_init       rt3xxx_ehci_probe
 
-#ifdef CONFIG_ARCH_OMAP3
-#include "ehci-omap.c"
-#define        PLATFORM_DRIVER         ehci_hcd_omap_driver
-#endif
-
-#ifdef CONFIG_PPC_PS3
-#include "ehci-ps3.c"
-#define PS3_SYSTEM_BUS_DRIVER   ps3_ehci_driver
-#endif
-
-#ifdef CONFIG_USB_EHCI_HCD_PPC_OF
-#include "ehci-ppc-of.c"
-#define OF_PLATFORM_DRIVER  ehci_hcd_ppc_of_driver
-#endif
-
-#ifdef CONFIG_XPS_USB_HCD_XILINX
-#include "ehci-xilinx-of.c"
-#define XILINX_OF_PLATFORM_DRIVER   ehci_hcd_xilinx_of_driver
-#endif
-
-#ifdef CONFIG_PLAT_ORION
-#include "ehci-orion.c"
-#define PLATFORM_DRIVER     ehci_orion_driver
-#endif
-
-#ifdef CONFIG_ARCH_IXP4XX
-#include "ehci-ixp4xx.c"
-#define PLATFORM_DRIVER     ixp4xx_ehci_driver
-#endif
-
-#ifdef CONFIG_USB_W90X900_EHCI
-#include "ehci-w90x900.c"
-#define PLATFORM_DRIVER     ehci_hcd_w90x900_driver
-#endif
-
-#ifdef CONFIG_ARCH_AT91
-#include "ehci-atmel.c"
-#define PLATFORM_DRIVER     ehci_atmel_driver
-#endif
-
-#if !defined(PCI_DRIVER) && !defined(PLATFORM_DRIVER) && \
-    !defined(PS3_SYSTEM_BUS_DRIVER) && !defined(OF_PLATFORM_DRIVER) && \
-    !defined(XILINX_OF_PLATFORM_DRIVER)
-#error "missing bus glue for ehci-hcd"
-#endif
-
-static int __init ehci_hcd_init(void)
-{
-    int retval = 0;
-
-    if (usb_disabled())
-        return -ENODEV;
-
-    printk(KERN_INFO "%s: " DRIVER_DESC "\n", hcd_name);
-    set_bit(USB_EHCI_LOADED, &usb_hcds_loaded);
-    if (test_bit(USB_UHCI_LOADED, &usb_hcds_loaded) ||
-            test_bit(USB_OHCI_LOADED, &usb_hcds_loaded))
-        printk(KERN_WARNING "Warning! ehci_hcd should always be loaded"
-                " before uhci_hcd and ohci_hcd, not after\n");
-
-    pr_debug("%s: block sizes: qh %Zd qtd %Zd itd %Zd sitd %Zd\n",
-         hcd_name,
-         sizeof(struct ehci_qh), sizeof(struct ehci_qtd),
-         sizeof(struct ehci_itd), sizeof(struct ehci_sitd));
-
-#ifdef DEBUG
-    ehci_debug_root = debugfs_create_dir("ehci", usb_debug_root);
-    if (!ehci_debug_root) {
-        retval = -ENOENT;
-        goto err_debug;
-    }
-#endif
-
-#ifdef PLATFORM_DRIVER
-    retval = platform_driver_register(&PLATFORM_DRIVER);
-    if (retval < 0)
-        goto clean0;
-#endif
-
-#ifdef PCI_DRIVER
-    retval = pci_register_driver(&PCI_DRIVER);
-    if (retval < 0)
-        goto clean1;
-#endif
-
-#ifdef PS3_SYSTEM_BUS_DRIVER
-    retval = ps3_ehci_driver_register(&PS3_SYSTEM_BUS_DRIVER);
-    if (retval < 0)
-        goto clean2;
-#endif
-
-#ifdef OF_PLATFORM_DRIVER
-    retval = of_register_platform_driver(&OF_PLATFORM_DRIVER);
-    if (retval < 0)
-        goto clean3;
-#endif
-
-#ifdef XILINX_OF_PLATFORM_DRIVER
-    retval = of_register_platform_driver(&XILINX_OF_PLATFORM_DRIVER);
-    if (retval < 0)
-        goto clean4;
-#endif
-    return retval;
-
-#ifdef XILINX_OF_PLATFORM_DRIVER
-    /* of_unregister_platform_driver(&XILINX_OF_PLATFORM_DRIVER); */
-clean4:
-#endif
-#ifdef OF_PLATFORM_DRIVER
-    of_unregister_platform_driver(&OF_PLATFORM_DRIVER);
-clean3:
-#endif
-#ifdef PS3_SYSTEM_BUS_DRIVER
-    ps3_ehci_driver_unregister(&PS3_SYSTEM_BUS_DRIVER);
-clean2:
-#endif
-#ifdef PCI_DRIVER
-    pci_unregister_driver(&PCI_DRIVER);
-clean1:
-#endif
-#ifdef PLATFORM_DRIVER
-    platform_driver_unregister(&PLATFORM_DRIVER);
-clean0:
-#endif
-#ifdef DEBUG
-    debugfs_remove(ehci_debug_root);
-    ehci_debug_root = NULL;
-err_debug:
-#endif
-    clear_bit(USB_EHCI_LOADED, &usb_hcds_loaded);
-    return retval;
-}
-module_init(ehci_hcd_init);
-
-static void __exit ehci_hcd_cleanup(void)
-{
-#ifdef XILINX_OF_PLATFORM_DRIVER
-    of_unregister_platform_driver(&XILINX_OF_PLATFORM_DRIVER);
-#endif
-#ifdef OF_PLATFORM_DRIVER
-    of_unregister_platform_driver(&OF_PLATFORM_DRIVER);
-#endif
-#ifdef PLATFORM_DRIVER
-    platform_driver_unregister(&PLATFORM_DRIVER);
-#endif
-#ifdef PCI_DRIVER
-    pci_unregister_driver(&PCI_DRIVER);
-#endif
-#ifdef PS3_SYSTEM_BUS_DRIVER
-    ps3_ehci_driver_unregister(&PS3_SYSTEM_BUS_DRIVER);
-#endif
-#ifdef DEBUG
-    debugfs_remove(ehci_debug_root);
-#endif
-    clear_bit(USB_EHCI_LOADED, &usb_hcds_loaded);
-}
-module_exit(ehci_hcd_cleanup);
+// static int __init ehci_hcd_init(void)
+// {
+//     int retval = 0;
+//     return retval;
+// }
+// module_init(ehci_hcd_init);
+// 
+// static void __exit ehci_hcd_cleanup(void)
+// {
+// 
+// }
+// module_exit(ehci_hcd_cleanup);
 

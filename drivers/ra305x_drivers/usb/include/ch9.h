@@ -33,10 +33,16 @@
 #ifndef __LINUX_USB_CH9_H
 #define __LINUX_USB_CH9_H
 
+#ifdef _LINUX_
 #include <linux/types.h>	/* __u8 etc */
 #if defined(CONFIG_USB_MT7621_XHCI_HCD) || defined(CONFIG_USB_MT7621_XHCI_HCD_MODULE)
 #include <asm/byteorder.h>	/* le16_to_cpu */
 #endif // CONFIG_USB_MT7621_XHCI_HCD
+#else
+#include "os-dep.h"
+#endif /* _LINUX */
+
+
 
 /*-------------------------------------------------------------------------*/
 

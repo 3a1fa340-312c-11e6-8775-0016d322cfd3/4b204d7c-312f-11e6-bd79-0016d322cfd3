@@ -11,7 +11,12 @@
  */
 
 // #include <linux/platform_device.h>
+// #include "os-dep.h"
 #include "ralink_usb.h"
+// #include "ktime.h"
+// #include "usb.h"
+// #include "hcd.h"
+// #include "ehci.h"
 
 
 #include "mtk-phy.h"

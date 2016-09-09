@@ -9,6 +9,10 @@
 #include <asm/system.h>
 #endif /* _LINUX_ */
 
+#ifndef NULL
+#define NULL 0
+#endif /* NULL */
+
 /*
  * Simple doubly linked list implementation.
  *
@@ -18,6 +22,18 @@
  * generate better code by using them directly rather than
  * using the generic single-entry routines.
  */
+
+struct list_head {
+    struct list_head *next, *prev;
+};
+
+struct hlist_node {
+    struct hlist_node *next, **pprev;
+};
+
+struct hlist_head {
+    struct hlist_node *first;
+};
 
 #define LIST_HEAD_INIT(name) { &(name), &(name) }
 
@@ -99,6 +115,8 @@ static inline void __list_del(struct list_head * prev, struct list_head * next)
  * in an undefined state.
  */
 #ifndef CONFIG_DEBUG_LIST
+#define LIST_POISON1    ((void *) 0x00100100)
+#define LIST_POISON2    ((void *) 0x00200200)
 static inline void list_del(struct list_head *entry)
 {
 	__list_del(entry->prev, entry->next);

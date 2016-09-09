@@ -3,7 +3,7 @@
 #include "os-dep.h"
 #include "asm/irqflags.h"
 #include "asm/bitops.h"
-#include "list.h"
+#include "ktime.h"
 
 
 void alarm_callback(cyg_handle_t alarm, cyg_addrword_t data)
@@ -16,50 +16,11 @@ cyg_handle_t    counter_hdl;
 cyg_handle_t    alarm_hdl;
 cyg_alarm       alarm_obj;
 
+extern void usb_init();
+
 void usb_test()
 {
-    // unsigned long bitflags = 0;
-    // unsigned long flags, oldflags;
-    // int i = 0;
-    // 
-    // raw_local_irq_save(flags);   
-    // i++;
-    // raw_local_irq_restore(flags);
-    // 
-    // oldflags = test_and_set_bit(4, &bitflags);
-    // diag_printf("termy say, oldflags = %lu\n", oldflags);
-    // diag_printf("termy say, bitflags = %lu\n", bitflags);
-
-    // cyg_handle_t    counter_hdl;
-    // cyg_handle_t    alarm_hdl;
-    // cyg_alarm       alarm_obj;
-    CYG_ADDRWORD    alarm_data;
-    unsigned long   alarm_timeout;
-    unsigned long   counter_val;
-    cyg_tick_count_t    trigger_val;
-    cyg_tick_count_t    interval_val;
-    struct list_head list_test;
-
-    alarm_timeout = 1;
-    
-    cyg_clock_to_counter(cyg_real_time_clock(), &counter_hdl);
-    cyg_alarm_create (counter_hdl, alarm_callback, 0, &alarm_hdl, &alarm_obj);
-    diag_printf("termy say, cyg_hal_clock_period = %lu\n", cyg_hal_clock_period);
-    diag_printf("termy say, RTC_PERIOD = %lu, RTC_DENOMINATOR = %lu\n", CYGNUM_HAL_RTC_PERIOD, CYGNUM_HAL_RTC_DENOMINATOR);
-    diag_printf("termy say, RTC_NUMERATOR = %lu\n", CYGNUM_HAL_RTC_NUMERATOR);
-    diag_printf("termy say, now tick = %llu\n", cyg_current_time());
-    cyg_alarm_disable(alarm_hdl);
-    cyg_alarm_initialize (alarm_hdl, cyg_current_time() + alarm_timeout, 0);
-    cyg_alarm_enable(alarm_hdl);
-
-    for (counter_val = 0; counter_val < 1000000000; ++counter_val) {
-        
-    }
-    cyg_alarm_get_times(alarm_hdl, &trigger_val, &interval_val);
-    diag_printf("termy say, trigget_val = %llu, now = %llu\n", trigger_val, cyg_current_time());
-    diag_printf("termy say, interval_val = %llu\n", interval_val);
-
-    INIT_LIST_HEAD(&list_test);
+    usb_init();
 } /* usb_test */
 
 void init_timer(struct timer_list *timer)
@@ -197,14 +158,14 @@ void finish_wait(wait_queue_head_t *q, wait_queue_t *wait)
 // 
 // }
 // 
-// int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key)
-// {
+int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key)
+ {
 //     int ret = default_wake_function(wait, mode, sync, key);
 // 
 //     if (ret)
 //         list_del_init(&wait->task_list);
 //     return ret;
-// }
+}
 
 void wake_up(wait_queue_head_t* q)
 {
@@ -362,6 +323,24 @@ out_unregister:
 out_put_bus:
 	bus_put(bus);
 	return error;
+}
+
+
+/**
+ * bus_probe_device - probe drivers for a new device
+ * @dev: device to probe
+ *
+ * - Automatically probe for a driver if the bus allows it.
+ */
+void bus_probe_device(struct device *dev)
+{
+	struct bus_type *bus = dev->bus;
+	int ret;
+
+	if (bus && bus->p->drivers_autoprobe) {
+		ret = device_attach(dev);
+		WARN_ON(ret < 0);
+	}
 }
 
 /**
@@ -551,8 +530,8 @@ int driver_attach(struct device_driver *drv)
 static void driver_bound(struct device *dev)
 {
 	if (klist_node_attached(&dev->p->knode_driver)) {
-		printk(KERN_WARNING "%s: device %s already bound\n",
-			__func__, kobject_name(&dev->kobj));
+		// printk(KERN_WARNING "%s: device %s already bound\n",
+		//     __func__, kobject_name(&dev->kobj));
 		return;
 	}
 
@@ -758,11 +737,11 @@ void init_completion(struct completion *x)
     cyg_semaphore_init (&x->wait.semaphore, 0);
 }
 
-void wait_for_completion(struct completion *)
+void wait_for_completion(struct completion *x)
 {
-    spin_lock_irq (&x->wait.locK);
+    spin_lock_irq (&x->wait.lock);
     if (!x->done) {
-        spin_unlock (&x->wait.locK);
+        spin_unlock (&x->wait.lock);
         cyg_semaphore_wait (&x->wait.semaphore);
     }
     spin_unlock_irq (&x->wait.lock);
@@ -783,7 +762,7 @@ unsigned long wait_for_completion_timeout(struct completion *x,
         if (ltimeout < 0)
             ltimeout = 0;
     }
-    while (!x->donw && ltimeout);
+    while (!x->done && ltimeout);
 
     x->done --;
     spin_unlock_irq (&x->wait.lock);
@@ -791,7 +770,7 @@ unsigned long wait_for_completion_timeout(struct completion *x,
     return (unsigned long)ltimeout;
 }
 
-void complete(struct completion *)
+void complete(struct completion *x)
 {
     unsigned long flags;
     spin_lock_irqsave (&x->wait.lock, flags);
@@ -864,7 +843,7 @@ int utf32_to_utf8(unicode_t u, u8 *s, int maxlen)
 	return -1;
 }
 
-int utf8s_to_utf16s(const u8 *s, int len, wchar_t *pwcs)
+int utf8s_to_utf16s(const u8 *s, int len, u16 *pwcs)
 {
 	u16 *op;
 	int size;
@@ -879,13 +858,13 @@ int utf8s_to_utf16s(const u8 *s, int len, wchar_t *pwcs)
 
 			if (u >= PLANE_SIZE) {
 				u -= PLANE_SIZE;
-				*op++ = (wchar_t) (SURROGATE_PAIR |
+				*op++ = (u16) (SURROGATE_PAIR |
 						((u >> 10) & SURROGATE_BITS));
-				*op++ = (wchar_t) (SURROGATE_PAIR |
+				*op++ = (u16) (SURROGATE_PAIR |
 						SURROGATE_LOW |
 						(u & SURROGATE_BITS));
 			} else {
-				*op++ = (wchar_t) u;
+				*op++ = (u16) u;
 			}
 			s += size;
 			len -= size;
@@ -909,7 +888,7 @@ static inline unsigned long get_utf16(unsigned c, enum utf16_endian endian)
 	}
 }
 
-int utf16s_to_utf8s(const wchar_t *pwcs, int len, enum utf16_endian endian,
+int utf16s_to_utf8s(const u16 *pwcs, int len, enum utf16_endian endian,
 		u8 *s, int maxlen)
 {
 	u8 *op;
@@ -955,6 +934,67 @@ int utf16s_to_utf8s(const wchar_t *pwcs, int len, enum utf16_endian endian,
 		}
 	}
 	return op - s;
+}
+
+/*
+ * When we convert to jiffies then we interpret incoming values
+ * the following way:
+ *
+ * - negative values mean 'infinite timeout' (MAX_JIFFY_OFFSET)
+ *
+ * - 'too large' values [that would result in larger than
+ *   MAX_JIFFY_OFFSET values] mean 'infinite timeout' too.
+ *
+ * - all other values are converted to jiffies by either multiplying
+ *   the input value by a factor or dividing it with a factor
+ *
+ * We must also be careful about 32-bit overflows.
+ */
+unsigned long msecs_to_jiffies(const unsigned int m)
+{
+    return (m + 9)/10;
+}
+
+/**
+ * getnstimeofday - Returns the time of day in a timespec
+ * @ts:		pointer to the timespec to be set
+ *
+ * Returns the time of day in a timespec.
+ */
+void getnstimeofday(struct timespec *ts)
+{
+	// unsigned long seq;
+	s64 nsecs;
+
+	// WARN_ON(timekeeping_suspended);
+    // 
+	// do {
+	//     seq = read_seqbegin(&xtime_lock);
+    // 
+	//     *ts = xtime;
+	//     nsecs = timekeeping_get_ns();
+    // 
+	//     [> If arch requires, add in gettimeoffset() <]
+	//     nsecs += arch_gettimeoffset();
+    // 
+	// } while (read_seqretry(&xtime_lock, seq));
+
+    nsecs = (s64)cyg_current_time();
+	timespec_add_ns(ts, nsecs);
+}
+
+/**
+ * ktime_get_real - get the real (wall-) time in ktime_t format
+ *
+ * returns the time in ktime_t format
+ */
+ktime_t ktime_get_real(void)
+{
+	struct timespec now;
+
+	getnstimeofday(&now);
+
+	return timespec_to_ktime(now);
 }
 
 

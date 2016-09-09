@@ -45,9 +45,10 @@
 #include <asm/system.h>
 #include <asm/unaligned.h>
 #else /* LINUX */
+#include "os-dep.h"
+#include "ktime.h"
 #include "usb.h"
 #include "hcd.h"
-#include "os_dep.h"
 #endif /* LINUX */
 /*-------------------------------------------------------------------------*/
 
@@ -122,7 +123,7 @@ MODULE_PARM_DESC(hird, "host initiated resume duration, +1 for each 75us\n");
 /*-------------------------------------------------------------------------*/
 
 #include "ehci.h"
-#include "ehci-dbg.c"
+// #include "ehci-dbg.c"
 
 /*-------------------------------------------------------------------------*/
 
@@ -321,7 +322,7 @@ static void end_unlink_async(struct ehci_hcd *ehci);
 static void ehci_work(struct ehci_hcd *ehci);
 
 #include "ehci-hub.c"
-#include "ehci-lpm.c"
+// #include "ehci-lpm.c"
 #include "ehci-mem.c"
 #include "ehci-q.c"
 #include "ehci-sched.c"
@@ -1138,9 +1139,9 @@ static int ehci_get_frame (struct usb_hcd *hcd)
 
 /*-------------------------------------------------------------------------*/
 
-MODULE_DESCRIPTION(DRIVER_DESC);
-MODULE_AUTHOR (DRIVER_AUTHOR);
-MODULE_LICENSE ("GPL");
+// MODULE_DESCRIPTION(DRIVER_DESC);
+// MODULE_AUTHOR (DRIVER_AUTHOR);
+// MODULE_LICENSE ("GPL");
 
 
 #include "ehci-rt3xxx.c"

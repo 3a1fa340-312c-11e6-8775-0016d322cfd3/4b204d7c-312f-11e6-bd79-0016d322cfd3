@@ -21,6 +21,7 @@
 
 #include "os-dep.h"
 #include "usb.h"
+#include "quirks.h"
 #include "hcd.h"
 #include "core-usb.h"
 
@@ -1543,7 +1544,7 @@ static int usb_if_uevent(struct device *dev, struct kobj_uevent_env *env)
 struct device_type usb_if_device_type = {
 	.name =		"usb_interface",
 	.release =	usb_release_interface,
-	.uevent =	usb_if_uevent,
+	// .uevent =	usb_if_uevent,
 };
 
 static struct usb_interface_assoc_descriptor *find_iad(struct usb_device *dev,
@@ -1844,7 +1845,7 @@ free_interfaces:
 
 		// if (device_is_registered(&intf->dev) == 1 && intf->dev.driver)
 		//     shout_out_for_no_silent_failure = 0;
-        if (int->dev.driver)
+        if (intf->dev.driver)
             shout_out_for_no_silent_failure = 0;
 	}
 

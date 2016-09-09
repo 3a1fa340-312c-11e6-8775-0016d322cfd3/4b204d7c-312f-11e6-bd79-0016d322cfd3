@@ -3,10 +3,10 @@
 include $(TOPDIR)/rules.mak
 include $(TOPDIR)/.config
 
-EXTRA_CFLAGS = -I. -D_KERNEL
+EXTRA_CFLAGS = -I. -D_KERNEL 
 
 #EXTRACFLAGS += -I../incl -I$(PROD_BUILD_DIR) -I$(APPS_DIR)/ps/common/incl -I$(APPS_DIR)/../drivers/ra305x_drivers
-EXTRACFLAGS += -I./include -I./include/asm -I$(PROD_BUILD_DIR) 
+EXTRACFLAGS += -I./include -I./include/asm -I$(PROD_BUILD_DIR) -DCONFIG_RALINK_MT7628
 #
 #ALL_OBJS = host/ehci-hcd.o host/ehci-rt3xxx.o host/ehci-hub.o \
 #		   host/ohci-hcd.o host/ohci-rt3xxx.o host/hoci-hub.o \
@@ -14,7 +14,7 @@ EXTRACFLAGS += -I./include -I./include/asm -I$(PROD_BUILD_DIR)
 #
 ALL_OBJS = os-dep.o core/klist.o core/usb.o core/hub.o core/driver.o core/generic.o core/message.o core/urb.o \
 		   core/endpoint.o core/hcd.o \
-		   host/ehci-hcd.o host/ehci-rt3xxx.o 
+		   host/ehci-hcd.o 
 
 MODULE = $(shell pwd | sed "s/.*\///" ).o
 
@@ -26,3 +26,6 @@ $(MODULE): $(ALL_OBJS:.o=.d)
 clean:
 	rm -f $(MODULE) $(ALL_OBJS)
 	rm -f *.d
+	rm -f ./core/*.d
+	rm -f ./host/*.d
+

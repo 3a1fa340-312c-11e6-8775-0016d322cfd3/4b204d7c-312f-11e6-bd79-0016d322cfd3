@@ -32,6 +32,7 @@
 #endif /*  _LINUX_ */
 
 #include "usb.h"
+#include "quirks.h"
 #include "core-usb.h"
 
 
@@ -1799,7 +1800,7 @@ static const struct dev_pm_ops usb_bus_pm_ops = {
 struct bus_type usb_bus_type = {
 	.name =		"usb",
 	.match =	usb_device_match,
-	.uevent =	usb_uevent,
+	// .uevent =	usb_uevent,
 #ifdef CONFIG_USB_SUSPEND
 	.pm =		&usb_bus_pm_ops,
 #endif

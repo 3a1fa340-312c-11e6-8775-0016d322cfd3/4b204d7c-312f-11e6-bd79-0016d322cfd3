@@ -45,7 +45,8 @@
 #include <linux/usb/hcd.h>
 #endif /* _LINUX_ */
 
-#include "osd-dep.h"
+#include <cyg/kernel/kapi.h>
+#include "os-dep.h"
 #include "usb.h"
 #include "core-usb.h"
 #include "hcd.h"
@@ -839,21 +840,21 @@ static ssize_t usb_host_authorized_default_store(struct device *dev,
 	return result;
 }
 
-static DEVICE_ATTR(authorized_default, 0644,
-	    usb_host_authorized_default_show,
-	    usb_host_authorized_default_store);
+// static DEVICE_ATTR(authorized_default, 0644,
+//         usb_host_authorized_default_show,
+//         usb_host_authorized_default_store);
 
 
 /* Group all the USB bus attributes */
-static struct attribute *usb_bus_attrs[] = {
-		&dev_attr_authorized_default.attr,
-		NULL,
-};
+// static struct attribute *usb_bus_attrs[] = {
+//         &dev_attr_authorized_default.attr,
+//         NULL,
+// };
 
-static struct attribute_group usb_bus_attr_group = {
-	.name = NULL,	/* we want them in the same directory */
-	.attrs = usb_bus_attrs,
-};
+// static struct attribute_group usb_bus_attr_group = {
+//     .name = NULL,	[> we want them in the same directory <]
+//     .attrs = usb_bus_attrs,
+// };
 
 
 
@@ -1289,17 +1290,18 @@ static void unmap_urb_for_dma(struct usb_hcd *hcd, struct urb *urb)
 	//             DMA_TO_DEVICE);
 
 	dir = usb_urb_dir_in(urb) ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-	if (urb->transfer_flags & URB_DMA_MAP_SG)
-		// dma_unmap_sg(hcd->self.controller,
-		//         urb->sg,
-		//         urb->num_sgs,
-		//         dir);
-	else if (urb->transfer_flags & URB_DMA_MAP_PAGE)
-		// dma_unmap_page(hcd->self.controller,
-		//         urb->transfer_dma,
-		//         urb->transfer_buffer_length,
-		//         dir);
-	else if (urb->transfer_flags & URB_DMA_MAP_SINGLE)
+	// if (urb->transfer_flags & URB_DMA_MAP_SG)
+    //     dma_unmap_sg(hcd->self.controller,
+    //             urb->sg,
+    //             urb->num_sgs,
+    //             dir);
+	// else if (urb->transfer_flags & URB_DMA_MAP_PAGE)
+    //     dma_unmap_page(hcd->self.controller,
+    //             urb->transfer_dma,
+    //             urb->transfer_buffer_length,
+    //             dir);
+	// else if (urb->transfer_flags & URB_DMA_MAP_SINGLE)
+    if (urb->transfer_flags & URB_DMA_MAP_SINGLE)
 		dma_unmap_single(hcd->self.controller,
 				urb->transfer_dma,
 				urb->transfer_buffer_length,
@@ -2151,7 +2153,7 @@ struct usb_hcd *usb_create_hcd (const struct hc_driver *driver,
 		return NULL;
 	}
 	dev_set_drvdata(dev, hcd);
-	kref_init(&hcd->kref);
+	// kref_init(&hcd->kref);
 
 	usb_bus_init(&hcd->self);
 	hcd->self.controller = dev;
@@ -2173,25 +2175,27 @@ struct usb_hcd *usb_create_hcd (const struct hc_driver *driver,
 }
 EXPORT_SYMBOL_GPL(usb_create_hcd);
 
-static void hcd_release (struct kref *kref)
-{
-	struct usb_hcd *hcd = container_of (kref, struct usb_hcd, kref);
-
-	kfree(hcd);
-}
-
-struct usb_hcd *usb_get_hcd (struct usb_hcd *hcd)
-{
-	if (hcd)
-		kref_get (&hcd->kref);
-	return hcd;
-}
-EXPORT_SYMBOL_GPL(usb_get_hcd);
+// static void hcd_release (struct kref *kref)
+// {
+//     struct usb_hcd *hcd = container_of (kref, struct usb_hcd, kref);
+// 
+//     kfree(hcd);
+// }
+// 
+// struct usb_hcd *usb_get_hcd (struct usb_hcd *hcd)
+// {
+//     if (hcd)
+//         kref_get (&hcd->kref);
+//     return hcd;
+// }
+// EXPORT_SYMBOL_GPL(usb_get_hcd);
 
 void usb_put_hcd (struct usb_hcd *hcd)
 {
-	if (hcd)
-		kref_put (&hcd->kref, hcd_release);
+	// if (hcd)
+	//     kref_put (&hcd->kref, hcd_release);
+    if (hcd)
+        kfree(hcd);
 }
 EXPORT_SYMBOL_GPL(usb_put_hcd);
 
@@ -2311,12 +2315,12 @@ int usb_add_hcd(struct usb_hcd *hcd,
 	if ((retval = register_root_hub(hcd)) != 0)
 		goto err_register_root_hub;
 
-	retval = sysfs_create_group(&rhdev->dev.kobj, &usb_bus_attr_group);
-	if (retval < 0) {
-		printk(KERN_ERR "Cannot register USB bus sysfs attributes: %d\n",
-		       retval);
-		goto error_create_attr_group;
-	}
+	// retval = sysfs_create_group(&rhdev->dev.kobj, &usb_bus_attr_group);
+	// if (retval < 0) {
+	//     printk(KERN_ERR "Cannot register USB bus sysfs attributes: %d\n",
+	//            retval);
+	//     goto error_create_attr_group;
+	// }
 	if (hcd->uses_new_polling && HCD_POLL_RH(hcd))
 		usb_hcd_poll_rh_status(hcd);
 	return retval;
@@ -2372,7 +2376,7 @@ void usb_remove_hcd(struct usb_hcd *hcd)
 	dev_info(hcd->self.controller, "remove, state %x\n", hcd->state);
 
 	usb_get_dev(rhdev);
-	sysfs_remove_group(&rhdev->dev.kobj, &usb_bus_attr_group);
+	// sysfs_remove_group(&rhdev->dev.kobj, &usb_bus_attr_group);
 
 	if (HC_IS_RUNNING (hcd->state))
 		hcd->state = HC_STATE_QUIESCING;

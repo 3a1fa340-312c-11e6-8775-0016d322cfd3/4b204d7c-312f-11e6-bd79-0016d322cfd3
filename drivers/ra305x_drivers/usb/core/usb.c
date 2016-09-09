@@ -46,7 +46,8 @@
 
 #include "os-dep.h"
 #include "usb.h"
-
+#include "hcd.h"
+#include "core-usb.h"
 
 const char *usbcore_name = "usbcore";
 
@@ -235,29 +236,29 @@ static void usb_release_dev(struct device *dev)
 	kfree(udev);
 }
 
-#ifdef	CONFIG_HOTPLUG
-static int usb_dev_uevent(struct device *dev, struct kobj_uevent_env *env)
-{
-	struct usb_device *usb_dev;
-
-	usb_dev = to_usb_device(dev);
-
-	if (add_uevent_var(env, "BUSNUM=%03d", usb_dev->bus->busnum))
-		return -ENOMEM;
-
-	if (add_uevent_var(env, "DEVNUM=%03d", usb_dev->devnum))
-		return -ENOMEM;
-
-	return 0;
-}
-
-#else
-
-static int usb_dev_uevent(struct device *dev, struct kobj_uevent_env *env)
-{
-	return -ENODEV;
-}
-#endif	/* CONFIG_HOTPLUG */
+// #ifdef	CONFIG_HOTPLUG
+// static int usb_dev_uevent(struct device *dev, struct kobj_uevent_env *env)
+// {
+//     struct usb_device *usb_dev;
+// 
+//     usb_dev = to_usb_device(dev);
+// 
+//     if (add_uevent_var(env, "BUSNUM=%03d", usb_dev->bus->busnum))
+//         return -ENOMEM;
+// 
+//     if (add_uevent_var(env, "DEVNUM=%03d", usb_dev->devnum))
+//         return -ENOMEM;
+// 
+//     return 0;
+// }
+// 
+// #else
+// 
+// static int usb_dev_uevent(struct device *dev, struct kobj_uevent_env *env)
+// {
+//     return -ENODEV;
+// }
+// #endif	[> CONFIG_HOTPLUG <]
 
 #ifdef	CONFIG_PM
 
@@ -323,23 +324,23 @@ static const struct dev_pm_ops usb_device_pm_ops = {
 #endif	/* CONFIG_PM */
 
 
-static char *usb_devnode(struct device *dev, mode_t *mode)
-{
-	struct usb_device *usb_dev;
-
-	usb_dev = to_usb_device(dev);
-	return kasprintf(GFP_KERNEL, "bus/usb/%03d/%03d",
-			 usb_dev->bus->busnum, usb_dev->devnum);
-}
+// static char *usb_devnode(struct device *dev, mode_t *mode)
+// {
+//     struct usb_device *usb_dev;
+// 
+//     usb_dev = to_usb_device(dev);
+//     return kasprintf(GFP_KERNEL, "bus/usb/%03d/%03d",
+//              usb_dev->bus->busnum, usb_dev->devnum);
+// }
 
 struct device_type usb_device_type = {
 	.name =		"usb_device",
 	.release =	usb_release_dev,
-	.uevent =	usb_dev_uevent,
-	.devnode = 	usb_devnode,
-#ifdef CONFIG_PM
-	.pm =		&usb_device_pm_ops,
-#endif
+//     .uevent =	usb_dev_uevent,
+//     .devnode = 	usb_devnode,
+// #ifdef CONFIG_PM
+//     .pm =		&usb_device_pm_ops,
+// #endif
 };
 
 
@@ -389,7 +390,7 @@ struct usb_device *usb_alloc_dev(struct usb_device *parent,
 	device_initialize(&dev->dev);
 	dev->dev.bus = &usb_bus_type;
 	dev->dev.type = &usb_device_type;
-	dev->dev.groups = usb_device_groups;
+	// dev->dev.groups = usb_device_groups;
 	dev->dev.dma_mask = bus->controller->dma_mask;
 	set_dev_node(&dev->dev, dev_to_node(bus->controller));
 	dev->state = USB_STATE_ATTACHED;

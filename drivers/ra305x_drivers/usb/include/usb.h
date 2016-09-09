@@ -1,14 +1,11 @@
 #ifndef __LINUX_USB_H
 #define __LINUX_USB_H
 
+#ifdef _LINUX_
 #include <linux/mod_devicetable.h>
 #include <linux/usb/ch9.h>
 
-#define USB_MAJOR			180
-#define USB_DEVICE_MAJOR		189
-
-
-#ifdef __KERNEL__
+//#ifdef __KERNEL__
 
 #include <linux/errno.h>        /* for -ENODEV */
 #include <linux/delay.h>	/* for mdelay() */
@@ -20,6 +17,14 @@
 #include <linux/completion.h>	/* for struct completion */
 #include <linux/sched.h>	/* for current && schedule_timeout */
 #include <linux/mutex.h>	/* for struct mutex */
+#endif /* _LINUX */
+
+#include "os-dep.h"
+#include "mod_devicetable.h"
+#include "ch9.h"
+
+#define USB_MAJOR			    180
+#define USB_DEVICE_MAJOR		189
 
 struct usb_device;
 struct usb_driver;
@@ -771,8 +776,9 @@ static inline int usb_make_path(struct usb_device *dev, char *buf, size_t size)
 
 /* Stuff for dynamic usb ids */
 struct usb_dynids {
-	spinlock_t lock;
-	struct list_head list;
+	// spinlock_t lock;
+    cyg_spinlock_t      lock;
+	struct list_head    list;
 };
 
 struct usb_dynid {
@@ -780,9 +786,9 @@ struct usb_dynid {
 	struct usb_device_id id;
 };
 
-extern ssize_t usb_store_new_id(struct usb_dynids *dynids,
-				struct device_driver *driver,
-				const char *buf, size_t count);
+// extern ssize_t usb_store_new_id(struct usb_dynids *dynids,
+//                 struct device_driver *driver,
+//                 const char *buf, size_t count);
 
 /**
  * struct usbdrv_wrap - wrapper for driver-model structure
@@ -1004,7 +1010,8 @@ struct urb;
 struct usb_anchor {
 	struct list_head urb_list;
 	wait_queue_head_t wait;
-	spinlock_t lock;
+	// spinlock_t lock;
+    cyg_spinlock_t lock;
 	unsigned int poisoned:1;
 };
 
@@ -1471,8 +1478,8 @@ struct usb_sg_request {
 	 * members below are private to usbcore,
 	 * and are not provided for driver access!
 	 */
-	spinlock_t		lock;
-
+	// spinlock_t		lock;
+    cyg_spinlock_t      lock;
 	struct usb_device	*dev;
 	int			pipe;
 
@@ -1616,6 +1623,6 @@ do {									\
 /* debugfs stuff */
 extern struct dentry *usb_debug_root;
 
-#endif  /* __KERNEL__ */
+//#endif  /* __KERNEL__ */
 
 #endif

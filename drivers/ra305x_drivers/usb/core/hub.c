@@ -32,8 +32,10 @@
 #endif /* _LINUX_ */
 
 #include "os-dep.h"
+#include "ioctl.h"
 #include "usb.h"
 #include "hcd.h"
+#include "quirks.h"
 #include "core-usb.h"
 
 /* if we are in debug mode, always announce new devices */
@@ -677,8 +679,10 @@ enum hub_activation_type {
     HUB_POST_RESET, HUB_RESUME, HUB_RESET_RESUME,
 };
 
-static void hub_init_func2(struct work_struct *ws);
-static void hub_init_func3(struct work_struct *ws);
+// static void hub_init_func2(struct work_struct *ws);
+// static void hub_init_func3(struct work_struct *ws);
+static void hub_init_func2(cyg_handle_t alarmobj, unsigned long data);
+static void hub_init_func3(cyg_handle_t alarmobj, unsigned long data);
 
 static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
 {
@@ -1829,8 +1833,8 @@ int usb_new_device(struct usb_device *udev)
             udev->devnum, udev->bus->busnum,
             (((udev->bus->busnum-1) * 128) + (udev->devnum-1)));
     /* export the usbdev device-node for libusb */
-    udev->dev.devt = MKDEV(USB_DEVICE_MAJOR,
-            (((udev->bus->busnum-1) * 128) + (udev->devnum-1)));
+    // udev->dev.devt = MKDEV(USB_DEVICE_MAJOR,
+    //         (((udev->bus->busnum-1) * 128) + (udev->devnum-1)));
 
     /* Tell the world! */
     announce_device(udev);
@@ -3494,10 +3498,10 @@ static struct usb_driver hub_driver = {
     .supports_autosuspend = 1,
 };
 
-#define USBHUB_TASK_PRI             20
-#define USBHUB_TASK_STACK_SIZE      4096
+#define USBHUB_TASK_PRI           20
+#define USBHUB_TASK_STACK_SIZE    4096
 
-static uint8        usb_hub_stack[USBHUB_TASK_STACK_SIZE];
+static u8           usb_hub_stack[USBHUB_TASK_STACK_SIZE];
 static cyg_thread   usb_hub_task;
 static cyg_handle_t usb_hub_task_handle;
 
@@ -3516,7 +3520,7 @@ int usb_hub_init(void)
                 hub_thread,
                 0,
                 "HUB",
-                (void *)(usb_hub_statck),
+                (void *)(usb_hub_stack),
                 USBHUB_TASK_STACK_SIZE,
                 &usb_hub_task_handle,
                 &usb_hub_task

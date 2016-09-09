@@ -9,7 +9,9 @@
 #ifndef __LINUX_CH11_H
 #define __LINUX_CH11_H
 
+#ifdef _LINUX_
 #include <linux/types.h>	/* __u8 etc */
+#endif /* _LINUX_ */
 
 /*
  * Hub request types

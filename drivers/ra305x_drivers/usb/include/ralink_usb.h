@@ -2,7 +2,8 @@
 
 #ifndef __RALINK_USB_H__
 
-#include <asm/mach-ralink/rt_mmap.h>
+// #include <asm/mach-ralink/rt_mmap.h>
+#include "rt_mmap.h"
 
 #define SYSCFG1			(RALINK_SYSCTL_BASE + 0x14)
 #define USB0_HOST_MODE		(1UL<<10)

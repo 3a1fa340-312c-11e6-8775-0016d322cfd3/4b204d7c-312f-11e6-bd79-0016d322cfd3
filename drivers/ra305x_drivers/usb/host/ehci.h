@@ -69,7 +69,8 @@ struct ehci_hcd {			/* one per controller */
 	struct ehci_dbg_port __iomem *debug;
 
 	__u32			hcs_params;	/* cached register copy */
-	spinlock_t		lock;
+	// spinlock_t		lock;
+    cyg_spinlock_t      lock;
 
 	/* async schedule support */
 	struct ehci_qh		*async;
@@ -199,7 +200,8 @@ static void free_cached_lists(struct ehci_hcd *ehci);
 
 /*-------------------------------------------------------------------------*/
 
-#include <linux/usb/ehci_def.h>
+// #include <linux/usb/ehci_def.h>
+#include "ehci_def.h"
 
 /*-------------------------------------------------------------------------*/
 

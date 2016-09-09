@@ -2,6 +2,10 @@
 #ifndef _OS_DEP_H_
 #define _OS_DEP_H_
 
+#include "list.h"
+#include "klist.h"
+#include "errno.h"
+
 /*
  * cpu information
  */
@@ -22,18 +26,23 @@
 /*
  * platform resource
  */
- #define IRQ_RT3XXX_USB         18
- #define MEM_EHCI_START         0x101c0000
- #define MEM_EHCI_END           0x101c0fff
- #define MEM_OHCI_START         0x101c1000
- #define MEM_OHCI_END           0x101c1fff
+#define IRQ_RT3XXX_USB         18
+#define MEM_EHCI_START         0x101c0000
+#define MEM_EHCI_END           0x101c0fff
+#define MEM_OHCI_START         0x101c1000
+#define MEM_OHCI_END           0x101c1fff
+
+#define THIS_MODULE ((struct module *)0)
 
 /* 
  * system spinlocks
  */
+static int                          irq_flag;
 #define spin_lock_init(x)           cyg_spinlock_init(x, false)
 #define spin_lock(x)                cyg_spinlock_spin(x)
 #define spin_unlock(x)              cyg_spinlock_clear(x)
+#define spin_lock_irq(x)            cyg_spinlock_spin_intsave(x, &irq_flag)
+#define spin_unlock_irq(x)          cyg_spinlock_clear_intsave(x, irq_flag)
 #define spin_lock_irqsave(x, y)     cyg_spinlock_spin_intsave(x, &y)
 #define spin_unlock_irqstore(x, y)  cyg_spinlock_clear_intsave(x, y)
 
@@ -45,8 +54,87 @@
 #define OS_HZ                       100
 #endif /* !OS_HZ */
 
-#define HZ                          OS_HZ
-#define BUG_ON(x)                   assert(!(x))
+#define HZ            OS_HZ
+#define BUG_ON(x)    assert(!(x))
+
+#define GFP_KERNEL    0
+#define GFP_NOIO      ((gfp_t)0x10u)
+#define GFP_ATOMIC    ((gfp_t)0x20u)
+
+#define printk        diag_printf
+#define might_sleep()   do{} while(0)
+#define KBUILD_MODNAME    "usb-host"
+#define __always_inline inline
+
+/*
+ * types.h
+ */
+
+typedef signed char             s8;
+typedef unsigned char           u8;
+
+typedef signed short            s16;
+typedef unsigned short          u16;
+
+typedef signed int              s32;
+typedef unsigned int            u32;
+
+typedef signed long long        s64;
+typedef unsigned long long      u64;
+
+typedef __signed__ char         __s8;
+typedef unsigned char           __u8;
+
+typedef __signed__ short        __s16;
+typedef unsigned short          __u16;
+
+typedef __signed__ int          __s32;
+typedef unsigned int            __u32;
+
+typedef signed long long        __s64;
+typedef unsigned long long      __u64;
+
+typedef int                     ssize_t;
+#define u_long    unsigned long
+
+#define __bitwise
+#define __bitwise__
+typedef __u16 __bitwise         __le16;
+typedef __u16 __bitwise         __be16;
+typedef __u32 __bitwise         __le32;
+typedef __u32 __bitwise         __be32;
+typedef __u64 __bitwise         __le64;
+typedef __u64 __bitwise         __be64;
+
+typedef __u16 __bitwise         __sum16;
+typedef __u32 __bitwise         __wsum;
+
+typedef unsigned __bitwise__    gfp_t;
+typedef unsigned __bitwise__    fmode_t;
+
+typedef unsigned int            mode_t;
+typedef u32                     dma_addr_t;
+
+typedef long                    __kernel_time_t;
+typedef long                    __kernel_suseconds_t;
+typedef long                    suseconds_t;
+typedef long                    time_t;
+
+/* Arbitrary Unicode character */
+typedef u32                     unicode_t;
+
+enum dma_data_direction {
+	DMA_BIDIRECTIONAL = 0,
+	DMA_TO_DEVICE = 1,
+	DMA_FROM_DEVICE = 2,
+	DMA_NONE = 3,
+};
+
+typedef struct {
+	unsigned sequence;
+	// spinlock_t lock;
+    cyg_spinlock_t  lock;
+} seqlock_t;
 
 /*
  * NULL descriptor
@@ -56,27 +144,67 @@
 #define dev_warn(dev, format, arg...)
 #define dev_info(dev, format, arg...)
 
+#define KERN_WARNING
+#define KERN_DEBUG
+#define KERN_ERR
+#define KERN_EMERG
+#define __iomem
+#define __init
+#define __read_mostly
 /*
  * list
  */
 #define LIST_POISON1    ((void *) 0x00100100)
 #define LIST_POISON2    ((void *) 0x00200200)
 
+
 /*
  * wait queue
  */
+
 typedef struct __wait_queue wait_queue_t;
 typedef int (*wait_queue_func_t)(wait_queue_t *wait, unsigned mode, int flags, void *key);
-int default_wake_function(wait_queue_t *wait, unsigned mode, int flags, void *key);
 int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key);
+
+struct __wait_queue {
+    unsigned int flags;
+    #define WQ_FLAG_EXCLUSIVE   0x01
+    void *private;
+    wait_queue_func_t func;
+    struct list_head task_list;
+};
+
+struct __wait_queue_head {
+    cyg_spinlock_t  lock;
+    cyg_sem_t       semaphore;
+    struct list_head task_list;
+};
+
+typedef struct __wait_queue_head wait_queue_head_t;
+int default_wake_function(wait_queue_t *wait, unsigned mode, int flags, void *key);
 void finish_wait(wait_queue_head_t *q, wait_queue_t *wait);
+
+#define __WAIT_QUEUE_HEAD_INITIALIZER(name) { \
+    .task_list = { &(name).task_list, &(name).task_list } }
+
+#define DECLARE_WAIT_QUEUE_HEAD(name) \
+    wait_queue_head_t name = __WAIT_QUEUE_HEAD_INITIALIZER(name)
+
+#define DEFINE_WAIT_FUNC(name, function)                        \
+    wait_queue_t name = {                                       \
+        .private = cyg_thread_self(),                           \
+        .func    = function,                                    \
+        .task_list = LIST_HEAD_INIT((name).task_list),          \
+    }
+
+#define DEFINE_WAIT(name) DEFINE_WAIT_FUNC(name, autoremove_wake_function)
 
 static inline void __add_wait_queue(wait_queue_head_t *head, wait_queue_t *new)
 {
-	list_add(&new->task_list, &head->task_list);
+    list_add(&new->task_list, &head->task_list);
 }
 
-#define __wait_event(wq, confition) \
+#define __wait_event(wq, condition) \
 do {                                \
     DEFINE_WAIT(__wait);            \
                                     \
@@ -116,8 +244,8 @@ do {									                    \
 		prepare_to_wait(&wq, &__wait, TASK_UNINTERRUPTIBLE);\
 		if (condition)						\
 			break;						    \
-        ret = cyg_thread_delay(ret);        \
-		if (!ret)						    \
+        cyg_thread_delay(ret);              \
+		if (ret)						    \
 			break;						    \
 	}								        \
 	finish_wait(&wq, &__wait);				\
@@ -147,20 +275,6 @@ do {									                    \
 	__ret;								\
 })
 
-#define __WAIT_QUEUE_HEAD_INITIALIZE(name) { \
-    .task_list = { &(name).task_list, &(name).task_list } }
-
-#define DECLARE_WAIT_QUEUE_HEAD(name) \
-    wait_queue_head_t name = __WAIT_QUEUE_HEAD_INITIALIZER(name)
-
-#define DEFINE_WAIT_FUNC(name, function)                        \
-    wait_queue_t name = {                                       \
-        .private = cyg_thread_self();                           \
-        .func    = function,                                    \
-        .task_list = LIST_HEAD_INIT((name).task_list),          \
-    }
-
-#define DEFINE_WAIT(name) DEFINE_WAIT_FUNC(name, autoremove_wake_function)
 
 /*
  * ulitility define
@@ -180,6 +294,22 @@ do {									                    \
 #ifndef max
 #define max(_a, _b)     (((_a) > (_b)) ? (_a) : (_b))
 #endif
+
+/*
+ * ..and if you can't take the strict
+ * types, you can specify one yourself.
+ *
+ * Or not use min/max/clamp at all, of course.
+ */
+#define min_t(type, x, y) ({			\
+	type __min1 = (x);			\
+	type __min2 = (y);			\
+	__min1 < __min2 ? __min1: __min2; })
+
+#define max_t(type, x, y) ({			\
+	type __max1 = (x);			\
+	type __max2 = (y);			\
+	__max1 > __max2 ? __max1: __max2; })
 
 #define unlikely(cond)  (cond)
 
@@ -243,6 +373,7 @@ static inline unsigned long virt_to_phys(volatile const void *address)
 	return (unsigned long)address - PAGE_OFFSET + PHYS_OFFSET;
 }
 
+struct device;
 static inline dma_addr_t plat_map_dma_mem(struct device *dev, void *addr, size_t size)
 {
     return virt_to_phys(addr);
@@ -312,37 +443,24 @@ static inline dma_addr_t dma_map_single(struct device *dev, void *ptr, size_t si
 typedef struct {
     int counter;
 } atomic_t;
+typedef atomic_t atomic_long_t;
 
 struct kref {
     atomic_t refcount;
 };
 
-struct list_head {
-    struct list_head *next, *prev;
-};
+// struct list_head {
+//     struct list_head *next, *prev;
+// };
+// 
+// struct hlist_head {
+//     struct hlist_node *first;
+// };
+// 
+// struct hlist_node {
+//     struct hlist_node *next, **pprev;
+// };
 
-struct hlist_head {
-    struct hlist_node *first;
-};
-
-struct hlist_node {
-    struct hlist_node *next, **pprev;
-};
-
-struct __wait_queue {
-    unsigned int flags;
-    #define WQ_FLAG_EXCLUSIVE   0x01
-    void *private;
-    wait_queue_func_t func;
-    struct list_head task_list;
-};
-
-struct __wait_queue_head {
-    cyg_spinlock_t  lock;
-    cyg_sem_t       semaphore;
-    struct list_head task_list;
-};
-typedef struct __wait_queue_head wait_queue_head_t;
 
 struct timer_list {
 	struct list_head entry;
@@ -526,8 +644,8 @@ struct bus_type_private {
 	// struct kset subsys;
 	// struct kset *drivers_kset;
 	// struct kset *devices_kset;
-	// struct klist klist_devices;
-	// struct klist klist_drivers;
+    struct klist klist_devices;
+    struct klist klist_drivers;
 	// struct blocking_notifier_head bus_notifier;
 	unsigned int drivers_autoprobe:1;
 	struct bus_type *bus;
@@ -535,12 +653,37 @@ struct bus_type_private {
 
 struct driver_private {
 	struct kobject kobj;
-	// struct klist klist_devices;
-	// struct klist_node knode_bus;
+    struct klist klist_devices;
+    struct klist_node knode_bus;
 	// struct module_kobject *mkobj;
 	struct device_driver *driver;
 };
 #define to_driver(obj) container_of(obj, struct driver_private, kobj)
+
+typedef struct pm_message {
+	int event;
+} pm_message_t;
+
+struct attribute {
+	const char		*name;
+	mode_t			mode;
+#ifdef CONFIG_DEBUG_LOCK_ALLOC
+	struct lock_class_key	*key;
+	struct lock_class_key	skey;
+#endif
+};
+
+/* interface for exporting device attributes */
+struct device_attribute {
+	struct attribute	attr;
+	ssize_t (*show)(struct device *dev, struct device_attribute *attr,
+			char *buf);
+	ssize_t (*store)(struct device *dev, struct device_attribute *attr,
+			 const char *buf, size_t count);
+};
+
+#define DEVICE_ATTR(_name, _mode, _show, _store) \
+struct device_attribute dev_attr_##_name = __ATTR(_name, _mode, _show, _store)
 
 struct bus_type {
 	const char		*name;
@@ -549,7 +692,7 @@ struct bus_type {
 	// struct driver_attribute	*drv_attrs;
 
 	int (*match)(struct device *dev, struct device_driver *drv);
-	int (*uevent)(struct device *dev, struct kobj_uevent_env *env);
+	// int (*uevent)(struct device *dev, struct kobj_uevent_env *env);
 	int (*probe)(struct device *dev);
 	int (*remove)(struct device *dev);
 	void (*shutdown)(struct device *dev);
@@ -585,6 +728,204 @@ struct device_driver {
 	const struct dev_pm_ops *pm;
 
 	struct driver_private *p;
+};
+
+
+enum dpm_state {
+	DPM_INVALID,
+	DPM_ON,
+	DPM_PREPARING,
+	DPM_RESUMING,
+	DPM_SUSPENDING,
+	DPM_OFF,
+	DPM_OFF_IRQ,
+};
+
+struct dev_pm_info {
+	pm_message_t		power_state;
+	unsigned int		can_wakeup:1;
+	unsigned int		should_wakeup:1;
+	unsigned		async_suspend:1;
+	enum dpm_state		status;		/* Owned by the PM core */
+#ifdef CONFIG_PM_SLEEP
+	struct list_head	entry;
+	struct completion	completion;
+	unsigned long		wakeup_count;
+#endif
+#ifdef CONFIG_PM_RUNTIME
+	struct timer_list	suspend_timer;
+	unsigned long		timer_expires;
+	struct work_struct	work;
+	wait_queue_head_t	wait_queue;
+	// spinlock_t		lock;
+    cyg_spinlock_t      lock;
+	atomic_t		usage_count;
+	atomic_t		child_count;
+	unsigned int		disable_depth:3;
+	unsigned int		ignore_children:1;
+	unsigned int		idle_notification:1;
+	unsigned int		request_pending:1;
+	unsigned int		deferred_resume:1;
+	unsigned int		run_wake:1;
+	unsigned int		runtime_auto:1;
+	enum rpm_request	request;
+	enum rpm_status		runtime_status;
+	int			runtime_error;
+	unsigned long		active_jiffies;
+	unsigned long		suspended_jiffies;
+	unsigned long		accounting_timestamp;
+#endif
+};
+
+/**
+ * struct device_private - structure to hold the private to the driver core portions of the device structure.
+ *
+ * @klist_children - klist containing all children of this device
+ * @knode_parent - node in sibling list
+ * @knode_driver - node in driver list
+ * @knode_bus - node in bus list
+ * @driver_data - private pointer for driver specific info.  Will turn into a
+ * list soon.
+ * @device - pointer back to the struct class that this structure is
+ * associated with.
+ *
+ * Nothing outside of the driver core should ever touch these fields.
+ */
+struct device_private {
+	struct klist klist_children;
+	struct klist_node knode_parent;
+	struct klist_node knode_driver;
+	struct klist_node knode_bus;
+	void *driver_data;
+	struct device *device;
+};
+
+#define to_device_private_parent(obj)	\
+	container_of(obj, struct device_private, knode_parent)
+#define to_device_private_driver(obj)	\
+	container_of(obj, struct device_private, knode_driver)
+#define to_device_private_bus(obj)	\
+	container_of(obj, struct device_private, knode_bus)
+
+struct class_private {
+	// struct kset class_subsys;
+	struct klist class_devices;
+	struct list_head class_interfaces;
+	// struct kset class_dirs;
+	// struct mutex class_mutex;
+    cyg_mutex_t     class_mutex;
+	struct class *class;
+};
+#define to_class(obj)	\
+	container_of(obj, struct class_private, class_subsys.kobj)
+
+/*
+ * device classes
+ */
+struct class {
+	const char		*name;
+	struct module		*owner;
+
+	// struct class_attribute		*class_attrs;
+	// struct device_attribute		*dev_attrs;
+	// struct kobject			*dev_kobj;
+
+	// int (*dev_uevent)(struct device *dev, struct kobj_uevent_env *env);
+	// char *(*devnode)(struct device *dev, mode_t *mode);
+
+	void (*class_release)(struct class *class);
+	void (*dev_release)(struct device *dev);
+
+	int (*suspend)(struct device *dev, pm_message_t state);
+	int (*resume)(struct device *dev);
+
+	// const struct kobj_ns_type_operations *ns_type;
+	const void *(*namespace)(struct device *dev);
+
+	// const struct dev_pm_ops *pm;
+
+	struct class_private *p;
+};
+
+struct class_interface {
+	struct list_head	node;
+	struct class		*class;
+
+	int (*add_dev)		(struct device *, struct class_interface *);
+	void (*remove_dev)	(struct device *, struct class_interface *);
+};
+
+struct device {
+	struct device		*parent;
+
+	struct device_private	*p;
+
+	// struct kobject kobj;
+	const char		*init_name; /* initial name of the device */
+	struct device_type	*type;
+
+	// struct mutex		mutex;	[> mutex to synchronize calls to
+	//                  * its driver.
+	//                  */
+    cyg_mutex_t         mutex;
+
+	struct bus_type	*bus;		    /* type of bus device is on */
+	struct device_driver *driver;	/* which driver has allocated this device */
+	void   *platform_data;	        /* Platform specific data, device core doesn't touch it */
+	struct dev_pm_info	power;
+
+#ifdef CONFIG_NUMA
+	int		numa_node;	            /* NUMA node this device is close to */
+#endif
+	u64		*dma_mask;	            /* dma mask (if dma'able device) */
+	u64		coherent_dma_mask;      /* Like dma_mask, but for
+                                       alloc_coherent mappings as
+                                       not all hardware supports
+                                       64 bit addresses for consistent
+                                       allocations such descriptors. */
+
+	struct device_dma_parameters *dma_parms;
+
+	struct list_head	dma_pools;	/* dma pools (if dma'ble) */
+
+	struct dma_coherent_mem	*dma_mem; /* internal for coherent mem
+                                         override */
+    /* arch specific additions */
+	// struct dev_archdata	archdata;
+#ifdef CONFIG_OF
+	struct device_node	*of_node;
+#endif
+
+	//dev_t			devt;	/* dev_t, creates the sysfs "dev" */
+
+	// spinlock_t		    devres_lock;
+    cyg_spinlock_t      devres_lock;
+	struct list_head	devres_head;
+
+	struct klist_node	knode_class;
+	struct class		*class;
+	const struct attribute_group **groups;	/* optional groups */
+
+	void	(*release)(struct device *dev);
+};
+
+/*
+ * The type of device, "struct device" is embedded in. A class
+ * or bus can contain devices of different types
+ * like "partitions" and "disks", "mouse" and "event".
+ * This identifies the device type and carries type-specific
+ * information, equivalent to the kobj_type of a kobject.
+ * If "name" is specified, the uevent will contain it in
+ * the DEVTYPE variable.
+ */
+struct device_type {
+	const char *name;
+	// const struct attribute_group **groups;
+	// int (*uevent)(struct device *dev, struct kobj_uevent_env *env);
+	// char *(*devnode)(struct device *dev, mode_t *mode);
+	void (*release)(struct device *dev);
+
+	// const struct dev_pm_ops *pm;
 };
 
 /*
@@ -654,25 +995,37 @@ static inline bool device_may_wakeup(struct device *dev)
 #endif /* !CONFIG_PM */
 
 /*
+ * usbdevice_fs
+ */
+/* You can do most things with hubs just through control messages,
+ * except find out what device connects to what port. */
+struct usbdevfs_hub_portinfo {
+	char nports;		/* number of downstream ports in this hub */
+	char port [127];	/* e.g. port 3 connects to device 27 */
+};
+
+#define USBDEVFS_HUB_PORTINFO      _IOR('U', 19, struct usbdevfs_hub_portinfo)
+
+/*
  * workqueue.h
  */
 
-// struct work_struct;
-// typedef void (*work_func_t)(struct work_struct *work);
+struct work_struct;
+typedef void (*work_func_t)(struct work_struct *work);
 
 /*
  * initialize a work item's function pointer
  */
 
-// struct work_struct {
-//     atomic_long_t data;
-//     struct list_head entry;
-//     work_func_t func;
-// #ifdef CONFIG_LOCKDEP
-//     struct lockdep_map lockdep_map;
-// #endif
-// };
-// 
+struct work_struct {
+    atomic_long_t data;
+    struct list_head entry;
+    work_func_t func;
+#ifdef CONFIG_LOCKDEP
+    struct lockdep_map lockdep_map;
+#endif
+};
+ 
 // struct delayed_work {
 //     struct work_struct work;
 //     struct timer_list timer;
@@ -711,6 +1064,7 @@ static inline bool device_may_wakeup(struct device *dev)
 //                     unsigned long delay);
 
 unsigned long find_last_bit(const unsigned long *addr, unsigned long size);
+unsigned long msecs_to_jiffies(const unsigned int m);
 
 /*
  * nlf_base.h
@@ -726,6 +1080,13 @@ struct utf8_table {
 	int     shift;
 	long    lmask;
 	long    lval;
+};
+
+/* Byte order for UTF-16 strings */
+enum utf16_endian {
+	UTF16_HOST_ENDIAN,
+	UTF16_LITTLE_ENDIAN,
+	UTF16_BIG_ENDIAN
 };
 
 static const struct utf8_table utf8_table[] =
@@ -763,5 +1124,77 @@ static inline void device_unlock(struct device *dev)
 	mutex_unlock(&dev->mutex);
 }
 
+#define LONG_MAX                ((long)(~0UL >> 1))
+#define MAX_SCHEDULE_TIMEOUT    LONG_MAX
+#define INT_MAX                 ((int)(~0U >> 1))
+
+/*
+ * Task state bitmask. NOTE! These bits are also
+ * encoded in fs/proc/array.c: get_task_state().
+ *
+ * We have two separate sets of flags: task->state
+ * is about runnability, while task->exit_state are
+ * about the task exiting. Confusing, but this way
+ * modifying one set can't modify the other one by
+ * mistake.
+ */
+#define TASK_RUNNING            0
+#define TASK_INTERRUPTIBLE      1
+#define TASK_UNINTERRUPTIBLE    2
+#define __TASK_STOPPED          4
+#define __TASK_TRACED           8
+/* in tsk->exit_state */
+#define EXIT_ZOMBIE             16
+#define EXIT_DEAD               32
+/* in tsk->state again */
+#define TASK_DEAD               64
+#define TASK_WAKEKILL           128
+#define TASK_WAKING             256
+#define TASK_STATE_MAX          512
+
+/*
+ * atomic_read - read atomic variable
+ * @v: pointer of type atomic_t
+ *
+ * Atomically reads the value of @v.
+ */
+#define atomic_read(v)    (*(volatile int *)&(v)->counter)
+
+/*
+ * These flags used only by the kernel as part of the
+ * irq handling routines.
+ *
+ * IRQF_DISABLED - keep irqs disabled when calling the action handler.
+ *                 DEPRECATED. This flag is a NOOP and scheduled to be removed
+ * IRQF_SAMPLE_RANDOM - irq is used to feed the random generator
+ * IRQF_SHARED - allow sharing the irq among several devices
+ * IRQF_PROBE_SHARED - set by callers when they expect sharing mismatches to occur
+ * IRQF_TIMER - Flag to mark this interrupt as timer interrupt
+ * IRQF_PERCPU - Interrupt is per cpu
+ * IRQF_NOBALANCING - Flag to exclude this interrupt from irq balancing
+ * IRQF_IRQPOLL - Interrupt is used for polling (only the interrupt that is
+ *                registered first in an shared interrupt is considered for
+ *                performance reasons)
+ * IRQF_ONESHOT - Interrupt is not reenabled after the hardirq handler finished.
+ *                Used by threaded interrupts which need to keep the
+ *                irq line disabled until the threaded handler has been run.
+ * IRQF_NO_SUSPEND - Do not disable this IRQ during suspend
+ *
+ */
+#define IRQF_DISABLED         0x00000020
+#define IRQF_SAMPLE_RANDOM    0x00000040
+#define IRQF_SHARED           0x00000080
+#define IRQF_PROBE_SHARED     0x00000100
+#define __IRQF_TIMER          0x00000200
+#define IRQF_PERCPU           0x00000400
+#define IRQF_NOBALANCING      0x00000800
+#define IRQF_IRQPOLL          0x00001000
+#define IRQF_ONESHOT          0x00002000
+#define IRQF_NO_SUSPEND       0x00004000
+
+# define __acquires(x)
+# define __releases(x)
+# define __acquire(x) (void)0
+# define __release(x) (void)0
 
 #endif /* end of include guard: _OS_DEP_H_ */

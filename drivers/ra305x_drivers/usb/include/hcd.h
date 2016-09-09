@@ -19,9 +19,9 @@
 #ifndef __USB_CORE_HCD_H
 #define __USB_CORE_HCD_H
 
-#ifdef __KERNEL__
+//#ifdef __KERNEL__
 
-#include <linux/rwsem.h>
+//#include <linux/rwsem.h>
 
 #define MAX_TOPO_LEVEL    6
 
@@ -72,7 +72,7 @@ struct usb_hcd {
      * housekeeping
      */
     struct usb_bus         self;       /* hcd is-a bus */
-    struct kref            kref;       /* reference counter */
+    // struct kref            kref;       [> reference counter <]
 
     const char             *product_desc;  /* product/vendor string */
 #if defined(CONFIG_USB_MT7621_XHCI_HCD) || defined(CONFIG_USB_MT7621_XHCI_HCD_MODULE)
@@ -154,11 +154,13 @@ struct usb_hcd {
      * to the device, or resetting the bandwidth after a failed attempt.
      */
 #if defined(CONFIG_USB_MT7621_XHCI_HCD) || defined(CONFIG_USB_MT7621_XHCI_HCD_MODULE)
-    struct mutex           *bandwidth_mutex;
+    // struct mutex           *bandwidth_mutex;
+    cyg_mutex_t            *bandwidth_mutex;
     struct usb_hcd         *shared_hcd;
     struct usb_hcd         *primary_hcd;
 #else
-    struct mutex           bandwidth_mutex;
+    // struct mutex           bandwidth_mutex;
+    cyg_mutex_t            bandwidth_mutex;
 #endif // CONFIG_USB_MT7621_XHCI_HCD
 
 
@@ -495,7 +497,8 @@ extern void usb_destroy_configuration(struct usb_device *dev);
  * HCD Root Hub support
  */
 
-#include <linux/usb/ch11.h>
+// #include <linux/usb/ch11.h>
+#include "ch11.h"
 
 /*
  * As of USB 2.0, full/low speed devices are segregated into trees.
@@ -516,7 +519,8 @@ struct usb_tt {
     unsigned           think_time; /* think time in ns */
 
     /* for control/bulk error recovery (CLEAR_TT_BUFFER) */
-    spinlock_t         lock;
+    // spinlock_t         lock;
+    cyg_spinlock_t        lock;
     struct list_head   clear_list; /* of usb_tt_clear */
     struct work_struct clear_work;
 };
@@ -620,7 +624,8 @@ extern void usb_set_device_state(struct usb_device     *udev,
 /* exported only within usbcore */
 
 extern struct list_head  usb_bus_list;
-extern struct mutex      usb_bus_list_lock;
+// extern struct mutex      usb_bus_list_lock;
+extern cyg_mutex_t  usb_bus_list_lock;
 extern wait_queue_head_t usb_kill_urb_queue;
 
 extern int usb_find_interface_driver(struct usb_device    *dev,
@@ -771,6 +776,6 @@ extern struct rw_semaphore ehci_cf_port_reset_rwsem;
 #define USB_EHCI_LOADED    2
 extern unsigned long usb_hcds_loaded;
 
-#endif /* __KERNEL__ */
+//#endif /* __KERNEL__ */
 
 #endif /* __USB_CORE_HCD_H */

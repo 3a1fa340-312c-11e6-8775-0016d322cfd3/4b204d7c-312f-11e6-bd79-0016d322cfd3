@@ -31,6 +31,7 @@ TARGET_OS = ECOS
 ECOS_REPOSITORY := $(ROOT_DIR)/ecos/packages
 ECOS_TOOL_PATH := $(ROOT_DIR)/tools/bin
 ECOS_MIPSTOOL_PATH := $(ROOT_DIR)/tools/mipsisa32-elf/bin
+#ECOS_MIPSTOOL_PATH := /opt/buildroot-gcc463/bin
 DRIVERS =
 EXTOBJS =
 
@@ -83,6 +84,7 @@ endif
 
 ifeq ($(CHIP),mt7688)
 GCC_DIR = $(ROOT_DIR)/tools/mipsisa32-elf/bin
+#GCC_DIR = /opt/buildroot-gcc463/bin
 ARCH = ARCH_MIPS
 endif
 
@@ -150,9 +152,9 @@ endif
 
 else #mt7688
 
-SYS_LIBS		= usb_host tcpip ps/common http_zot ps/psutility
-ADMIN_LIBS 		= ps/ntps ipxbeui usb_host
-PS_LIBS			= spooler usb_host ps/novell ps/nds ps/lpd ps/ippd ps/atalk ps/rawtcpd rendezvous snmp ps/tftp_zot
+SYS_LIBS		= tcpip ps/common http_zot ps/psutility
+ADMIN_LIBS 		= ps/ntps ipxbeui 
+PS_LIBS			= spooler ps/novell ps/nds ps/lpd ps/ippd ps/atalk ps/rawtcpd rendezvous snmp ps/tftp_zot
 NETAPP_LIBS 	= ps/telnet ps/smbd
 
 #PROD_MODULES = ps/psutility tcpip ps/common ps/ntps usb_host ipxbeui spooler ps/novell ps/nds ps/ippd http_zot ps/lpd ps/rawtcpd\
@@ -242,10 +244,18 @@ LIB_DIR       = $(PROD_BUILD_DIR)/lib
 
 export PROD_BUILD_DIR OBJ_DIR LIB_DIR
 
+
+ifeq ($(CHIP),arm9)
 EXTRACFLAGS +=  -I. \
 				-I$(PROD_BUILD_DIR) \
 				-I$(APPS_DIR)/ps/common/incl -I$(APPS_DIR)/ps/ntps/incl \
 				-I$(APPS_DIR)/ipxbeui/incl -I$(APPS_DIR)/usb_host/src -I$(APPS_DIR)/star/incl
+else
+EXTRACFLAGS +=  -I. \
+				-I$(PROD_BUILD_DIR) \
+				-I$(APPS_DIR)/ps/common/incl -I$(APPS_DIR)/ps/ntps/incl \
+				-I$(APPS_DIR)/ipxbeui/incl -I$(APPS_DIR)/star/incl
+endif
 
 
 $(OBJ_DIR)/%.o: $(PROD_BUILD_DIR)/%.c

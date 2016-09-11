@@ -12,8 +12,8 @@ EXTRACFLAGS += -I./include -I./include/asm -I$(PROD_BUILD_DIR) -DCONFIG_RALINK_M
 #		   host/ohci-hcd.o host/ohci-rt3xxx.o host/hoci-hub.o \
 #		   core/hcd.o core/hub.o core/urb.o core/usb.o core/urb.o core/message.o
 #
-ALL_OBJS = os-dep.o core/klist.o core/usb.o core/hub.o core/driver.o core/generic.o core/message.o core/urb.o \
-		   core/endpoint.o core/hcd.o \
+ALL_OBJS = os-dep.o core/klist.o core/usb.o core/config.o core/hub.o core/driver.o core/generic.o core/message.o core/urb.o \
+		   core/endpoint.o core/hcd.o core/quirks.o \
 		   host/ehci-hcd.o 
 
 MODULE = $(shell pwd | sed "s/.*\///" ).o

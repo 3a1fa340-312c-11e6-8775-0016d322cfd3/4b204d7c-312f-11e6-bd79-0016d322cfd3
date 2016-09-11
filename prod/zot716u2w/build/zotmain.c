@@ -41,7 +41,6 @@ extern void usb_test();
 void zotmain( void )
 //void zotmain(cyg_addrword_t p)
 {
-
     cyg_net_init();
     flsh_init();
     ralink_gpio_init();

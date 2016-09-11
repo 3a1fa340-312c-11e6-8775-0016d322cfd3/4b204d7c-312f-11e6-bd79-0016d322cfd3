@@ -1,9 +1,11 @@
 #include "stddef.h"
 #include <cyg/kernel/kapi.h>
+#include <cyg/infra/cyg_ass.h>
 #include "os-dep.h"
-#include "asm/irqflags.h"
-#include "asm/bitops.h"
 #include "ktime.h"
+// #include "asm/swab.h"
+// #include "swab.h"
+#include "little_endian.h"
 
 
 void alarm_callback(cyg_handle_t alarm, cyg_addrword_t data)
@@ -15,8 +17,6 @@ void alarm_callback(cyg_handle_t alarm, cyg_addrword_t data)
 cyg_handle_t    counter_hdl;
 cyg_handle_t    alarm_hdl;
 cyg_alarm       alarm_obj;
-
-extern void usb_init();
 
 void usb_test()
 {
@@ -76,7 +76,7 @@ int mod_timer(struct timer_list *timer, unsigned long expires)
         cyg_alarm_disable(timer->alarm_hdl);
         expires = (expires * OS_HZ) / 1000;
         if (expires > 0) {
-            cyg_alarm_initialize(timer->alarm_hdl, cyg_current_timer() + expires, 0);
+            cyg_alarm_initialize(timer->alarm_hdl, cyg_current_time() + expires, 0);
             cyg_alarm_enable(timer->alarm_hdl);
             return 1;
         }
@@ -113,7 +113,7 @@ int timer_pending(struct timer_list *timer)
     if (timer != NULL && timer->alarm_hdl != NULL) {
         cyg_alarm_get_times(timer->alarm_hdl, &trigger, &interval);
         
-        if ((interval != 0) || (trigger > cyg_current_timer()))
+        if ((interval != 0) || (trigger > cyg_current_time()))
             return 1;
     }
     return 0;
@@ -180,7 +180,7 @@ void wake_up(wait_queue_head_t* q)
         //     break;
         list_del_init(&curr->task_list);
     }
-    spin_lock_iqrrestore(&q->lock, flags);
+    spin_unlock_irqrestore(&q->lock, flags);
 }
 
 /*
@@ -344,6 +344,149 @@ void bus_probe_device(struct device *dev)
 }
 
 /**
+ * dev_set_name - set a device name
+ * @dev: device
+ * @fmt: format string for the device's name
+ */
+int dev_set_name(struct device *dev, const char *fmt, ...)
+{
+	// va_list vargs;
+	// int err;
+    // 
+	// va_start(vargs, fmt);
+	// err = kobject_set_name_vargs(&dev->kobj, fmt, vargs);
+	// va_end(vargs);
+	// return err;
+    return 0;
+}
+
+/**
+ * bus_add_device - add device to bus
+ * @dev: device being added
+ *
+ * - Add device's bus attributes.
+ * - Create links to device's bus.
+ * - Add the device to its bus's list of devices.
+ */
+int bus_add_device(struct device *dev)
+{
+	struct bus_type *bus = bus_get(dev->bus);
+	// int error = 0;
+
+	if (bus) {
+		pr_debug("bus: '%s': add device %s\n", bus->name, dev_name(dev));
+		// error = device_add_attrs(bus, dev);
+		// if (error)
+		//     goto out_put;
+		// error = sysfs_create_link(&bus->p->devices_kset->kobj,
+		//                 &dev->kobj, dev_name(dev));
+		// if (error)
+		//     goto out_id;
+		// error = sysfs_create_link(&dev->kobj,
+		//         &dev->bus->p->subsys.kobj, "subsystem");
+		// if (error)
+		//     goto out_subsys;
+		// error = make_deprecated_bus_links(dev);
+		// if (error)
+		//     goto out_deprecated;
+		klist_add_tail(&dev->p->knode_bus, &bus->p->klist_devices);
+	}
+	return 0;
+
+// out_deprecated:
+//     sysfs_remove_link(&dev->kobj, "subsystem");
+// out_subsys:
+//     sysfs_remove_link(&bus->p->devices_kset->kobj, dev_name(dev));
+// out_id:
+//     device_remove_attrs(bus, dev);
+// out_put:
+//     bus_put(dev->bus);
+//     return error;
+}
+
+/*
+ * __device_release_driver() must be called with @dev lock held.
+ * When called for a USB interface, @dev->parent lock must be held as well.
+ */
+static void __device_release_driver(struct device *dev)
+{
+	struct device_driver *drv;
+
+	drv = dev->driver;
+	if (drv) {
+		// pm_runtime_get_noresume(dev);
+		// pm_runtime_barrier(dev);
+        // 
+		// driver_sysfs_remove(dev);
+
+		// if (dev->bus)
+		//     blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
+		//                      BUS_NOTIFY_UNBIND_DRIVER,
+		//                      dev);
+
+		if (dev->bus && dev->bus->remove)
+			dev->bus->remove(dev);
+		else if (drv->remove)
+			drv->remove(dev);
+		// devres_release_all(dev);
+		dev->driver = NULL;
+		klist_remove(&dev->p->knode_driver);
+		// if (dev->bus)
+		//     blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
+		//                      BUS_NOTIFY_UNBOUND_DRIVER,
+		//                      dev);
+        // 
+		// pm_runtime_put_sync(dev);
+	}
+}
+
+/**
+ * device_release_driver - manually detach device from driver.
+ * @dev: device.
+ *
+ * Manually detach device from driver.
+ * When called for a USB interface, @dev->parent lock must be held.
+ */
+void device_release_driver(struct device *dev)
+{
+	/*
+	 * If anyone calls device_release_driver() recursively from
+	 * within their ->remove callback for the same device, they
+	 * will deadlock right here.
+	 */
+	device_lock(dev);
+	__device_release_driver(dev);
+	device_unlock(dev);
+}
+
+/**
+ * bus_remove_device - remove device from bus
+ * @dev: device to be removed
+ *
+ * - Remove symlink from bus's directory.
+ * - Delete device from bus's list.
+ * - Detach from its driver.
+ * - Drop reference taken in bus_add_device().
+ */
+void bus_remove_device(struct device *dev)
+{
+	if (dev->bus) {
+		// sysfs_remove_link(&dev->kobj, "subsystem");
+		// remove_deprecated_bus_links(dev);
+		// sysfs_remove_link(&dev->bus->p->devices_kset->kobj,
+		//           dev_name(dev));
+		// device_remove_attrs(dev->bus, dev);
+		if (klist_node_attached(&dev->p->knode_bus))
+			klist_del(&dev->p->knode_bus);
+
+		pr_debug("bus: '%s': remove device %s\n",
+			 dev->bus->name, dev_name(dev));
+		device_release_driver(dev);
+		bus_put(dev->bus);
+	}
+}
+
+/**
  * device_add - add device to device hierarchy.
  * @dev: device.
  *
@@ -391,12 +534,12 @@ int device_add(struct device *dev)
 
 	pr_debug("device: '%s': %s\n", dev_name(dev), __func__);
 
-	parent = get_device(dev->parent);
-	setup_parent(dev, parent);
+	// parent = get_device(dev->parent);
+	// setup_parent(dev, parent);
 
 	/* use parent numa_node */
-	if (parent)
-		set_dev_node(dev, dev_to_node(parent));
+	// if (parent)
+	//     set_dev_node(dev, dev_to_node(parent));
 
 	error = bus_add_device(dev);
 	if (error)
@@ -432,6 +575,141 @@ name_error:
 	kfree(dev->p);
 	dev->p = NULL;
 	goto done;
+}
+
+/**
+ * device_initialize - init device structure.
+ * @dev: device.
+ *
+ * This prepares the device for use by other layers by initializing
+ * its fields.
+ * It is the first half of device_register(), if called by
+ * that function, though it can also be called separately, so one
+ * may use @dev's fields. In particular, get_device()/put_device()
+ * may be used for reference counting of @dev after calling this
+ * function.
+ *
+ * NOTE: Use put_device() to give up your reference instead of freeing
+ * @dev directly once you have called this function.
+ */
+void device_initialize(struct device *dev)
+{
+	// dev->kobj.kset = devices_kset;
+	// kobject_init(&dev->kobj, &device_ktype);
+	INIT_LIST_HEAD(&dev->dma_pools);
+	mutex_init(&dev->mutex);
+	// lockdep_set_novalidate_class(&dev->mutex);
+	spin_lock_init(&dev->devres_lock);
+	INIT_LIST_HEAD(&dev->devres_head);
+	// device_pm_init(dev);
+	// set_dev_node(dev, -1);
+}
+
+/**
+ * device_register - register a device with the system.
+ * @dev: pointer to the device structure
+ *
+ * This happens in two clean steps - initialize the device
+ * and add it to the system. The two steps can be called
+ * separately, but this is the easiest and most common.
+ * I.e. you should only call the two helpers separately if
+ * have a clearly defined need to use and refcount the device
+ * before it is added to the hierarchy.
+ *
+ * NOTE: _Never_ directly free @dev after calling this function, even
+ * if it returned an error! Always use put_device() to give up the
+ * reference initialized in this function instead.
+ */
+int device_register(struct device *dev)
+{
+	device_initialize(dev);
+	return device_add(dev);
+}
+
+/**
+ * device_del - delete device from system.
+ * @dev: device.
+ *
+ * This is the first part of the device unregistration
+ * sequence. This removes the device from the lists we control
+ * from here, has it removed from the other driver model
+ * subsystems it was added to in device_add(), and removes it
+ * from the kobject hierarchy.
+ *
+ * NOTE: this should be called manually _iff_ device_add() was
+ * also called manually.
+ */
+void device_del(struct device *dev)
+{
+	struct device *parent = dev->parent;
+	struct class_interface *class_intf;
+
+	/* Notify clients of device removal.  This call must come
+	 * before dpm_sysfs_remove().
+	 */
+	// if (dev->bus)
+	//     blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
+	//                      BUS_NOTIFY_DEL_DEVICE, dev);
+	// device_pm_remove(dev);
+	// dpm_sysfs_remove(dev);
+	if (parent)
+		klist_del(&dev->p->knode_parent);
+	// if (MAJOR(dev->devt)) {
+	//     devtmpfs_delete_node(dev);
+	//     device_remove_sys_dev_entry(dev);
+	//     device_remove_file(dev, &devt_attr);
+	// }
+	if (dev->class) {
+		// device_remove_class_symlinks(dev);
+
+		mutex_lock(&dev->class->p->class_mutex);
+		/* notify any interfaces that the device is now gone */
+		list_for_each_entry(class_intf,
+				    &dev->class->p->class_interfaces, node)
+			if (class_intf->remove_dev)
+				class_intf->remove_dev(dev, class_intf);
+		/* remove the device from the class list */
+		klist_del(&dev->knode_class);
+		mutex_unlock(&dev->class->p->class_mutex);
+	}
+	// device_remove_file(dev, &uevent_attr);
+	// device_remove_attrs(dev);
+	bus_remove_device(dev);
+
+	/*
+	 * Some platform devices are driven without driver attached
+	 * and managed resources may have been acquired.  Make sure
+	 * all resources are released.
+	 */
+	// devres_release_all(dev);
+
+	/* Notify the platform of the removal, in case they
+	 * need to do anything...
+	 */
+	// if (platform_notify_remove)
+	//     platform_notify_remove(dev);
+	// kobject_uevent(&dev->kobj, KOBJ_REMOVE);
+	// cleanup_device_parent(dev);
+	// kobject_del(&dev->kobj);
+	// put_device(parent);
+}
+
+/**
+ * device_unregister - unregister device from system.
+ * @dev: device going away.
+ *
+ * We do this in two parts, like we do device_register(). First,
+ * we remove it from all the subsystems with device_del(), then
+ * we decrement the reference count via put_device(). If that
+ * is the final reference count, the device will be cleaned up
+ * via device_release() above. Otherwise, the structure will
+ * stick around until the final reference to the device is dropped.
+ */
+void device_unregister(struct device *dev)
+{
+	pr_debug("device: '%s': %s\n", dev_name(dev), __func__);
+	device_del(dev);
+	put_device(dev);
 }
 
 static struct device *next_device(struct klist_iter *i)
@@ -727,17 +1005,43 @@ int device_attach(struct device *dev)
 }
 
 /*
+ * These exports can't be _GPL due to .h files using this within them, and it
+ * might break something that was previously working...
+ */
+void *dev_get_drvdata(const struct device *dev)
+{
+	if (dev && dev->p)
+		return dev->p->driver_data;
+	return NULL;
+}
+EXPORT_SYMBOL(dev_get_drvdata);
+
+void dev_set_drvdata(struct device *dev, void *data)
+{
+	int error;
+
+	if (!dev)
+		return;
+	if (!dev->p) {
+		error = device_private_init(dev);
+		if (error)
+			return;
+	}
+	dev->p->driver_data = data;
+}
+
+/*
  * kernl / completion
  */
 
-void init_completion(struct completion *x)
+void usb_init_completion(struct usb_completion *x)
 {
     x->done = 0;
     spin_lock_init (&x->wait.lock);
     cyg_semaphore_init (&x->wait.semaphore, 0);
 }
 
-void wait_for_completion(struct completion *x)
+void usb_wait_for_completion(struct usb_completion *x)
 {
     spin_lock_irq (&x->wait.lock);
     if (!x->done) {
@@ -747,7 +1051,7 @@ void wait_for_completion(struct completion *x)
     spin_unlock_irq (&x->wait.lock);
 }
 
-unsigned long wait_for_completion_timeout(struct completion *x,
+unsigned long usb_wait_for_completion_timeout(struct usb_completion *x,
 						   unsigned long timeout)
 {
     long ltimeout = (long)timeout;
@@ -770,7 +1074,7 @@ unsigned long wait_for_completion_timeout(struct completion *x,
     return (unsigned long)ltimeout;
 }
 
-void complete(struct completion *x)
+void usb_complete(struct usb_completion *x)
 {
     unsigned long flags;
     spin_lock_irqsave (&x->wait.lock, flags);
@@ -997,4 +1301,110 @@ ktime_t ktime_get_real(void)
 	return timespec_to_ktime(now);
 }
 
+static void klist_children_put(struct klist_node *n)
+{
+	struct device_private *p = to_device_private_parent(n);
+	struct device *dev = p->device;
+
+	put_device(dev);
+}
+
+static void klist_children_get(struct klist_node *n)
+{
+	struct device_private *p = to_device_private_parent(n);
+	struct device *dev = p->device;
+
+	get_device(dev);
+}
+
+int device_private_init(struct device *dev)
+{
+	dev->p = kzalloc(sizeof(*dev->p), GFP_KERNEL);
+	if (!dev->p)
+		return -ENOMEM;
+	dev->p->device = dev;
+	klist_init(&dev->p->klist_children, klist_children_get,
+		   klist_children_put);
+	return 0;
+}
+
+/**
+ * msleep - sleep safely even with waitqueue interruptions
+ * @msecs: Time in milliseconds to sleep for
+ */
+void msleep(unsigned int msecs)
+{
+	unsigned long timeout = msecs_to_jiffies(msecs) + 1;
+
+    if (timeout)
+        cyg_thread_delay(timeout);
+}
+
+/**
+ * kref_init - initialize object.
+ * @kref: object in question.
+ */
+void kref_init(struct kref *kref)
+{
+	// atomic_set(&kref->refcount, 1);
+	// smp_mb();
+}
+
+/**
+ * kref_get - increment refcount for object.
+ * @kref: object.
+ */
+void kref_get(struct kref *kref)
+{
+	// WARN_ON(!atomic_read(&kref->refcount));
+	// atomic_inc(&kref->refcount);
+	// smp_mb__after_atomic_inc();
+}
+
+/**
+ * kref_put - decrement refcount for object.
+ * @kref: object.
+ * @release: pointer to the function that will clean up the object when the
+ *	     last reference to the object is released.
+ *	     This pointer is required, and it is not acceptable to pass kfree
+ *	     in as this function.
+ *
+ * Decrement the refcount, and if 0, call release().
+ * Return 1 if the object was removed, otherwise return 0.  Beware, if this
+ * function returns 0, you still can not count on the kref from remaining in
+ * memory.  Only use the return value if you want to see if the kref is now
+ * gone, not present.
+ */
+int kref_put(struct kref *kref, void (*release)(struct kref *kref))
+{
+	// WARN_ON(release == NULL);
+	// WARN_ON(release == (void (*)(struct kref *))kfree);
+    // 
+	// if (atomic_dec_and_test(&kref->refcount)) {
+	//     release(kref);
+	//     return 1;
+	// }
+	// return 0;
+    return 1;
+}
+
+void dma_unmap_single(struct device *dev, dma_addr_t dma_addr, size_t size,
+	enum dma_data_direction direction)
+{
+	// if (cpu_is_noncoherent_r10000(dev))
+	//     __dma_sync(dma_addr_to_page(dev, dma_addr),
+	//            dma_addr & ~PAGE_MASK, size, direction);
+    // 
+	// plat_unmap_dma_mem(dev, dma_addr, size, direction);
+}
+
+int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+{
+    return 0;
+}
+
+u8 usbprn_read_status (int nPort)
+{
+    return 0x7F;
+}
 

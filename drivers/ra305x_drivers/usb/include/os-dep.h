@@ -37,18 +37,19 @@
 /* 
  * system spinlocks
  */
-static int                          irq_flag;
-#define spin_lock_init(x)           cyg_spinlock_init(x, false)
-#define spin_lock(x)                cyg_spinlock_spin(x)
-#define spin_unlock(x)              cyg_spinlock_clear(x)
-#define spin_lock_irq(x)            cyg_spinlock_spin_intsave(x, &irq_flag)
-#define spin_unlock_irq(x)          cyg_spinlock_clear_intsave(x, irq_flag)
-#define spin_lock_irqsave(x, y)     cyg_spinlock_spin_intsave(x, &y)
-#define spin_unlock_irqstore(x, y)  cyg_spinlock_clear_intsave(x, y)
+static int irq_flag;
+#define spin_lock_init(x)               cyg_spinlock_init(x, false)
+#define spin_lock(x)                    cyg_spinlock_spin(x)
+#define spin_unlock(x)                  cyg_spinlock_clear(x)
+#define spin_lock_irq(x)                cyg_spinlock_spin_intsave(x, &irq_flag)
+#define spin_unlock_irq(x)              cyg_spinlock_clear_intsave(x, irq_flag)
+#define spin_lock_irqsave(x, y)         cyg_spinlock_spin_intsave(x, &y)
+#define spin_unlock_irqrestore(x, y)    cyg_spinlock_clear_intsave(x, y)
 
-#define mutex_init(x)               cyg_mutex_init(x)
-#define mutex_lock(x)               cyg_mutex_lock(x)
-#define mutex_unlock(x)             cyg_mutex_unlock(x)
+#define mutex_init(x)                   cyg_mutex_init(x)
+#define mutex_lock(x)                   cyg_mutex_lock(x)
+#define mutex_unlock(x)                 cyg_mutex_unlock(x)
+#define mutex_trylock(x)                cyg_mutex_trylock(x)
 
 #ifndef OS_HZ
 #define OS_HZ                       100
@@ -62,7 +63,13 @@ static int                          irq_flag;
 #define GFP_ATOMIC    ((gfp_t)0x20u)
 
 #define printk        diag_printf
-#define might_sleep()   do{} while(0)
+#define pr_debug      diag_printf
+#define pr_info
+#define kzalloc(x,y)  calloc(x, 1)
+#define BITS_PER_LONG 32
+#define BIT_WORD(nr)		((nr) / BITS_PER_LONG)
+#define kstrdup(x,y)    strdup(x)
+
 #define KBUILD_MODNAME    "usb-host"
 #define __always_inline inline
 
@@ -140,17 +147,42 @@ typedef struct {
  * NULL descriptor
  */
 #define EXPORT_SYMBOL_GPL(x)
-#define dev_dbg(dev, format, arg...)
-#define dev_warn(dev, format, arg...)
-#define dev_info(dev, format, arg...)
+#define dev_dbg(dev, format, arg...) diag_printf(format, ##arg)
+#define dev_warn(dev, format, arg...) diag_printf(format, ##arg)
+#define dev_err(dev, format, arg...) diag_printf(format, ##arg)
+#define dev_info(dev, format, arg...) diag_printf(format, ##arg) 
 
 #define KERN_WARNING
 #define KERN_DEBUG
 #define KERN_ERR
 #define KERN_EMERG
+#define WARN_ON
 #define __iomem
 #define __init
 #define __read_mostly
+#define __force
+#define __attribute_const__	
+
+#define might_sleep() do{} while(0)
+#define bus_get(x)    x
+#define bus_put(x)    do{} while(0)
+#define get_device(x) x
+#define put_device(x)
+#define prefetch(x) __builtin_prefetch(x)
+static inline void cleanup_device_parent(struct device *dev) {}
+
+static inline int dev_to_node(struct device *dev)
+{
+	return -1;
+}
+static inline void set_dev_node(struct device *dev, int node)
+{
+}
+
+static inline int device_is_registered(struct device *dev)
+{
+    return (int)dev;
+}
 /*
  * list
  */
@@ -311,7 +343,45 @@ do {									                    \
 	type __max2 = (y);			\
 	__max1 > __max2 ? __max1: __max2; })
 
-#define unlikely(cond)  (cond)
+//#define unlikely(cond)  (cond)
+# define unlikely(x)	__builtin_expect(!!(x), 0)
+# define likely(x)	__builtin_expect(!!(x), 1)
+
+/*
+ * Check at compile time that something is of a particular type.
+ * Always evaluates to 1 so you may use it easily in comparisons.
+ */
+#define typecheck(type,x) \
+({	type __dummy; \
+	typeof(x) __dummy2; \
+	(void)(&__dummy == &__dummy2); \
+	1; \
+})
+
+/*
+ *	These inlines deal with timer wrapping correctly. You are 
+ *	strongly encouraged to use them
+ *	1. Because people otherwise forget
+ *	2. Because if the timer wrap changes in future you won't have to
+ *	   alter your driver code.
+ *
+ * time_after(a,b) returns true if the time a is after time b.
+ *
+ * Do this with "<0" and ">=0" to only test the sign of the result. A
+ * good compiler would generate better code (and a really good compiler
+ * wouldn't care). Gcc is currently neither.
+ */
+#define time_after(a,b)		\
+	(typecheck(unsigned long, a) && \
+	 typecheck(unsigned long, b) && \
+	 ((long)(b) - (long)(a) < 0))
+#define time_before(a,b)	time_after(b,a)
+
+#define time_after_eq(a,b)	\
+	(typecheck(unsigned long, a) && \
+	 typecheck(unsigned long, b) && \
+	 ((long)(a) - (long)(b) >= 0))
+#define time_before_eq(a,b)	time_after_eq(b,a)
 
 /**
  * container_of - cast a member of a structure out to the containing structure
@@ -517,16 +587,16 @@ extern int mod_timer_pinned(struct timer_list *timer, unsigned long expires);
  * complete.h
  */
 
-struct completion {
+struct usb_completion {
     unsigned int done;
     wait_queue_head_t wait;
 };
 
-extern void init_completion(struct completion *x);
-extern void wait_for_completion(struct completion *);
-extern unsigned long wait_for_completion_timeout(struct completion *x,
+extern void usb_init_completion(struct usb_completion *x);
+extern void usb_wait_for_completion(struct usb_completion *);
+extern unsigned long usb_wait_for_completion_timeout(struct usb_completion *x,
 						   unsigned long timeout);
-extern void complete(struct completion *);
+extern void usb_complete(struct usb_completion *);
 
 #if 0
 /**
@@ -749,7 +819,7 @@ struct dev_pm_info {
 	enum dpm_state		status;		/* Owned by the PM core */
 #ifdef CONFIG_PM_SLEEP
 	struct list_head	entry;
-	struct completion	completion;
+	struct usb_completion	completion;
 	unsigned long		wakeup_count;
 #endif
 #ifdef CONFIG_PM_RUNTIME
@@ -1124,6 +1194,11 @@ static inline void device_unlock(struct device *dev)
 	mutex_unlock(&dev->mutex);
 }
 
+static inline int device_trylock(struct device *dev)
+{
+	return mutex_trylock(&dev->mutex);
+}
+
 #define LONG_MAX                ((long)(~0UL >> 1))
 #define MAX_SCHEDULE_TIMEOUT    LONG_MAX
 #define INT_MAX                 ((int)(~0U >> 1))
@@ -1197,4 +1272,19 @@ static inline void device_unlock(struct device *dev)
 # define __acquire(x) (void)0
 # define __release(x) (void)0
 
+static inline const char *dev_name(const struct device *dev)
+{
+	/* Use the init name until the kobject becomes available */
+	if (dev->init_name)
+		return dev->init_name;
+
+	return NULL;
+}
+
+extern int usb_init(void);
+
+#include "asm/irqflags.h"
+#include "asm/bitops.h"
+#include "generic.h"
+#include "little_endian.h"
 #endif /* end of include guard: _OS_DEP_H_ */

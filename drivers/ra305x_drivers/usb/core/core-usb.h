@@ -130,7 +130,7 @@ extern const char *usbcore_name;
 
 /* sysfs stuff */
 extern const struct attribute_group *usb_device_groups[];
-extern const struct attribute_group *usb_interface_groups[];
+// extern const struct attribute_group *usb_interface_groups[];
 
 /* usbfs stuff */
 extern struct mutex usbfs_mutex;

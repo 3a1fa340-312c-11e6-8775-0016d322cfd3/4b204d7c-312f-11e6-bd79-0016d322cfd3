@@ -14,6 +14,7 @@ endif
 
 ifeq ($(CHIP),mt7688)
 export COMMAND_PREFIX = mipsisa32-elf-
+#export COMMAND_PREFIX = mipsel-linux-
 export CC = $(COMMAND_PREFIX)gcc
 export XCC= $(CC)
 export XCXX = $(XCC)
@@ -87,12 +88,73 @@ endif
 # use -DZOT_TCPIP to use zot tcpip stack (remove tcpip stack from ecos package first)
 #
 
+
+#-Wall \
+#-Wundef \
+#-Wstrict-prototypes \
+#-Wno-trigraphs \
+#-fno-strict-aliasing \
+#-fno-common \
+#-Werror-implicit-function-declaration \
+#-Wno-format-security \
+#-fno-delete-null-pointer-checks \
+#-Os \
+#-ffunction-sections \
+#-mno-check-zero-division \
+#-mabi=32 \
+#-G 0 \
+#-mno-abicalls \
+#-fno-pic \
+#-pipe \
+#-msoft-float \
+#-ffreestanding \
+#-march=mips32r2 \
+#-Wa,-mips32r2 \
+#-Wa,--trap  \
+#-Wframe-larger-than=1024 \
+#-fno-stack-protector \
+#-fomit-frame-pointer \
+#-Wdeclaration-after-statement \
+#-Wno-pointer-sign \
+#-fno-strict-overflow \
+#-fconserve-stack 
+
 ifeq ($(CHIP),mt7688)
 CFLAGS += -DCYGPKG_NET_LWIP -DMT7688_MAC -DCYGPKG_LWIP_ETH 
 #CFLAGS +=  -I$(TOPDIR)/include -I$(TOPDIR)/apps/tcpip/incl/ -I$(PKG_INSTALL_DIR)/include -include config.h
 CFLAGS += -I$(TOPDIR)/include -include config.h 
-CFLAGS += -EL -mips32 -msoft-float -gstabs -fno-rtti -fno-exceptions -G0 -DCONFIG_MT7628_ASIC -Wpointer-arith -Wundef -Wno-write-strings
-LDFLAGS += -EL -mips32 -msoft-float -Wl,--gc-sections
+#CFLAGS += -EL -mips32 -msoft-float -gstabs -fno-rtti -fno-exceptions -G0 -DCONFIG_MT7628_ASIC -Wpointer-arith -Wundef -Wno-write-strings
+CFLAGS += -nostdinc -isystem /opt/buildroot-gcc463/usr/lib/gcc/mipsel-buildroot-linux-uclibc/4.6.3/include \
+-I/opt/buildroot-gcc463/usr/lib/gcc/mipsel-buildroot-linux-uclibc/4.6.3/install-tools/include  \
+-EL \
+-DCONFIG_MT7628_ASIC \
+-Wall \
+-Wundef \
+-Wstrict-prototypes \
+-Wno-trigraphs \
+-fno-strict-aliasing \
+-fno-common \
+-Wno-format-security \
+-fno-delete-null-pointer-checks \
+-Os \
+-ffunction-sections \
+-mno-check-zero-division \
+-G 0 \
+-mno-abicalls \
+-fno-pic \
+-pipe \
+-msoft-float \
+-ffreestanding \
+-march=mips32r2 \
+-Wa,-mips32r2 \
+-Wa,--trap  \
+-fno-stack-protector \
+-fomit-frame-pointer \
+-Wdeclaration-after-statement \
+-Wno-pointer-sign \
+-fno-strict-overflow 
+
+LDFLAGS += -EL -mips32r2 -msoft-float -Wl,--gc-sections  
 #LDFLAGS += -EL -mips32 -msoft-float -Wl,--gc-sections -Wl,-static
 endif
 

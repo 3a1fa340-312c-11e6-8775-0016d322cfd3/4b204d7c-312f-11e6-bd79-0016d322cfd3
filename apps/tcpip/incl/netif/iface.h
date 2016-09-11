@@ -81,7 +81,7 @@ struct iftype {
 
 
 
-struct iface *Ifaces;	/* Head of interface list */
+//struct iface *Ifaces;	/* Head of interface list */
 //extern struct iface  Loopback;	/* Optional loopback interface */
 //extern struct iface  Encap;	    /* IP-in-IP pseudo interface */
 //struct netif *Lanface;   //add by Simon 12/1/97
@@ -114,10 +114,10 @@ struct iface *Ifaces;	/* Head of interface list */
 #define	EADDR_LEN	6
 /* Format of an Ethernet header */
 struct ether {
-	u8_t dest[EADDR_LEN];
-	u8_t source[EADDR_LEN];
-	u16_t type;
-}PACK_STRUCT_STRUCT ether;
+    u8_t dest[EADDR_LEN];
+    u8_t source[EADDR_LEN];
+    u16_t type;
+}PACK_STRUCT_STRUCT;
 
 
 

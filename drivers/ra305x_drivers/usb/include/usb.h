@@ -17,11 +17,11 @@
 #include <linux/completion.h>	/* for struct completion */
 #include <linux/sched.h>	/* for current && schedule_timeout */
 #include <linux/mutex.h>	/* for struct mutex */
-#endif /* _LINUX */
-
+#else
 #include "os-dep.h"
 #include "mod_devicetable.h"
 #include "ch9.h"
+#endif /* _LINUX */
 
 #define USB_MAJOR			    180
 #define USB_DEVICE_MAJOR		189
@@ -1470,38 +1470,38 @@ extern int usb_driver_set_configuration(struct usb_device *udev, int config);
  * After an error completion, drivers may need to clear a halt condition
  * on the endpoint.
  */
-struct usb_sg_request {
-	int			status;
-	size_t			bytes;
-
+// struct usb_sg_request {
+//     int			status;
+//     size_t			bytes;
+// 
 	/* private:
 	 * members below are private to usbcore,
 	 * and are not provided for driver access!
 	 */
-	// spinlock_t		lock;
-    cyg_spinlock_t      lock;
-	struct usb_device	*dev;
-	int			pipe;
-
-	int			entries;
-	struct urb		**urbs;
-
-	int			count;
-	struct completion	complete;
-};
-
-int usb_sg_init(
-	struct usb_sg_request	*io,
-	struct usb_device	*dev,
-	unsigned		pipe,
-	unsigned		period,
-	struct scatterlist	*sg,
-	int			nents,
-	size_t			length,
-	gfp_t			mem_flags
-);
-void usb_sg_cancel(struct usb_sg_request *io);
-void usb_sg_wait(struct usb_sg_request *io);
+//     // spinlock_t		lock;
+//     cyg_spinlock_t      lock;
+//     struct usb_device	*dev;
+//     int			pipe;
+// 
+//     int			entries;
+//     struct urb		**urbs;
+// 
+//     int			count;
+//     struct usb_completion	complete;
+// };
+// 
+// int usb_sg_init(
+//     struct usb_sg_request	*io,
+//     struct usb_device	*dev,
+//     unsigned		pipe,
+//     unsigned		period,
+//     struct scatterlist	*sg,
+//     int			nents,
+//     size_t			length,
+//     gfp_t			mem_flags
+// );
+// void usb_sg_cancel(struct usb_sg_request *io);
+// void usb_sg_wait(struct usb_sg_request *io);
 
 
 /* ----------------------------------------------------------------------- */

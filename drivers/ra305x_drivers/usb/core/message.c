@@ -24,12 +24,14 @@
 #include "quirks.h"
 #include "hcd.h"
 #include "core-usb.h"
+#include "generic.h"
+#include "little_endian.h"
 
 static void cancel_async_set_config(struct usb_device *udev);
 
 struct api_context {
-	struct completion	done;
-	int			status;
+    struct usb_completion done;
+    int                   status;
 };
 
 static void usb_api_blocking_completion(struct urb *urb)
@@ -37,7 +39,7 @@ static void usb_api_blocking_completion(struct urb *urb)
 	struct api_context *ctx = urb->context;
 
 	ctx->status = urb->status;
-	complete(&ctx->done);
+	usb_complete(&ctx->done);
 }
 
 
@@ -53,7 +55,7 @@ static int usb_start_wait_urb(struct urb *urb, int timeout, int *actual_length)
 	unsigned long expire;
 	int retval;
 
-	init_completion(&ctx.done);
+	usb_init_completion(&ctx.done);
 	urb->context = &ctx;
 	urb->actual_length = 0;
 	retval = usb_submit_urb(urb, GFP_NOIO);
@@ -61,13 +63,13 @@ static int usb_start_wait_urb(struct urb *urb, int timeout, int *actual_length)
 		goto out;
 
 	expire = timeout ? msecs_to_jiffies(timeout) : MAX_SCHEDULE_TIMEOUT;
-	if (!wait_for_completion_timeout(&ctx.done, expire)) {
+	if (!usb_wait_for_completion_timeout(&ctx.done, expire)) {
 		usb_kill_urb(urb);
 		retval = (ctx.status == -ENOENT ? -ETIMEDOUT : ctx.status);
 
 		dev_dbg(&urb->dev->dev,
 			"%s timed out on ep%d%s len=%u/%u\n",
-			current->comm,
+			__func__,
 			usb_endpoint_num(&urb->ep->desc),
 			usb_urb_dir_in(urb) ? "in" : "out",
 			urb->actual_length,
@@ -1331,7 +1333,7 @@ int usb_set_interface(struct usb_device *dev, int interface, int alternate)
 	/* prevent submissions using previous endpoint settings */
 	if (iface->cur_altsetting != alt) {
 		remove_intf_ep_devs(iface);
-		usb_remove_sysfs_intf_files(iface);
+		// usb_remove_sysfs_intf_files(iface);
 	}
 	usb_disable_interface(dev, iface, true);
 
@@ -1369,7 +1371,7 @@ int usb_set_interface(struct usb_device *dev, int interface, int alternate)
 	 */
 	usb_enable_interface(dev, iface, true);
 	if (device_is_registered(&iface->dev)) {
-		usb_create_sysfs_intf_files(iface);
+		// usb_create_sysfs_intf_files(iface);
 		create_intf_ep_devs(iface);
 	}
 	return 0;
@@ -1476,7 +1478,7 @@ reset_old_alts:
 
 		if (alt != intf->cur_altsetting) {
 			remove_intf_ep_devs(intf);
-			usb_remove_sysfs_intf_files(intf);
+			// usb_remove_sysfs_intf_files(intf);
 		}
 		intf->cur_altsetting = alt;
 		usb_enable_interface(dev, intf, true);
@@ -1599,21 +1601,21 @@ static struct usb_interface_assoc_descriptor *find_iad(struct usb_device *dev,
  *
  * See usb_queue_reset_device() for more details
  */
-static void __usb_queue_reset_device(struct work_struct *ws)
-{
-	int rc;
-	struct usb_interface *iface =
-		container_of(ws, struct usb_interface, reset_ws);
-	struct usb_device *udev = interface_to_usbdev(iface);
-
-	rc = usb_lock_device_for_reset(udev, iface);
-	if (rc >= 0) {
-		iface->reset_running = 1;
-		usb_reset_device(udev);
-		iface->reset_running = 0;
-		usb_unlock_device(udev);
-	}
-}
+// static void __usb_queue_reset_device(struct work_struct *ws)
+// {
+//     int rc;
+//     struct usb_interface *iface =
+//         container_of(ws, struct usb_interface, reset_ws);
+//     struct usb_device *udev = interface_to_usbdev(iface);
+// 
+//     rc = usb_lock_device_for_reset(udev, iface);
+//     if (rc >= 0) {
+//         iface->reset_running = 1;
+//         usb_reset_device(udev);
+//         iface->reset_running = 0;
+//         usb_unlock_device(udev);
+//     }
+// }
 
 
 /*
@@ -1806,9 +1808,9 @@ free_interfaces:
 		intf->dev.driver = NULL;
 		intf->dev.bus = &usb_bus_type;
 		intf->dev.type = &usb_if_device_type;
-		intf->dev.groups = usb_interface_groups;
+		// intf->dev.groups = usb_interface_groups;
 		intf->dev.dma_mask = dev->dev.dma_mask;
-		INIT_WORK(&intf->reset_ws, __usb_queue_reset_device);
+		// INIT_WORK(&intf->reset_ws, __usb_queue_reset_device);
 		intf->minor = -1;
 		device_initialize(&intf->dev);
 		dev_set_name(&intf->dev, "%d-%s:%d.%d",
@@ -1834,7 +1836,7 @@ free_interfaces:
 			"adding %s (config #%d, interface %d)\n",
 			dev_name(&intf->dev), configuration,
 			intf->cur_altsetting->desc.bInterfaceNumber);
-		device_enable_async_suspend(&intf->dev);
+		// device_enable_async_suspend(&intf->dev);
 		ret = device_add(&intf->dev);
 		if (ret != 0) {
 			dev_err(&dev->dev, "device_add(%s) --> %d\n",

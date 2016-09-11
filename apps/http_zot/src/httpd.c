@@ -63,7 +63,7 @@ extern int	sendack(int s);
 #define AT_COMM_NONE	  (0)
 #define	AT_COMM_TBCP	  (1)
 #define AT_COMM_BCP		  (2)
-struct AT_IFACE at_iface;
+extern struct AT_IFACE at_iface;
 static uint8 ATPortName[ATALK_NAME_LEN+1];
 static uint8 ATPortNameLength;
 extern uint8 *GetATPortName(int i);
@@ -85,8 +85,8 @@ char ANYESS[] = "< ANY >";
 extern uint8    rxStatsRSSI;             /* RF Signal Strength Indicator */
 extern uint8    linkQuality;              /* Link Quality */
 
-uint8   mvWEPKey[32];   // cannot be NULL
-uint8   mvWDomain = 0x0010;		//0x0010 USA    1-11
+extern uint8   mvWEPKey[32];   // cannot be NULL
+extern uint8   mvWDomain;		//0x0010 USA    1-11
                          		//0x0020 CANADA 1-11
                             	//0x0030 ETSI   1-13
                             	//0x0031 SPAIN  10-11

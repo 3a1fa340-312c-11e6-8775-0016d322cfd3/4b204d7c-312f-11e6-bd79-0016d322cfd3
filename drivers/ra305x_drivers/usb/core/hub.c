@@ -37,6 +37,8 @@
 #include "hcd.h"
 #include "quirks.h"
 #include "core-usb.h"
+#include "generic.h"
+#include "little_endian.h"
 
 /* if we are in debug mode, always announce new devices */
 #ifdef DEBUG
@@ -150,8 +152,9 @@ MODULE_PARM_DESC(use_both_schemes,
 /* Mutual exclusion for EHCI CF initialization.  This interferes with
  * port reset on some companion controllers.
  */
-DECLARE_RWSEM(ehci_cf_port_reset_rwsem);
-EXPORT_SYMBOL_GPL(ehci_cf_port_reset_rwsem);
+// DECLARE_RWSEM(ehci_cf_port_reset_rwsem);
+// EXPORT_SYMBOL_GPL(ehci_cf_port_reset_rwsem);
+cyg_mutex_t ehci_cf_port_reset_rwsem;
 
 #define HUB_DEBOUNCE_TIMEOUT    1500
 #define HUB_DEBOUNCE_STEP     25
@@ -1520,30 +1523,30 @@ EXPORT_SYMBOL_GPL(usb_set_device_state);
  * the HCD must setup data structures before issuing a set address
  * command to the hardware.
  */
-static void choose_address(struct usb_device *udev)
-{
-    int     devnum;
-    struct usb_bus  *bus = udev->bus;
-
-    /* If khubd ever becomes multithreaded, this will need a lock */
-    if (udev->wusb) {
-        devnum = udev->portnum + 1;
-        BUG_ON(test_bit(devnum, bus->devmap.devicemap));
-    } else {
+// static void choose_address(struct usb_device *udev)
+// {
+//     int     devnum;
+//     struct usb_bus  *bus = udev->bus;
+// 
+//     [> If khubd ever becomes multithreaded, this will need a lock <]
+//     if (udev->wusb) {
+//         devnum = udev->portnum + 1;
+//         BUG_ON(test_bit(devnum, bus->devmap.devicemap));
+//     } else {
         /* Try to allocate the next devnum beginning at
          * bus->devnum_next. */
-        devnum = find_next_zero_bit(bus->devmap.devicemap, 128,
-                        bus->devnum_next);
-        if (devnum >= 128)
-            devnum = find_next_zero_bit(bus->devmap.devicemap,
-                            128, 1);
-        bus->devnum_next = ( devnum >= 127 ? 1 : devnum + 1);
-    }
-    if (devnum < 128) {
-        set_bit(devnum, bus->devmap.devicemap);
-        udev->devnum = devnum;
-    }
-}
+//         devnum = find_next_zero_bit(bus->devmap.devicemap, 128,
+//                         bus->devnum_next);
+//         if (devnum >= 128)
+//             devnum = find_next_zero_bit(bus->devmap.devicemap,
+//                             128, 1);
+//         bus->devnum_next = ( devnum >= 127 ? 1 : devnum + 1);
+//     }
+//     if (devnum < 128) {
+//         set_bit(devnum, bus->devmap.devicemap);
+//         udev->devnum = devnum;
+//     }
+// }
 
 static void release_address(struct usb_device *udev)
 {
@@ -1823,8 +1826,8 @@ int usb_new_device(struct usb_device *udev)
     }
 
     /* Tell the runtime-PM framework the device is active */
-    pm_runtime_set_active(&udev->dev);
-    pm_runtime_enable(&udev->dev);
+    // pm_runtime_set_active(&udev->dev);
+    // pm_runtime_enable(&udev->dev);
 
     err = usb_enumerate_device(udev);   /* Read descriptors */
     if (err < 0)
@@ -1839,7 +1842,7 @@ int usb_new_device(struct usb_device *udev)
     /* Tell the world! */
     announce_device(udev);
 
-    device_enable_async_suspend(&udev->dev);
+    // device_enable_async_suspend(&udev->dev);
     /* Register the device.  The device driver is responsible
      * for configuring the device and invoking the add-device
      * notifier chain (used by usbfs and possibly others).
@@ -2039,7 +2042,8 @@ static int hub_port_reset(struct usb_hub *hub, int port1,
     /* Block EHCI CF initialization during the port reset.
      * Some companion controllers don't like it when they mix.
      */
-    down_read(&ehci_cf_port_reset_rwsem);
+    // down_read(&ehci_cf_port_reset_rwsem);
+    cyg_mutex_lock(&ehci_cf_port_reset_rwsem);
 
     /* Reset the port */
     for (i = 0; i < PORT_RESET_TRIES; i++) {
@@ -2094,7 +2098,8 @@ static int hub_port_reset(struct usb_hub *hub, int port1,
         port1);
 
  done:
-    up_read(&ehci_cf_port_reset_rwsem);
+    // up_read(&ehci_cf_port_reset_rwsem);
+    cyg_mutex_unlock(&ehci_cf_port_reset_rwsem);
     return status;
 }
 
@@ -3059,9 +3064,9 @@ static void hub_port_connect_change(struct usb_hub *hub, int port1,
                 USB_PORT_STAT_C_ENABLE)) {
         status = hub_port_debounce(hub, port1);
         if (status < 0) {
-            if (printk_ratelimit())
-                dev_err(hub_dev, "connect-debounce failed, "
-                        "port %d disabled\n", port1);
+            // if (printk_ratelimit())
+            //     dev_err(hub_dev, "connect-debounce failed, "
+            //             "port %d disabled\n", port1);
             portstatus &= ~USB_PORT_STAT_CONNECTION;
         } else {
             portstatus = status;
@@ -3123,14 +3128,14 @@ static void hub_port_connect_change(struct usb_hub *hub, int port1,
          * xHCI needs to issue an address device command later
          * in the hub_port_init sequence for SS/HS/FS/LS devices.
          */
-        if (!(hcd->driver->flags & HCD_USB3)) {
+        // if (!(hcd->driver->flags & HCD_USB3)) {
             /* set the address */
-            choose_address(udev);
-            if (udev->devnum <= 0) {
-                status = -ENOTCONN; /* Don't retry */
-                goto loop;
-            }
-        }
+        //     choose_address(udev);
+        //     if (udev->devnum <= 0) {
+        //         status = -ENOTCONN; [> Don't retry <]
+        //         goto loop;
+        //     }
+        // }
 
         /* reset (non-USB 3.0 devices) and get descriptor */
         status = hub_port_init(hub, udev, port1, i);
@@ -3461,14 +3466,18 @@ static int hub_thread(void *__unused)
      * was gone before the EHCI controller had handed its port over to
      * the companion full-speed controller.
      */
-    set_freezable();
+    // set_freezable();
 
+    // do {
+    //     hub_events();
+    //     wait_event_freezable(khubd_wait,
+    //             !list_empty(&hub_event_list) ||
+    //             kthread_should_stop());
+    // } while (!kthread_should_stop() || !list_empty(&hub_event_list));
     do {
         hub_events();
-        wait_event_freezable(khubd_wait,
-                !list_empty(&hub_event_list) ||
-                kthread_should_stop());
-    } while (!kthread_should_stop() || !list_empty(&hub_event_list));
+        wait_event (khubd_wait, !list_empty(&hub_event_list));
+    } while (!list_empty(&hub_event_list));
 
     pr_debug("%s: khubd exiting\n", usbcore_name);
     return 0;
@@ -3507,6 +3516,8 @@ static cyg_handle_t usb_hub_task_handle;
 
 int usb_hub_init(void)
 {
+    cyg_mutex_init (&ehci_cf_port_reset_rwsem);
+
     if (usb_register(&hub_driver) < 0) {
         printk(KERN_ERR "%s: can't register hub driver\n",
             usbcore_name);
@@ -3532,9 +3543,9 @@ int usb_hub_init(void)
 
     return -1;
 }
-// 
-// void usb_hub_cleanup(void)
-// {
+
+void usb_hub_cleanup(void)
+{
 //     kthread_stop(khubd_task);
 // 
     /*
@@ -3545,8 +3556,8 @@ int usb_hub_init(void)
      * individual hub resources. -greg
      */
 //     usb_deregister(&hub_driver);
-// } [> usb_hub_cleanup() <]
-// 
+} /* usb_hub_cleanup() */
+
 static int descriptors_changed(struct usb_device *udev,
         struct usb_device_descriptor *old_device_descriptor)
 {

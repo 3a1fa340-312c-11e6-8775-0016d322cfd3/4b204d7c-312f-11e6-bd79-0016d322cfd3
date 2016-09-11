@@ -6,8 +6,8 @@
 #include "psglobal.h"
 #include "ipx.h"
 
-BYTE MyNetworkAddress[4];
-BYTE MyPhysNodeAddress[6];
+extern BYTE MyNetworkAddress[4];
+extern BYTE MyPhysNodeAddress[6];
 extern WORD MyIntNO;
 
 //*******************************************************************

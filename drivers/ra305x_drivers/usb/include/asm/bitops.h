@@ -23,6 +23,7 @@
 #include <asm/cpu-features.h>
 #include <asm/sgidefs.h>
 #endif /* _LINUX_ */
+
 #include <asm/war.h>
 
 #if _MIPS_SZLONG == 32

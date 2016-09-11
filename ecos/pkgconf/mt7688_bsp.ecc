@@ -160,6 +160,7 @@ cdl_component CYGBLD_GLOBAL_OPTIONS {
 cdl_option CYGBLD_GLOBAL_COMMAND_PREFIX {
     # Flavor: data
     user_value mipsisa32-elf
+    #user_value mipsel-linux
     # value_source user
     # Default value: mipsisa32-elf
 };
@@ -172,7 +173,7 @@ cdl_option CYGBLD_GLOBAL_COMMAND_PREFIX {
 #
 cdl_option CYGBLD_GLOBAL_CFLAGS {
     # Flavor: data
-    user_value "-Wall -Wpointer-arith -Wstrict-prototypes -Wundef  -Wno-write-strings -EL -mips32 -msoft-float -g -gstabs -O2 -ffunction-sections -fdata-sections -fno-rtti -fno-exceptions -G0 -DCONFIG_MT7628_ASIC -DZOT_TCPIP"
+    user_value "-Wall -Wpointer-arith -Wstrict-prototypes -Wundef  -Wno-write-strings -EL -mips32r2 -msoft-float -g -gstabs -O2 -ffunction-sections -fdata-sections -fno-rtti -fno-exceptions -G0 -DCONFIG_MT7628_ASIC -DZOT_TCPIP"
     # value_source user
     # Default value:  CYGBLD_GLOBAL_WARNFLAGS .
     #                                 (CYGPKG_HAL_MIPS_LSBFIRST ? "-EL" : "-EB") .
@@ -196,7 +197,7 @@ cdl_option CYGBLD_GLOBAL_CFLAGS {
 cdl_option CYGBLD_GLOBAL_LDFLAGS {
     # Flavor: data
     # No user value, uncomment the following line to provide one.
-    # user_value "-EL -mips32 -msoft-float -g -nostdlib -Wl,--gc-sections -Wl,-static"
+    user_value "-EL -mips32r2 -msoft-float -g -nostdlib -Wl,--gc-sections -Wl,-static"
     # value_source default
     # Default value:  (CYGPKG_HAL_MIPS_LSBFIRST ? "-EL" : "-EB") . " -mips32 -msoft-float -g -nostdlib -Wl,--gc-sections -Wl,-static" 
     #     CYGPKG_HAL_MIPS_LSBFIRST == 1

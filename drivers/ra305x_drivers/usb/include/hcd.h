@@ -72,7 +72,7 @@ struct usb_hcd {
      * housekeeping
      */
     struct usb_bus         self;       /* hcd is-a bus */
-    // struct kref            kref;       [> reference counter <]
+    struct kref            kref;       /* reference counter */
 
     const char             *product_desc;  /* product/vendor string */
 #if defined(CONFIG_USB_MT7621_XHCI_HCD) || defined(CONFIG_USB_MT7621_XHCI_HCD_MODULE)
@@ -768,7 +768,8 @@ static inline void usbmon_urb_complete(struct usb_bus *bus, struct urb *urb,
 /* This rwsem is for use only by the hub driver and ehci-hcd.
  * Nobody else should touch it.
  */
-extern struct rw_semaphore ehci_cf_port_reset_rwsem;
+// extern struct rw_semaphore ehci_cf_port_reset_rwsem;
+extern cyg_mutex_t ehci_cf_port_reset_rwsem;
 
 /* Keep track of which host controller drivers are loaded */
 #define USB_UHCI_LOADED    0

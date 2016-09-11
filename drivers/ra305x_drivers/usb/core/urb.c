@@ -12,6 +12,10 @@
 #include "os-dep.h"
 #include "usb.h"
 #include "hcd.h"
+#include "generic.h"
+#include "little_endian.h"
+#include "asm/usb-atomic.h"
+#include "log2.h"
 #endif /* _LINUX_ */
 
 

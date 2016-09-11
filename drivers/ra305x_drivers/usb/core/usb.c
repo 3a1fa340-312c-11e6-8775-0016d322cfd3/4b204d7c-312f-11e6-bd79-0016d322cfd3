@@ -48,10 +48,11 @@
 #include "usb.h"
 #include "hcd.h"
 #include "core-usb.h"
+#include "asm/usb-atomic.h"
 
 const char *usbcore_name = "usbcore";
 
-static int nousb;	/* Disable USB when built into kernel image */
+static int nousb = 0;	/* Disable USB when built into kernel image */
 
 #ifdef	CONFIG_USB_SUSPEND
 static int usb_autosuspend_delay = 2;		/* Default delay value,
@@ -1026,11 +1027,11 @@ EXPORT_SYMBOL_GPL(usb_buffer_unmap_sg);
 /*
  * for external read access to <nousb>
  */
-// int usb_disabled(void)
-// {
-//     return nousb;
-// }
-// EXPORT_SYMBOL_GPL(usb_disabled);
+int usb_disabled(void)
+{
+    return nousb;
+}
+EXPORT_SYMBOL_GPL(usb_disabled);
 
 /*
  * Notifications of device and interface registration
@@ -1095,7 +1096,7 @@ EXPORT_SYMBOL_GPL(usb_buffer_unmap_sg);
 /*
  * Init
  */
-static int __init usb_init(void)
+int __init usb_init(void)
 {
 	int retval;
 	// if (nousb) {

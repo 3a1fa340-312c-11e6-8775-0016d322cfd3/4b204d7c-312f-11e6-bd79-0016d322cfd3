@@ -47,9 +47,12 @@
 
 #include <cyg/kernel/kapi.h>
 #include "os-dep.h"
+#include "asm/usb-atomic.h"
 #include "usb.h"
 #include "core-usb.h"
 #include "hcd.h"
+/* #include "generic.h" */
+/* #include "little_endian.h" */
 
 
 /*-------------------------------------------------------------------------*/
@@ -2175,20 +2178,20 @@ struct usb_hcd *usb_create_hcd (const struct hc_driver *driver,
 }
 EXPORT_SYMBOL_GPL(usb_create_hcd);
 
-// static void hcd_release (struct kref *kref)
-// {
-//     struct usb_hcd *hcd = container_of (kref, struct usb_hcd, kref);
-// 
-//     kfree(hcd);
-// }
-// 
-// struct usb_hcd *usb_get_hcd (struct usb_hcd *hcd)
-// {
-//     if (hcd)
-//         kref_get (&hcd->kref);
-//     return hcd;
-// }
-// EXPORT_SYMBOL_GPL(usb_get_hcd);
+static void hcd_release (struct kref *kref)
+{
+    struct usb_hcd *hcd = container_of (kref, struct usb_hcd, kref);
+
+    kfree(hcd);
+}
+
+struct usb_hcd *usb_get_hcd (struct usb_hcd *hcd)
+{
+    /* if (hcd) */
+    /*     kref_get (&hcd->kref); */
+    return hcd;
+}
+EXPORT_SYMBOL_GPL(usb_get_hcd);
 
 void usb_put_hcd (struct usb_hcd *hcd)
 {

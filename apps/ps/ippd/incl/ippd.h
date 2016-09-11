@@ -243,7 +243,7 @@ void ProcessCRLF(BYTE *KeepCR, struct prnbuf *pbuf,BYTE *Tmpbuf, int16 size);
 */
 //Jesse extern ipp_t *ippObjList[NUM_OF_PRN_PORT];
 //Jesse extern BYTE  ippJobsNo[NUM_OF_PRN_PORT]; //How many Obj connected for print !
-ipp_t *ippObjList[NUM_OF_PRN_PORT];
-BYTE  ippJobsNo[NUM_OF_PRN_PORT]; //How many Obj connected for print !
+extern ipp_t *ippObjList[NUM_OF_PRN_PORT];
+extern BYTE  ippJobsNo[NUM_OF_PRN_PORT]; //How many Obj connected for print !
 
 #endif	_IPPD_H_

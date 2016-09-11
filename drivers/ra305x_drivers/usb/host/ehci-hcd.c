@@ -71,7 +71,6 @@
 
 static const char   hcd_name [] = "ehci_hcd";
 
-
 #undef VERBOSE_DEBUG
 #undef EHCI_URB_TRACE
 
@@ -708,12 +707,14 @@ static int ehci_run (struct usb_hcd *hcd)
      * a short delay lets the hardware catch up; new resets shouldn't
      * be started before the port switching actions could complete.
      */
-    down_write(&ehci_cf_port_reset_rwsem);
+    // down_write(&ehci_cf_port_reset_rwsem);
+    cyg_mutex_lock(&ehci_cf_port_reset_rwsem);
     hcd->state = HC_STATE_RUNNING;
     ehci_writel(ehci, FLAG_CF, &ehci->regs->configured_flag);
     ehci_readl(ehci, &ehci->regs->command); /* unblock posted writes */
     msleep(5);
-    up_write(&ehci_cf_port_reset_rwsem);
+    // up_write(&ehci_cf_port_reset_rwsem);
+    cyg_mutex_unlock(&ehci_cf_port_reset_rwsem);
     ehci->last_periodic_enable = ktime_get_real();
 
     temp = HC_VERSION(ehci_readl(ehci, &ehci->caps->hc_capbase));

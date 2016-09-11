@@ -34,6 +34,9 @@
 #include "usb.h"
 #include "quirks.h"
 #include "core-usb.h"
+#include "generic.h"
+#include "little_endian.h"
+#include "asm/usb-atomic.h"
 
 
 // #ifdef CONFIG_HOTPLUG
@@ -310,10 +313,10 @@ static int usb_probe_interface(struct device *dev)
 	 * runtime-PM-enabled only if the driver has autosuspend support.
 	 * They are sensitive to their children's power states.
 	 */
-	pm_runtime_set_active(dev);
-	pm_suspend_ignore_children(dev, false);
-	if (driver->supports_autosuspend)
-		pm_runtime_enable(dev);
+	// pm_runtime_set_active(dev);
+	// pm_suspend_ignore_children(dev, false);
+	// if (driver->supports_autosuspend)
+	//     pm_runtime_enable(dev);
 
 	/* Carry out a deferred switch to altsetting 0 */
 	if (intf->needs_altsetting0) {
@@ -338,9 +341,9 @@ static int usb_probe_interface(struct device *dev)
 	usb_cancel_queued_reset(intf);
 
 	/* Unbound interfaces are always runtime-PM-disabled and -suspended */
-	if (driver->supports_autosuspend)
-		pm_runtime_disable(dev);
-	pm_runtime_set_suspended(dev);
+	// if (driver->supports_autosuspend)
+	//     pm_runtime_disable(dev);
+	// pm_runtime_set_suspended(dev);
 
 	usb_autosuspend_device(udev);
 	return error;
@@ -394,9 +397,9 @@ static int usb_unbind_interface(struct device *dev)
 	intf->needs_remote_wakeup = 0;
 
 	/* Unbound interfaces are always runtime-PM-disabled and -suspended */
-	if (driver->supports_autosuspend)
-		pm_runtime_disable(dev);
-	pm_runtime_set_suspended(dev);
+	// if (driver->supports_autosuspend)
+	//     pm_runtime_disable(dev);
+	// pm_runtime_set_suspended(dev);
 
 	/* Undo any residual pm_autopm_get_interface_* calls */
 	for (r = atomic_read(&intf->pm_usage_cnt); r > 0; --r)
@@ -451,10 +454,10 @@ int usb_driver_claim_interface(struct usb_driver *driver,
 	 * case they are sensitive to their children's power states.
 	 */
 	pm_suspend_ignore_children(dev, false);
-	if (driver->supports_autosuspend)
-		pm_runtime_enable(dev);
-	else
-		pm_runtime_set_active(dev);
+	// if (driver->supports_autosuspend)
+	//     pm_runtime_enable(dev);
+	// else
+	//     pm_runtime_set_active(dev);
 
 	/* if interface was already added, bind now; else let
 	 * the future device_add() bind it, bypassing probe()
@@ -1296,8 +1299,8 @@ static void choose_wakeup(struct usb_device *udev, pm_message_t msg)
 	/* If the device is autosuspended with the wrong wakeup setting,
 	 * autoresume now so the setting can be changed.
 	 */
-	if (udev->state == USB_STATE_SUSPENDED && w != udev->do_remote_wakeup)
-		pm_runtime_resume(&udev->dev);
+	// if (udev->state == USB_STATE_SUSPENDED && w != udev->do_remote_wakeup)
+	//     pm_runtime_resume(&udev->dev);
 	udev->do_remote_wakeup = w;
 }
 
@@ -1330,9 +1333,9 @@ int usb_resume(struct device *dev, pm_message_t msg)
 	} else {
 		status = usb_resume_both(udev, msg);
 		if (status == 0) {
-			pm_runtime_disable(dev);
-			pm_runtime_set_active(dev);
-			pm_runtime_enable(dev);
+			// pm_runtime_disable(dev);
+			// pm_runtime_set_active(dev);
+			// pm_runtime_enable(dev);
 			udev->last_busy = jiffies;
 			do_unbind_rebind(udev, DO_REBIND);
 		}
@@ -1362,7 +1365,7 @@ int usb_resume(struct device *dev, pm_message_t msg)
  */
 void usb_enable_autosuspend(struct usb_device *udev)
 {
-	pm_runtime_allow(&udev->dev);
+	// pm_runtime_allow(&udev->dev);
 }
 EXPORT_SYMBOL_GPL(usb_enable_autosuspend);
 
@@ -1377,7 +1380,7 @@ EXPORT_SYMBOL_GPL(usb_enable_autosuspend);
  */
 void usb_disable_autosuspend(struct usb_device *udev)
 {
-	pm_runtime_forbid(&udev->dev);
+	// pm_runtime_forbid(&udev->dev);
 }
 EXPORT_SYMBOL_GPL(usb_disable_autosuspend);
 
@@ -1399,13 +1402,13 @@ EXPORT_SYMBOL_GPL(usb_disable_autosuspend);
  */
 void usb_autosuspend_device(struct usb_device *udev)
 {
-	int	status;
-
-	udev->last_busy = jiffies;
-	status = pm_runtime_put_sync(&udev->dev);
-	dev_vdbg(&udev->dev, "%s: cnt %d -> %d\n",
-			__func__, atomic_read(&udev->dev.power.usage_count),
-			status);
+	// int	status;
+    // 
+	// udev->last_busy = jiffies;
+	// status = pm_runtime_put_sync(&udev->dev);
+	// dev_vdbg(&udev->dev, "%s: cnt %d -> %d\n",
+	//         __func__, atomic_read(&udev->dev.power.usage_count),
+	//         status);
 }
 
 /**
@@ -1425,12 +1428,12 @@ void usb_autosuspend_device(struct usb_device *udev)
  */
 void usb_try_autosuspend_device(struct usb_device *udev)
 {
-	int	status;
-
-	status = pm_runtime_idle(&udev->dev);
-	dev_vdbg(&udev->dev, "%s: cnt %d -> %d\n",
-			__func__, atomic_read(&udev->dev.power.usage_count),
-			status);
+	// int	status;
+    // 
+	// status = pm_runtime_idle(&udev->dev);
+	// dev_vdbg(&udev->dev, "%s: cnt %d -> %d\n",
+	//         __func__, atomic_read(&udev->dev.power.usage_count),
+	//         status);
 }
 
 /**
@@ -1455,13 +1458,13 @@ int usb_autoresume_device(struct usb_device *udev)
 {
 	int	status;
 
-	status = pm_runtime_get_sync(&udev->dev);
-	if (status < 0)
-		pm_runtime_put_sync(&udev->dev);
-	dev_vdbg(&udev->dev, "%s: cnt %d -> %d\n",
-			__func__, atomic_read(&udev->dev.power.usage_count),
-			status);
-	if (status > 0)
+	// status = pm_runtime_get_sync(&udev->dev);
+	// if (status < 0)
+	//     pm_runtime_put_sync(&udev->dev);
+	// dev_vdbg(&udev->dev, "%s: cnt %d -> %d\n",
+	//         __func__, atomic_read(&udev->dev.power.usage_count),
+	//         status);
+	// if (status > 0)
 		status = 0;
 	return status;
 }
@@ -1483,15 +1486,15 @@ int usb_autoresume_device(struct usb_device *udev)
  */
 void usb_autopm_put_interface(struct usb_interface *intf)
 {
-	struct usb_device	*udev = interface_to_usbdev(intf);
-	int			status;
-
-	udev->last_busy = jiffies;
-	atomic_dec(&intf->pm_usage_cnt);
-	status = pm_runtime_put_sync(&intf->dev);
-	dev_vdbg(&intf->dev, "%s: cnt %d -> %d\n",
-			__func__, atomic_read(&intf->dev.power.usage_count),
-			status);
+	// struct usb_device	*udev = interface_to_usbdev(intf);
+	// int			status;
+    // 
+	// udev->last_busy = jiffies;
+	// atomic_dec(&intf->pm_usage_cnt);
+	// status = pm_runtime_put_sync(&intf->dev);
+	// dev_vdbg(&intf->dev, "%s: cnt %d -> %d\n",
+	//         __func__, atomic_read(&intf->dev.power.usage_count),
+	//         status);
 }
 EXPORT_SYMBOL_GPL(usb_autopm_put_interface);
 
@@ -1512,16 +1515,16 @@ EXPORT_SYMBOL_GPL(usb_autopm_put_interface);
  */
 void usb_autopm_put_interface_async(struct usb_interface *intf)
 {
-	struct usb_device	*udev = interface_to_usbdev(intf);
-	unsigned long		last_busy;
-	int			status = 0;
-
-	last_busy = udev->last_busy;
-	udev->last_busy = jiffies;
-	atomic_dec(&intf->pm_usage_cnt);
-	pm_runtime_put_noidle(&intf->dev);
-
-	if (udev->dev.power.runtime_auto) {
+	// struct usb_device	*udev = interface_to_usbdev(intf);
+	// unsigned long		last_busy;
+	// int			status = 0;
+    // 
+	// last_busy = udev->last_busy;
+	// udev->last_busy = jiffies;
+	// atomic_dec(&intf->pm_usage_cnt);
+	// pm_runtime_put_noidle(&intf->dev);
+    // 
+	// if (udev->dev.power.runtime_auto) {
 		/* Optimization: Don't schedule a delayed autosuspend if
 		 * the timer is already running and the expiration time
 		 * wouldn't change.
@@ -1530,18 +1533,18 @@ void usb_autopm_put_interface_async(struct usb_interface *intf)
 		 * schedule a suspend for the device would fail because
 		 * the interface is still active.
 		 */
-		if (intf->dev.power.timer_expires == 0 ||
-				round_jiffies_up(last_busy) !=
-				round_jiffies_up(jiffies)) {
-			status = pm_schedule_suspend(&intf->dev,
-					jiffies_to_msecs(
-					round_jiffies_up_relative(
-						udev->autosuspend_delay)));
-		}
-	}
-	dev_vdbg(&intf->dev, "%s: cnt %d -> %d\n",
-			__func__, atomic_read(&intf->dev.power.usage_count),
-			status);
+	//     if (intf->dev.power.timer_expires == 0 ||
+	//             round_jiffies_up(last_busy) !=
+	//             round_jiffies_up(jiffies)) {
+	//         status = pm_schedule_suspend(&intf->dev,
+	//                 jiffies_to_msecs(
+	//                 round_jiffies_up_relative(
+	//                     udev->autosuspend_delay)));
+	//     }
+	// }
+	// dev_vdbg(&intf->dev, "%s: cnt %d -> %d\n",
+	//         __func__, atomic_read(&intf->dev.power.usage_count),
+	//         status);
 }
 EXPORT_SYMBOL_GPL(usb_autopm_put_interface_async);
 
@@ -1556,11 +1559,11 @@ EXPORT_SYMBOL_GPL(usb_autopm_put_interface_async);
  */
 void usb_autopm_put_interface_no_suspend(struct usb_interface *intf)
 {
-	struct usb_device	*udev = interface_to_usbdev(intf);
-
-	udev->last_busy = jiffies;
-	atomic_dec(&intf->pm_usage_cnt);
-	pm_runtime_put_noidle(&intf->dev);
+	// struct usb_device	*udev = interface_to_usbdev(intf);
+    // 
+	// udev->last_busy = jiffies;
+	// atomic_dec(&intf->pm_usage_cnt);
+	// pm_runtime_put_noidle(&intf->dev);
 }
 EXPORT_SYMBOL_GPL(usb_autopm_put_interface_no_suspend);
 
@@ -1585,15 +1588,15 @@ int usb_autopm_get_interface(struct usb_interface *intf)
 {
 	int	status;
 
-	status = pm_runtime_get_sync(&intf->dev);
-	if (status < 0)
-		pm_runtime_put_sync(&intf->dev);
-	else
-		atomic_inc(&intf->pm_usage_cnt);
-	dev_vdbg(&intf->dev, "%s: cnt %d -> %d\n",
-			__func__, atomic_read(&intf->dev.power.usage_count),
-			status);
-	if (status > 0)
+	// status = pm_runtime_get_sync(&intf->dev);
+	// if (status < 0)
+	//     pm_runtime_put_sync(&intf->dev);
+	// else
+	//     atomic_inc(&intf->pm_usage_cnt);
+	// dev_vdbg(&intf->dev, "%s: cnt %d -> %d\n",
+	//         __func__, atomic_read(&intf->dev.power.usage_count),
+	//         status);
+	// if (status > 0)
 		status = 0;
 	return status;
 }
@@ -1617,25 +1620,25 @@ EXPORT_SYMBOL_GPL(usb_autopm_get_interface);
 int usb_autopm_get_interface_async(struct usb_interface *intf)
 {
 	int		status = 0;
-	enum rpm_status	s;
-
+	// enum rpm_status	s;
+    // 
 	/* Don't request a resume unless the interface is already suspending
 	 * or suspended.  Doing so would force a running suspend timer to be
 	 * cancelled.
 	 */
-	pm_runtime_get_noresume(&intf->dev);
-	s = ACCESS_ONCE(intf->dev.power.runtime_status);
-	if (s == RPM_SUSPENDING || s == RPM_SUSPENDED)
-		status = pm_request_resume(&intf->dev);
-
-	if (status < 0 && status != -EINPROGRESS)
-		pm_runtime_put_noidle(&intf->dev);
-	else
-		atomic_inc(&intf->pm_usage_cnt);
-	dev_vdbg(&intf->dev, "%s: cnt %d -> %d\n",
-			__func__, atomic_read(&intf->dev.power.usage_count),
-			status);
-	if (status > 0)
+	// pm_runtime_get_noresume(&intf->dev);
+	// s = ACCESS_ONCE(intf->dev.power.runtime_status);
+	// if (s == RPM_SUSPENDING || s == RPM_SUSPENDED)
+	//     status = pm_request_resume(&intf->dev);
+    // 
+	// if (status < 0 && status != -EINPROGRESS)
+	//     pm_runtime_put_noidle(&intf->dev);
+	// else
+	//     atomic_inc(&intf->pm_usage_cnt);
+	// dev_vdbg(&intf->dev, "%s: cnt %d -> %d\n",
+	//         __func__, atomic_read(&intf->dev.power.usage_count),
+	//         status);
+	// if (status > 0)
 		status = 0;
 	return status;
 }
@@ -1652,11 +1655,11 @@ EXPORT_SYMBOL_GPL(usb_autopm_get_interface_async);
  */
 void usb_autopm_get_interface_no_resume(struct usb_interface *intf)
 {
-	struct usb_device	*udev = interface_to_usbdev(intf);
-
-	udev->last_busy = jiffies;
-	atomic_inc(&intf->pm_usage_cnt);
-	pm_runtime_get_noresume(&intf->dev);
+	// struct usb_device	*udev = interface_to_usbdev(intf);
+    // 
+	// udev->last_busy = jiffies;
+	// atomic_inc(&intf->pm_usage_cnt);
+	// pm_runtime_get_noresume(&intf->dev);
 }
 EXPORT_SYMBOL_GPL(usb_autopm_get_interface_no_resume);
 

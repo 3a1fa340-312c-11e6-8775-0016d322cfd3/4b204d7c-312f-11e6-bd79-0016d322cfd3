@@ -58,6 +58,7 @@ static int usb_start_wait_urb(struct urb *urb, int timeout, int *actual_length)
 	usb_init_completion(&ctx.done);
 	urb->context = &ctx;
 	urb->actual_length = 0;
+    TTRACE;
 	retval = usb_submit_urb(urb, GFP_NOIO);
 	if (unlikely(retval))
 		goto out;
@@ -76,6 +77,7 @@ static int usb_start_wait_urb(struct urb *urb, int timeout, int *actual_length)
 			urb->transfer_buffer_length);
 	} else
 		retval = ctx.status;
+    TTRACE;
 out:
 	if (actual_length)
 		*actual_length = urb->actual_length;
@@ -144,7 +146,8 @@ int usb_control_msg(struct usb_device *dev, unsigned int pipe, __u8 request,
 	struct usb_ctrlrequest *dr;
 	int ret;
 
-	dr = kmalloc(sizeof(struct usb_ctrlrequest), GFP_NOIO);
+    // dr = kalloc(sizeof(struct usb_ctrlrequest), GFP_NOIO);
+    dr = kaligned_alloc(sizeof(struct usb_ctrlrequest), 0x100);
 	if (!dr)
 		return -ENOMEM;
 
@@ -154,11 +157,20 @@ int usb_control_msg(struct usb_device *dev, unsigned int pipe, __u8 request,
 	dr->wIndex = cpu_to_le16(index);
 	dr->wLength = cpu_to_le16(size);
 
+    pr_debug("%s(%d), dr:%x data:%x usb_control_msg, %x-%x-%x-%x-%x\n", __func__, __LINE__,
+            (u32)dr,
+            (u32)data,
+            dr->bRequestType,
+            dr->bRequest,
+            dr->wValue,
+            dr->wIndex,
+            dr->wLength);
 	/* dbg("usb_control_msg"); */
 
 	ret = usb_internal_control_msg(dev, pipe, dr, data, size, timeout);
 
-	kfree(dr);
+    // kfree(dr);
+    kaligned_free(dr);
 
 	return ret;
 }
@@ -652,6 +664,7 @@ int usb_get_descriptor(struct usb_device *dev, unsigned char type,
 		if (result <= 0 && result != -ETIMEDOUT)
 			continue;
 		if (result > 1 && ((u8 *)buf)[1] != type) {
+            // pr_debug("termy say, %s(%d), type = %x-%x\n", __func__, __LINE__, ((u8 *)buf)[1], type);
 			result = -ENODATA;
 			continue;
 		}
@@ -764,8 +777,10 @@ static int usb_get_langid(struct usb_device *dev, unsigned char *tbuf)
 	if (dev->have_langid)
 		return 0;
 
-	if (dev->string_langid < 0)
+    if (dev->string_langid < 0) {
+        EPDBG;
 		return -EPIPE;
+    }
 
 	err = usb_string_sub(dev, 0, 0, tbuf);
 
@@ -788,6 +803,7 @@ static int usb_get_langid(struct usb_device *dev, unsigned char *tbuf)
 		dev_err(&dev->dev, "string descriptor 0 read error: %d\n",
 					err);
 		dev->string_langid = -1;
+        EPDBG;
 		return -EPIPE;
 	}
 
@@ -913,14 +929,16 @@ int usb_get_device_descriptor(struct usb_device *dev, unsigned int size)
 
 	if (size > sizeof(*desc))
 		return -EINVAL;
-	desc = kmalloc(sizeof(*desc), GFP_NOIO);
+	// desc = kmalloc(sizeof(*desc), GFP_NOIO);
+    desc = kaligned_alloc(sizeof(*desc), 4096);
 	if (!desc)
 		return -ENOMEM;
 
 	ret = usb_get_descriptor(dev, USB_DT_DEVICE, 0, desc, size);
 	if (ret >= 0)
 		memcpy(&dev->descriptor, desc, size);
-	kfree(desc);
+	// kfree(desc);
+    kaligned_free(desc);
 	return ret;
 }
 
@@ -1301,8 +1319,10 @@ int usb_set_interface(struct usb_device *dev, int interface, int alternate)
 		return ret;
 	}
 
-	if (dev->quirks & USB_QUIRK_NO_SET_INTF)
+    if (dev->quirks & USB_QUIRK_NO_SET_INTF) {
+        EPDBG;
 		ret = -EPIPE;
+    }
 	else
 		ret = usb_control_msg(dev, usb_sndctrlpipe(dev, 0),
 				   USB_REQ_SET_INTERFACE, USB_RECIP_INTERFACE,

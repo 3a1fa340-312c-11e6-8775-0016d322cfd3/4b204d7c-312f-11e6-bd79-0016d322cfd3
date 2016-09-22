@@ -62,11 +62,14 @@ static int rt3xxx_ehci_init(struct usb_hcd *hcd)
 
 	ehci_reset(ehci);
 
+    TTRACE;
 	retval = ehci_init(hcd);
 	if (retval)
 		return retval;
 
+    TTRACE;
 	ehci_port_power(ehci, 0);
+    TTRACE;
 
 	return retval;
 }
@@ -99,14 +102,14 @@ static const struct hc_driver rt3xxx_ehci_hc_driver = {
 
 };
 
-static u64 rt3xxx_ehci_dmamask = ~(u32)0;
-struct device g_ehci_dev = {
-    .dma_mask = &rt3xxx_ehci_dmamask,
-    .coherent_dma_mask = 0xffffffff,
-};
+// static u64 rt3xxx_ehci_dmamask = ~(u32)0;
+// struct device g_ehci_dev = {
+//     .dma_mask = &rt3xxx_ehci_dmamask,
+//     .coherent_dma_mask = 0xffffffff,
+// };
 
 // static int rt3xxx_ehci_probe(struct platform_device *pdev)
-int rt3xxx_ehci_probe(/*struct platform_device *pdev*/)
+int rt3xxx_ehci_probe(struct platform_device *pdev)
 {
 	struct usb_hcd *hcd;
 	const struct hc_driver *driver = &rt3xxx_ehci_hc_driver;
@@ -126,8 +129,13 @@ printk("*************%s************\n", __func__);
 	// irq = res->start;
     irq = IRQ_RT3XXX_USB;
 
-	hcd = usb_create_hcd(driver, &g_ehci_dev, "rt3xxx" /*dev_name(&pdev->dev)*/);
+    // device_initialize(&g_ehci_dev);
+    // pr_debug("termy say, g_ehci_dev addr:%x\n", (u32)&g_ehci_dev);
+
+	// hcd = usb_create_hcd(driver, &g_ehci_dev, "rt3xxx" [>dev_name(&pdev->dev)<]);
+    hcd = usb_create_hcd(driver, &pdev->dev, "rt3xxx" /*dev_name(&pdev->dev)*/);
 	if (!hcd) {
+        // diag_printf("termy say, usb_create_hcd failed, %s(%d)\n", __func__, __LINE__);
 		retval = -ENOMEM;
 		goto fail_create_hcd;
 	}
@@ -183,6 +191,7 @@ printk("*************%s************\n", __func__);
 	if (retval)
 		goto fail_add_hcd;
 
+    diag_printf("termy say, pass usb_add_hcd\n");
 	return retval;
 
 fail_add_hcd:
@@ -196,8 +205,8 @@ fail_create_hcd:
 	return retval;
 }
 
-// static int rt3xxx_ehci_remove(struct platform_device *pdev)
-// {
+static int rt3xxx_ehci_remove(struct platform_device *pdev)
+{
 //     struct usb_hcd *hcd = platform_get_drvdata(pdev);
 // 
 //     /* ehci_shutdown() is supposed to be called implicitly in
@@ -212,18 +221,17 @@ fail_create_hcd:
 //     if(!usb_find_any_hcd())
 //         try_sleep();
 // 
-//     return 0;
-// }
-// 
+    return 0;
+}
 //MODULE_ALIAS("rt3xxx-ehci");
 
-// static struct platform_driver rt3xxx_ehci_driver = {
-//     .probe = rt3xxx_ehci_probe,
-//     .remove = rt3xxx_ehci_remove,
-//     .shutdown = usb_hcd_platform_shutdown,
-//     .driver = {
-//         .name = "rt3xxx-ehci",
-//     },
-// };
+static struct platform_driver rt3xxx_ehci_driver = {
+    .probe = rt3xxx_ehci_probe,
+    .remove = rt3xxx_ehci_remove,
+    // .shutdown = usb_hcd_platform_shutdown,
+    .driver = {
+        .name = "rt3xxx-ehci",
+    },
+};
 
 

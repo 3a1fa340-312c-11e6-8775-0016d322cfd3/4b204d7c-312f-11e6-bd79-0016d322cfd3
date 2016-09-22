@@ -41,7 +41,7 @@ typedef union header MCB;
 #define KMEM_BLOCKS        (((kHW_RAM+1) * 64)/64)	 //512K
 
 unsigned char *_kFarHeap[kHW_RAM+1];
-unsigned char *_kPktHeap[24]; // (128K+64)/8K = 24 
+unsigned char *_kPageHeap[24]; // (128K+64)/8K = 24 
 
 static long kAllocSize;	    /* Total allocate size*/
 static long kMaxAllocSize;	/* Total maximun allocate size*/
@@ -49,14 +49,10 @@ static long kMaxAllocSize;	/* Total maximun allocate size*/
 
 
 unsigned long kAvailmem;      /* Heap memory, ABLKSIZE units */
-unsigned long kPktAvailmem = 0;
 unsigned long kmini_Availmem;  //minimun available memory
 
 static MCB HUGE *kAllocp = NULL;
 static MCB kBase;
-
-static MCB HUGE *kPktAllocp;
-static MCB kPktBase;
 
 static void kmallocinit(void)
 {
@@ -72,13 +68,6 @@ static void kmallocinit(void)
 	for(i = 0 ; i < KMEM_BLOCKS; i++) {
 		_kFarHeap[i]= kFarHeap_base + i * (0x10000);
 	}
-
-    #if 0
-    // for wireless packet use
-    for (i = 0 ; i < 24; i++) {
-        _kPktHeap[i] = kPktHeap_base + i * (0x2000);
-    }
-    #endif
 
     //_kFarHeap[i++] = kFarHeap_hugebase;
     //_kFarHeap[i++] = kFarHeap_hugebase + 0x20000;
@@ -112,17 +101,6 @@ static void kmallocinit(void)
 		kAvailmem +=	nu;
 	}
 
-    #if 0
-    kPktAllocp = CurBlock = &kPktBase;
-
-    nu = (0x2000 - 1)/MCBSIZE;
-    for (i = 0 ; i < 24 ; i++) {
-        CurBlock->s.Next = (MCB HUGE*)_kPktHeap[i];
-        CurBlock->s.Next->s.McbSize = nu;
-        CurBlock = CurBlock->s.Next;
-        kPktAvailmem += nu;
-    }
-    #endif
 }
 #else
 #if (KMEM_BLOCKS == 2)
@@ -159,10 +137,10 @@ kmalloc(size_t nb, int flag)
 	if(kAllocp == NULL) kmallocinit();
 
 	/* Search heap list */
+    /*
     if (flag == 0) 
-        PreMcb = kAllocp;
-    else
-        PreMcb = kPktAllocp;
+    */
+    PreMcb = kAllocp;
    
 	for(CurMcb = PreMcb->s.Next;
 	    ;
@@ -209,19 +187,12 @@ kmalloc(size_t nb, int flag)
 #endif /* 0 */
 }
 #endif /* PC_OUTPUT */
-            if (flag == 0) {
-			    kAvailmem -= CurMcb->s.McbSize;
-			    if(kAvailmem < kmini_Availmem) kmini_Availmem = kAvailmem; //3/29/99
-			    CurMcb++;
-			    break;
-            }
-            else {
-                kPktAvailmem -= CurMcb->s.McbSize;
-                CurMcb++;
-                break;
-            }
+		    kAvailmem -= CurMcb->s.McbSize;
+		    if(kAvailmem < kmini_Availmem) kmini_Availmem = kAvailmem; //3/29/99
+		    CurMcb++;
+		    break;
 		}
-		if((CurMcb == kAllocp) || (CurMcb == kPktAllocp)) {
+		if(CurMcb == kAllocp) {
 		    CurMcb = NULL;
 #if defined(PC_OUTPUT) || defined(PS_OUTPUT)
 			//RED ALARM
@@ -264,10 +235,8 @@ kfree(void *block, int flag)
 
 	i_state = dirps();
 
-    if (flag == 0)
-	    kAvailmem += CurMcb->s.McbSize;
-    else
-        kPktAvailmem += CurMcb->s.McbSize;
+    // if (flag == 0)
+    kAvailmem += CurMcb->s.McbSize;
 
 #if defined(PC_OUTPUT) || defined(PS_OUTPUT)
 	kAllocSize -= CurMcb->s.McbSize;
@@ -282,10 +251,7 @@ kfree(void *block, int flag)
 #endif PC_OUTPUT
 
  	/* Search the free list looking for the right place to insert */
-    if (flag == 0)
-        FreeMcb = kAllocp;
-    else
-        FreeMcb = kPktAllocp;
+    FreeMcb = kAllocp;
 
 	for(;
 	    !(CurMcb > FreeMcb && CurMcb < FreeMcb->s.Next);
@@ -360,6 +326,13 @@ kaligned_free(void *block)
 
 	kfree( p , 0 );
 }
+
+void*
+kcalloc(size_t number, size_t nb, size_t flag)
+{
+    return kaligned_alloc(number*nb, nb);
+}
+
 
 #if 0
 /*

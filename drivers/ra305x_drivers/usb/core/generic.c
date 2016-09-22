@@ -160,7 +160,7 @@ static int generic_probe(struct usb_device *udev)
 {
 	int err, c;
 
-    printk("termy say, %s\n", __func__);
+    // printk("termy say, %s\n", __func__);
 	/* Choose and set the configuration.  This registers the interfaces
 	 * with the driver core and lets interface drivers bind to them.
 	 */

@@ -1,6 +1,10 @@
+#ifdef _LINUX_
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/delay.h>
+#else
+#include "os-dep.h"
+#endif /* _LINUX_ */
 
 #include "mtk-phy.h"
 

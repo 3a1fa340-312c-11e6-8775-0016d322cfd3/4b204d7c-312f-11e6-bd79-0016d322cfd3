@@ -2,6 +2,7 @@
 #ifndef _OS_DEP_H_
 #define _OS_DEP_H_
 
+#include <cyg/infra/cyg_ass.h>
 #include "list.h"
 #include "klist.h"
 #include "errno.h"
@@ -56,7 +57,7 @@ static int irq_flag;
 #endif /* !OS_HZ */
 
 #define HZ            OS_HZ
-#define BUG_ON(x)    assert(!(x))
+#define BUG_ON(x)     CYG_ASSERTC(!(x)) 
 
 #define GFP_KERNEL    0
 #define GFP_NOIO      ((gfp_t)0x10u)
@@ -64,11 +65,38 @@ static int irq_flag;
 
 #define printk        diag_printf
 #define pr_debug      diag_printf
-#define pr_info
-#define kzalloc(x,y)  calloc(x, 1)
+#define pr_info       diag_printf
+// #define TTRACE        \
+//     diag_printf("termy say, %s(%d)\n", __func__, __LINE__)
+#define TTRACE do{}while(0)
+#define EPDBG         \
+    diag_printf("termy say, EPDBG: %s(%d)\n", __func__, __LINE__)
+// #define EPDBG do{}while(0)
+
+#define ehci_dbg(ehci, fmt, args...) \
+    diag_printf(fmt, ##args)
+#define ehci_err(ehci, fmt, args...) \
+    diag_printf(fmt, ##args)
+#define ehci_info(ehci, fmt, args...) \
+    diag_printf(fmt, ##args)
+#define ehci_warn(ehci, fmt, args...) \
+    diag_printf(fmt, ##args)
+#define ehci_vdbg(ehci, fmt, args...)
+#define dbg_port(ehci, label, port, status)
+
+#define __ALIGN_KERNEL(x, a)		__ALIGN_KERNEL_MASK(x, (typeof(x))(a) - 1)
+#define __ALIGN_KERNEL_MASK(x, mask)	(((x) + (mask)) & ~(mask))
+#define ALIGN(x, a)		__ALIGN_KERNEL((x), (a))
+
+#define BIT(nr)			(1UL << (nr))
 #define BITS_PER_LONG 32
 #define BIT_WORD(nr)		((nr) / BITS_PER_LONG)
-#define kstrdup(x,y)    strdup(x)
+#define kstrdup(x,y)        strdup(x)
+#define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
+// #define ehci_hcd_init       rt3xxx_ehci_probe
+
+// #define kzalloc(x,y)        calloc(x, 1)
+// #define kcalloc(x,y,z)      calloc(x, y)
 
 #define KBUILD_MODNAME    "usb-host"
 #define __always_inline inline
@@ -151,12 +179,15 @@ typedef struct {
 #define dev_warn(dev, format, arg...) diag_printf(format, ##arg)
 #define dev_err(dev, format, arg...) diag_printf(format, ##arg)
 #define dev_info(dev, format, arg...) diag_printf(format, ##arg) 
+#define dbg_cmd(ehci, label, command)
+#define dbg_status(ehci, label, status) 
 
 #define KERN_WARNING
 #define KERN_DEBUG
 #define KERN_ERR
 #define KERN_EMERG
 #define WARN_ON
+#define WARN_ONCE
 #define __iomem
 #define __init
 #define __read_mostly
@@ -183,6 +214,7 @@ static inline int device_is_registered(struct device *dev)
 {
     return (int)dev;
 }
+
 /*
  * list
  */
@@ -347,6 +379,23 @@ do {									                    \
 # define unlikely(x)	__builtin_expect(!!(x), 0)
 # define likely(x)	__builtin_expect(!!(x), 1)
 
+extern u32 __div64_32(u64 *dividend, u32 divisor);
+
+/* The unnecessary pointer compare is there
+ * to check for type safety (n must be 64bit)
+ */
+# define do_div(n,base) ({				\
+	u32 __base = (base);			\
+	u32 __rem;					\
+	(void)(((typeof((n)) *)0) == ((u64 *)0));	\
+	if (likely(((n) >> 32) == 0)) {			\
+		__rem = (u32)(n) % __base;		\
+		(n) = (u32)(n) / __base;		\
+	} else 						\
+		__rem = __div64_32(&(n), __base);	\
+	__rem;						\
+ })
+
 /*
  * Check at compile time that something is of a particular type.
  * Always evaluates to 1 so you may use it easily in comparisons.
@@ -408,13 +457,13 @@ do {									                    \
 /*
  * MIPS IO space
  */
-#define mem_map     0x81000000
+// #define mem_map     0x81000000
 #define __AC(X,Y)   (X##Y)
 #define _AC(X,Y)    __AC(X,Y)
 
 #define PHYS_OFFSET     _AC(0, UL)
 #define CAC_BASE        _AC(0x80000000, UL)
-#define IO_BASE         _AC(0xa0000000, UL)
+// #define IO_BASE         _AC(0xa0000000, UL)
 #define UNCAC_BASE      _AC(0xa0000000, UL)
 
 #ifndef PAGE_OFFSET
@@ -425,6 +474,7 @@ do {									                    \
 #define PAGE_MASK       (~((1 << PAGE_SHIFT) - 1))
 #define PFN_UP(x)       (((x) + PAGE_SIZE-1) >> PAGE_SHIFT)
 #define ARCH_PFN_OFFSET PFN_UP(PHYS_OFFSET)
+#define UNCAC_ADDR(addr)    ((addr) - PAGE_OFFSET + UNCAC_BASE + PHYS_OFFSET)
 
 /*
  *     virt_to_phys    -       map virtual addresses to physical
@@ -465,13 +515,13 @@ static inline void plat_unmap_dma_mem(struct device *dev, dma_addr_t dma_addr,
 
 }
 
-#define __pfn_to_page(pfn)	(mem_map + ((pfn) - ARCH_PFN_OFFSET))
-#define __page_to_pfn(page)	((unsigned long)((page) - mem_map) + \
-				 ARCH_PFN_OFFSET)
+// #define __pfn_to_page(pfn)	(mem_map + ((pfn) - ARCH_PFN_OFFSET))
+// #define __page_to_pfn(page)	((unsigned long)((page) - mem_map) + \
+//                  ARCH_PFN_OFFSET)
 /*
  * Change "struct page" to physical address.
  */
-#define page_to_phys(page)	((dma_addr_t)__page_to_pfn(page) << PAGE_SHIFT)
+// #define page_to_phys(page)	((dma_addr_t)__page_to_pfn(page) << PAGE_SHIFT)
 
 /*
  *     phys_to_virt    -       map physical address to virtual
@@ -495,6 +545,19 @@ static inline dma_addr_t dma_map_single(struct device *dev, void *ptr, size_t si
 {
     return plat_map_dma_mem(dev, ptr, size);
 }
+
+#define __sync()				\
+	__asm__ __volatile__(			\
+		".set	push\n\t"		\
+		".set	noreorder\n\t"		\
+		".set	mips2\n\t"		\
+		"sync\n\t"			\
+		".set	pop"			\
+		: /* no output */		\
+		: /* no input */		\
+		: "memory")
+#define wmb()   __sync()
+#define rmb()   __sync()
 
 // struct new_utsname {
 //     char sysname[__NEW_UTS_LEN + 1];
@@ -539,7 +602,7 @@ struct timer_list {
     sturct tvec_base *base;
     */
 
-	void (*function)(cyg_handle_t, cyg_addrword_t);
+	void (*function)(cyg_addrword_t);
 	unsigned long data;
 
     int slack;
@@ -549,10 +612,6 @@ struct timer_list {
     bool            valid;
     bool            pending;
 };
-
-struct dma_pool {
-};
-
 
 /**
  * enum irqreturn
@@ -582,6 +641,7 @@ extern int del_timer(struct timer_list *timer);
 extern int mod_timer(struct timer_list *timer, unsigned long expires);
 extern int mod_timer_pending(struct timer_list *timer, unsigned long expires);
 extern int mod_timer_pinned(struct timer_list *timer, unsigned long expires);
+# define del_timer_sync(t)		del_timer(t)
 
 /*
  * complete.h
@@ -694,7 +754,6 @@ static inline int test_and_change_bit(int nr, volatile unsigned long *addr)
 /*
  * device.h
  */
-
 struct kobject {
 	const char		*name;
 	struct list_head	entry;
@@ -799,7 +858,6 @@ struct device_driver {
 
 	struct driver_private *p;
 };
-
 
 enum dpm_state {
 	DPM_INVALID,
@@ -998,6 +1056,31 @@ struct device_type {
 	// const struct dev_pm_ops *pm;
 };
 
+struct platform_device {
+    const char	* name;
+    int		id;
+    struct device	dev;
+    u32		num_resources;
+    struct resource	* resource;
+
+    // const struct platform_device_id	*id_entry;
+
+    /* arch specific additions */
+    // struct pdev_archdata	archdata;
+};
+#define to_platform_device(x) container_of((x), struct platform_device, dev)
+
+struct platform_driver {
+    int (*probe)(struct platform_device *);
+    int (*remove)(struct platform_device *);
+    void (*shutdown)(struct platform_device *);
+    // int (*suspend)(struct platform_device *, pm_message_t state);
+    int (*resume)(struct platform_device *);
+    struct device_driver driver;
+    // const struct platform_device_id *id_table;
+};
+#define to_platform_driver(x) container_of((x), struct platform_driver, driver)
+
 /*
  * pm_wakeup.h
  */
@@ -1062,6 +1145,18 @@ static inline bool device_may_wakeup(struct device *dev)
 	return false;
 }
 
+static inline u32 __raw_readl(const volatile void __iomem *addr)
+{
+	return *(const volatile u32 __force *) addr;
+}
+#define readl(addr) __le32_to_cpu(__raw_readl(addr))
+
+static inline void __raw_writel(u32 b, volatile void __iomem *addr)
+{
+	*(volatile u32 __force *) addr = b;
+}
+#define writel(b,addr) __raw_writel(__cpu_to_le32(b),addr)
+
 #endif /* !CONFIG_PM */
 
 /*
@@ -1094,44 +1189,48 @@ struct work_struct {
 #ifdef CONFIG_LOCKDEP
     struct lockdep_map lockdep_map;
 #endif
+    unsigned long delay;
 };
  
-// struct delayed_work {
-//     struct work_struct work;
-//     struct timer_list timer;
-// };
-// 
-// static inline void __init_work(struct work_struct *work, int onstack) { }
-// 
-// #define __INIT_WORK(_work, _func, _onstack)				\
-//     do {								\
-//         __init_work((_work), _onstack);				\
-//         (_work)->data = (atomic_long_t) WORK_DATA_INIT();	\
-//         INIT_LIST_HEAD(&(_work)->entry);			\
-//         PREPARE_WORK((_work), (_func));				\
-//     } while (0)
-// 
-// #define INIT_WORK(_work, _func)					\
-//     do {							\
-//         __INIT_WORK((_work), (_func), 0);		\
-//     } while (0)
-// 
-// #define INIT_DELAYED_WORK(_work, _func)				\
-//     do {							\
-//         INIT_WORK(&(_work)->work, (_func));		\
-//         init_timer(&(_work)->timer);			\
-//     } while (0)
-// 
-// #define PREPARE_WORK(_work, _func)				\
-//     do {							\
-//         (_work)->func = (_func);			\
-//     } while (0)
-// 
-// #define PREPARE_DELAYED_WORK(_work, _func)			\
-//     PREPARE_WORK(&(_work)->work, (_func))
-// 
-// int schedule_delayed_work(struct delayed_work *dwork,
-//                     unsigned long delay);
+struct delayed_work {
+    struct work_struct work;
+    struct timer_list timer;
+};
+
+static inline void __init_work(struct work_struct *work, int onstack)
+{
+}
+
+static int cancel_delayed_work_sync(struct delayed_work *dwork){ return 0; }
+
+#define PREPARE_WORK(_work, _func)				\
+    do {							\
+        (_work)->func = (_func);			\
+    } while (0)
+
+#define PREPARE_DELAYED_WORK(_work, _func)			\
+    PREPARE_WORK(&(_work)->work, (_func))
+
+#define __INIT_WORK(_work, _func, _onstack)              \
+    do {                                                 \
+        __init_work((_work), _onstack);                  \
+        INIT_LIST_HEAD(&(_work)->entry);                 \
+        PREPARE_WORK((_work), (_func));                  \
+    } while (0)
+
+#define INIT_WORK(_work, _func)           \
+    do {                                  \
+        __INIT_WORK((_work), (_func), 0); \
+    } while (0)
+
+#define INIT_DELAYED_WORK(_work, _func)				\
+    do {							\
+        INIT_WORK(&(_work)->work, (_func));		\
+        init_timer(&(_work)->timer);			\
+    } while (0)
+
+int schedule_delayed_work(struct delayed_work *dwork,
+                    unsigned long delay);
 
 unsigned long find_last_bit(const unsigned long *addr, unsigned long size);
 unsigned long msecs_to_jiffies(const unsigned int m);
@@ -1271,6 +1370,14 @@ static inline int device_trylock(struct device *dev)
 # define __releases(x)
 # define __acquire(x) (void)0
 # define __release(x) (void)0
+
+#define unreachable()   do{}while(1)
+#define BRK_BUG		512	/* Used by BUG() */
+static inline void  BUG(void)
+{
+	__asm__ __volatile__("break %0" : : "i" (BRK_BUG));
+	unreachable();
+}
 
 static inline const char *dev_name(const struct device *dev)
 {

@@ -218,6 +218,7 @@ static int qtd_copy_status (
 			status = -EOVERFLOW;
 		/* CERR nonzero + halt --> stall */
 		} else if (QTD_CERR(token)) {
+            EPDBG;
 			status = -EPIPE;
 
 		/* In theory, more than one of the following bits can be set
@@ -371,6 +372,7 @@ qh_completions (struct ehci_hcd *ehci, struct ehci_qh *qh)
 		/* hardware copies qtd out of qh overlay */
 		rmb ();
 		token = hc32_to_cpu(ehci, qtd->hw_token);
+        // pr_debug("termy say, %s(%d) token = %x, qtd addr = %x\n", __func__, __LINE__, token, (u32)qtd);
 
 		/* always clean up qtds the hc de-activated */
  retry_xacterr:
@@ -392,21 +394,22 @@ qh_completions (struct ehci_hcd *ehci, struct ehci_qh *qh)
 	"detected XactErr len %zu/%zu retry %d\n",
 	qtd->length - QTD_LENGTH(token), qtd->length, qh->xacterrs);
 
-					/* reset the token in the qtd and the
-					 * qh overlay (which still contains
-					 * the qtd) so that we pick up from
-					 * where we left off
-					 */
-					token &= ~QTD_STS_HALT;
-					token |= QTD_STS_ACTIVE |
-							(EHCI_TUNE_CERR << 10);
-					qtd->hw_token = cpu_to_hc32(ehci,
-							token);
-					wmb();
-					hw->hw_token = cpu_to_hc32(ehci,
-							token);
-					goto retry_xacterr;
-				}
+            pr_debug("termy say, %s(%d) token = %x, qtd addr = %x\n", __func__, __LINE__, token, (u32)qtd);
+                    /* reset the token in the qtd and the
+                     * qh overlay (which still contains
+                     * the qtd) so that we pick up from
+                     * where we left off
+                     */
+                    token &= ~QTD_STS_HALT;
+                    token |= QTD_STS_ACTIVE |
+                             (EHCI_TUNE_CERR << 10);
+                    qtd->hw_token = cpu_to_hc32(ehci,
+                                                token);
+                    wmb();
+                    hw->hw_token = cpu_to_hc32(ehci,
+                                               token);
+                    goto retry_xacterr;
+                }
 				stopped = 1;
 
 			/* magic dummy for some short reads; qh won't advance.
@@ -637,6 +640,7 @@ qh_urb_transaction (
 
 	len = urb->transfer_buffer_length;
 	is_input = usb_pipein (urb->pipe);
+    // pr_debug("%s(%d), qtd:%x urb:%x urb_dma:%x len:%d\n", __func__, __LINE__, (u32)qtd, (u32)urb, (u32)urb->setup_dma, len);
 	if (usb_pipecontrol (urb->pipe)) {
 		/* SETUP pid */
 		qtd_fill(ehci, qtd, urb->setup_dma,
@@ -652,6 +656,7 @@ qh_urb_transaction (
 		qtd->urb = urb;
 		qtd_prev->hw_next = QTD_NEXT(ehci, qtd->qtd_dma);
 		list_add_tail (&qtd->qtd_list, head);
+        // pr_debug("%s(%d), pipectrl  qtd:%x urb:%x urb_dma:%x\n", __func__, __LINE__, (u32)qtd, (u32)urb, (u32)urb->setup_dma);
 
 		/* for zero length DATA stages, STATUS is always IN */
 		if (len == 0)
@@ -661,20 +666,20 @@ qh_urb_transaction (
 	/*
 	 * data transfer stage:  buffer setup
 	 */
-	i = urb->num_sgs;
-	if (len > 0 && i > 0) {
-		sg = urb->sg;
-		buf = sg_dma_address(sg);
+    i = urb->num_sgs;
+    if (len > 0 && i > 0) {
+        sg = urb->sg;
+        buf = sg_dma_address(sg);
 
 		/* urb->transfer_buffer_length may be smaller than the
 		 * size of the scatterlist (or vice versa)
 		 */
-		this_sg_len = min_t(int, sg_dma_len(sg), len);
-	} else {
+        this_sg_len = min_t(int, sg_dma_len(sg), len);
+    } else {
 		sg = NULL;
 		buf = urb->transfer_dma;
 		this_sg_len = len;
-	}
+    }
 
 	if (is_input)
 		token |= (1 /* "in" */ << 8);
@@ -708,13 +713,13 @@ qh_urb_transaction (
 		if ((maxpacket & (this_qtd_len + (maxpacket - 1))) == 0)
 			token ^= QTD_TOGGLE;
 
-		if (likely(this_sg_len <= 0)) {
-			if (--i <= 0 || len <= 0)
-				break;
-			sg = sg_next(sg);
-			buf = sg_dma_address(sg);
-			this_sg_len = min_t(int, sg_dma_len(sg), len);
-		}
+        if (likely(this_sg_len <= 0)) {
+            if (--i <= 0 || len <= 0)
+                break;
+            sg = sg_next(sg);
+            buf = sg_dma_address(sg);
+            this_sg_len = min_t(int, sg_dma_len(sg), len);
+        }
 
 		qtd_prev = qtd;
 		qtd = ehci_qtd_alloc (ehci, flags);
@@ -723,6 +728,7 @@ qh_urb_transaction (
 		qtd->urb = urb;
 		qtd_prev->hw_next = QTD_NEXT(ehci, qtd->qtd_dma);
 		list_add_tail (&qtd->qtd_list, head);
+        // pr_debug("%s(%d), total qtd:%x urb:%x urb_dma:%x\n", __func__, __LINE__, (u32)qtd, (u32)urb, (u32)urb->setup_dma);
 	}
 
 	/*
@@ -761,6 +767,7 @@ qh_urb_transaction (
 
 			/* never any data in such packets */
 			qtd_fill(ehci, qtd, 0, 0, token, 0);
+            // pr_debug("%s(%d), one_more qtd:%x urb:%x urb_dma:%x\n", __func__, __LINE__, (u32)qtd, (u32)urb, (u32)urb->setup_dma);
 		}
 	}
 
@@ -977,16 +984,23 @@ static void qh_link_async (struct ehci_hcd *ehci, struct ehci_qh *qh)
 
 	WARN_ON(qh->qh_state != QH_STATE_IDLE);
 
+    // cyg_thread_delay(20);
+    // pr_debug("termy say, %s(%d)\n", __func__, __LINE__);
+    TTRACE;
 	/* (re)start the async schedule? */
 	head = ehci->async;
 	timer_action_done (ehci, TIMER_ASYNC_OFF);
+
 	if (!head->qh_next.qh) {
+
 		u32	cmd = ehci_readl(ehci, &ehci->regs->command);
 
 		if (!(cmd & CMD_ASE)) {
+
+            pr_debug("termy say, %s(%d)\n", __func__, __LINE__);
 			/* in case a clear of CMD_ASE didn't take yet */
 			(void)handshake(ehci, &ehci->regs->status,
-					STS_ASS, 0, 150);
+					STS_ASS, 0, 300);
 			cmd |= CMD_ASE | CMD_RUN;
 			ehci_writel(ehci, cmd, &ehci->regs->command);
 			ehci_to_hcd(ehci)->state = HC_STATE_RUNNING;
@@ -1000,7 +1014,7 @@ static void qh_link_async (struct ehci_hcd *ehci, struct ehci_qh *qh)
 	/* splice right after start */
 	qh->qh_next = head->qh_next;
 	qh->hw->hw_next = head->hw->hw_next;
-	wmb ();
+    wmb ();
 
 	head->qh_next.qh = qh;
 	head->hw->hw_next = dma;
@@ -1144,8 +1158,10 @@ submit_async (
 	/* Control/bulk operations through TTs don't need scheduling,
 	 * the HC and TT handle it when the TT has a buffer ready.
 	 */
-	if (likely (qh->qh_state == QH_STATE_IDLE))
+    if (likely (qh->qh_state == QH_STATE_IDLE)) {
+        pr_debug("%s(%d) -->", __func__, __LINE__);
 		qh_link_async(ehci, qh);
+    }
  done:
 	spin_unlock_irqrestore (&ehci->lock, flags);
 	if (unlikely (qh == NULL))
@@ -1164,6 +1180,7 @@ static void end_unlink_async (struct ehci_hcd *ehci)
 
 	iaa_watchdog_done(ehci);
 
+    // pr_debug("%s(%d)\n", __func__, __LINE__);
 	// qh->hw_next = cpu_to_hc32(qh->qh_dma);
 	qh->qh_state = QH_STATE_IDLE;
 	qh->qh_next.qh = NULL;
@@ -1184,8 +1201,11 @@ static void end_unlink_async (struct ehci_hcd *ehci)
 		 * active but idle for a while once it empties.
 		 */
 		if (HC_IS_RUNNING (ehci_to_hcd(ehci)->state)
-				&& ehci->async->qh_next.qh == NULL)
+                && ehci->async->qh_next.qh == NULL) {
+
+            // pr_debug("termy say, %s --->", __func__);
 			timer_action (ehci, TIMER_ASYNC_OFF);
+        }
 	}
 	qh_put(qh);			/* refcount from async list */
 
@@ -1283,6 +1303,7 @@ rescan:
 					unlink_async(ehci, qh);
 				qh_put (qh);
 				if (temp != 0) {
+                    // pr_debug("termy say, %s goto resacn\n", __func__);
 					goto rescan;
 				}
 			}
@@ -1293,12 +1314,16 @@ rescan:
 			 * doesn't stay idle for long.
 			 * (plus, avoids some kind of re-activation race.)
 			 */
+            // pr_debug("%s(%d) stamp = %ld\n", __func__, __LINE__, ehci->stamp - qh->stamp);
 			if (list_empty(&qh->qtd_list)
 					&& qh->qh_state == QH_STATE_LINKED) {
-				if (!ehci->reclaim
-					&& ((ehci->stamp - qh->stamp) & 0x1fff)
-						>= (EHCI_SHRINK_FRAMES * 8))
+                if (!ehci->reclaim
+                    && ((ehci->stamp - qh->stamp) & 0x1fff)
+                    >= 38){
+                    // >= (EHCI_SHRINK_FRAMES * 8)){
+                    // pr_debug("termy say, %s --> start_unlink_async\n", __func__);
 					start_unlink_async(ehci, qh);
+                }
 				else
 					action = TIMER_ASYNC_SHRINK;
 			}
@@ -1306,6 +1331,9 @@ rescan:
 			qh = qh->qh_next.qh;
 		} while (qh);
 	}
-	if (action == TIMER_ASYNC_SHRINK)
+    if (action == TIMER_ASYNC_SHRINK) {
+
+        // pr_debug("termy say, %s ---->", __func__);
 		timer_action (ehci, TIMER_ASYNC_SHRINK);
+    }
 }

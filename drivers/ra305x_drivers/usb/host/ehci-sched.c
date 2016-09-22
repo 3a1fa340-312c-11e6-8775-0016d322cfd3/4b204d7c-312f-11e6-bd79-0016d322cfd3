@@ -1650,6 +1650,7 @@ itd_link_urb (
 	iso_sched_free (stream, iso_sched);
 	urb->hcpriv = NULL;
 
+    // pr_debug("termy say, %s ---->", __func__);
 	timer_action (ehci, TIMER_IO_WATCHDOG);
 	return enable_periodic(ehci);
 }
@@ -2049,6 +2050,7 @@ sitd_link_urb (
 	iso_sched_free (stream, sched);
 	urb->hcpriv = NULL;
 
+    // pr_debug("termy say, %s ---->", __func__);
 	timer_action (ehci, TIMER_IO_WATCHDOG);
 	return enable_periodic(ehci);
 }
@@ -2241,6 +2243,7 @@ scan_periodic (struct ehci_hcd *ehci)
 	unsigned	now_uframe, frame, clock, clock_frame, mod;
 	unsigned	modified;
 
+    TTRACE;
 	mod = ehci->periodic_size << 3;
 
 	/*

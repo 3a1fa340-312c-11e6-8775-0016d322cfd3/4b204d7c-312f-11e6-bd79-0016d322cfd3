@@ -533,7 +533,7 @@ struct usb_tt_clear {
     struct usb_host_endpoint *ep;
 };
 
-extern int usb_hub_clear_tt_buffer(struct urb *urb);
+// extern int usb_hub_clear_tt_buffer(struct urb *urb);
 extern void usb_ep0_reinit(struct usb_device *);
 
 /* (shifted) direction/type/recipient from the USB 2.0 spec, table 9.2 */

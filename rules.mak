@@ -124,9 +124,10 @@ CFLAGS += -DCYGPKG_NET_LWIP -DMT7688_MAC -DCYGPKG_LWIP_ETH
 #CFLAGS +=  -I$(TOPDIR)/include -I$(TOPDIR)/apps/tcpip/incl/ -I$(PKG_INSTALL_DIR)/include -include config.h
 CFLAGS += -I$(TOPDIR)/include -include config.h 
 #CFLAGS += -EL -mips32 -msoft-float -gstabs -fno-rtti -fno-exceptions -G0 -DCONFIG_MT7628_ASIC -Wpointer-arith -Wundef -Wno-write-strings
-CFLAGS += -nostdinc -isystem /opt/buildroot-gcc463/usr/lib/gcc/mipsel-buildroot-linux-uclibc/4.6.3/include \
--I/opt/buildroot-gcc463/usr/lib/gcc/mipsel-buildroot-linux-uclibc/4.6.3/install-tools/include  \
--EL \
+
+CFLAGS += -EL \
+-DCYGDBG_USE_ASSERTS \
+-DCYGDBG_INFRA_DEBUG_ASSERT_MESSAGE \
 -DCONFIG_MT7628_ASIC \
 -Wall \
 -Wundef \
@@ -136,7 +137,6 @@ CFLAGS += -nostdinc -isystem /opt/buildroot-gcc463/usr/lib/gcc/mipsel-buildroot-
 -fno-common \
 -Wno-format-security \
 -fno-delete-null-pointer-checks \
--Os \
 -ffunction-sections \
 -mno-check-zero-division \
 -G 0 \

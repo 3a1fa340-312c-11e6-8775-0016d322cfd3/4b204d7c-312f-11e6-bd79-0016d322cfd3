@@ -76,7 +76,8 @@ static void qh_destroy(struct ehci_qh *qh)
 	if (qh->dummy)
 		ehci_qtd_free (ehci, qh->dummy);
 	dma_pool_free(ehci->qh_pool, qh->hw, qh->qh_dma);
-	kfree(qh);
+	// kfree(qh);
+    kaligned_free(qh);
 }
 
 static struct ehci_qh *ehci_qh_alloc (struct ehci_hcd *ehci, gfp_t flags)
@@ -84,7 +85,9 @@ static struct ehci_qh *ehci_qh_alloc (struct ehci_hcd *ehci, gfp_t flags)
 	struct ehci_qh		*qh;
 	dma_addr_t		dma;
 
-	qh = kzalloc(sizeof *qh, GFP_ATOMIC);
+    // qh = kzalloc(sizeof *qh, GFP_ATOMIC);
+    qh = kaligned_alloc(sizeof *qh, 0x20);
+    pr_debug("%s(%d) qh addr:%x\n", __func__, __LINE__, (u32)qh);
 	if (!qh)
 		goto done;
 	qh->hw = (struct ehci_qh_hw *)
@@ -100,6 +103,7 @@ static struct ehci_qh *ehci_qh_alloc (struct ehci_hcd *ehci, gfp_t flags)
 
 	/* dummy td enables safe urb queuing */
 	qh->dummy = ehci_qtd_alloc (ehci, flags);
+    pr_debug("%s(%d) dummy addr:%x\n", __func__, __LINE__, (u32)qh->dummy);
 	if (qh->dummy == NULL) {
 		ehci_dbg (ehci, "no dummy td\n");
 		goto fail1;
@@ -109,7 +113,8 @@ done:
 fail1:
 	dma_pool_free(ehci->qh_pool, qh->hw, qh->qh_dma);
 fail:
-	kfree(qh);
+	// kfree(qh);
+    kaligned_free(qh);
 	return NULL;
 }
 
@@ -166,14 +171,18 @@ static void ehci_mem_cleanup (struct ehci_hcd *ehci)
 	ehci->periodic = NULL;
 
 	/* shadow periodic table */
-	kfree(ehci->pshadow);
+    kaligned_free(ehci->pshadow);
 	ehci->pshadow = NULL;
 }
+
+extern cyg_mutex_t pools_lock;
 
 /* remember to add cleanup code (above) if you add anything here */
 static int ehci_mem_init (struct ehci_hcd *ehci, gfp_t flags)
 {
 	int i;
+
+    cyg_mutex_init(&pools_lock);
 
 	/* QTDs for control/bulk/intr transfers */
 	ehci->qtd_pool = dma_pool_create ("ehci_qtd",
@@ -231,7 +240,7 @@ static int ehci_mem_init (struct ehci_hcd *ehci, gfp_t flags)
 		ehci->periodic [i] = EHCI_LIST_END(ehci);
 
 	/* software shadow of hardware table */
-	ehci->pshadow = kcalloc(ehci->periodic_size, sizeof(void *), flags);
+    ehci->pshadow = kcalloc(ehci->periodic_size, sizeof(void *), flags);
 	if (ehci->pshadow != NULL)
 		return 0;
 

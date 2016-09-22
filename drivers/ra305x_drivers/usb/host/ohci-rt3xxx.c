@@ -63,6 +63,7 @@ static int usb_hcd_rt3xxx_probe(const struct hc_driver *driver, struct platform_
 	if (retval == 0)
 		return retval;
 
+    TTRACE;
 	iounmap(hcd->regs);
 err2:
 	release_mem_region(hcd->rsrc_start, hcd->rsrc_len);

@@ -38,6 +38,11 @@ int ralink_gpio_init(void);
 
 extern void usb_test();
 
+// uint8 usbprn_read_status( int nPort )
+// {
+// 
+// }
+
 void zotmain( void )
 //void zotmain(cyg_addrword_t p)
 {

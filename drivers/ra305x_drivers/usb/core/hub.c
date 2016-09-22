@@ -30,7 +30,7 @@
 #include <asm/uaccess.h>
 #include <asm/byteorder.h>
 #endif /* _LINUX_ */
-
+#include <cyg/hal/hal_cache.h>
 #include "os-dep.h"
 #include "ioctl.h"
 #include "usb.h"
@@ -39,6 +39,7 @@
 #include "core-usb.h"
 #include "generic.h"
 #include "little_endian.h"
+#include "asm/r4kcache.h"
 
 /* if we are in debug mode, always announce new devices */
 #ifdef DEBUG
@@ -88,8 +89,8 @@ struct usb_hub {
     unsigned        has_indicators:1;
     u8          indicator[USB_MAXCHILDREN];
     // struct delayed_work leds;
-    // struct delayed_work init_work;
-    struct timer_list   init_work;
+    struct delayed_work init_work;
+    // struct timer_list   init_work;
     void            **port_owners;
 };
 
@@ -416,6 +417,7 @@ static void hub_irq(struct urb *urb)
     unsigned i;
     unsigned long bits;
 
+    TTRACE;
     switch (status) {
     case -ENOENT:       /* synchronous unlink */
     case -ECONNRESET:   /* async unlink */
@@ -519,47 +521,47 @@ hub_clear_tt_buffer (struct usb_device *hdev, u16 devinfo, u16 tt)
  * It may not be possible for that hub to handle additional full (or low)
  * speed transactions until that state is fully cleared out.
  */
-// int usb_hub_clear_tt_buffer(struct urb *urb)
-// {
-//     struct usb_device   *udev = urb->dev;
-//     int         pipe = urb->pipe;
-//     struct usb_tt       *tt = udev->tt;
-//     unsigned long       flags;
-//     struct usb_tt_clear *clear;
-// 
+int usb_hub_clear_tt_buffer(struct urb *urb)
+{
+    struct usb_device   *udev = urb->dev;
+    int         pipe = urb->pipe;
+    struct usb_tt       *tt = udev->tt;
+    unsigned long       flags;
+    struct usb_tt_clear *clear;
+
     /* we've got to cope with an arbitrary number of pending TT clears,
      * since each TT has "at least two" buffers that can need it (and
      * there can be many TTs per hub).  even if they're uncommon.
      */
-//     if ((clear = kmalloc (sizeof *clear, GFP_ATOMIC)) == NULL) {
-//         dev_err (&udev->dev, "can't save CLEAR_TT_BUFFER state\n");
-//         [> FIXME recover somehow ... RESET_TT? <]
-//         return -ENOMEM;
-//     }
-// 
-//     [> info that CLEAR_TT_BUFFER needs <]
-//     clear->tt = tt->multi ? udev->ttport : 1;
-//     clear->devinfo = usb_pipeendpoint (pipe);
-//     clear->devinfo |= udev->devnum << 4;
-//     clear->devinfo |= usb_pipecontrol (pipe)
-//             ? (USB_ENDPOINT_XFER_CONTROL << 11)
-//             : (USB_ENDPOINT_XFER_BULK << 11);
-//     if (usb_pipein (pipe))
-//         clear->devinfo |= 1 << 15;
-// 
-//     [> info for completion callback <]
-//     clear->hcd = bus_to_hcd(udev->bus);
-//     clear->ep = urb->ep;
-// 
-//     [> tell keventd to clear state for this TT <]
-//     spin_lock_irqsave (&tt->lock, flags);
-//     list_add_tail (&clear->clear_list, &tt->clear_list);
-//     schedule_work(&tt->clear_work);
-//     spin_unlock_irqrestore (&tt->lock, flags);
-//     return 0;
-// }
-// EXPORT_SYMBOL_GPL(usb_hub_clear_tt_buffer);
-// 
+    if ((clear = kmalloc (sizeof *clear, GFP_ATOMIC)) == NULL) {
+        dev_err (&udev->dev, "can't save CLEAR_TT_BUFFER state\n");
+        /* FIXME recover somehow ... RESET_TT? */ 
+        return -ENOMEM;
+    }
+
+    /* info that CLEAR_TT_BUFFER needs */
+    clear->tt = tt->multi ? udev->ttport : 1;
+    clear->devinfo = usb_pipeendpoint (pipe);
+    clear->devinfo |= udev->devnum << 4;
+    clear->devinfo |= usb_pipecontrol (pipe)
+            ? (USB_ENDPOINT_XFER_CONTROL << 11)
+            : (USB_ENDPOINT_XFER_BULK << 11);
+    if (usb_pipein (pipe))
+        clear->devinfo |= 1 << 15;
+
+    /* info for completion callback */
+    clear->hcd = bus_to_hcd(udev->bus);
+    clear->ep = urb->ep;
+
+    /* tell keventd to clear state for this TT */
+    spin_lock_irqsave (&tt->lock, flags);
+    list_add_tail (&clear->clear_list, &tt->clear_list);
+    schedule_work(&tt->clear_work);
+    spin_unlock_irqrestore (&tt->lock, flags);
+    return 0;
+}
+EXPORT_SYMBOL_GPL(usb_hub_clear_tt_buffer);
+
 /* If do_delay is false, return the number of milliseconds the caller
  * needs to delay.
  */
@@ -682,10 +684,12 @@ enum hub_activation_type {
     HUB_POST_RESET, HUB_RESUME, HUB_RESET_RESUME,
 };
 
-// static void hub_init_func2(struct work_struct *ws);
-// static void hub_init_func3(struct work_struct *ws);
-static void hub_init_func2(cyg_handle_t alarmobj, unsigned long data);
-static void hub_init_func3(cyg_handle_t alarmobj, unsigned long data);
+static void hub_init_func2(struct work_struct *ws);
+static void hub_init_func3(struct work_struct *ws);
+// static void hub_init_func2(cyg_handle_t alarmobj, unsigned long data);
+// static void hub_init_func3(cyg_handle_t alarmobj, unsigned long data);
+// static void hub_init_func2(struct usb_hub *hub);
+// static void hub_init_func3(struct usb_hub *hub);
 
 static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
 {
@@ -720,12 +724,14 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
          */
         if (type == HUB_INIT) {
             delay = hub_power_on(hub, false);
-            // PREPARE_DELAYED_WORK(&hub->init_work, hub_init_func2);
-            // schedule_delayed_work(&hub->init_work,
-            //         msecs_to_jiffies(delay));
-            hub->init_work.function = hub_init_func2;
-            hub->init_work.data = (unsigned long)hub;
-            mod_timer(&hub->init_work, msecs_to_jiffies(delay));
+            // printk("termy say HUB_INIT delay %d\n", delay);
+            PREPARE_DELAYED_WORK(&hub->init_work, hub_init_func2);
+            schedule_delayed_work(&hub->init_work,
+                    msecs_to_jiffies(delay));
+            // hub->init_work.function = hub_init_func2;
+            // hub->init_work.data = (unsigned long)hub;
+            // mod_timer(&hub->init_work, msecs_to_jiffies(delay));
+            // mod_timer(&hub->init_work, 10);
 
             /* Suppress autosuspend until init is done */
             usb_autopm_get_interface_no_resume(
@@ -838,12 +844,12 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
 
         /* Don't do a long sleep inside a workqueue routine */
         if (type == HUB_INIT2) {
-            // PREPARE_DELAYED_WORK(&hub->init_work, hub_init_func3);
-            // schedule_delayed_work(&hub->init_work,
-            //         msecs_to_jiffies(delay));
-            hub->init_work.function = hub_init_func3;
-            hub->init_work.data = (unsigned long)hub;
-            mod_timer(&hub->init_work, msecs_to_jiffies(delay));
+            PREPARE_DELAYED_WORK(&hub->init_work, hub_init_func3);
+            schedule_delayed_work(&hub->init_work,
+                    msecs_to_jiffies(delay));
+            // hub->init_work.function = hub_init_func3;
+            // hub->init_work.data = (unsigned long)hub;
+            // mod_timer(&hub->init_work, msecs_to_jiffies(delay));
             return;     /* Continues at init3: below */
         } else {
             msleep(delay);
@@ -867,20 +873,24 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
 }
 
 /* Implement the continuations for the delays above */
-//static void hub_init_func2(struct work_struct *ws)
-static void hub_init_func2(cyg_handle_t alarmobj, unsigned long data)
+static void hub_init_func2(struct work_struct *ws)
+// static void hub_init_func2(cyg_handle_t alarmobj, unsigned long data)
+// static void hub_init_func2(struct usb_hub *hub)
 {
-    //struct usb_hub *hub = container_of(ws, struct usb_hub, init_work.work);
-    struct usb_hub *hub = (struct usb_hub *)data;
+    struct usb_hub *hub = container_of(ws, struct usb_hub, init_work.work);
+    // struct usb_hub *hub = (struct usb_hub *)data;
+    TTRACE;
 
     hub_activate(hub, HUB_INIT2);
 }
 
-//static void hub_init_func3(struct work_struct *ws)
-static void hub_init_func3(cyg_handle_t alarmobj, unsigned long data)
+static void hub_init_func3(struct work_struct *ws)
+// static void hub_init_func3(cyg_handle_t alarmobj, unsigned long data)
+// static void hub_init_func3(struct usb_hub *hub)
 {
-    //struct usb_hub *hub = container_of(ws, struct usb_hub, init_work.work);
-    struct usb_hub *hub = (struct usb_hub *)data;
+    struct usb_hub *hub = container_of(ws, struct usb_hub, init_work.work);
+    // struct usb_hub *hub = (struct usb_hub *)data;
+    TTRACE;
 
     hub_activate(hub, HUB_INIT3);
 }
@@ -894,8 +904,8 @@ static void hub_quiesce(struct usb_hub *hub, enum hub_quiescing_type type)
     struct usb_device *hdev = hub->hdev;
     int i;
 
-    // cancel_delayed_work_sync(&hub->init_work);
-    del_timer(&hub->init_work);
+    cancel_delayed_work_sync(&hub->init_work);
+    // del_timer(&hub->init_work);
 
     /* khubd and related activity won't re-trigger */
     hub->quiescing = 1;
@@ -1186,6 +1196,7 @@ static int hub_configure(struct usb_hub *hub,
         goto fail;
     }
 
+    TTRACE;
     usb_fill_int_urb(hub->urb, hdev, pipe, *hub->buffer, maxp, hub_irq,
         hub, endpoint->bInterval);
 
@@ -1193,6 +1204,7 @@ static int hub_configure(struct usb_hub *hub,
     // if (hub->has_indicators && blinkenlights)
     //     hub->indicator [0] = INDICATOR_CYCLE;
 
+    TTRACE;
     hub_activate(hub, HUB_INIT);
     return 0;
 
@@ -1304,8 +1316,8 @@ descriptor_error:
     hub->intfdev = &intf->dev;
     hub->hdev = hdev;
     // INIT_DELAYED_WORK(&hub->leds, led_work);
-    // INIT_DELAYED_WORK(&hub->init_work, NULL);
-    init_timer(&hub->init_work);
+    INIT_DELAYED_WORK(&hub->init_work, NULL);
+    // init_timer(&hub->init_work);
     usb_get_intf(intf);
 
     usb_set_intfdata (intf, hub);
@@ -1523,30 +1535,30 @@ EXPORT_SYMBOL_GPL(usb_set_device_state);
  * the HCD must setup data structures before issuing a set address
  * command to the hardware.
  */
-// static void choose_address(struct usb_device *udev)
-// {
-//     int     devnum;
-//     struct usb_bus  *bus = udev->bus;
-// 
-//     [> If khubd ever becomes multithreaded, this will need a lock <]
-//     if (udev->wusb) {
-//         devnum = udev->portnum + 1;
-//         BUG_ON(test_bit(devnum, bus->devmap.devicemap));
-//     } else {
+static void choose_address(struct usb_device *udev)
+{
+    int     devnum;
+    struct usb_bus  *bus = udev->bus;
+
+    /* If khubd ever becomes multithreaded, this will need a lock */ 
+    if (udev->wusb) {
+        devnum = udev->portnum + 1;
+        BUG_ON(test_bit(devnum, bus->devmap.devicemap));
+    } else {
         /* Try to allocate the next devnum beginning at
-         * bus->devnum_next. */
-//         devnum = find_next_zero_bit(bus->devmap.devicemap, 128,
-//                         bus->devnum_next);
-//         if (devnum >= 128)
-//             devnum = find_next_zero_bit(bus->devmap.devicemap,
-//                             128, 1);
-//         bus->devnum_next = ( devnum >= 127 ? 1 : devnum + 1);
-//     }
-//     if (devnum < 128) {
-//         set_bit(devnum, bus->devmap.devicemap);
-//         udev->devnum = devnum;
-//     }
-// }
+        bus->devnum_next. */
+        devnum = find_next_zero_bit(bus->devmap.devicemap, 128,
+                        bus->devnum_next);
+        if (devnum >= 128)
+            devnum = find_next_zero_bit(bus->devmap.devicemap,
+                            128, 1);
+        bus->devnum_next = ( devnum >= 127 ? 1 : devnum + 1);
+    }
+    if (devnum < 128) {
+        set_bit(devnum, bus->devmap.devicemap);
+        udev->devnum = devnum;
+    }
+}
 
 static void release_address(struct usb_device *udev)
 {
@@ -1650,7 +1662,8 @@ static void show_string(struct usb_device *udev, char *id, char *string)
 {
     if (!string)
         return;
-    dev_printk(KERN_INFO, &udev->dev, "%s: %s\n", id, string);
+    // dev_printk(KERN_INFO, &udev->dev, "%s: %s\n", id, string);
+    diag_printf("%s: %s\n", id, string);
 }
 
 static void announce_device(struct usb_device *udev)
@@ -1817,6 +1830,7 @@ int usb_new_device(struct usb_device *udev)
 {
     int err;
 
+    TTRACE;
     if (udev->parent) {
         /* Initialize non-root-hub device wakeup to disabled;
          * device (un)configuration controls wakeup capable
@@ -2612,6 +2626,7 @@ static int hub_set_address(struct usb_device *udev, int devnum)
     int retval;
     struct usb_hcd *hcd = bus_to_hcd(udev->bus);
 
+    TTRACE;
     /*
      * The host controller will choose the device address,
      * instead of the core having chosen it earlier
@@ -2637,6 +2652,23 @@ static int hub_set_address(struct usb_device *udev, int devnum)
         usb_ep0_reinit(udev);
     }
     return retval;
+}
+
+void dump_usb_device_descriptor(struct usb_device_descriptor *buf)
+{
+    pr_debug("------ usb device descriptor -------\n");
+    pr_debug("bLength:%x\n", buf->bLength);
+    pr_debug("bDescriptorType:%x\n", buf->bDescriptorType);
+    pr_debug("bDeviceSubClass:%x\n", buf->bDeviceSubClass);
+    pr_debug("bDeviceProtocol:%x\n", buf->bDeviceProtocol);
+    pr_debug("bMaxPacketSize0:%x\n", buf->bMaxPacketSize0);
+    pr_debug("idVendor:%x\n", buf->idVendor);
+    pr_debug("idProduct:%x\n", buf->idProduct);
+    pr_debug("bcdDevice:%x\n", buf->bcdDevice);
+    pr_debug("iManufacturer:%x\n", buf->iManufacturer);
+    pr_debug("iProduct:%x\n", buf->iProduct);
+    pr_debug("iSerialNumber:%x\n", buf->iSerialNumber);
+    pr_debug("bNumConfigurations:%x\n", buf->bNumConfigurations);
 }
 
 /* Reset device, (re)assign address, get device descriptor.
@@ -2777,6 +2809,8 @@ hub_port_init (struct usb_hub *hub, struct usb_device *udev, int port1,
 
 #define GET_DESCRIPTOR_BUFSIZE  64
             buf = kmalloc(GET_DESCRIPTOR_BUFSIZE, GFP_NOIO);
+            // buf = kaligned_alloc(GET_DESCRIPTOR_BUFSIZE, 0x20);
+
             if (!buf) {
                 retval = -ENOMEM;
                 continue;
@@ -2786,17 +2820,20 @@ hub_port_init (struct usb_hub *hub, struct usb_device *udev, int port1,
              * 255 is for WUSB devices, we actually need to use
              * 512 (WUSB1.0[4.8.1]).
              */
-            for (j = 0; j < 3; ++j) {
+            for (j = 0; j < 2; ++j) {
                 buf->bMaxPacketSize0 = 0;
                 r = usb_control_msg(udev, usb_rcvaddr0pipe(),
                     USB_REQ_GET_DESCRIPTOR, USB_DIR_IN,
                     USB_DT_DEVICE << 8, 0,
                     buf, GET_DESCRIPTOR_BUFSIZE,
                     initial_descriptor_timeout);
+                pr_debug("termy say, r = %d, bMaxPacketSize0 = %d, type = %x, j=%d\n", r, buf->bMaxPacketSize0, buf->bDescriptorType, j);
+                 dump_usb_device_descriptor(buf);
+
                 switch (buf->bMaxPacketSize0) {
                 case 8: case 16: case 32: case 64: case 255:
                     if (buf->bDescriptorType ==
-                            USB_DT_DEVICE) {
+                            USB_DT_DEVICE && j > 20) {
                         r = 0;
                         break;
                     }
@@ -2808,10 +2845,13 @@ hub_port_init (struct usb_hub *hub, struct usb_device *udev, int port1,
                 }
                 if (r == 0)
                     break;
+                // cyg_thread_delay(15);
             }
+            while(1);
             udev->descriptor.bMaxPacketSize0 =
                     buf->bMaxPacketSize0;
             kfree(buf);
+            // kaligned_free(buf);
 
             retval = hub_port_reset(hub, port1, udev, delay);
             if (retval < 0)     /* error or disconnect */
@@ -2879,6 +2919,7 @@ hub_port_init (struct usb_hub *hub, struct usb_device *udev, int port1,
             break;
         }
     }
+    // while(1);
     if (retval)
         goto fail;
 
@@ -2887,6 +2928,7 @@ hub_port_init (struct usb_hub *hub, struct usb_device *udev, int port1,
         i = 512;
     else
         i = udev->descriptor.bMaxPacketSize0;
+
     if (le16_to_cpu(udev->ep0.desc.wMaxPacketSize) != i) {
         if (udev->speed != USB_SPEED_FULL ||
                 !(i == 8 || i == 16 || i == 32 || i == 64)) {
@@ -3128,14 +3170,14 @@ static void hub_port_connect_change(struct usb_hub *hub, int port1,
          * xHCI needs to issue an address device command later
          * in the hub_port_init sequence for SS/HS/FS/LS devices.
          */
-        // if (!(hcd->driver->flags & HCD_USB3)) {
+        if (!(hcd->driver->flags & HCD_USB3)) {
             /* set the address */
-        //     choose_address(udev);
-        //     if (udev->devnum <= 0) {
-        //         status = -ENOTCONN; [> Don't retry <]
-        //         goto loop;
-        //     }
-        // }
+            choose_address(udev);
+            if (udev->devnum <= 0) {
+                status = -ENOTCONN; /* Don't retry */
+                goto loop;
+            }
+        }
 
         /* reset (non-USB 3.0 devices) and get descriptor */
         status = hub_port_init(hub, udev, port1, i);
@@ -3348,6 +3390,7 @@ static void hub_events(void)
             }
 
             if (portchange & USB_PORT_STAT_C_ENABLE) {
+                TTRACE;
                 if (!connect_change)
                     dev_dbg (hub_dev,
                         "port %d enable change, "
@@ -3474,9 +3517,11 @@ static int hub_thread(void *__unused)
     //             !list_empty(&hub_event_list) ||
     //             kthread_should_stop());
     // } while (!kthread_should_stop() || !list_empty(&hub_event_list));
+    TTRACE;
     do {
         hub_events();
         wait_event (khubd_wait, !list_empty(&hub_event_list));
+        TTRACE;
     } while (!list_empty(&hub_event_list));
 
     pr_debug("%s: khubd exiting\n", usbcore_name);
@@ -3507,7 +3552,7 @@ static struct usb_driver hub_driver = {
     .supports_autosuspend = 1,
 };
 
-#define USBHUB_TASK_PRI           20
+#define USBHUB_TASK_PRI           20 
 #define USBHUB_TASK_STACK_SIZE    4096
 
 static u8           usb_hub_stack[USBHUB_TASK_STACK_SIZE];
@@ -3536,12 +3581,13 @@ int usb_hub_init(void)
                 &usb_hub_task_handle,
                 &usb_hub_task
                 );
+    cyg_thread_resume(usb_hub_task_handle);
 
     /* Fall through if kernel_thread failed */
     // usb_deregister(&hub_driver);
     // printk(KERN_ERR "%s: can't start khubd\n", usbcore_name);
 
-    return -1;
+    return 0;
 }
 
 void usb_hub_cleanup(void)

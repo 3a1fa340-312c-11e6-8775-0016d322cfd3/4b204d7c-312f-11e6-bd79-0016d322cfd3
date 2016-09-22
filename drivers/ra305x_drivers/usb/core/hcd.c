@@ -46,8 +46,10 @@
 #endif /* _LINUX_ */
 
 #include <cyg/kernel/kapi.h>
+#include <cyg/hal/drv_api.h>
 #include "os-dep.h"
 #include "asm/usb-atomic.h"
+#include "asm/irqflags.h"
 #include "usb.h"
 #include "core-usb.h"
 #include "hcd.h"
@@ -612,6 +614,7 @@ static int rh_call_control (struct usb_hcd *hcd, struct urb *urb)
 		break;
 error:
 		/* "protocol stall" on error */
+        EPDBG;
 		status = -EPIPE;
 	}
 
@@ -685,6 +688,7 @@ void usb_hcd_poll_rh_status(struct usb_hcd *hcd)
 	if (!hcd->uses_new_polling && !hcd->status_urb)
 		return;
 
+    TTRACE;
 	length = hcd->driver->hub_status_data(hcd, buffer);
 	if (length > 0) {
 
@@ -984,6 +988,7 @@ static int register_root_hub(struct usb_hcd *hcd)
 		return (retval < 0) ? retval : -EMSGSIZE;
 	}
 
+    TTRACE;
 	retval = usb_new_device (usb_dev);
 	if (retval) {
 		dev_err (parent_dev, "can't register root hub for %s, %d\n",
@@ -2101,6 +2106,20 @@ irqreturn_t usb_hcd_irq (int irq, void *__hcd)
 }
 EXPORT_SYMBOL_GPL(usb_hcd_irq);
 
+static cyg_interrupt ehci_intr_data;
+static cyg_handle_t ehci_intr_handle;
+
+static cyg_uint32 ehci_isr(cyg_vector_t vector, cyg_addrword_t data)
+{
+    usb_hcd_irq(vector, data);
+    cyg_interrupt_acknowledge(vector);
+    return CYG_ISR_CALL_DSR;
+}
+
+static void ehci_dsr(cyg_vector_t vector, cyg_ucount32 count, cyg_addrword_t data)
+{
+}
+
 /*-------------------------------------------------------------------------*/
 
 /**
@@ -2163,9 +2182,9 @@ struct usb_hcd *usb_create_hcd (const struct hc_driver *driver,
 	hcd->self.bus_name = bus_name;
 	hcd->self.uses_dma = (dev->dma_mask != NULL);
 
-	init_timer(&hcd->rh_timer);
-	hcd->rh_timer.function = rh_timer_func;
-	hcd->rh_timer.data = (unsigned long) hcd;
+    init_timer(&hcd->rh_timer);
+    hcd->rh_timer.function = rh_timer_func;
+    hcd->rh_timer.data = (unsigned long) hcd;
 #ifdef CONFIG_USB_SUSPEND
 	INIT_WORK(&hcd->wakeup_work, hcd_resume_work);
 #endif
@@ -2195,8 +2214,8 @@ EXPORT_SYMBOL_GPL(usb_get_hcd);
 
 void usb_put_hcd (struct usb_hcd *hcd)
 {
-	// if (hcd)
-	//     kref_put (&hcd->kref, hcd_release);
+    if (hcd)
+        kref_put (&hcd->kref, hcd_release);
     if (hcd)
         kfree(hcd);
 }
@@ -2288,12 +2307,24 @@ int usb_add_hcd(struct usb_hcd *hcd,
 
 		snprintf(hcd->irq_descr, sizeof(hcd->irq_descr), "%s:usb%d",
 				hcd->driver->description, hcd->self.busnum);
-		if ((retval = request_irq(irqnum, &usb_hcd_irq, irqflags,
-				hcd->irq_descr, hcd)) != 0) {
-			dev_err(hcd->self.controller,
-					"request interrupt %d failed\n", irqnum);
-			goto err_request_irq;
-		}
+		// if ((retval = request_irq(irqnum, &usb_hcd_irq, irqflags,
+		//         hcd->irq_descr, hcd)) != 0) {
+		//     dev_err(hcd->self.controller,
+		//             "request interrupt %d failed\n", irqnum);
+		//     goto err_request_irq;
+		// }
+        cyg_interrupt_create(CYGNUM_HAL_INTERRUPT_OTG,
+                0,
+                hcd,
+                (cyg_ISR_t *)ehci_isr,
+                (cyg_DSR_t *)ehci_dsr,
+                &ehci_intr_handle,
+                &ehci_intr_data
+                );
+        cyg_interrupt_attach(ehci_intr_handle);
+        cyg_interrupt_configure(CYGNUM_HAL_INTERRUPT_OTG, 1, 0);
+        cyg_interrupt_unmask(CYGNUM_HAL_INTERRUPT_OTG);
+
 		hcd->irq = irqnum;
 		dev_info(hcd->self.controller, "irq %d, %s 0x%08llx\n", irqnum,
 				(hcd->driver->flags & HCD_MEMORY) ?
@@ -2350,8 +2381,10 @@ err_register_root_hub:
 	clear_bit(HCD_FLAG_POLL_RH, &hcd->flags);
 	del_timer_sync(&hcd->rh_timer);
 err_hcd_driver_start:
-	if (hcd->irq >= 0)
-		free_irq(irqnum, hcd);
+	// if (hcd->irq >= 0)
+	//     free_irq(irqnum, hcd);
+    if (hcd->irq >= 0)
+        cyg_interrupt_delete(ehci_intr_handle);
 err_request_irq:
 err_hcd_driver_setup:
 err_set_rh_speed:
@@ -2413,8 +2446,10 @@ void usb_remove_hcd(struct usb_hcd *hcd)
 	clear_bit(HCD_FLAG_POLL_RH, &hcd->flags);
 	del_timer_sync(&hcd->rh_timer);
 
-	if (hcd->irq >= 0)
-		free_irq(hcd->irq, hcd);
+	// if (hcd->irq >= 0)
+	//     free_irq(hcd->irq, hcd);
+    if (hcd->irq >= 0)
+        cyg_interrupt_delete(ehci_intr_handle);
 
 	usb_put_dev(hcd->self.root_hub);
 	usb_deregister_bus(&hcd->self);

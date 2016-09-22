@@ -1,6 +1,10 @@
+#ifdef _LINUX_
 #include <linux/gfp.h>
 #include <linux/kernel.h>
 #include <linux/slab.h>
+#else
+#include "os-dep.h"
+#endif /* _LINUX_ */
 #define U3_PHY_LIB
 #include "mtk-phy.h"
 #ifdef CONFIG_C60802_SUPPORT

@@ -38,12 +38,19 @@ SECTIONS
     .bss ALIGN (0x8) : { *(.dynbss) *(.bss) *(.bss.*) *(COMMON) } > ram __bss_end = .;
     __heap1 = ALIGN (0x8);
 	__heap1_end = 0x80000000 + 8*0x100000 - 16384*2 - 200*1024 - 2400*1024 - 0*1024;
+    kFarHeap_base = 0x80800000; . = kFarHeap_base + 0x400000;
+    _kPage_base = ALIGN (0x1000);
+    _kPage_base_end = _kPage_base + 0x100000;
+    /*
     __pci_window = 0x81f00000; . = __pci_window + 0x100000;
+    */
     . = ALIGN(4); _end = .; PROVIDE (end = .); .stab 0 : { *(.stab) } .stabstr 0 : { *(.stabstr) } .stab.excl 0 : { *(.stab.excl) } .stab.exclstr 0 : { *(.stab.exclstr) } .stab.index 0 : { *(.stab.index) } .stab.indexstr 0 : { *(.stab.indexstr) } .comment 0 : { *(.comment) } .debug 0 : { *(.debug) } .line 0 : { *(.line) } .debug_srcinfo 0 : { *(.debug_srcinfo) } .debug_sfnames 0 : { *(.debug_sfnames) } .debug_aranges 0 : { *(.debug_aranges) } .debug_pubnames 0 : { *(.debug_pubnames) } .debug_info 0 : { *(.debug_info) } .debug_abbrev 0 : { *(.debug_abbrev) } .debug_line 0 : { *(.debug_line) } .debug_frame 0 : { *(.debug_frame) } .debug_str 0 : { *(.debug_str) } .debug_loc 0 : { *(.debug_loc) } .debug_macinfo 0 : { *(.debug_macinfo) } .debug_weaknames 0 : { *(.debug_weaknames) } .debug_funcnames 0 : { *(.debug_funcnames) } .debug_typenames 0 : { *(.debug_typenames) } .debug_varnames 0 : { *(.debug_varnames) } .gptab.sdata : { *(.gptab.data) *(.gptab.sdata) } .gptab.sbss : { *(.gptab.bss) *(.gptab.sbss) } /DISCARD/ 0 : { *(.mdebug) }
 }
 log_buf_area = __heap1_end;
 net_mbufs_area = log_buf_area + 16384*2;
 net_clusters_area = net_mbufs_area + 200*1024;
+/*
 kFarHeap_base = net_clusters_area + 2400*1024;
+*/
 hal_vsr_table = 0x80000200;
 hal_virtual_vector_table = 0x80000300;

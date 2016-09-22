@@ -37,7 +37,6 @@ static cyg_interrupt rtmp_wlan_interrupt;
 static cyg_handle_t  rtmp_wlan_interrupt_handle;
 
 struct mt_dev_priv *rt_ecos_priv_data;
-
 ETH_DRV_SC( devive_wireless_sc0,
             &rt_ecos_priv_data,  /* Driver specific data */
             INF_MAIN_DEV_NAME "0",
@@ -56,7 +55,6 @@ NETDEVTAB_ENTRY( devive_wireless_netdev0,
                  INF_MAIN_DEV_NAME "0",
                  rt_ecos_init,
                  &devive_wireless_sc0 );
-
 /*
  *  Interrupt handling - ISR and DSR
  */

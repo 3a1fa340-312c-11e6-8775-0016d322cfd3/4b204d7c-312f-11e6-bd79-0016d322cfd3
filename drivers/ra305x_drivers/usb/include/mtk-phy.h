@@ -4,10 +4,14 @@
 //#define CONFIG_U3D_HAL_SUPPORT
 
 /* include system library */
-// #include <linux/gfp.h>
-// #include <linux/kernel.h>
-// #include <linux/slab.h>
-// #include <linux/delay.h>
+#ifdef _LINUX_
+#include <linux/gfp.h>
+#include <linux/kernel.h>
+#include <linux/slab.h>
+#include <linux/delay.h>
+#else
+#include "os-dep.h"
+#endif
 
 /* Choose PHY R/W implementation */
 /* Choose PHY version */

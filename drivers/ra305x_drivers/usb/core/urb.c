@@ -29,7 +29,8 @@ static void urb_destroy(struct kref *kref)
 	if (urb->transfer_flags & URB_FREE_BUFFER)
 		kfree(urb->transfer_buffer);
 
-	kfree(urb);
+	// kfree(urb);
+    kaligned_free(urb);
 }
 
 /**
@@ -76,9 +77,12 @@ struct urb *usb_alloc_urb(int iso_packets, gfp_t mem_flags)
 {
 	struct urb *urb;
 
-	urb = kmalloc(sizeof(struct urb) +
-		iso_packets * sizeof(struct usb_iso_packet_descriptor),
-		mem_flags);
+    // urb = kmalloc(sizeof(struct urb) +
+    //     iso_packets * sizeof(struct usb_iso_packet_descriptor),
+    //     mem_flags);
+    urb = kaligned_alloc(sizeof(struct urb) +
+            iso_packets * sizeof(struct usb_iso_packet_descriptor),
+            0x20);
 	if (!urb) {
 		printk(KERN_ERR "alloc_urb: kmalloc failed\n");
 		return NULL;
@@ -412,8 +416,10 @@ int usb_submit_urb(struct urb *urb, gfp_t mem_flags)
 	};
 
 	/* Check that the pipe's type matches the endpoint's type */
-	if (usb_pipetype(urb->pipe) != pipetypes[xfertype])
+	if (usb_pipetype(urb->pipe) != pipetypes[xfertype]) {
+        EPDBG;
 		return -EPIPE;		/* The most suitable error code :-) */
+    }
 
 	/* enforce simple/standard policy */
 	allowed = (URB_NO_TRANSFER_DMA_MAP | URB_NO_INTERRUPT | URB_DIR_MASK |

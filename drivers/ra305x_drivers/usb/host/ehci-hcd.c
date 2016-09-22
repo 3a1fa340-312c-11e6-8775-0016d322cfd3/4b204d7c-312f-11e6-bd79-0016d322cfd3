@@ -49,6 +49,7 @@
 #include "ktime.h"
 #include "usb.h"
 #include "hcd.h"
+#include "scatterlist.h"
 #endif /* LINUX */
 /*-------------------------------------------------------------------------*/
 
@@ -135,7 +136,7 @@ timer_action(struct ehci_hcd *ehci, enum ehci_timer_action action)
      */
     if (timer_pending(&ehci->watchdog)
             && ((BIT(TIMER_ASYNC_SHRINK) | BIT(TIMER_ASYNC_OFF))
-                & ehci->actions))
+                & ehci->actions)) 
         return;
 
     if (!test_and_set_bit(action, &ehci->actions)) {
@@ -155,7 +156,9 @@ timer_action(struct ehci_hcd *ehci, enum ehci_timer_action action)
             /* add a jiffie since we synch against the
              * 8 KHz uframe counter.
              */
-            t = DIV_ROUND_UP(EHCI_SHRINK_FRAMES * HZ, 1000) + 1;
+            // t = DIV_ROUND_UP(EHCI_SHRINK_FRAMES * HZ, 1000) + 1;
+            t = DIV_ROUND_UP(EHCI_SHRINK_FRAMES * HZ, 1000);
+            // pr_debug("termy say, %s t = %ld\n", __func__, t);
             break;
         }
         mod_timer(&ehci->watchdog, t + jiffies);
@@ -256,6 +259,7 @@ static int ehci_reset (struct ehci_hcd *ehci)
 {
     int retval;
     u32 command = ehci_readl(ehci, &ehci->regs->command);
+
 
     /* If the EHCI debug controller is active, special care must be
      * taken before and after a host controller reset */
@@ -370,6 +374,7 @@ static void ehci_iaa_watchdog(unsigned long param)
 
         ehci_vdbg(ehci, "IAA watchdog: status %x cmd %x\n",
                 status, cmd);
+        TTRACE;
         end_unlink_async(ehci);
     }
 
@@ -381,6 +386,7 @@ static void ehci_watchdog(unsigned long param)
     struct ehci_hcd     *ehci = (struct ehci_hcd *) param;
     unsigned long       flags;
 
+    // pr_debug("termy say, %s ---->", __func__);
     spin_lock_irqsave(&ehci->lock, flags);
 
     /* stop async processing after it's idled a bit */
@@ -464,6 +470,7 @@ static void ehci_port_power (struct ehci_hcd *ehci, int is_on)
  */
 static void ehci_work (struct ehci_hcd *ehci)
 {
+    // pr_debug("termy say, %s(%d)\n", __func__, __LINE__);
     timer_action_done (ehci, TIMER_IO_WATCHDOG);
 
     /* another CPU may drop ehci->lock during a schedule scan while
@@ -484,8 +491,10 @@ static void ehci_work (struct ehci_hcd *ehci)
      */
     if (HC_IS_RUNNING (ehci_to_hcd(ehci)->state) &&
             (ehci->async->qh_next.ptr != NULL ||
-             ehci->periodic_sched != 0))
+             ehci->periodic_sched != 0)) {
+        // pr_debug("termy say, %s --TIMER_IO_WATCHDOG-->", __func__);
         timer_action (ehci, TIMER_IO_WATCHDOG);
+    }
 }
 
 /*
@@ -509,8 +518,8 @@ static void ehci_stop (struct usb_hcd *hcd)
     ehci_reset (ehci);
     spin_unlock_irq(&ehci->lock);
 
-    remove_companion_file(ehci);
-    remove_debug_files (ehci);
+    // remove_companion_file(ehci);
+    // remove_debug_files (ehci);
 
     /* root hub is shut down separately (first, when possible) */
     spin_lock_irq (&ehci->lock);
@@ -545,7 +554,7 @@ static int ehci_init(struct usb_hcd *hcd)
     /*
      * keep io watchdog by default, those good HCDs could turn off it later
      */
-    ehci->need_io_watchdog = 1;
+    ehci->need_io_watchdog = 0;
     init_timer(&ehci->watchdog);
     ehci->watchdog.function = ehci_watchdog;
     ehci->watchdog.data = (unsigned long) ehci;
@@ -715,6 +724,7 @@ static int ehci_run (struct usb_hcd *hcd)
     msleep(5);
     // up_write(&ehci_cf_port_reset_rwsem);
     cyg_mutex_unlock(&ehci_cf_port_reset_rwsem);
+    pr_debug("term say %s(%d)\n", __func__, __LINE__);
     ehci->last_periodic_enable = ktime_get_real();
 
     temp = HC_VERSION(ehci_readl(ehci, &ehci->caps->hc_capbase));
@@ -731,8 +741,8 @@ static int ehci_run (struct usb_hcd *hcd)
      * So long as they're part of class devices, we can't do it init()
      * since the class device isn't created that early.
      */
-    create_debug_files(ehci);
-    create_companion_file(ehci);
+    // create_debug_files(ehci);
+    // create_companion_file(ehci);
 
     return 0;
 }
@@ -751,6 +761,7 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
 
     /* e.g. cardbus physical eject */
     if (status == ~(u32) 0) {
+        TTRACE;
         ehci_dbg (ehci, "device removed\n");
         goto dead;
     }
@@ -770,6 +781,7 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
     /* unrequested/ignored: Frame List Rollover */
     dbg_status (ehci, "irq", status);
 #endif
+    pr_debug("%s(%d) irq status = %x\n", __func__, __LINE__, status);
 
     /* INT, ERR, and IAA interrupt rates can be throttled */
 
@@ -777,8 +789,10 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
     if (likely ((status & (STS_INT|STS_ERR)) != 0)) {
         if (likely ((status & STS_ERR) == 0))
             COUNT (ehci->stats.normal);
-        else
+        else {
+            pr_debug("%s(%d) count error\n", __func__, __LINE__);
             COUNT (ehci->stats.error);
+        }
         bh = 1;
     }
 
@@ -792,6 +806,7 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
         }
         if (ehci->reclaim) {
             COUNT(ehci->stats.reclaim);
+            TTRACE;
             end_unlink_async(ehci);
         } else
             ehci_dbg(ehci, "IAA with nothing to reclaim?\n");
@@ -802,6 +817,7 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
         unsigned    i = HCS_N_PORTS (ehci->hcs_params);
         u32     ppcd = 0;
 
+        TTRACE;
         /* kick root hub later */
         pcd_status = status;
 
@@ -844,6 +860,7 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
 
     /* PCI errors [4.15.2.4] */
     if (unlikely ((status & STS_FATAL) != 0)) {
+        TTRACE;
         ehci_err(ehci, "fatal error\n");
         dbg_cmd(ehci, "fatal", cmd);
         dbg_status(ehci, "fatal", status);
@@ -857,8 +874,10 @@ dead:
         bh = 1;
     }
 
-    if (bh)
+    if (bh) {
+        // pr_debug("termy say, %s ----->", __func__);
         ehci_work (ehci);
+    }
     spin_unlock (&ehci->lock);
     if (pcd_status)
         usb_hcd_poll_rh_status(hcd);
@@ -919,6 +938,7 @@ static int ehci_urb_enqueue (
 static void unlink_async (struct ehci_hcd *ehci, struct ehci_qh *qh)
 {
     /* failfast */
+    TTRACE;
     if (!HC_IS_RUNNING(ehci_to_hcd(ehci)->state) && ehci->reclaim)
         end_unlink_async(ehci);
 
@@ -959,6 +979,7 @@ static int ehci_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
     unsigned long       flags;
     int         rc;
 
+    TTRACE;
     spin_lock_irqsave (&ehci->lock, flags);
     rc = usb_hcd_check_unlink_urb(hcd, urb, status);
     if (rc)
@@ -1064,7 +1085,8 @@ rescan:
     case QH_STATE_UNLINK_WAIT:
 idle_timeout:
         spin_unlock_irqrestore (&ehci->lock, flags);
-        schedule_timeout_uninterruptible(1);
+        // schedule_timeout_uninterruptible(1);
+        cyg_thread_delay(1);
         goto rescan;
     case QH_STATE_IDLE:     /* fully unlinked */
         if (qh->clearing_tt)
@@ -1147,13 +1169,122 @@ static int ehci_get_frame (struct usb_hcd *hcd)
 
 #include "ehci-rt3xxx.c"
 #define PLATFORM_DRIVER     rt3xxx_ehci_driver
-#define ehci_hcd_init       rt3xxx_ehci_probe
 
-// static int __init ehci_hcd_init(void)
-// {
-//     int retval = 0;
-//     return retval;
-// }
+/**
+ * platform_match - bind platform device to platform driver.
+ * @dev: device.
+ * @drv: driver.
+ *
+ * Platform device IDs are assumed to be encoded like this:
+ * "<name><instance>", where <name> is a short description of the type of
+ * device, like "pci" or "floppy", and <instance> is the enumerated
+ * instance of the device, like '0' or '42'.  Driver IDs are simply
+ * "<name>".  So, extract the <name> from the platform_device structure,
+ * and compare it against the name of the driver. Return whether they match
+ * or not.
+ */
+static int platform_match(struct device *dev, struct device_driver *drv)
+{
+    struct platform_device *pdev = to_platform_device(dev);
+    // struct platform_device *pdev;
+    struct platform_driver *pdrv = to_platform_driver(drv);
+    // struct platform_driver *pdrv;
+
+    // pdev = container_of((x), struct platform_device, dev);
+    // pdrv = container_of((x), struct platform_driver(x), driver);
+
+	/* Attempt an OF style match first */
+	// if (of_driver_match_device(dev, drv))
+	//     return 1;
+
+	/* Then try to match against the id table */
+	// if (pdrv->id_table)
+	//     return platform_match_id(pdrv->id_table, pdev) != NULL;
+
+	/* fall-back to driver name match */
+	return (strcmp(pdev->name, drv->name) == 0);
+}
+
+/*
+ * EHCI/OHCI Host controller.
+ */
+ static u64 rt3xxx_ehci_dmamask = ~(u32)0;
+static struct platform_device rt3xxx_ehci_device = {
+    .name           = "rt3xxx-ehci",
+    .id             = -1,
+    .dev            = {
+        .dma_mask       = &rt3xxx_ehci_dmamask,
+        .coherent_dma_mask  = 0xffffffff,
+    },
+    // .num_resources  = 2,
+    // .resource       = rt3xxx_ehci_resources,
+};
+
+struct bus_type platform_bus_type = {
+	.name		= "platform",
+	// .dev_attrs	= platform_dev_attrs,
+	.match		= platform_match,
+	// .uevent		= platform_uevent,
+	// .pm		= &platform_dev_pm_ops,
+};
+
+static int platform_drv_probe(struct device *_dev)
+{
+	struct platform_driver *drv = to_platform_driver(_dev->driver);
+	struct platform_device *dev = to_platform_device(_dev);
+
+	return drv->probe(dev);
+}
+
+static int platform_drv_remove(struct device *_dev)
+{
+	struct platform_driver *drv = to_platform_driver(_dev->driver);
+	struct platform_device *dev = to_platform_device(_dev);
+
+	return drv->remove(dev);
+}
+
+static void platform_drv_shutdown(struct device *_dev)
+{
+	struct platform_driver *drv = to_platform_driver(_dev->driver);
+	struct platform_device *dev = to_platform_device(_dev);
+
+	drv->shutdown(dev);
+}
+
+// platform_add_devices(rt3xxx_devices, ARRAY_SIZE(rt3xxx_devices));
+// device_initialize
+// platform_device_add
+
+// static u64 rt3xxx_ehci_dmamask = ~(u32)0;
+// struct device g_ehci_dev = {
+//     .dma_mask = &rt3xxx_ehci_dmamask,
+//     .coherent_dma_mask = 0xffffffff,
+// };
+// 
+int __init ehci_hcd_init(void)
+{
+    struct platform_device *platform_dev = &rt3xxx_ehci_device;
+    struct platform_driver *platform_drv = &rt3xxx_ehci_driver;
+
+    bus_register(&platform_bus_type);
+
+    device_initialize(&platform_dev->dev);
+    platform_dev->dev.bus = &platform_bus_type;
+    device_add(&platform_dev->dev);
+
+    platform_drv->driver.bus = &platform_bus_type;
+    if (platform_drv->probe)
+        platform_drv->driver.probe = platform_drv_probe;
+    if (platform_drv->remove)
+        platform_drv->driver.remove = platform_drv_remove;
+    if (platform_drv->shutdown)
+        platform_drv->driver.shutdown = platform_drv_shutdown;
+
+    driver_register(&platform_drv->driver);
+
+    return 0;
+}
 // module_init(ehci_hcd_init);
 // 
 // static void __exit ehci_hcd_cleanup(void)

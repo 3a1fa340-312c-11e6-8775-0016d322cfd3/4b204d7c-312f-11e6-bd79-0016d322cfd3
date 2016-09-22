@@ -348,6 +348,7 @@ unsigned size;	/* Size of each element */
 	return cp;
 }
 
+#ifdef ARCH_ARM
 extern unsigned int APB_clock;
 #define MHZ	1000000
 void udelay( int x )
@@ -382,6 +383,16 @@ void udelay( int x )
 	TIMER1_TIMER2_CONTROL_REG = control_value;	
 
 }
+#endif /* ARCH_ARM */
+
+#ifdef ARCH_MIPS
+#include <cyg/hal/hal_if.h>
+
+void udelay(int x)
+{
+    CYGACC_CALL_IF_DELAY_US(x);
+}
+#endif /* ARCH_MIPS */
 
 /////////////////////////PS Main/////////////////////////////////////////
 

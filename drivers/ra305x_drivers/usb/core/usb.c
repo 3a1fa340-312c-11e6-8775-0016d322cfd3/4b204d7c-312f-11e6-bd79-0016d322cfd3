@@ -372,6 +372,7 @@ struct usb_device *usb_alloc_dev(struct usb_device *parent,
 	struct usb_hcd *usb_hcd = container_of(bus, struct usb_hcd, self);
 	unsigned root_hub = 0;
 
+    TTRACE;
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
 	if (!dev)
 		return NULL;
@@ -1108,9 +1109,9 @@ int __init usb_init(void)
 	// if (retval)
 	//     goto out;
 
-	// retval = bus_register(&usb_bus_type);
-	// if (retval)
-	//     goto bus_register_failed;
+    retval = bus_register(&usb_bus_type);
+    if (retval)
+        goto bus_register_failed;
 	// retval = bus_register_notifier(&usb_bus_type, &usb_bus_nb);
 	// if (retval)
 	//     goto bus_notifier_failed;
@@ -1135,6 +1136,7 @@ int __init usb_init(void)
 
 	usb_hub_cleanup();
 hub_init_failed:
+    CYG_ASSERT(0, "hub_init_failed!");
 //     usbfs_cleanup();
 // fs_init_failed:
 //     usb_devio_cleanup();
@@ -1147,6 +1149,7 @@ hub_init_failed:
 // bus_notifier_failed:
 //     bus_unregister(&usb_bus_type);
 bus_register_failed:
+    CYG_ASSERT(0, "bus_register_failed!");
 //     usb_debugfs_cleanup();
 out:
 	return retval;

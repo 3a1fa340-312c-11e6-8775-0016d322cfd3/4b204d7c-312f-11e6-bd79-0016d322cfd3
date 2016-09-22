@@ -433,7 +433,8 @@ static void unlink_watchdog_func(unsigned long _ohci)
 	if (ohci->ed_to_check)
 		goto out;
 
-	seen = kcalloc(max, sizeof *seen, GFP_ATOMIC);
+	// seen = kcalloc(max, sizeof *seen, GFP_ATOMIC);
+	seen = calloc(max, sizeof *seen, GFP_ATOMIC);
 	if (!seen)
 		goto out;
 
@@ -483,7 +484,8 @@ static void unlink_watchdog_func(unsigned long _ohci)
 		}
 	}
 out:
-	kfree(seen);
+	// kfree(seen);
+	free(seen);
 	if (ohci->eds_scheduled)
 		mod_timer(&ohci->unlink_watchdog, round_jiffies(jiffies + HZ));
 done:

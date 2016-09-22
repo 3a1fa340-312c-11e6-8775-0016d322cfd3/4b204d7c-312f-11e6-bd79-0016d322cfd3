@@ -286,6 +286,7 @@ static int ehci_bus_suspend (struct usb_hcd *hcd)
 	ehci_halt (ehci);
 	hcd->state = HC_STATE_SUSPENDED;
 
+    TTRACE;
 	if (ehci->reclaim)
 		end_unlink_async(ehci);
 
@@ -1097,6 +1098,7 @@ static int ehci_hub_control (
 	default:
 error:
 		/* "stall" on error */
+        EPDBG;
 		retval = -EPIPE;
 	}
 error_exit:

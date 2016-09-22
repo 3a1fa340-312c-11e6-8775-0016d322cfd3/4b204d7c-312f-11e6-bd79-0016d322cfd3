@@ -1,11 +1,13 @@
 #include "stddef.h"
 #include <cyg/kernel/kapi.h>
-#include <cyg/infra/cyg_ass.h>
+#include <cyg/hal/hal_if.h>
 #include "os-dep.h"
 #include "ktime.h"
 // #include "asm/swab.h"
 // #include "swab.h"
 #include "little_endian.h"
+#include "asm/bitops.h"
+#include "scatterlist.h"
 
 
 void alarm_callback(cyg_handle_t alarm, cyg_addrword_t data)
@@ -18,20 +20,70 @@ cyg_handle_t    counter_hdl;
 cyg_handle_t    alarm_hdl;
 cyg_alarm       alarm_obj;
 
+void wq_init (void);
+
+#define USB_THREAD_PRIO 20
+#define USB_STACK_SIZE  4096 
+static char usb_stack[USB_STACK_SIZE];
+cyg_handle_t usb_thread_handle;
+cyg_thread usb_thread_data;
+
+void usb_thread (cyg_addrword_t parameter)
+{
+    cyg_sem_t forever_sem;
+    cyg_semaphore_init(&forever_sem, 0);
+
+    /*
+     * create work queue thread
+     */
+    wq_init();
+
+    usb_init();
+    ehci_hcd_init();
+
+    cyg_semaphore_wait(&forever_sem);
+} /* usb_thread */
+
 void usb_test()
 {
-    usb_init();
+    cyg_thread_create (USB_THREAD_PRIO,
+            usb_thread,
+            0,
+            "usb_thread",
+            usb_stack,
+            USB_STACK_SIZE,
+            &usb_thread_handle,
+            &usb_thread_data
+            );
+    cyg_thread_resume(usb_thread_handle);
 } /* usb_test */
+
+void *kzalloc(size_t size,int gfp)
+{
+	void *p=malloc(size);
+	memset(p,0,size);
+	return p;
+}
+
+static void timer_handler(cyg_handle_t alarmobj, unsigned long data)
+{
+    struct timer_list *timer = (struct timer_list *)data;
+    
+    if (timer->function)
+        timer->function(timer->data);
+
+}
 
 void init_timer(struct timer_list *timer)
 {
     CYG_ASSERT(timer != NULL, "timer is NULL!");
-    if (timer->valid) {
+    if (!timer->valid) {
+        TTRACE;
         timer->entry.next = NULL;
         cyg_clock_to_counter (cyg_real_time_clock(), &timer->counter_hdl);
         cyg_alarm_create (timer->counter_hdl, 
-                timer->function, 
-                timer->data, 
+                timer_handler, 
+                timer, 
                 &timer->alarm_hdl, 
                 &timer->alarm_obj);
 
@@ -74,9 +126,10 @@ int mod_timer(struct timer_list *timer, unsigned long expires)
 
     if (timer->valid && timer->alarm_hdl) {
         cyg_alarm_disable(timer->alarm_hdl);
-        expires = (expires * OS_HZ) / 1000;
+        // expires = (expires * OS_HZ) / 1000;
         if (expires > 0) {
-            cyg_alarm_initialize(timer->alarm_hdl, cyg_current_time() + expires, 0);
+            // cyg_alarm_initialize(timer->alarm_hdl, cyg_current_time() + expires, 0);
+            cyg_alarm_initialize(timer->alarm_hdl, expires, 0);
             cyg_alarm_enable(timer->alarm_hdl);
             return 1;
         }
@@ -236,6 +289,62 @@ found:
 	return size;
 }
 
+#define QUEUE_WORK_PRIO 20
+#define WORK_QUEUE_STACK_SIZE   2048
+static char wq_stack[WORK_QUEUE_STACK_SIZE];
+cyg_handle_t wq_thread_handle;
+cyg_handle_t wq_mbox_handle;
+cyg_thread wq_thread_data;
+cyg_mbox wq_mbox_data;
+
+void wq_thread (cyg_addrword_t parameter)
+{
+    struct work_struct *work;
+    cyg_handle_t *mbox_handle = (cyg_handle_t)parameter;
+    
+    while (true) {
+        work = cyg_mbox_get (mbox_handle);
+        if (work->delay)
+            cyg_thread_delay(work->delay);
+        if (work) {
+            work->func(work);
+        }
+    } /* while (true) */
+}
+
+void wq_init (void)
+{
+    cyg_mbox_create (&wq_mbox_handle, &wq_mbox_data);
+
+    cyg_thread_create (QUEUE_WORK_PRIO,
+        wq_thread,
+        (cyg_addrword_t)wq_mbox_handle,
+        "queue work thread",
+        wq_stack, 
+        WORK_QUEUE_STACK_SIZE,
+        &wq_thread_handle,
+        &wq_thread_data
+        );
+    cyg_thread_resume(wq_thread_handle);
+}
+
+/**
+ * schedule_work - put work task in global workqueue
+ * @work: job to be done
+ *
+ * Returns zero if @work was already on the kernel-global workqueue and
+ * non-zero otherwise.
+ *
+ * This puts a job in the kernel-global workqueue if it was not already
+ * queued and leaves it in the same position on the kernel-global
+ * workqueue otherwise.
+ */
+int schedule_work(struct work_struct *work)
+{
+    work->delay = 0;
+    return cyg_mbox_put(wq_mbox_handle, (void *)work);
+}
+
 /**
  * schedule_delayed_work - put work task in global workqueue after delay
  * @dwork: job to be done
@@ -247,7 +356,106 @@ found:
 int schedule_delayed_work(struct delayed_work *dwork,
 					unsigned long delay)
 {
-    return 0;
+    dwork->work.delay = delay;
+    return cyg_mbox_put(wq_mbox_handle, (void *)&dwork->work);
+}
+
+static void klist_devices_get(struct klist_node *n)
+{
+	struct device_private *dev_prv = to_device_private_bus(n);
+	struct device *dev = dev_prv->device;
+
+	get_device(dev);
+}
+
+static void klist_devices_put(struct klist_node *n)
+{
+	struct device_private *dev_prv = to_device_private_bus(n);
+	struct device *dev = dev_prv->device;
+
+	put_device(dev);
+}
+
+/**
+ * bus_register - register a bus with the system.
+ * @bus: bus.
+ *
+ * Once we have that, we registered the bus with the kobject
+ * infrastructure, then register the children subsystems it has:
+ * the devices and drivers that belong to the bus.
+ */
+int bus_register(struct bus_type *bus)
+{
+	int retval;
+	struct bus_type_private *priv;
+
+	priv = kzalloc(sizeof(struct bus_type_private), GFP_KERNEL);
+	if (!priv)
+		return -ENOMEM;
+
+	priv->bus = bus;
+	bus->p = priv;
+
+	// BLOCKING_INIT_NOTIFIER_HEAD(&priv->bus_notifier);
+    // 
+	// retval = kobject_set_name(&priv->subsys.kobj, "%s", bus->name);
+	// if (retval)
+	//     goto out;
+    // 
+	// priv->subsys.kobj.kset = bus_kset;
+	// priv->subsys.kobj.ktype = &bus_ktype;
+	priv->drivers_autoprobe = 1;
+
+	// retval = kset_register(&priv->subsys);
+	// if (retval)
+	//     goto out;
+    // 
+	// retval = bus_create_file(bus, &bus_attr_uevent);
+	// if (retval)
+	//     goto bus_uevent_fail;
+    // 
+	// priv->devices_kset = kset_create_and_add("devices", NULL,
+	//                      &priv->subsys.kobj);
+	// if (!priv->devices_kset) {
+	//     retval = -ENOMEM;
+	//     goto bus_devices_fail;
+	// }
+    // 
+	// priv->drivers_kset = kset_create_and_add("drivers", NULL,
+	//                      &priv->subsys.kobj);
+	// if (!priv->drivers_kset) {
+	//     retval = -ENOMEM;
+	//     goto bus_drivers_fail;
+	// }
+
+	klist_init(&priv->klist_devices, klist_devices_get, klist_devices_put);
+	klist_init(&priv->klist_drivers, NULL, NULL);
+
+	// retval = add_probe_files(bus);
+	// if (retval)
+	//     goto bus_probe_files_fail;
+    // 
+	// retval = bus_add_attrs(bus);
+	// if (retval)
+	//     goto bus_attrs_fail;
+
+	pr_debug("bus: '%s': registered\n", bus->name);
+	return 0;
+
+// bus_attrs_fail:
+//     remove_probe_files(bus);
+// bus_probe_files_fail:
+//     kset_unregister(bus->p->drivers_kset);
+// bus_drivers_fail:
+//     kset_unregister(bus->p->devices_kset);
+// bus_devices_fail:
+//     bus_remove_file(bus, &bus_attr_uevent);
+// bus_uevent_fail:
+//     kset_unregister(&bus->p->subsys);
+// out:
+//     kfree(bus->p);
+//     bus->p = NULL;
+//     return retval;
 }
 
 /**
@@ -264,6 +472,8 @@ int driver_register(struct device_driver *drv)
 	struct driver_private *priv;
 	int error = 0;
 
+    BUG_ON(!drv->bus->p);
+
 	bus = bus_get(drv->bus);
 	if (!bus)
 		return -EINVAL;
@@ -275,7 +485,7 @@ int driver_register(struct device_driver *drv)
 		error = -ENOMEM;
 		goto out_put_bus;
 	}
-	// klist_init(&priv->klist_devices, NULL, NULL);
+	klist_init(&priv->klist_devices, NULL, NULL);
 	priv->driver = drv;
 	drv->p = priv;
 	// priv->kobj.kset = bus->p->drivers_kset;
@@ -289,7 +499,7 @@ int driver_register(struct device_driver *drv)
 		if (error)
 			goto out_unregister;
 	}
-	// klist_add_tail(&priv->knode_bus, &bus->p->klist_drivers);
+	klist_add_tail(&priv->knode_bus, &bus->p->klist_drivers);
 	// module_add_driver(drv->owner, drv);
 
 	// error = driver_create_file(drv, &driver_attr_uevent);
@@ -522,15 +732,15 @@ int device_add(struct device *dev)
 	 * some day, we need to initialize the name. We prevent reading back
 	 * the name, and force the use of dev_name()
 	 */
-	if (dev->init_name) {
-		dev_set_name(dev, "%s", dev->init_name);
-		dev->init_name = NULL;
-	}
+	// if (dev->init_name) {
+	//     dev_set_name(dev, "%s", dev->init_name);
+	//     dev->init_name = NULL;
+	// }
 
-	if (!dev_name(dev)) {
-		error = -EINVAL;
-		goto name_error;
-	}
+	// if (!dev_name(dev)) {
+	//     error = -EINVAL;
+	//     goto name_error;
+	// }
 
 	pr_debug("device: '%s': %s\n", dev_name(dev), __func__);
 
@@ -1054,24 +1264,40 @@ void usb_wait_for_completion(struct usb_completion *x)
 unsigned long usb_wait_for_completion_timeout(struct usb_completion *x,
 						   unsigned long timeout)
 {
+    // return cyg_semaphore_timed_wait(&x->wait.semaphore,
+    //             cyg_current_time() + timeout);
+    if (cyg_semaphore_timed_wait(&x->wait.semaphore,
+                cyg_current_time() + timeout)) {
+        // cyg_thread_delay(1);
+        return timeout;
+    }
+    else
+        return 0;
+    /*
     long ltimeout = (long)timeout;
 
     spin_lock_irq (&x->wait.lock);
-    if (!x->done) {
-        spin_unlock_irq (&x->wait.lock);
-        cyg_thread_delay (10);
-        spin_lock_irq (&x->wait.lock);
+    do {
+        if (!x->done) {
 
-        ltimeout -= 10;
-        if (ltimeout < 0)
+            spin_unlock_irq(&x->wait.lock);
+            if (cyg_semaphore_timed_wait(&x->wait.semaphore, cyg_current_time() + timeout)) {
+                x->done --;
+                return (unsigned long)ltimeout;
+            }
+            spin_lock_irq(&x->wait.lock);
             ltimeout = 0;
-    }
-    while (!x->done && ltimeout);
+        }
+    } while (!x->done && ltimeout);
 
-    x->done --;
+    if (x->done)
+        x->done --;
+    else
+        pr_debug("termy say, %s timout\n", __func__);
     spin_unlock_irq (&x->wait.lock);
     
-    return (unsigned long)ltimeout;
+    return 0;
+    */
 }
 
 void usb_complete(struct usb_completion *x)
@@ -1385,6 +1611,7 @@ int kref_put(struct kref *kref, void (*release)(struct kref *kref))
 	//     return 1;
 	// }
 	// return 0;
+    release(kref);
     return 1;
 }
 
@@ -1406,5 +1633,198 @@ int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
 u8 usbprn_read_status (int nPort)
 {
     return 0x7F;
+}
+
+// void udelay(int delay)
+// {
+//     CYGACC_CALL_IF_DELAY_US(delay);
+// }
+
+void mdelay(int ms)
+{
+    udelay(ms * 1000);
+}
+
+/*
+ * This implementation of find_{first,next}_zero_bit was stolen from
+ * Linus' asm-alpha/bitops.h.
+ */
+#define BITOP_WORD(nr)		((nr) / BITS_PER_LONG)
+#define ffz(x)  __ffs(~(x))
+
+unsigned long find_next_zero_bit(const unsigned long *addr, unsigned long size,
+				 unsigned long offset)
+{
+	const unsigned long *p = addr + BITOP_WORD(offset);
+	unsigned long result = offset & ~(BITS_PER_LONG-1);
+	unsigned long tmp;
+
+	if (offset >= size)
+		return size;
+	size -= result;
+	offset %= BITS_PER_LONG;
+	if (offset) {
+		tmp = *(p++);
+		tmp |= ~0UL >> (BITS_PER_LONG - offset);
+		if (size < BITS_PER_LONG)
+			goto found_first;
+		if (~tmp)
+			goto found_middle;
+		size -= BITS_PER_LONG;
+		result += BITS_PER_LONG;
+	}
+	while (size & ~(BITS_PER_LONG-1)) {
+		if (~(tmp = *(p++)))
+			goto found_middle;
+		result += BITS_PER_LONG;
+		size -= BITS_PER_LONG;
+	}
+	if (!size)
+		return result;
+	tmp = *p;
+
+found_first:
+	tmp |= ~0UL << size;
+	if (tmp == ~0UL)	/* Are any bits zero? */
+		return result + size;	/* Nope. */
+found_middle:
+	return result + ffz(tmp);
+}
+
+void *
+aligned_alloc(size_t nb, size_t align)
+{
+	u32 *cp;
+	char *p;
+
+	if( align < sizeof(u32) )
+		align = sizeof(u32);
+	align--;
+
+	p = malloc( nb + sizeof(u32) + align );
+
+	if( p== NULL ) return NULL;
+	
+	memset(p, 0, nb + sizeof(u32) + align);
+	cp = ((u32)( p + sizeof(u32) + align ) & ~((u32)align));
+	cp[-1] = p;
+
+	return cp;
+}
+
+void
+aligned_free(void *block)
+{
+	char *cp = block;
+	char *p;
+
+	if( block == NULL ) return;
+
+	p = *(u32 *)( cp - sizeof(u32) );
+
+	free( p );
+}
+
+/**
+ * strlcpy - Copy a %NUL terminated string into a sized buffer
+ * @dest: Where to copy the string to
+ * @src: Where to copy the string from
+ * @size: size of destination buffer
+ *
+ * Compatible with *BSD: the result is always a valid
+ * NUL-terminated string that fits in the buffer (unless,
+ * of course, the buffer size is zero). It does not pad
+ * out the result like strncpy() does.
+ */
+size_t strlcpy(char *dest, const char *src, size_t size)
+{
+	size_t ret = strlen(src);
+
+	if (size) {
+		size_t len = (ret >= size) ? size - 1 : ret;
+		memcpy(dest, src, len);
+		dest[len] = '\0';
+	}
+	return ret;
+}
+
+/**
+ * ktime_add_ns - Add a scalar nanoseconds value to a ktime_t variable
+ * @kt:		addend
+ * @nsec:	the scalar nsec value to add
+ *
+ * Returns the sum of kt and nsec in ktime_t format
+ */
+ktime_t ktime_add_ns(const ktime_t kt, u64 nsec)
+{
+	ktime_t tmp;
+
+	if (likely(nsec < NSEC_PER_SEC)) {
+		tmp.tv64 = nsec;
+	} else {
+		unsigned long rem = do_div(nsec, NSEC_PER_SEC);
+
+		tmp = ktime_set((long)nsec, rem);
+	}
+
+	return ktime_add(kt, tmp);
+}
+
+u32  __div64_32(u64 *n, u32 base)
+{
+	u64 rem = *n;
+	u64 b = base;
+	u64 res, d = 1;
+	u32 high = rem >> 32;
+
+	/* Reduce the thing a bit first */
+	res = 0;
+	if (high >= base) {
+		high /= base;
+		res = (u64) high << 32;
+		rem -= (u64) (high*base) << 32;
+	}
+
+	while ((s64)b > 0 && b < rem) {
+		b = b+b;
+		d = d+d;
+	}
+
+	do {
+		if (rem >= b) {
+			rem -= b;
+			res += d;
+		}
+		b >>= 1;
+		d >>= 1;
+	} while (d);
+
+	*n = res;
+	return rem;
+}
+
+/**
+ * sg_next - return the next scatterlist entry in a list
+ * @sg:		The current sg entry
+ *
+ * Description:
+ *   Usually the next entry will be @sg@ + 1, but if this sg element is part
+ *   of a chained scatterlist, it could jump to the start of a new
+ *   scatterlist array.
+ *
+ **/
+struct scatterlist *sg_next(struct scatterlist *sg)
+{
+#ifdef CONFIG_DEBUG_SG
+	BUG_ON(sg->sg_magic != SG_MAGIC);
+#endif
+	if (sg_is_last(sg))
+		return NULL;
+
+	sg++;
+	if (unlikely(sg_is_chain(sg)))
+		sg = sg_chain_ptr(sg);
+
+	return sg;
 }
 

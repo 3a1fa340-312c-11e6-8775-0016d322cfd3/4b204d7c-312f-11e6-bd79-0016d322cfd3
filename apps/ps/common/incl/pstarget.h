@@ -189,13 +189,15 @@
 #define UPGRADE_TEMP_ADDRESS		0x00530000	//576K	//ZOT716u2
 
 //--- SDROM no cache Memory Mapping allocation -----------------------------------------------
+#if defined(ARCH_ARM)
 #define kHW_RAM						31
 //#define kFarHeap_hugebase			( 0x005E0000L )
-#if defined(ARCH_ARM)
 #define kPktHeap_base               ( 0x005D0000L )
 #define kFarHeap_base				( 0x00600000L )
 #endif /* ARCH_ARM */
+
 #if defined(ARCH_MIPS)
+#define kHW_RAM                     63	
 extern unsigned char kFarHeap_base[];
 #endif /* ARCH_MIPS */
 

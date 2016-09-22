@@ -1,6 +1,7 @@
 #include "stddef.h"
 #include <cyg/kernel/kapi.h>
 #include <cyg/hal/hal_if.h>
+#include <cyg/hal/hal_cache.h>
 #include "os-dep.h"
 #include "ktime.h"
 // #include "asm/swab.h"
@@ -1268,7 +1269,7 @@ unsigned long usb_wait_for_completion_timeout(struct usb_completion *x,
     //             cyg_current_time() + timeout);
     if (cyg_semaphore_timed_wait(&x->wait.semaphore,
                 cyg_current_time() + timeout)) {
-        // cyg_thread_delay(1);
+        cyg_thread_delay(1);
         return timeout;
     }
     else

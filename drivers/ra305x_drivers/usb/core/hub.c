@@ -2808,19 +2808,20 @@ hub_port_init (struct usb_hub *hub, struct usb_device *udev, int port1,
             int r = 0;
 
 #define GET_DESCRIPTOR_BUFSIZE  64
-            buf = kmalloc(GET_DESCRIPTOR_BUFSIZE, GFP_NOIO);
-            // buf = kaligned_alloc(GET_DESCRIPTOR_BUFSIZE, 0x20);
+            // buf = kmalloc(GET_DESCRIPTOR_BUFSIZE, GFP_NOIO);
+            buf = kaligned_alloc(GET_DESCRIPTOR_BUFSIZE, 0x20);
 
             if (!buf) {
                 retval = -ENOMEM;
                 continue;
             }
+            pr_debug("%s(%d) buf addr:%x\n", __func__, __LINE__, (u32)buf);
 
             /* Retry on all errors; some devices are flakey.
              * 255 is for WUSB devices, we actually need to use
              * 512 (WUSB1.0[4.8.1]).
              */
-            for (j = 0; j < 2; ++j) {
+            for (j = 0; j < 100; ++j) {
                 buf->bMaxPacketSize0 = 0;
                 r = usb_control_msg(udev, usb_rcvaddr0pipe(),
                     USB_REQ_GET_DESCRIPTOR, USB_DIR_IN,
@@ -2828,12 +2829,14 @@ hub_port_init (struct usb_hub *hub, struct usb_device *udev, int port1,
                     buf, GET_DESCRIPTOR_BUFSIZE,
                     initial_descriptor_timeout);
                 pr_debug("termy say, r = %d, bMaxPacketSize0 = %d, type = %x, j=%d\n", r, buf->bMaxPacketSize0, buf->bDescriptorType, j);
-                 dump_usb_device_descriptor(buf);
 
                 switch (buf->bMaxPacketSize0) {
                 case 8: case 16: case 32: case 64: case 255:
+
+                    pr_debug("j = %d\n", j);
+                    dump_usb_device_descriptor(buf);
                     if (buf->bDescriptorType ==
-                            USB_DT_DEVICE && j > 20) {
+                            USB_DT_DEVICE && j > 99) {
                         r = 0;
                         break;
                     }
@@ -2850,8 +2853,8 @@ hub_port_init (struct usb_hub *hub, struct usb_device *udev, int port1,
             while(1);
             udev->descriptor.bMaxPacketSize0 =
                     buf->bMaxPacketSize0;
-            kfree(buf);
-            // kaligned_free(buf);
+            // kfree(buf);
+            kaligned_free(buf);
 
             retval = hub_port_reset(hub, port1, udev, delay);
             if (retval < 0)     /* error or disconnect */

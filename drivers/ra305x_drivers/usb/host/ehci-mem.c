@@ -80,13 +80,16 @@ static void qh_destroy(struct ehci_qh *qh)
     kaligned_free(qh);
 }
 
+#include "asm/r4kcache.h"
 static struct ehci_qh *ehci_qh_alloc (struct ehci_hcd *ehci, gfp_t flags)
 {
 	struct ehci_qh		*qh;
 	dma_addr_t		dma;
 
-    // qh = kzalloc(sizeof *qh, GFP_ATOMIC);
+    // qh = kzalloc(sizeof (*qh), GFP_ATOMIC);
     qh = kaligned_alloc(sizeof *qh, 0x20);
+    // blast_dcache_range(qh, qh+sizeof(*qh));
+    // __sync();
     pr_debug("%s(%d) qh addr:%x\n", __func__, __LINE__, (u32)qh);
 	if (!qh)
 		goto done;

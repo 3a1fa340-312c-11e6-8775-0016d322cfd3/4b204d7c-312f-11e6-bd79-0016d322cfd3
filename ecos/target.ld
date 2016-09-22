@@ -8,7 +8,7 @@ GROUP(libtarget.a libgcc.a libsupc++.a)
 
 MEMORY
 {
-    ram : ORIGIN = 0x80000000, LENGTH = 0x800000
+    ram : ORIGIN = 0x80000000, LENGTH = 0x1000000
 }
 
 SECTIONS
@@ -38,8 +38,8 @@ SECTIONS
     .bss ALIGN (0x8) : { *(.dynbss) *(.bss) *(.bss.*) *(COMMON) } > ram __bss_end = .;
     __heap1 = ALIGN (0x8);
 	__heap1_end = 0x80000000 + 8*0x100000 - 16384*2 - 200*1024 - 2400*1024 - 0*1024;
-    kFarHeap_base = 0x80800000; . = kFarHeap_base + 0x400000;
-    _kPage_base = ALIGN (0x1000);
+    kFarHeap_base = 0x80600000; . = kFarHeap_base + 0x400000;
+    _kPage_base = ALIGN (0x8);
     _kPage_base_end = _kPage_base + 0x100000;
     /*
     __pci_window = 0x81f00000; . = __pci_window + 0x100000;

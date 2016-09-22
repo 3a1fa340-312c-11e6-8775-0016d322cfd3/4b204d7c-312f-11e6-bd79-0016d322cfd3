@@ -984,7 +984,7 @@ static void qh_link_async (struct ehci_hcd *ehci, struct ehci_qh *qh)
 
 	WARN_ON(qh->qh_state != QH_STATE_IDLE);
 
-    // cyg_thread_delay(20);
+    cyg_thread_delay(10);
     // pr_debug("termy say, %s(%d)\n", __func__, __LINE__);
     TTRACE;
 	/* (re)start the async schedule? */

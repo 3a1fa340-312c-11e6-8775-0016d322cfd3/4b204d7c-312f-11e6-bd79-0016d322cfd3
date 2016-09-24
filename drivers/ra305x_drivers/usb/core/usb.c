@@ -373,7 +373,8 @@ struct usb_device *usb_alloc_dev(struct usb_device *parent,
 	unsigned root_hub = 0;
 
     TTRACE;
-	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+	// dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+    dev = kmalloc(sizeof(*dev), GFP_KERNEL);
 	if (!dev)
 		return NULL;
 

@@ -2169,7 +2169,8 @@ struct usb_hcd *usb_create_hcd (const struct hc_driver *driver,
 {
 	struct usb_hcd *hcd;
 
-	hcd = kzalloc(sizeof(*hcd) + driver->hcd_priv_size, GFP_KERNEL);
+	// hcd = kzalloc(sizeof(*hcd) + driver->hcd_priv_size, GFP_KERNEL);
+	hcd = kmalloc(sizeof(*hcd) + driver->hcd_priv_size, GFP_KERNEL);
 	if (!hcd) {
 		dev_dbg (dev, "hcd alloc failed\n");
 		return NULL;

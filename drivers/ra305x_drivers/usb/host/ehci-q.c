@@ -984,9 +984,6 @@ static void qh_link_async (struct ehci_hcd *ehci, struct ehci_qh *qh)
 
 	WARN_ON(qh->qh_state != QH_STATE_IDLE);
 
-    cyg_thread_delay(10);
-    // pr_debug("termy say, %s(%d)\n", __func__, __LINE__);
-    TTRACE;
 	/* (re)start the async schedule? */
 	head = ehci->async;
 	timer_action_done (ehci, TIMER_ASYNC_OFF);
@@ -997,10 +994,9 @@ static void qh_link_async (struct ehci_hcd *ehci, struct ehci_qh *qh)
 
 		if (!(cmd & CMD_ASE)) {
 
-            pr_debug("termy say, %s(%d)\n", __func__, __LINE__);
 			/* in case a clear of CMD_ASE didn't take yet */
 			(void)handshake(ehci, &ehci->regs->status,
-					STS_ASS, 0, 300);
+					STS_ASS, 0, 150);
 			cmd |= CMD_ASE | CMD_RUN;
 			ehci_writel(ehci, cmd, &ehci->regs->command);
 			ehci_to_hcd(ehci)->state = HC_STATE_RUNNING;
@@ -1159,7 +1155,6 @@ submit_async (
 	 * the HC and TT handle it when the TT has a buffer ready.
 	 */
     if (likely (qh->qh_state == QH_STATE_IDLE)) {
-        pr_debug("%s(%d) -->", __func__, __LINE__);
 		qh_link_async(ehci, qh);
     }
  done:
@@ -1180,7 +1175,6 @@ static void end_unlink_async (struct ehci_hcd *ehci)
 
 	iaa_watchdog_done(ehci);
 
-    // pr_debug("%s(%d)\n", __func__, __LINE__);
 	// qh->hw_next = cpu_to_hc32(qh->qh_dma);
 	qh->qh_state = QH_STATE_IDLE;
 	qh->qh_next.qh = NULL;
@@ -1201,12 +1195,10 @@ static void end_unlink_async (struct ehci_hcd *ehci)
 		 * active but idle for a while once it empties.
 		 */
 		if (HC_IS_RUNNING (ehci_to_hcd(ehci)->state)
-                && ehci->async->qh_next.qh == NULL) {
-
-            // pr_debug("termy say, %s --->", __func__);
+                && ehci->async->qh_next.qh == NULL) 
 			timer_action (ehci, TIMER_ASYNC_OFF);
-        }
 	}
+
 	qh_put(qh);			/* refcount from async list */
 
 	if (next) {
@@ -1302,10 +1294,8 @@ rescan:
 				if (qh->needs_rescan)
 					unlink_async(ehci, qh);
 				qh_put (qh);
-				if (temp != 0) {
-                    // pr_debug("termy say, %s goto resacn\n", __func__);
+				if (temp != 0) 
 					goto rescan;
-				}
 			}
 
 			/* unlink idle entries, reducing DMA usage as well
@@ -1314,14 +1304,12 @@ rescan:
 			 * doesn't stay idle for long.
 			 * (plus, avoids some kind of re-activation race.)
 			 */
-            // pr_debug("%s(%d) stamp = %ld\n", __func__, __LINE__, ehci->stamp - qh->stamp);
 			if (list_empty(&qh->qtd_list)
 					&& qh->qh_state == QH_STATE_LINKED) {
                 if (!ehci->reclaim
                     && ((ehci->stamp - qh->stamp) & 0x1fff)
                     >= 38){
                     // >= (EHCI_SHRINK_FRAMES * 8)){
-                    // pr_debug("termy say, %s --> start_unlink_async\n", __func__);
 					start_unlink_async(ehci, qh);
                 }
 				else
@@ -1331,9 +1319,7 @@ rescan:
 			qh = qh->qh_next.qh;
 		} while (qh);
 	}
-    if (action == TIMER_ASYNC_SHRINK) {
 
-        // pr_debug("termy say, %s ---->", __func__);
+    if (action == TIMER_ASYNC_SHRINK) 
 		timer_action (ehci, TIMER_ASYNC_SHRINK);
-    }
 }

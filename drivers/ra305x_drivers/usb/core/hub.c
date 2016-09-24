@@ -994,7 +994,8 @@ static int hub_configure(struct usb_hub *hub,
     dev_info (hub_dev, "%d port%s detected\n", hdev->maxchild,
         (hdev->maxchild == 1) ? "" : "s");
 
-    hub->port_owners = kzalloc(hdev->maxchild * sizeof(void *), GFP_KERNEL);
+    // hub->port_owners = kzalloc(hdev->maxchild * sizeof(void *), GFP_KERNEL);
+    hub->port_owners = kmalloc(hdev->maxchild * sizeof(void *), GFP_KERNEL);
     if (!hub->port_owners) {
         ret = -ENOMEM;
         goto fail;
@@ -1305,7 +1306,8 @@ descriptor_error:
     /* We found a hub */
     dev_info (&intf->dev, "USB hub found\n");
 
-    hub = kzalloc(sizeof(*hub), GFP_KERNEL);
+    // hub = kzalloc(sizeof(*hub), GFP_KERNEL);
+    hub = kmalloc(sizeof(*hub), GFP_KERNEL);
     if (!hub) {
         dev_dbg (&intf->dev, "couldn't kmalloc hub struct\n");
         return -ENOMEM;
@@ -2809,7 +2811,7 @@ hub_port_init (struct usb_hub *hub, struct usb_device *udev, int port1,
 
 #define GET_DESCRIPTOR_BUFSIZE  64
             // buf = kmalloc(GET_DESCRIPTOR_BUFSIZE, GFP_NOIO);
-            buf = kaligned_alloc(GET_DESCRIPTOR_BUFSIZE, 0x20);
+            buf = kaligned_alloc(GET_DESCRIPTOR_BUFSIZE, 0x1000);
 
             if (!buf) {
                 retval = -ENOMEM;
@@ -2821,22 +2823,23 @@ hub_port_init (struct usb_hub *hub, struct usb_device *udev, int port1,
              * 255 is for WUSB devices, we actually need to use
              * 512 (WUSB1.0[4.8.1]).
              */
-            for (j = 0; j < 100; ++j) {
+            for (j = 0; j < 2; ++j) {
                 buf->bMaxPacketSize0 = 0;
                 r = usb_control_msg(udev, usb_rcvaddr0pipe(),
                     USB_REQ_GET_DESCRIPTOR, USB_DIR_IN,
                     USB_DT_DEVICE << 8, 0,
                     buf, GET_DESCRIPTOR_BUFSIZE,
                     initial_descriptor_timeout);
+
                 pr_debug("termy say, r = %d, bMaxPacketSize0 = %d, type = %x, j=%d\n", r, buf->bMaxPacketSize0, buf->bDescriptorType, j);
 
                 switch (buf->bMaxPacketSize0) {
                 case 8: case 16: case 32: case 64: case 255:
 
                     pr_debug("j = %d\n", j);
-                    dump_usb_device_descriptor(buf);
+                    // dump_usb_device_descriptor(buf);
                     if (buf->bDescriptorType ==
-                            USB_DT_DEVICE && j > 99) {
+                            USB_DT_DEVICE) {
                         r = 0;
                         break;
                     }
@@ -2848,9 +2851,7 @@ hub_port_init (struct usb_hub *hub, struct usb_device *udev, int port1,
                 }
                 if (r == 0)
                     break;
-                // cyg_thread_delay(15);
             }
-            while(1);
             udev->descriptor.bMaxPacketSize0 =
                     buf->bMaxPacketSize0;
             // kfree(buf);

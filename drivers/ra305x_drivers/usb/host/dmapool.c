@@ -302,7 +302,7 @@ static struct dma_page *pool_alloc_page(struct dma_pool *pool, gfp_t mem_flags)
 	struct dma_page *page;
 
     // page = kmalloc(sizeof(*page), mem_flags);
-    page = kaligned_alloc(sizeof(*page), 0x20);
+    page = kaligned_alloc(sizeof(*page), 0x1000);
 	if (!page)
 		return NULL;
 	page->vaddr = dma_alloc_coherent(pool->dev, pool->allocation,

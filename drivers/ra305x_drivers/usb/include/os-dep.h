@@ -18,6 +18,7 @@
 #define cpu_has_mips64          0
 #define __WEAK_LLSC_MB          "       \n"
 #define smp_llsc_mb()           __asm__ __volatile__(__WEAK_LLSC_MB : : :"memory")
+#define smp_mb()                __asm__ __volatile__("sync" : : :"memory")
 #define smp_mb__before_llsc()   smp_llsc_mb()
 #define jiffies                 cyg_current_time()
 
@@ -66,9 +67,9 @@ static int irq_flag;
 #define printk        diag_printf
 #define pr_debug      diag_printf
 #define pr_info       diag_printf
-// #define TTRACE        \
-//     diag_printf("termy say, %s(%d)\n", __func__, __LINE__)
-#define TTRACE do{}while(0)
+#define TTRACE        \
+    diag_printf("termy say, %s(%d)\n", __func__, __LINE__)
+// #define TTRACE do{}while(0)
 #define EPDBG         \
     diag_printf("termy say, EPDBG: %s(%d)\n", __func__, __LINE__)
 // #define EPDBG do{}while(0)
@@ -476,6 +477,9 @@ extern u32 __div64_32(u64 *dividend, u32 divisor);
 #define ARCH_PFN_OFFSET PFN_UP(PHYS_OFFSET)
 #define UNCAC_ADDR(addr)    ((addr) - PAGE_OFFSET + UNCAC_BASE + PHYS_OFFSET)
 
+#define kmalloc(x, y)   kaligned_alloc(x, 0x20)
+#define kfree(x)        kaligned_free(x)
+
 /*
  *     virt_to_phys    -       map virtual addresses to physical
  *     @address: address to remap
@@ -573,14 +577,14 @@ static inline dma_addr_t dma_map_single(struct device *dev, void *ptr, size_t si
 //     return &init_uts_ns.name
 // }
 
-typedef struct {
-    int counter;
-} atomic_t;
-typedef atomic_t atomic_long_t;
+// typedef struct {
+//     int counter;
+// } atomic_t;
+// typedef atomic_t atomic_long_t;
 
-struct kref {
-    atomic_t refcount;
-};
+// struct kref {
+//     atomic_t refcount;
+// };
 
 // struct list_head {
 //     struct list_head *next, *prev;

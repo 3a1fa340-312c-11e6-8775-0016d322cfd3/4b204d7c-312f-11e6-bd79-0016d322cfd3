@@ -928,7 +928,8 @@ iso_stream_alloc (gfp_t mem_flags)
 {
 	struct ehci_iso_stream *stream;
 
-	stream = kzalloc(sizeof *stream, mem_flags);
+	// stream = kzalloc(sizeof *stream, mem_flags);
+	stream = kmalloc(sizeof *stream, mem_flags);
 	if (likely (stream != NULL)) {
 		INIT_LIST_HEAD(&stream->td_list);
 		INIT_LIST_HEAD(&stream->free_list);
@@ -1140,7 +1141,8 @@ iso_sched_alloc (unsigned packets, gfp_t mem_flags)
 	int			size = sizeof *iso_sched;
 
 	size += packets * sizeof (struct ehci_iso_packet);
-	iso_sched = kzalloc(size, mem_flags);
+	// iso_sched = kzalloc(size, mem_flags);
+	iso_sched = kmalloc(size, mem_flags);
 	if (likely (iso_sched != NULL)) {
 		INIT_LIST_HEAD (&iso_sched->td_list);
 	}

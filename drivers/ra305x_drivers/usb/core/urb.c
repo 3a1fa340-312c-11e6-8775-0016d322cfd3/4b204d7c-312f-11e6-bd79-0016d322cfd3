@@ -29,8 +29,7 @@ static void urb_destroy(struct kref *kref)
 	if (urb->transfer_flags & URB_FREE_BUFFER)
 		kfree(urb->transfer_buffer);
 
-	// kfree(urb);
-    kaligned_free(urb);
+    kfree(urb);
 }
 
 /**
@@ -77,12 +76,9 @@ struct urb *usb_alloc_urb(int iso_packets, gfp_t mem_flags)
 {
 	struct urb *urb;
 
-    // urb = kmalloc(sizeof(struct urb) +
-    //     iso_packets * sizeof(struct usb_iso_packet_descriptor),
-    //     mem_flags);
-    urb = kaligned_alloc(sizeof(struct urb) +
-            iso_packets * sizeof(struct usb_iso_packet_descriptor),
-            0x20);
+    urb = kmalloc(sizeof(struct urb) +
+        iso_packets * sizeof(struct usb_iso_packet_descriptor),
+        mem_flags);
 	if (!urb) {
 		printk(KERN_ERR "alloc_urb: kmalloc failed\n");
 		return NULL;

@@ -379,7 +379,8 @@ static int usb_parse_interface(struct device *ddev, int cfgno,
 	if (num_ep > 0) {
 		/* Can't allocate 0 bytes */
 		len = sizeof(struct usb_host_endpoint) * num_ep;
-		alt->endpoint = kzalloc(len, GFP_KERNEL);
+		// alt->endpoint = kzalloc(len, GFP_KERNEL);
+		alt->endpoint = kmalloc(len, GFP_KERNEL);
 		if (!alt->endpoint)
 			return -ENOMEM;
 	}
@@ -570,7 +571,8 @@ static int usb_parse_configuration(struct usb_device *dev, int cfgidx,
 		}
 
 		len = sizeof(*intfc) + sizeof(struct usb_host_interface) * j;
-		config->intf_cache[i] = intfc = kzalloc(len, GFP_KERNEL);
+		// config->intf_cache[i] = intfc = kzalloc(len, GFP_KERNEL);
+		config->intf_cache[i] = intfc = kmalloc(len, GFP_KERNEL);
 		if (!intfc)
 			return -ENOMEM;
 		kref_init(&intfc->ref);
@@ -687,17 +689,19 @@ int usb_get_configuration(struct usb_device *dev)
 	}
 
 	length = ncfg * sizeof(struct usb_host_config);
-	dev->config = kzalloc(length, GFP_KERNEL);
+	// dev->config = kzalloc(length, GFP_KERNEL);
+	dev->config = kmalloc(length, GFP_KERNEL);
 	if (!dev->config)
 		goto err2;
 
 	length = ncfg * sizeof(char *);
-	dev->rawdescriptors = kzalloc(length, GFP_KERNEL);
+	// dev->rawdescriptors = kzalloc(length, GFP_KERNEL);
+	dev->rawdescriptors = kmalloc(length, GFP_KERNEL);
 	if (!dev->rawdescriptors)
 		goto err2;
 
-	// desc = kmalloc(USB_DT_CONFIG_SIZE, GFP_KERNEL);
-    desc = kaligned_alloc(USB_DT_CONFIG_SIZE, 4096);
+    // desc = kmalloc(USB_DT_CONFIG_SIZE, GFP_KERNEL);
+    desc = kaligned_alloc(USB_DT_CONFIG_SIZE, 0x1000);
 	if (!desc)
 		goto err2;
 
@@ -724,8 +728,8 @@ int usb_get_configuration(struct usb_device *dev)
 		    USB_DT_CONFIG_SIZE);
 
 		/* Now that we know the length, get the whole thing */
-		// bigbuffer = kmalloc(length, GFP_KERNEL);
-        bigbuffer = kaligned_alloc(length, 4096);
+        // bigbuffer = kmalloc(length, GFP_KERNEL);
+        bigbuffer = kaligned_alloc(length, 0x1000);
 		if (!bigbuffer) {
 			result = -ENOMEM;
 			goto err;
@@ -735,7 +739,7 @@ int usb_get_configuration(struct usb_device *dev)
 		if (result < 0) {
 			dev_err(ddev, "unable to read config index %d "
 			    "descriptor/%s\n", cfgno, "all");
-			// kfree(bigbuffer);
+            // kfree(bigbuffer);
             kaligned_free(bigbuffer);
 			goto err;
 		}
@@ -757,7 +761,7 @@ int usb_get_configuration(struct usb_device *dev)
 	result = 0;
 
 err:
-	// kfree(desc);
+    // kfree(desc);
     kaligned_free(desc);
 out_not_authorized:
 	dev->descriptor.bNumConfigurations = cfgno;

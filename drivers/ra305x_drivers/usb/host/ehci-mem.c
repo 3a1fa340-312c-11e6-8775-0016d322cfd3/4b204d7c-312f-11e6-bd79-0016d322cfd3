@@ -80,17 +80,13 @@ static void qh_destroy(struct ehci_qh *qh)
     kaligned_free(qh);
 }
 
-#include "asm/r4kcache.h"
 static struct ehci_qh *ehci_qh_alloc (struct ehci_hcd *ehci, gfp_t flags)
 {
 	struct ehci_qh		*qh;
 	dma_addr_t		dma;
 
     // qh = kzalloc(sizeof (*qh), GFP_ATOMIC);
-    qh = kaligned_alloc(sizeof *qh, 0x20);
-    // blast_dcache_range(qh, qh+sizeof(*qh));
-    // __sync();
-    pr_debug("%s(%d) qh addr:%x\n", __func__, __LINE__, (u32)qh);
+    qh = kaligned_alloc(sizeof *qh, 0x1000);
 	if (!qh)
 		goto done;
 	qh->hw = (struct ehci_qh_hw *)
@@ -106,7 +102,6 @@ static struct ehci_qh *ehci_qh_alloc (struct ehci_hcd *ehci, gfp_t flags)
 
 	/* dummy td enables safe urb queuing */
 	qh->dummy = ehci_qtd_alloc (ehci, flags);
-    pr_debug("%s(%d) dummy addr:%x\n", __func__, __LINE__, (u32)qh->dummy);
 	if (qh->dummy == NULL) {
 		ehci_dbg (ehci, "no dummy td\n");
 		goto fail1;

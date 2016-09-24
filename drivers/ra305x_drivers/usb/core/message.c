@@ -58,7 +58,6 @@ static int usb_start_wait_urb(struct urb *urb, int timeout, int *actual_length)
 	usb_init_completion(&ctx.done);
 	urb->context = &ctx;
 	urb->actual_length = 0;
-    TTRACE;
 	retval = usb_submit_urb(urb, GFP_NOIO);
 	if (unlikely(retval))
 		goto out;
@@ -77,7 +76,6 @@ static int usb_start_wait_urb(struct urb *urb, int timeout, int *actual_length)
 			urb->transfer_buffer_length);
 	} else
 		retval = ctx.status;
-    TTRACE;
 out:
 	if (actual_length)
 		*actual_length = urb->actual_length;
@@ -146,10 +144,11 @@ int usb_control_msg(struct usb_device *dev, unsigned int pipe, __u8 request,
 	struct usb_ctrlrequest *dr;
 	int ret;
 
-    // dr = kalloc(sizeof(struct usb_ctrlrequest), GFP_NOIO);
-    dr = kaligned_alloc(sizeof(struct usb_ctrlrequest), 0x100);
+    dr = kmalloc(sizeof(struct usb_ctrlrequest), GFP_NOIO);
+    dr = kaligned_alloc(sizeof(struct usb_ctrlrequest), 0x1000);
 	if (!dr)
 		return -ENOMEM;
+    // pr_debug("%s(%d) dr:%x\n", __func__, __LINE__, (u32)dr);
 
 	dr->bRequestType = requesttype;
 	dr->bRequest = request;
@@ -904,6 +903,7 @@ char *usb_cache_string(struct usb_device *udev, int index)
 	return smallbuf;
 }
 
+#include <cyg/hal/hal_cache.h>
 /*
  * usb_get_device_descriptor - (re)reads the device descriptor (usbcore)
  * @dev: the device whose device descriptor is being updated
@@ -930,7 +930,7 @@ int usb_get_device_descriptor(struct usb_device *dev, unsigned int size)
 	if (size > sizeof(*desc))
 		return -EINVAL;
 	// desc = kmalloc(sizeof(*desc), GFP_NOIO);
-    desc = kaligned_alloc(sizeof(*desc), 4096);
+    desc = kaligned_alloc(sizeof(*desc), 0x100);
 	if (!desc)
 		return -ENOMEM;
 
@@ -1727,7 +1727,10 @@ int usb_set_configuration(struct usb_device *dev, int configuration)
 		}
 
 		for (; n < nintf; ++n) {
-			new_interfaces[n] = kzalloc(
+			// new_interfaces[n] = kzalloc(
+			//         sizeof(struct usb_interface),
+			//         GFP_NOIO);
+			new_interfaces[n] = kmalloc(
 					sizeof(struct usb_interface),
 					GFP_NOIO);
 			if (!new_interfaces[n]) {

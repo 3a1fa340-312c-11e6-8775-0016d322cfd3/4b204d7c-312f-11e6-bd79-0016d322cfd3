@@ -8,6 +8,7 @@
 // #include "swab.h"
 #include "little_endian.h"
 #include "asm/bitops.h"
+#include "asm/usb-atomic.h"
 #include "scatterlist.h"
 
 
@@ -79,7 +80,6 @@ void init_timer(struct timer_list *timer)
 {
     CYG_ASSERT(timer != NULL, "timer is NULL!");
     if (!timer->valid) {
-        TTRACE;
         timer->entry.next = NULL;
         cyg_clock_to_counter (cyg_real_time_clock(), &timer->counter_hdl);
         cyg_alarm_create (timer->counter_hdl, 
@@ -390,7 +390,8 @@ int bus_register(struct bus_type *bus)
 	int retval;
 	struct bus_type_private *priv;
 
-	priv = kzalloc(sizeof(struct bus_type_private), GFP_KERNEL);
+	// priv = kzalloc(sizeof(struct bus_type_private), GFP_KERNEL);
+	priv = kmalloc(sizeof(struct bus_type_private), GFP_KERNEL);
 	if (!priv)
 		return -ENOMEM;
 
@@ -481,7 +482,8 @@ int driver_register(struct device_driver *drv)
 
 	pr_debug("bus: '%s': add driver %s\n", bus->name, drv->name);
 
-	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+	// priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+	priv = kmalloc(sizeof(*priv), GFP_KERNEL);
 	if (!priv) {
 		error = -ENOMEM;
 		goto out_put_bus;
@@ -743,10 +745,13 @@ int device_add(struct device *dev)
 	//     goto name_error;
 	// }
 
-	pr_debug("device: '%s': %s\n", dev_name(dev), __func__);
-
-	// parent = get_device(dev->parent);
+    parent = get_device(dev->parent);
 	// setup_parent(dev, parent);
+
+	pr_debug("device: '%s': %s addr:%x\n", dev_name(dev), __func__, (u32)dev);
+    if (parent)
+        pr_debug("%s(%d) device parent:%x\n", __func__, __LINE__, (u32)parent);
+
 
 	/* use parent numa_node */
 	// if (parent)
@@ -863,6 +868,7 @@ void device_del(struct device *dev)
 	//                      BUS_NOTIFY_DEL_DEVICE, dev);
 	// device_pm_remove(dev);
 	// dpm_sysfs_remove(dev);
+    pr_debug("%s(%d) dev:%x\n", __func__, __LINE__, (u32)dev);
 	if (parent)
 		klist_del(&dev->p->knode_parent);
 	// if (MAJOR(dev->devt)) {
@@ -1265,40 +1271,8 @@ void usb_wait_for_completion(struct usb_completion *x)
 unsigned long usb_wait_for_completion_timeout(struct usb_completion *x,
 						   unsigned long timeout)
 {
-    // return cyg_semaphore_timed_wait(&x->wait.semaphore,
-    //             cyg_current_time() + timeout);
-    if (cyg_semaphore_timed_wait(&x->wait.semaphore,
-                cyg_current_time() + timeout)) {
-        cyg_thread_delay(1);
-        return timeout;
-    }
-    else
-        return 0;
-    /*
-    long ltimeout = (long)timeout;
-
-    spin_lock_irq (&x->wait.lock);
-    do {
-        if (!x->done) {
-
-            spin_unlock_irq(&x->wait.lock);
-            if (cyg_semaphore_timed_wait(&x->wait.semaphore, cyg_current_time() + timeout)) {
-                x->done --;
-                return (unsigned long)ltimeout;
-            }
-            spin_lock_irq(&x->wait.lock);
-            ltimeout = 0;
-        }
-    } while (!x->done && ltimeout);
-
-    if (x->done)
-        x->done --;
-    else
-        pr_debug("termy say, %s timout\n", __func__);
-    spin_unlock_irq (&x->wait.lock);
-    
-    return 0;
-    */
+    return cyg_semaphore_timed_wait(&x->wait.semaphore,
+                cyg_current_time() + timeout);
 }
 
 void usb_complete(struct usb_completion *x)
@@ -1546,10 +1520,12 @@ static void klist_children_get(struct klist_node *n)
 
 int device_private_init(struct device *dev)
 {
-	dev->p = kzalloc(sizeof(*dev->p), GFP_KERNEL);
+	// dev->p = kzalloc(sizeof(*dev->p), GFP_KERNEL);
+	dev->p = kmalloc(sizeof(*dev->p), GFP_KERNEL);
 	if (!dev->p)
 		return -ENOMEM;
 	dev->p->device = dev;
+    pr_debug("%s(%d) dev:%x\n", __func__, __LINE__, (u32)dev);
 	klist_init(&dev->p->klist_children, klist_children_get,
 		   klist_children_put);
 	return 0;
@@ -1573,8 +1549,8 @@ void msleep(unsigned int msecs)
  */
 void kref_init(struct kref *kref)
 {
-	// atomic_set(&kref->refcount, 1);
-	// smp_mb();
+    atomic_set(&kref->refcount, 1);
+    smp_mb();
 }
 
 /**
@@ -1583,9 +1559,9 @@ void kref_init(struct kref *kref)
  */
 void kref_get(struct kref *kref)
 {
-	// WARN_ON(!atomic_read(&kref->refcount));
-	// atomic_inc(&kref->refcount);
-	// smp_mb__after_atomic_inc();
+    WARN_ON(!atomic_read(&kref->refcount));
+    atomic_inc(&kref->refcount);
+    smp_mb__after_atomic_inc();
 }
 
 /**
@@ -1602,18 +1578,17 @@ void kref_get(struct kref *kref)
  * memory.  Only use the return value if you want to see if the kref is now
  * gone, not present.
  */
+extern void kaligned_free(void *block);
 int kref_put(struct kref *kref, void (*release)(struct kref *kref))
 {
-	// WARN_ON(release == NULL);
-	// WARN_ON(release == (void (*)(struct kref *))kfree);
-    // 
-	// if (atomic_dec_and_test(&kref->refcount)) {
-	//     release(kref);
-	//     return 1;
-	// }
-	// return 0;
-    release(kref);
-    return 1;
+    WARN_ON(release == NULL);
+    WARN_ON(release == (void (*)(struct kref *))kaligned_free);
+
+    if (atomic_dec_and_test(&kref->refcount)) {
+        release(kref);
+        return 1;
+    }
+    return 0;
 }
 
 void dma_unmap_single(struct device *dev, dma_addr_t dma_addr, size_t size,

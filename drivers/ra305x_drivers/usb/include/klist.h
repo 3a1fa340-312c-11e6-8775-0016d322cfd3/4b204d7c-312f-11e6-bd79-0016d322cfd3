@@ -21,6 +21,15 @@
 #include "list.h"
 #endif /* _LINUX_ */
 
+typedef struct {
+    int counter;
+} atomic_t;
+typedef atomic_t atomic_long_t;
+
+struct kref {
+    atomic_t refcount;
+};
+
 struct klist_node;
 struct klist {
 	// spinlock_t		k_lock;
@@ -45,7 +54,7 @@ extern void klist_init(struct klist *k, void (*get)(struct klist_node *),
 struct klist_node {
 	void			*n_klist;	/* never access directly */
 	struct list_head	n_node;
-	// struct kref		n_ref;
+    struct kref		n_ref;
 };
 
 extern void klist_add_tail(struct klist_node *n, struct klist *k);

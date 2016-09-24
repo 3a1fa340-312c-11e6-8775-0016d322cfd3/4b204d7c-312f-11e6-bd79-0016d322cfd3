@@ -192,7 +192,10 @@ static int handshake (struct ehci_hcd *ehci, void __iomem *ptr,
     do {
         result = ehci_readl(ehci, ptr);
         if (result == ~(u32)0)      /* card removed */
+        {
+            pr_debug("%s(%d) no device\n", __func__, __LINE__);
             return -ENODEV;
+        }
         result &= mask;
         if (result == done)
             return 0;
@@ -492,7 +495,6 @@ static void ehci_work (struct ehci_hcd *ehci)
     if (HC_IS_RUNNING (ehci_to_hcd(ehci)->state) &&
             (ehci->async->qh_next.ptr != NULL ||
              ehci->periodic_sched != 0)) {
-        // pr_debug("termy say, %s --TIMER_IO_WATCHDOG-->", __func__);
         timer_action (ehci, TIMER_IO_WATCHDOG);
     }
 }
@@ -761,7 +763,6 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
 
     /* e.g. cardbus physical eject */
     if (status == ~(u32) 0) {
-        TTRACE;
         ehci_dbg (ehci, "device removed\n");
         goto dead;
     }
@@ -781,7 +782,7 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
     /* unrequested/ignored: Frame List Rollover */
     dbg_status (ehci, "irq", status);
 #endif
-    pr_debug("%s(%d) irq status = %x\n", __func__, __LINE__, status);
+    // pr_debug("%s(%d) irq status = %x\n", __func__, __LINE__, status);
 
     /* INT, ERR, and IAA interrupt rates can be throttled */
 
@@ -806,7 +807,6 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
         }
         if (ehci->reclaim) {
             COUNT(ehci->stats.reclaim);
-            TTRACE;
             end_unlink_async(ehci);
         } else
             ehci_dbg(ehci, "IAA with nothing to reclaim?\n");
@@ -817,7 +817,6 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
         unsigned    i = HCS_N_PORTS (ehci->hcs_params);
         u32     ppcd = 0;
 
-        TTRACE;
         /* kick root hub later */
         pcd_status = status;
 
@@ -860,7 +859,6 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
 
     /* PCI errors [4.15.2.4] */
     if (unlikely ((status & STS_FATAL) != 0)) {
-        TTRACE;
         ehci_err(ehci, "fatal error\n");
         dbg_cmd(ehci, "fatal", cmd);
         dbg_status(ehci, "fatal", status);
@@ -938,7 +936,6 @@ static int ehci_urb_enqueue (
 static void unlink_async (struct ehci_hcd *ehci, struct ehci_qh *qh)
 {
     /* failfast */
-    TTRACE;
     if (!HC_IS_RUNNING(ehci_to_hcd(ehci)->state) && ehci->reclaim)
         end_unlink_async(ehci);
 

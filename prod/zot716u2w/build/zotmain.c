@@ -64,12 +64,12 @@ void zotmain( void )
     //
     //Print Server module
     //
-    /*
+    
 	IPXInitialize();
 	NETBEUInit();
 	Spooler_init();
-    */
-	//ps_init();
+    
+	ps_init();
     LED_Init();
 
     usb_test();

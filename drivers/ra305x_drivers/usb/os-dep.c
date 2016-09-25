@@ -619,6 +619,53 @@ int bus_add_device(struct device *dev)
 //     return error;
 }
 
+static struct device *next_device(struct klist_iter *i)
+{
+    struct klist_node *n = klist_next(i);
+    struct device *dev = NULL;
+    struct device_private *dev_prv;
+
+    if (n) {
+        dev_prv = to_device_private_bus(n);
+        dev = dev_prv->device;
+    }
+    return dev;
+}
+
+/**
+ * bus_find_device - device iterator for locating a particular device.
+ * @bus: bus type
+ * @start: Device to begin with
+ * @data: Data to pass to match function
+ * @match: Callback function to check device
+ *
+ * This is similar to the bus_for_each_dev() function above, but it
+ * returns a reference to a device that is 'found' for later use, as
+ * determined by the @match callback.
+ *
+ * The callback should return 0 if the device doesn't match and non-zero
+ * if it does.  If the callback returns non-zero, this function will
+ * return to the caller and not iterate over any more devices.
+ */
+struct device *bus_find_device(struct bus_type *bus,
+			       struct device *start, void *data,
+			       int (*match)(struct device *dev, void *data))
+{
+	struct klist_iter i;
+	struct device *dev;
+
+	if (!bus)
+		return NULL;
+
+	klist_iter_init_node(&bus->p->klist_devices, &i,
+			     (start ? &start->p->knode_bus : NULL));
+	while ((dev = next_device(&i)))
+		if (match(dev, data) && get_device(dev))
+			break;
+	klist_iter_exit(&i);
+	return dev;
+}
+
 /*
  * __device_release_driver() must be called with @dev lock held.
  * When called for a USB interface, @dev->parent lock must be held as well.
@@ -929,19 +976,6 @@ void device_unregister(struct device *dev)
 	pr_debug("device: '%s': %s\n", dev_name(dev), __func__);
 	device_del(dev);
 	put_device(dev);
-}
-
-static struct device *next_device(struct klist_iter *i)
-{
-    struct klist_node *n = klist_next(i);
-    struct device *dev = NULL;
-    struct device_private *dev_prv;
-
-    if (n) {
-        dev_prv = to_device_private_bus(n);
-        dev = dev_prv->device;
-    }
-    return dev;
 }
 
 /**
@@ -1658,11 +1692,6 @@ void dma_unmap_single(struct device *dev, dma_addr_t dma_addr, size_t size,
 int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
 {
     return 0;
-}
-
-u8 usbprn_read_status (int nPort)
-{
-    return 0x7F;
 }
 
 // void udelay(int delay)

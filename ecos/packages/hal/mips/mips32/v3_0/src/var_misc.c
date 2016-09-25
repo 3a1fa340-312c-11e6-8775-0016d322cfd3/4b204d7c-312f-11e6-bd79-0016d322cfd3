@@ -73,12 +73,6 @@ volatile CYG_BYTE hal_interrupt_level[CYGNUM_HAL_ISR_COUNT];
 /*------------------------------------------------------------------------*/
 void hal_variant_init(void)
 {
-	//diag_printf("%s\n",__FUNCTION__);
-    // hal_init_icache(0);
-    // HAL_DCACHE_LOCK(0x8031f320, 0x7E0CE0);
-    HAL_DCACHE_SYNC();
-    HAL_DCACHE_LOCK(0x80000000, 0xA00000);
-    // HAL_DCACHE_INVALIDATE(0x80A00000, 0x100000);
 }
 
 /*

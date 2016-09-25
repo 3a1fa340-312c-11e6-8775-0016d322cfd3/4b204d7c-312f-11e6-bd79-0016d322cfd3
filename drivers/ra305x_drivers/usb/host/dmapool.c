@@ -170,7 +170,8 @@ void *dma_alloc_coherent(struct device *dev, size_t size,
 {
     void *ret;
 
-    ret = (void *)get_free_pages(size);
+    // ret = (void *)get_free_pages(size);
+    ret = (void *)kaligned_alloc(size, 0x1000);
     if (ret) {
         memset (ret, 0, size);
         *dma_handle = plat_map_dma_mem (dev, ret, size);
@@ -179,14 +180,14 @@ void *dma_alloc_coherent(struct device *dev, size_t size,
         __sync();
     }
 
-    pr_debug("%s(%d) addr:%x, size:%x\n", __func__, __LINE__, (u32)ret, size);
     return ret;
 }
 
 void dma_free_coherent(struct device *dev, size_t size, void *vaddr,
         dma_addr_t *dma_handle)
 {
-    free_pages(vaddr);
+    // free_pages(vaddr);
+    kaligned_free(vaddr);
 }
 
 /**
@@ -240,9 +241,7 @@ struct dma_pool *dma_pool_create(const char *name, struct device *dev,
 	}
 
 	// retval = kmalloc_node(sizeof(*retval), GFP_KERNEL, dev_to_node(dev));
-    // retval = (struct dma_pool *)malloc(sizeof(*retval));
-    // retval = (struct dma_pool *)kmalloc(sizeof(*retval));
-    retval = (struct dma_pool *)kaligned_alloc(sizeof(*retval), 0x10);
+    retval = (struct dma_pool *)kmalloc(sizeof(*retval), GFP_KERNEL);
 	if (!retval)
 		return retval;
 
@@ -276,7 +275,6 @@ struct dma_pool *dma_pool_create(const char *name, struct device *dev,
 	} else
 		INIT_LIST_HEAD(&retval->pools);
 
-    pr_debug("%s(%d) name:%s size:%x align:%x boundary:%x, allocation:%x\n", __func__, __LINE__, name, size, align, boundary, allocation);
 	return retval;
 }
 EXPORT_SYMBOL(dma_pool_create);
@@ -301,8 +299,7 @@ static struct dma_page *pool_alloc_page(struct dma_pool *pool, gfp_t mem_flags)
 {
 	struct dma_page *page;
 
-    // page = kmalloc(sizeof(*page), mem_flags);
-    page = kaligned_alloc(sizeof(*page), 0x1000);
+    page = kmalloc(sizeof(*page), mem_flags);
 	if (!page)
 		return NULL;
 	page->vaddr = dma_alloc_coherent(pool->dev, pool->allocation,
@@ -316,8 +313,7 @@ static struct dma_page *pool_alloc_page(struct dma_pool *pool, gfp_t mem_flags)
 		page->in_use = 0;
 		page->offset = 0;
 	} else {
-        // kfree(page);
-        kaligned_free(page);
+        kfree(page);
 		page = NULL;
 	}
     pr_debug("%s(%d) page addr:%x\n", __func__, __LINE__, (u32)page);
@@ -338,7 +334,6 @@ static void pool_free_page(struct dma_pool *pool, struct dma_page *page)
 #endif
 	dma_free_coherent(pool->dev, pool->allocation, page->vaddr, dma);
 	list_del(&page->page_list);
-	// kaligned_free(page);
     kfree(page);
 }
 
@@ -378,8 +373,7 @@ void dma_pool_destroy(struct dma_pool *pool)
 			pool_free_page(pool, page);
 	}
 
-    kaligned_free(pool);
-    // kfree(pool);
+    kfree(pool);
 }
 EXPORT_SYMBOL(dma_pool_destroy);
 

@@ -67,12 +67,14 @@ static int irq_flag;
 #define printk        diag_printf
 #define pr_debug      diag_printf
 #define pr_info       diag_printf
-#define TTRACE        \
-    diag_printf("termy say, %s(%d)\n", __func__, __LINE__)
-// #define TTRACE do{}while(0)
+// #define TTRACE        \
+//     diag_printf("termy say, %s(%d)\n", __func__, __LINE__)
+#define TTRACE do{}while(0)
 #define EPDBG         \
     diag_printf("termy say, EPDBG: %s(%d)\n", __func__, __LINE__)
 // #define EPDBG do{}while(0)
+#define TADDR(fmt, addr) diag_printf("%s(%d) %s:%x\n", __func__, __LINE__, fmt, (u32)addr)
+#define TVAL(fmt, val) diag_printf("%s(%d) %s:%d\n", __func__, __LINE__, fmt, val)
 
 #define ehci_dbg(ehci, fmt, args...) \
     diag_printf(fmt, ##args)
@@ -155,6 +157,7 @@ typedef long                    __kernel_time_t;
 typedef long                    __kernel_suseconds_t;
 typedef long                    suseconds_t;
 typedef long                    time_t;
+typedef long long               loff_t;
 
 /* Arbitrary Unicode character */
 typedef u32                     unicode_t;
@@ -187,13 +190,16 @@ typedef struct {
 #define KERN_DEBUG
 #define KERN_ERR
 #define KERN_EMERG
+#define KERN_INFO 
 #define WARN_ON
 #define WARN_ONCE
 #define __iomem
 #define __init
+#define __exit
 #define __read_mostly
 #define __force
 #define __attribute_const__	
+#define __user
 
 #define might_sleep() do{} while(0)
 #define bus_get(x)    x
@@ -479,6 +485,7 @@ extern u32 __div64_32(u64 *dividend, u32 divisor);
 
 #define kmalloc(x, y)   kaligned_alloc(x, 0x20)
 #define kfree(x)        kaligned_free(x)
+#define copy_from_user  memcpy
 
 /*
  *     virt_to_phys    -       map virtual addresses to physical
@@ -547,6 +554,9 @@ static inline void * phys_to_virt(unsigned long address)
 static inline dma_addr_t dma_map_single(struct device *dev, void *ptr, size_t size,
     enum dma_data_direction direction)
 {
+    // __dma_sync(virt_to_page(ptr),
+    //         (unsigned long)ptr & ~PAGE_MASK, size, direction);
+    __dma_sync_virtual(ptr, size, direction);
     return plat_map_dma_mem(dev, ptr, size);
 }
 

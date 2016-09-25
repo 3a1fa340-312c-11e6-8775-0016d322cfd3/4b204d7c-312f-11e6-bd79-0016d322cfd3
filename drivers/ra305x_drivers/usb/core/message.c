@@ -145,10 +145,8 @@ int usb_control_msg(struct usb_device *dev, unsigned int pipe, __u8 request,
 	int ret;
 
     dr = kmalloc(sizeof(struct usb_ctrlrequest), GFP_NOIO);
-    dr = kaligned_alloc(sizeof(struct usb_ctrlrequest), 0x1000);
 	if (!dr)
 		return -ENOMEM;
-    // pr_debug("%s(%d) dr:%x\n", __func__, __LINE__, (u32)dr);
 
 	dr->bRequestType = requesttype;
 	dr->bRequest = request;
@@ -156,20 +154,17 @@ int usb_control_msg(struct usb_device *dev, unsigned int pipe, __u8 request,
 	dr->wIndex = cpu_to_le16(index);
 	dr->wLength = cpu_to_le16(size);
 
-    pr_debug("%s(%d), dr:%x data:%x usb_control_msg, %x-%x-%x-%x-%x\n", __func__, __LINE__,
-            (u32)dr,
-            (u32)data,
-            dr->bRequestType,
-            dr->bRequest,
-            dr->wValue,
-            dr->wIndex,
-            dr->wLength);
+    // pr_debug("%s(%d), usb_control_msg, %x-%x-%x-%x-%x\n", __func__, __LINE__,
+    //         dr->bRequestType,
+    //         dr->bRequest,
+    //         dr->wValue,
+    //         dr->wIndex,
+    //         dr->wLength);
 	/* dbg("usb_control_msg"); */
 
 	ret = usb_internal_control_msg(dev, pipe, dr, data, size, timeout);
 
-    // kfree(dr);
-    kaligned_free(dr);
+    kfree(dr);
 
 	return ret;
 }
@@ -652,7 +647,7 @@ int usb_get_descriptor(struct usb_device *dev, unsigned char type,
 	int i;
 	int result;
 
-	memset(buf, 0, size);	/* Make sure we parse really received data */
+    memset(buf, 0, size);	/* Make sure we parse really received data */
 
 	for (i = 0; i < 3; ++i) {
 		/* retry on length 0 or error; some devices are flakey */
@@ -663,7 +658,6 @@ int usb_get_descriptor(struct usb_device *dev, unsigned char type,
 		if (result <= 0 && result != -ETIMEDOUT)
 			continue;
 		if (result > 1 && ((u8 *)buf)[1] != type) {
-            // pr_debug("termy say, %s(%d), type = %x-%x\n", __func__, __LINE__, ((u8 *)buf)[1], type);
 			result = -ENODATA;
 			continue;
 		}
@@ -929,16 +923,14 @@ int usb_get_device_descriptor(struct usb_device *dev, unsigned int size)
 
 	if (size > sizeof(*desc))
 		return -EINVAL;
-	// desc = kmalloc(sizeof(*desc), GFP_NOIO);
-    desc = kaligned_alloc(sizeof(*desc), 0x100);
+    desc = kmalloc(sizeof(*desc), GFP_NOIO);
 	if (!desc)
 		return -ENOMEM;
 
 	ret = usb_get_descriptor(dev, USB_DT_DEVICE, 0, desc, size);
 	if (ret >= 0)
 		memcpy(&dev->descriptor, desc, size);
-	// kfree(desc);
-    kaligned_free(desc);
+    kfree(desc);
 	return ret;
 }
 

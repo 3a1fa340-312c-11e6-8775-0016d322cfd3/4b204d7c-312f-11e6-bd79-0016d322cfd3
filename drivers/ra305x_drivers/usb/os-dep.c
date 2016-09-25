@@ -10,6 +10,7 @@
 #include "asm/bitops.h"
 #include "asm/usb-atomic.h"
 #include "scatterlist.h"
+#include "asm/r4kcache.h"
 
 
 void alarm_callback(cyg_handle_t alarm, cyg_addrword_t data)
@@ -43,6 +44,7 @@ void usb_thread (cyg_addrword_t parameter)
     usb_init();
     ehci_hcd_init();
 
+    usblp_init();
     cyg_semaphore_wait(&forever_sem);
 } /* usb_thread */
 
@@ -748,9 +750,9 @@ int device_add(struct device *dev)
     parent = get_device(dev->parent);
 	// setup_parent(dev, parent);
 
-	pr_debug("device: '%s': %s addr:%x\n", dev_name(dev), __func__, (u32)dev);
-    if (parent)
-        pr_debug("%s(%d) device parent:%x\n", __func__, __LINE__, (u32)parent);
+	// pr_debug("device: '%s': %s addr:%x\n", dev_name(dev), __func__, (u32)dev);
+    // if (parent)
+    //     pr_debug("%s(%d) device parent:%x\n", __func__, __LINE__, (u32)parent);
 
 
 	/* use parent numa_node */
@@ -1525,7 +1527,6 @@ int device_private_init(struct device *dev)
 	if (!dev->p)
 		return -ENOMEM;
 	dev->p->device = dev;
-    pr_debug("%s(%d) dev:%x\n", __func__, __LINE__, (u32)dev);
 	klist_init(&dev->p->klist_children, klist_children_get,
 		   klist_children_put);
 	return 0;
@@ -1590,6 +1591,59 @@ int kref_put(struct kref *kref, void (*release)(struct kref *kref))
     }
     return 0;
 }
+
+inline void __dma_sync_virtual(void *addr, size_t size,
+	enum dma_data_direction direction)
+{
+    unsigned long lsize = 32;
+    unsigned long almask = ~(lsize - 1);
+
+	switch (direction) {
+	case DMA_TO_DEVICE:
+		// dma_cache_wback((unsigned long)addr, size);
+        blast_dcache_range((unsigned long)addr, (unsigned long)addr + size);
+		break;
+
+	case DMA_FROM_DEVICE:
+		// dma_cache_inv((unsigned long)addr, size);
+		cache_op(Hit_Writeback_Inv_D, (unsigned long)addr & almask);
+		cache_op(Hit_Writeback_Inv_D, ((unsigned long)addr + size - 1)  & almask);
+		blast_inv_dcache_range((unsigned long)addr, (unsigned long)addr + size);
+		break;
+
+	case DMA_BIDIRECTIONAL:
+		// dma_cache_wback_inv((unsigned long)addr, size);
+        blast_dcache_range((unsigned long)addr, (unsigned long)addr + size);
+		break;
+
+	default:
+		BUG();
+	}
+    __sync();
+}
+
+/*
+ * A single sg entry may refer to multiple physically contiguous
+ * pages. But we still need to process highmem pages individually.
+ * If highmem is not configured then the bulk of this loop gets
+ * optimized out.
+ */
+// static inline void __dma_sync(struct page *page,
+//     unsigned long offset, size_t size, enum dma_data_direction direction)
+// {
+//     size_t left = size;
+// 
+//     do {
+//         size_t len = left;
+// 
+//         __dma_sync_virtual(page_address(page) + offset,
+//                 size, direction);
+// 
+//         offset = 0;
+//         page++;
+//         left -= len;
+//     } while (left);
+// }
 
 void dma_unmap_single(struct device *dev, dma_addr_t dma_addr, size_t size,
 	enum dma_data_direction direction)

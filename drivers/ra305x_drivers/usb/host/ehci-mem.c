@@ -76,8 +76,7 @@ static void qh_destroy(struct ehci_qh *qh)
 	if (qh->dummy)
 		ehci_qtd_free (ehci, qh->dummy);
 	dma_pool_free(ehci->qh_pool, qh->hw, qh->qh_dma);
-	// kfree(qh);
-    kaligned_free(qh);
+    kfree(qh);
 }
 
 static struct ehci_qh *ehci_qh_alloc (struct ehci_hcd *ehci, gfp_t flags)
@@ -86,7 +85,7 @@ static struct ehci_qh *ehci_qh_alloc (struct ehci_hcd *ehci, gfp_t flags)
 	dma_addr_t		dma;
 
     // qh = kzalloc(sizeof (*qh), GFP_ATOMIC);
-    qh = kaligned_alloc(sizeof *qh, 0x1000);
+    qh = kmalloc(sizeof(*qh), GFP_ATOMIC);
 	if (!qh)
 		goto done;
 	qh->hw = (struct ehci_qh_hw *)
@@ -111,8 +110,7 @@ done:
 fail1:
 	dma_pool_free(ehci->qh_pool, qh->hw, qh->qh_dma);
 fail:
-	// kfree(qh);
-    kaligned_free(qh);
+    kfree(qh);
 	return NULL;
 }
 
@@ -169,7 +167,7 @@ static void ehci_mem_cleanup (struct ehci_hcd *ehci)
 	ehci->periodic = NULL;
 
 	/* shadow periodic table */
-    kaligned_free(ehci->pshadow);
+    kfree(ehci->pshadow);
 	ehci->pshadow = NULL;
 }
 

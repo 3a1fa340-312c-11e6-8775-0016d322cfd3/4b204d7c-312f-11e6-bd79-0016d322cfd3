@@ -299,4 +299,7 @@ extern uint32 IPXSNAPRecv;
 #define		STREAM_BINARY		0
 #define		STREAM_ASCII		1
 
+#define TTRACE        \
+    diag_printf("%s(%d)\n", __func__, __LINE__)
+
 #endif  /*_PSGLOBAL_H*/

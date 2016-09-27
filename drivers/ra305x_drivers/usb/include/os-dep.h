@@ -67,11 +67,11 @@ static int irq_flag;
 #define printk        diag_printf
 #define pr_debug      diag_printf
 #define pr_info       diag_printf
-// #define TTRACE        \
-//     diag_printf("termy say, %s(%d)\n", __func__, __LINE__)
-#define TTRACE do{}while(0)
+#define TTRACE        \
+    diag_printf("%s(%d)\n", __func__, __LINE__)
+// #define TTRACE do{}while(0)
 #define EPDBG         \
-    diag_printf("termy say, EPDBG: %s(%d)\n", __func__, __LINE__)
+    diag_printf("EPDBG: %s(%d)\n", __func__, __LINE__)
 // #define EPDBG do{}while(0)
 #define TADDR(fmt, addr) diag_printf("%s(%d) %s:%x\n", __func__, __LINE__, fmt, (u32)addr)
 #define TVAL(fmt, val) diag_printf("%s(%d) %s:%d\n", __func__, __LINE__, fmt, val)

@@ -7,6 +7,24 @@
 #include "prnqueue.h"
 #include "star_powermgt.h"	//ZOT716u2
 
+#if defined(ARCH_MIPS)
+#define IH_NMLEN    32
+typedef struct image_header {
+    uint32 ih_magic;   /* Image Header Magic Number */
+    uint32 ih_hcrc;    /* Image Header CRC Checksum */
+    uint32 ih_time;    /* Image Creation Timestamp  */
+    uint32 ih_size;    /* Image Data Size       */
+    uint32 ih_load;    /* Data   Load  Address      */
+    uint32 ih_ep;      /* Entry Point Address       */
+    uint32 ih_dcrc;    /* Image Data CRC Checksum   */
+    uint8  ih_os;      /* Operating System      */
+    uint8  ih_arch;    /* CPU architecture      */
+    uint8  ih_type;    /* Image Type            */
+    uint8  ih_comp;    /* Compression Type      */
+    uint8  ih_name[IH_NMLEN];  /* Image Name        */
+} uboot_image_header_t;
+#endif /* ARCH_MIPS */
+
 typedef struct _header_ver{
 	
 	DWORD crc32_chksum; //crc32 checksum
@@ -52,6 +70,26 @@ extern uint32 get32(uint8 *cp);
 
 // #define PROGRAM_MAX_RETRY_TIMES			3
 #define PROGRAM_MAX_RETRY_TIMES			1
+
+#if defined(ARCH_MIPS)
+void dump_uboot_image_header(uboot_image_header_t *hdr)
+{
+    diag_printf("u_boot image header --------------------------------------\n");
+    diag_printf("ih_magic:%4x\n", ntohl(hdr->ih_magic));
+    diag_printf("ih_hcrc:%4x\n", ntohl(hdr->ih_hcrc));
+    diag_printf("ih_time:%4x\n", ntohl(hdr->ih_time));
+    diag_printf("ih_size:%d\n", ntohl(hdr->ih_size));
+    diag_printf("ih_load:%4x\n", ntohl(hdr->ih_load));
+    diag_printf("ih_ep:%4x\n", ntohl(hdr->ih_ep));
+    diag_printf("hi_dcrc:%4x\n", ntohl(hdr->ih_dcrc));
+    diag_printf("hi_os:%x\n", hdr->ih_os);
+    diag_printf("hi_arch:%x\n", hdr->ih_arch);
+    diag_printf("hi_type:%x\n", hdr->ih_type);
+    diag_printf("hi_comp:%x\n", hdr->ih_comp);
+    diag_printf("ih_name:%s\n", hdr->ih_name);
+    diag_printf("----------------------------------------------------------\n");
+}
+#endif /* ARCH_MIPS */
 
 #ifdef ARCH_ARM
 int vEraseWeb()
@@ -360,6 +398,31 @@ int DoChecksum( uint8 *Address )
 	return Length;
 }
 
+#if defined(ARCH_MIPS)
+int _DoChecksum( uint8 *Address, unsigned long len )
+{
+    uint32 checksum;
+    uboot_image_header_t hdr;
+    HEADER_VER  zhdr;
+    read_flash(Address, &hdr, sizeof(uboot_image_header_t));
+    read_flash(Address + len - sizeof(HEADER_VER), &zhdr, sizeof(HEADER_VER));
+    
+	if( zhdr.mark[0] != 'X' ||
+		zhdr.mark[1] != 'G' ||
+		zhdr.mark[2] != 'Z' ||
+        zhdr.model   != CURRENT_PS_MODEL) {
+		return 0; //Mark Error
+    }	
+    memset( UPGRADE_TEMP_ADDRESS, len, 0 );
+    read_flash( Address, UPGRADE_TEMP_ADDRESS, len );
+    checksum = _crc32(0, UPGRADE_TEMP_ADDRESS + sizeof(uboot_image_header_t), ntohl(hdr.ih_size));
+    if (checksum != ntohl(hdr.ih_dcrc)) {
+        return 0;
+    }
+    return len;
+}
+#endif
+
 int vProgramLoader( char *pCode2Data, uint32 length )
 {
 	uint8	*CurTempAddress;
@@ -462,49 +525,53 @@ int vProgramCode2( char *pCode2Data, uint32 length )
 	int		retry, error = 0;
 	uint32  i,j=0,write_leng;
 	
-	
-	
-	for( retry = 0; retry < PROGRAM_MAX_RETRY_TIMES; retry++ )
-	{
-		CurTempAddress = pCode2Data;
-		CurFlashAddress = CODE2_START_ADDRESS;
-		error = 0;
-		
-		Light_Off( Status_Lite );
-		error = vEraseCode2();
-		Light_On( Status_Lite );
-			
-		if(!error)
-		{
+    for( retry = 0; retry < PROGRAM_MAX_RETRY_TIMES; retry++ )
+    {
+        CurTempAddress = pCode2Data;
+        CurFlashAddress = CODE2_START_ADDRESS;
+        error = 0;
 
-			for( i = 0; i < length && !error ; i+=write_leng )
-			{
-				if((j % 2  ) == 0 )	
-					Light_Off(Status_Lite);
-				else
-					Light_On(Status_Lite);
-				
-				if( (length - i)> PROGRAM_CODE2_KSIZE *1024 )
-					write_leng = PROGRAM_CODE2_KSIZE * 1024;
-				else
-					write_leng = length - i;
-				
-				error = vProgramFlash( CurFlashAddress, 
-					CurTempAddress, write_leng );
-				CurTempAddress += write_leng;
-				CurFlashAddress += write_leng;
-				j++;
-			}
-		}
+        Light_Off( Status_Lite );
+        error = vEraseCode2();
+        Light_On( Status_Lite );
 
-		if(!error)
-		{
-			if( DoChecksum( CODE2_START_ADDRESS ) == 0 )
-				continue;
-			break;
-		}	
-	}
-	return error;
+        if(!error)
+        {
+
+            for( i = 0; i < length && !error ; i+=write_leng )
+            {
+                if((j % 2  ) == 0 )
+                    Light_Off(Status_Lite);
+                else
+                    Light_On(Status_Lite);
+
+                if( (length - i)> PROGRAM_CODE2_KSIZE *1024 )
+                    write_leng = PROGRAM_CODE2_KSIZE * 1024;
+                else
+                    write_leng = length - i;
+
+                error = vProgramFlash( CurFlashAddress,
+                    CurTempAddress, write_leng );
+                CurTempAddress += write_leng;
+                CurFlashAddress += write_leng;
+                j++;
+            }
+        }
+
+        if(!error)
+        {
+            #if defined(ARCH_ARM)
+            if( DoChecksum( CODE2_START_ADDRESS ) == 0 )
+                continue;
+            #endif /* ARCH_ARM */
+            #if defined(ARCH_MIPS)
+            if( _DoChecksum( CODE2_START_ADDRESS, length ) == 0 )
+                continue;
+            #endif /* ARCH_MIPS */
+            break;
+        }
+    }
+    return error;
 }
 
 #ifdef ARCH_ARM
@@ -682,6 +749,9 @@ ApUpgradeFirmware(char *pData, unsigned long len)
     char          *pread = pData;
 	HEADER_VER *hdr1 = (HEADER_VER *)pread;
 	HEADER_VER *prehdr1 = NULL;
+    uboot_image_header_t *uheader_ptr;
+    unsigned long zhdr_offset;
+    unsigned long crclen;
         
     if ( pData == NULL)
     {
@@ -713,32 +783,54 @@ ApUpgradeFirmware(char *pData, unsigned long len)
 		switch(offset)
 		{
 			case LOADERADDROFF:
-				cyg_scheduler_lock();
-				src = (char *)hdr1 + sizeof(HEADER_VER);
-				vProgramLoader( src, nbytes);
-				cyg_scheduler_unlock();
+                cyg_scheduler_lock();
+                src = (char *)hdr1 + sizeof(HEADER_VER);
+                vProgramLoader( src, nbytes);
+                cyg_scheduler_unlock();
 				break;
+
 			case CODE1ADDROFF:
+#if defined(ARCH_ARM)
 				nbytes += sizeof(HEADER_VER);
-				cyg_scheduler_lock();
-				vProgramCode1( hdr1, nbytes);
-				cyg_scheduler_unlock();			
+                cyg_scheduler_lock();
+                vProgramCode1( hdr1, nbytes);
+                cyg_scheduler_unlock();
+#endif /*ARCH_ARM */
 				break;
+
 			case CODE2ADDROFF:
-				nbytes += sizeof(HEADER_VER);
-				cyg_scheduler_lock();
-				vProgramCode2( hdr1, nbytes);
-				cyg_scheduler_unlock();
-				break;
-            #ifdef ARCH_ARM
-			case WEBOFF:
-				nbytes += sizeof(HEADER_VER);
-				vProgramWeb( hdr1, nbytes);
-				break;
-            #endif /* ARCH_ARM */
-			case DEFAULTADDROFF:
-				vProgramDef( hdr1, nbytes);
-				break;
+#if defined (ARCH_MIPS)
+                /*
+                 * copy zot header to end
+                 */
+                zhdr_offset = ((nbytes + (sizeof(HEADER_VER)-1)) / sizeof(HEADER_VER)) * sizeof(HEADER_VER);
+                hdr1->crc32_chksum = htonl(0);
+                hdr1->crc32_chksum = _crc32(0, hdr1, sizeof(HEADER_VER));
+                memcpy((void *)hdr1 + zhdr_offset + sizeof(HEADER_VER), hdr1, sizeof(HEADER_VER));
+                /*
+                 * update date length and let pointer cross zot header
+                 */
+                nbytes = zhdr_offset + sizeof(HEADER_VER);
+                hdr1++;
+#endif /* ARCH_MIPS */
+#if defined (ARCH_ARM)
+                nbytes += sizeof(HEADER_VER);
+#endif /* ARCH_ARM */
+                cyg_scheduler_lock();
+                vProgramCode2( hdr1, nbytes);
+                cyg_scheduler_unlock();
+                break;
+
+                #if defined(ARCH_ARM)
+                case WEBOFF:
+                    nbytes += sizeof(HEADER_VER);
+                    vProgramWeb(hdr1, nbytes);
+                    break;
+
+                #endif /* ARCH_ARM */
+                case DEFAULTADDROFF:
+                    vProgramDef( hdr1, nbytes);
+                    break;
 	
 		}
 	

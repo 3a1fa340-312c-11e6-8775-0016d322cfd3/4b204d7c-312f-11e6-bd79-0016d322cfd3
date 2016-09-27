@@ -1524,7 +1524,9 @@ httpd (cyg_addrword_t data)
 									}
 								}
 																
+                                /*
 								free(CurTempAddress);
+                                */
 
 								DisplayCGIMsg(rq.url, network,Inline,Outline,&rq);
 								

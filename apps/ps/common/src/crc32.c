@@ -81,3 +81,26 @@ crc32(unsigned char *address, unsigned int size, unsigned int crc)
                crc32table[(crc ^ *address++) & 0x000000FF]);
     return (crc);
 }
+
+#if defined(ARCH_MIPS)
+#define DO1(buf) crc = crc32table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
+#define DO2(buf)  DO1(buf); DO1(buf);
+#define DO4(buf)  DO2(buf); DO2(buf);
+#define DO8(buf)  DO4(buf); DO4(buf);
+
+unsigned long _crc32(unsigned long crc, 
+                     const unsigned char* buf, 
+                     unsigned int len)
+{
+    crc = crc ^ 0xffffffffL;
+    while (len >= 8) {
+        DO8(buf);
+        len -= 8; 
+    }
+    if (len) do {
+        DO1(buf);
+    } while (--len);
+    return crc ^ 0xffffffffL;
+}
+#endif /* ARCH_MIPS */
+

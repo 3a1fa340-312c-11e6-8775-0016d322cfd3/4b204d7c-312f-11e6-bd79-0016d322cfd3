@@ -185,8 +185,14 @@
 #define	WEBPAGE_OFFSET				0x100				
 
 //--- SDROM Memory Mapping allocation -----------------------------------------------
+#if defined(ARCH_ARM)
 #define PRINT_QUEUE_ADDRESS 		0x00530000	//576k	//ZOT716u2
 #define UPGRADE_TEMP_ADDRESS		0x00530000	//576K	//ZOT716u2
+#endif /* ARCH_ARM */
+#if defined (ARCH_MIPS)
+#define PRINT_QUEUE_ADDRESS 		0x80E00000	//576k	//ZOT716u2
+#define UPGRADE_TEMP_ADDRESS		0x80E00000	//576K	//ZOT716u2
+#endif /* ARCH_MIPS */
 
 //--- SDROM no cache Memory Mapping allocation -----------------------------------------------
 #if defined(ARCH_ARM)

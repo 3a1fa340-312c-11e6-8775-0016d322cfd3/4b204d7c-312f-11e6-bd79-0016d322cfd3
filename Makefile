@@ -91,6 +91,8 @@ endif
 include rules.mak
 include $(TARGET_DEF)
 
+RDVersionPlus := $(shell echo ${RDVersion} + 1 | bc)
+
 #Ron Add 4/15/2004 ==================================================================
 #|0xB0: ALL FLASH | 0xB1: Code1 | 0xB2: Code2 | 0xB3: EEPROM |0xB4: LOADER
 ALLFLASHMARK    = 0xB0
@@ -203,7 +205,6 @@ $(patsubst %, _drvclean_%, $(DRVSUBDIRS)):
 	make -C $(patsubst _drvclean_%, %, $@) clean
 
 
-
 N716U2:
 	make package PROD_NAME=zot716u2
 
@@ -214,17 +215,23 @@ DWP2020:
 	make package PROD_NAME=zotdwp2020
 package:
 	make clean
+ifeq ($(CHIP),arm9)
 	make COPTFLAGS=-O2 
 	cp $(DST_NAME) $(PROD_NAME).bin
 	$(STRIP) $(PROD_NAME).bin
 	cp $(PROD_NAME).bin TEMP.bin
 	gzip -c TEMP.bin > $(PROD_NAME).gz
 	rm TEMP.bin
+endif
+ifeq ($(CHIP),mt7688)
+	make mt7688_ecos.img
+	mv mt7688_ecos.img $(PROD_NAME).gz
+endif
 	cp $(TARGET_DEF) .
 	wine $(TOOLS_DIR)/maketarget 
-	wine $(TOOLS_DIR)/makimage $(PSMODELINDEX) $(CODE2MARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersion) $(BuildVer) $(MAKER_AND_CPU) $(PROD_NAME).gz MPS$(PSMODELINDEX).bin
+	wine $(TOOLS_DIR)/makimage $(PSMODELINDEX) $(CODE2MARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersionPlus) $(BuildVer) $(MAKER_AND_CPU) $(PROD_NAME).gz MPS$(PSMODELINDEX).bin
 	cp MPS$(PSMODELINDEX).bin $(ROOT_DIR)/img/.
-	rm Target.def
+	mv Target.def $(TARGET_DEF)
 
 target.ld:
 	cp $(ROOT_DIR)/ecos/target.ld $(PKG_INSTALL_DIR)/lib/
@@ -238,6 +245,13 @@ lzmaImage: DIR_CHECK RM_AXF_FILE target.ld $(DST_NAME) $(PROD_NAME).bin $(PROD_N
 mt7688_ecos.img: lzmaImage.bin 
 	mkimage -A mips -T standalone -C none -a $(CONFIG_ZLOAD_BUF) -e $(CONFIG_ZLOAD_BUF) -n $(PROD_NAME) -d $< $@ 
 	sudo cp $@ /tftpboot
+
+loader: uboot.bin
+	cp $(TARGET_DEF) .
+	wine $(TOOLS_DIR)/maketarget 
+	wine $(TOOLS_DIR)/makimage $(PSMODELINDEX) $(LOADERMARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersionPlus) $(BuildVer) $(MAKER_AND_CPU) $< MPS$(PSMODELINDEX)_loader.bin
+	cp MPS$(PSMODELINDEX)_loader.bin $(ROOT_DIR)/img/.
+	mv Target.def $(TARGET_DEF)
 
 OBJ_DIR       = $(PROD_BUILD_DIR)/obj
 LIB_DIR       = $(PROD_BUILD_DIR)/lib

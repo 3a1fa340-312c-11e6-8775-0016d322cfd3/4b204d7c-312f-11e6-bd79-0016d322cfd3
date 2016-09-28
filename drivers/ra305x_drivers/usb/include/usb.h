@@ -1018,11 +1018,7 @@ struct usb_anchor {
 static inline void init_usb_anchor(struct usb_anchor *anchor)
 {
 	INIT_LIST_HEAD(&anchor->urb_list);
-
-	// init_waitqueue_head(&anchor->wait);
-    spin_lock_init(&anchor->wait.lock);
-    cyg_semaphore_init(&anchor->wait.semaphore, 0);
-
+    init_waitqueue_head(&anchor->wait);
 	spin_lock_init(&anchor->lock);
 }
 

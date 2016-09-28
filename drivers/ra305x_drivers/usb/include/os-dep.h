@@ -255,11 +255,22 @@ typedef struct __wait_queue_head wait_queue_head_t;
 int default_wake_function(wait_queue_t *wait, unsigned mode, int flags, void *key);
 void finish_wait(wait_queue_head_t *q, wait_queue_t *wait);
 
+#define wake_up(x)  __wake_up(x, 3, 1, NULL)
+#define init_waitqueue_head __init_waitqueue_head
+
 #define __WAIT_QUEUE_HEAD_INITIALIZER(name) { \
     .task_list = { &(name).task_list, &(name).task_list } }
 
 #define DECLARE_WAIT_QUEUE_HEAD(name) \
     wait_queue_head_t name = __WAIT_QUEUE_HEAD_INITIALIZER(name)
+
+#define __WAIT_QUEUE_INITIALIZER(name) { \
+    .private = cyg_thread_self(), \
+    .func = default_wake_function, \
+    .task_list = {NULL, NULL} \
+}
+#define DECLARE_WAITQUEUE(name) \
+    wait_queue_t name = __WAIT_QUEUE_INITIALIZER(name)
 
 #define DEFINE_WAIT_FUNC(name, function)                        \
     wait_queue_t name = {                                       \
@@ -283,7 +294,7 @@ do {                                \
         prepare_to_wait(&wq, &__wait, TASK_UNINTERRUPTIBLE);    \
         if (condition)                                          \
             break;                                              \
-        cyg_thread_yield();                                     \
+        cyg_semaphore_wait(&wq.semaphore);                      \
     }                                                           \
     finish_wait(&wq, &__wait);                                  \    
 } while (0)
@@ -315,9 +326,8 @@ do {									                    \
 		prepare_to_wait(&wq, &__wait, TASK_UNINTERRUPTIBLE);\
 		if (condition)						\
 			break;						    \
-        cyg_thread_delay(ret);              \
-		if (ret)						    \
-			break;						    \
+        cyg_semaphore_timed_wait(&wq.semaphore, ret); \
+		break;						        \
 	}								        \
 	finish_wait(&wq, &__wait);				\
 } while (0)

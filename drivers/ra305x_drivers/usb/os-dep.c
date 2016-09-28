@@ -175,6 +175,33 @@ int timer_pending(struct timer_list *timer)
     return 0;
 }
 
+void __init_waitqueue_head(wait_queue_head_t *q)
+{
+    spin_lock_init(&q->lock);
+    INIT_LIST_HEAD(&q->task_list);
+    cyg_semaphore_init(&q->semaphore, 0);
+}
+
+void add_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
+{
+    unsigned long flags;
+
+    wait->flags &= ~WQ_FLAG_EXCLUSIVE;
+    spin_lock_irqsave(&q->lock, flags);
+    list_add(&wait->task_list, &q->task_list); 
+    spin_unlock_irqrestore(&q->lock, flags);
+}
+
+void remove_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
+{
+    unsigned long flags;
+
+    wait->flags &= ~WQ_FLAG_EXCLUSIVE;
+    spin_lock_irqsave(&q->lock, flags);
+    list_del(&wait->task_list); 
+    spin_unlock_irqrestore(&q->lock, flags);
+}
+
 /*
  * finish_wait - clean up after waiting in a queue
  * @q: waitqueue waited on
@@ -209,33 +236,39 @@ void finish_wait(wait_queue_head_t *q, wait_queue_t *wait)
 	}
 }
 
-// int default_wake_function(wait_queue_t *wait, unsigned mode, int flags, void *key)
-// {
-// 
-// }
-// 
-int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key)
- {
-//     int ret = default_wake_function(wait, mode, sync, key);
-// 
-//     if (ret)
-//         list_del_init(&wait->task_list);
-//     return ret;
+int default_wake_function(wait_queue_t *wait, unsigned mode, int flags, void *key)
+{
+    return 1;
 }
 
-void wake_up(wait_queue_head_t* q)
+int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key)
+ {
+    int ret = default_wake_function(wait, mode, sync, key);
+
+    if (ret)
+        list_del_init(&wait->task_list);
+    return ret;
+}
+
+void __wake_up(wait_queue_head_t* q, unsigned int mode, 
+        int nr_exclusive, void *key)
 {
     unsigned long flags;
     wait_queue_t *curr, *next;
 
     spin_lock_irqsave(&q->lock, flags);
 
+    // curr = list_entry(q->task_list.next, wait_queue_t, task_list);
     list_for_each_entry_safe(curr, next, &q->task_list, task_list) {
-        // if (curr->func(curr, 0, 1, 0, NULL) &&
-        //         (cur->flags & WQ_FLAG_EXCLUSIVE) && !--nr_exclusive)
-        //     break;
-        list_del_init(&curr->task_list);
+        // unsigned flags = curr->flags;
+        unsigned flags;
+         
+        if (curr->func(curr, mode, 0, key) &&
+                (curr->flags & WQ_FLAG_EXCLUSIVE) && !--nr_exclusive)
+            break;
+        /* list_del_init(&curr->task_list); */
     }
+    cyg_semaphore_post(&q->semaphore);
     spin_unlock_irqrestore(&q->lock, flags);
 }
 
@@ -1066,9 +1099,6 @@ static void driver_bound(struct device *dev)
 		return;
 	}
 
-	pr_debug("driver: '%s': %s: bound to device '%s'\n", dev_name(dev),
-		 __func__, dev->driver->name);
-
 	klist_add_tail(&dev->p->knode_driver, &dev->driver->p->klist_devices);
 
 	// if (dev->bus)
@@ -1081,8 +1111,6 @@ static int really_probe(struct device *dev, struct device_driver *drv)
 	int ret = 0;
 
 	// atomic_inc(&probe_count);
-	pr_debug("bus: '%s': %s: probing driver %s with device %s\n",
-		 drv->bus->name, __func__, drv->name, dev_name(dev));
 	WARN_ON(!list_empty(&dev->devres_head));
 
 	dev->driver = drv;
@@ -1104,8 +1132,6 @@ static int really_probe(struct device *dev, struct device_driver *drv)
 
 	driver_bound(dev);
 	ret = 1;
-	pr_debug("bus: '%s': %s: bound device %s to driver %s\n",
-		 drv->bus->name, __func__, dev_name(dev), drv->name);
 	goto done;
 
 probe_failed:

@@ -688,7 +688,6 @@ void usb_hcd_poll_rh_status(struct usb_hcd *hcd)
 	if (!hcd->uses_new_polling && !hcd->status_urb)
 		return;
 
-    TTRACE;
 	length = hcd->driver->hub_status_data(hcd, buffer);
 	if (length > 0) {
 
@@ -988,7 +987,6 @@ static int register_root_hub(struct usb_hcd *hcd)
 		return (retval < 0) ? retval : -EMSGSIZE;
 	}
 
-    TTRACE;
 	retval = usb_new_device (usb_dev);
 	if (retval) {
 		dev_err (parent_dev, "can't register root hub for %s, %d\n",
@@ -1470,8 +1468,9 @@ int usb_hcd_submit_urb (struct urb *urb, gfp_t mem_flags)
 		INIT_LIST_HEAD(&urb->urb_list);
 		atomic_dec(&urb->use_count);
 		atomic_dec(&urb->dev->urbnum);
-		if (atomic_read(&urb->reject))
+        if (atomic_read(&urb->reject)) {
 			wake_up(&usb_kill_urb_queue);
+        }
 		usb_put_urb(urb);
 	}
 	return status;
@@ -1574,8 +1573,9 @@ void usb_hcd_giveback_urb(struct usb_hcd *hcd, struct urb *urb, int status)
 	urb->status = status;
 	urb->complete (urb);
 	atomic_dec (&urb->use_count);
-	if (unlikely(atomic_read(&urb->reject)))
+    if (unlikely(atomic_read(&urb->reject))) {
 		wake_up (&usb_kill_urb_queue);
+    }
 	usb_put_urb (urb);
 }
 EXPORT_SYMBOL_GPL(usb_hcd_giveback_urb);

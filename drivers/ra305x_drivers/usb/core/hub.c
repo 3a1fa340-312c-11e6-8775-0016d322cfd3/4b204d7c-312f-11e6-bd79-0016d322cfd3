@@ -417,7 +417,6 @@ static void hub_irq(struct urb *urb)
     unsigned i;
     unsigned long bits;
 
-    TTRACE;
     switch (status) {
     case -ENOENT:       /* synchronous unlink */
     case -ECONNRESET:   /* async unlink */
@@ -879,7 +878,6 @@ static void hub_init_func2(struct work_struct *ws)
 {
     struct usb_hub *hub = container_of(ws, struct usb_hub, init_work.work);
     // struct usb_hub *hub = (struct usb_hub *)data;
-    TTRACE;
 
     hub_activate(hub, HUB_INIT2);
 }
@@ -890,7 +888,6 @@ static void hub_init_func3(struct work_struct *ws)
 {
     struct usb_hub *hub = container_of(ws, struct usb_hub, init_work.work);
     // struct usb_hub *hub = (struct usb_hub *)data;
-    TTRACE;
 
     hub_activate(hub, HUB_INIT3);
 }
@@ -1197,7 +1194,6 @@ static int hub_configure(struct usb_hub *hub,
         goto fail;
     }
 
-    TTRACE;
     usb_fill_int_urb(hub->urb, hdev, pipe, *hub->buffer, maxp, hub_irq,
         hub, endpoint->bInterval);
 
@@ -1205,7 +1201,6 @@ static int hub_configure(struct usb_hub *hub,
     // if (hub->has_indicators && blinkenlights)
     //     hub->indicator [0] = INDICATOR_CYCLE;
 
-    TTRACE;
     hub_activate(hub, HUB_INIT);
     return 0;
 
@@ -1832,7 +1827,6 @@ int usb_new_device(struct usb_device *udev)
 {
     int err;
 
-    TTRACE;
     if (udev->parent) {
         /* Initialize non-root-hub device wakeup to disabled;
          * device (un)configuration controls wakeup capable
@@ -2628,7 +2622,6 @@ static int hub_set_address(struct usb_device *udev, int devnum)
     int retval;
     struct usb_hcd *hcd = bus_to_hcd(udev->bus);
 
-    TTRACE;
     /*
      * The host controller will choose the device address,
      * instead of the core having chosen it earlier
@@ -3388,7 +3381,6 @@ static void hub_events(void)
             }
 
             if (portchange & USB_PORT_STAT_C_ENABLE) {
-                TTRACE;
                 if (!connect_change)
                     dev_dbg (hub_dev,
                         "port %d enable change, "
@@ -3515,11 +3507,9 @@ static int hub_thread(void *__unused)
     //             !list_empty(&hub_event_list) ||
     //             kthread_should_stop());
     // } while (!kthread_should_stop() || !list_empty(&hub_event_list));
-    TTRACE;
     do {
         hub_events();
-        wait_event (khubd_wait, !list_empty(&hub_event_list));
-        TTRACE;
+        wait_event(khubd_wait, !list_empty(&hub_event_list));
     } while (!list_empty(&hub_event_list));
 
     pr_debug("%s: khubd exiting\n", usbcore_name);

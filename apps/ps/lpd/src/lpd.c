@@ -157,7 +157,7 @@ struct Lpr_Task LPRTaskInUse[LPRTask] = {0};
 
 //LpdRecv Thread initiation information	//615wu::no psmain
 #define LpdRecv_TASK_PRI         	20	//ZOT716u2
-#define LpdRecv_TASK_STACK_SIZE  	2048 //ZOT716u2 4096
+#define LpdRecv_TASK_STACK_SIZE  	4096 //ZOT716u2 4096
 static	uint8			LpdRecv_Stack[LPRTask][LpdRecv_TASK_STACK_SIZE];
 static  cyg_thread		LpdRecv_Task[LPRTask];
 static  cyg_handle_t	LpdRecv_TaskHdl[LPRTask];
@@ -243,7 +243,6 @@ void lpdstart(cyg_addrword_t data)
 		switch(rc = CheckServiceMode(s,network,&Port,&Mode,buf)) {
 			case LPD_RECEIVE_MODE:
 				if( availmem() != 0 ) {
-
 //Jesse					WarnLightOn(LED_LOW_MEMORY,2);
 					RESPOND_ERR( s );
 					shutdown(s,1);
@@ -333,7 +332,7 @@ void lpdstart(cyg_addrword_t data)
 						//Start LpdRecv Thread
 						cyg_thread_resume(LpdRecv_TaskHdl[task_index]);
 						
-				break;
+				        break;
 					}
 				}
 #endif
@@ -554,7 +553,6 @@ receive_job(cyg_addrword_t data)
 	PortNumber = LPD->PortNumber;
 
 
-
   	RESPOND_OK( LPD->remote );
 
 /* move to receive data file 3/23/98
@@ -748,7 +746,6 @@ static int receive_data_file(int PortNumber, unsigned long filesize, int s, int 
 	filesize++;	// add in status byte
 	blocksize = filesize > BLOCKSIZE ? BLOCKSIZE : filesize;
 #endif
-
 
 	RESPOND_OK( s );
 

@@ -134,6 +134,8 @@ MFG:HEWLETT-PACKARD;MDL:DESKJET 970C;CMD:MLC,PCL,PML;CLASS:PRINTER;DESCRIPTION:H
  */
 #define STATUS_BUF_SIZE		8
 
+#define MAX_USB_MINORS       256
+int *usb_minors[MAX_USB_MINORS] = {NULL};
 
 /*
  * Locks down the locking order:
@@ -153,9 +155,7 @@ struct usblp {
 	char			*readbuf;		/* read transfer_buffer */
 	char			*statusbuf;		/* status transfer_buffer */
 	struct usb_anchor	urbs;
-	// wait_queue_head_t	rwait, wwait;
-    cyg_sem_t   rwait;
-    cyg_sem_t   wwait;
+    wait_queue_head_t	rwait, wwait;
 	int			readcount;		/* Counter for reads */
 	int			ifnum;			/* Interface number */
 	struct usb_interface	*intf;			/* The interface */
@@ -373,8 +373,7 @@ static void usblp_bulk_read(struct urb *urb)
 	else
 		usblp->rstatus = urb->actual_length;
 	usblp->rcomplete = 1;
-	// wake_up(&usblp->rwait);
-    cyg_semaphore_post(&usblp->rwait);
+    wake_up(&usblp->rwait);
 	spin_unlock(&usblp->lock);
 
 	usb_free_urb(urb);
@@ -398,8 +397,7 @@ static void usblp_bulk_write(struct urb *urb)
 		usblp->wstatus = urb->actual_length;
 	usblp->no_paper = 0;
 	usblp->wcomplete = 1;
-	// wake_up(&usblp->wwait);
-    cyg_semaphore_post(&usblp->wwait);
+    wake_up(&usblp->wwait);
 	spin_unlock(&usblp->lock);
 
 	usb_free_urb(urb);
@@ -912,10 +910,11 @@ ssize_t usblp_write(struct usblp *usblp/*struct file *file*/, const char __user 
 	ssize_t writecount = 0;
 
 	// if (mutex_lock_interruptible(&usblp->wmut)) {
-	if (mutex_lock(&usblp->wmut)) {
-		rv = -EINTR;
-		goto raise_biglock;
-	}
+	// if (mutex_lock(&usblp->wmut)) {
+	//     rv = -EINTR;
+	//     goto raise_biglock;
+	// }
+    mutex_lock(&usblp->wmut);
 	// if ((rv = usblp_wwait(usblp, !!(file->f_flags & O_NONBLOCK))) < 0)
     if ((rv = usblp_wwait(usblp, 0)) < 0)
 		goto raise_wait;
@@ -932,7 +931,7 @@ ssize_t usblp_write(struct usblp *usblp/*struct file *file*/, const char __user 
 			goto raise_urb;
 		usb_anchor_urb(writeurb, &usblp->urbs);
 
-		if (copy_from_user(writeurb->transfer_buffer,
+		if (!copy_from_user(writeurb->transfer_buffer,
 				   buffer + writecount, transfer_length)) {
 			rv = -EFAULT;
 			goto raise_badaddr;
@@ -946,8 +945,7 @@ ssize_t usblp_write(struct usblp *usblp/*struct file *file*/, const char __user 
 			spin_lock_irq(&usblp->lock);
 			usblp->no_paper = 0;
 			usblp->wcomplete = 1;
-			// wake_up(&usblp->wwait);
-            cyg_semaphore_post(&usblp->wwait);
+            wake_up(&usblp->wwait);
 			spin_unlock_irq(&usblp->lock);
 			if (rv != -ENOMEM)
 				rv = -EIO;
@@ -1062,19 +1060,19 @@ done:
  */
 static int usblp_wwait(struct usblp *usblp, int nonblock)
 {
-	// DECLARE_WAITQUEUE(waita, current);
+    // DECLARE_WAITQUEUE(waita, current);
+    DECLARE_WAITQUEUE(waita);
 	int rc;
 	int err = 0;
 
-	// add_wait_queue(&usblp->wwait, &waita);
-    cyg_semaphore_wait(&usblp->wwait);
+    add_wait_queue(&usblp->wwait, &waita);
 	for (;;) {
 		// set_current_state(TASK_INTERRUPTIBLE);
-		// if (mutex_lock_interruptible(&usblp->mut)) {
-		if (mutex_lock(&usblp->mut)) {
-			rc = -EINTR;
-			break;
-		}
+        // if (mutex_lock_interruptible(&usblp->mut)) {
+		//     rc = -EINTR;
+		//     break;
+		// }
+        mutex_lock(&usblp->mut);
 		rc = usblp_wtest(usblp, nonblock);
 		mutex_unlock(&usblp->mut);
 		if (rc <= 0)
@@ -1098,7 +1096,7 @@ static int usblp_wwait(struct usblp *usblp, int nonblock)
 		}
 	}
 	// set_current_state(TASK_RUNNING);
-	// remove_wait_queue(&usblp->wwait, &waita);
+    remove_wait_queue(&usblp->wwait, &waita);
 	return rc;
 }
 
@@ -1130,18 +1128,19 @@ static int usblp_wtest(struct usblp *usblp, int nonblock)
  */
 static int usblp_rwait_and_lock(struct usblp *usblp, int nonblock)
 {
-	// DECLARE_WAITQUEUE(waita, current);
+    // DECLARE_WAITQUEUE(waita, current);
+    DECLARE_WAITQUEUE(waita);
 	int rc;
 
-	// add_wait_queue(&usblp->rwait, &waita);
-    cyg_semaphore_wait(&usblp->rwait);
+    add_wait_queue(&usblp->rwait, &waita);
 	for (;;) {
-		// if (mutex_lock_interruptible(&usblp->mut)) {
-		if (mutex_lock(&usblp->mut)) {
-			rc = -EINTR;
-			break;
-		}
+        // if (mutex_lock_interruptible(&usblp->mut)) {
+		//     rc = -EINTR;
+		//     break;
+		// }
 		// set_current_state(TASK_INTERRUPTIBLE);
+        mutex_lock(&usblp->mut);
+
 		if ((rc = usblp_rtest(usblp, nonblock)) < 0) {
 			mutex_unlock(&usblp->mut);
 			break;
@@ -1153,7 +1152,7 @@ static int usblp_rwait_and_lock(struct usblp *usblp, int nonblock)
         cyg_thread_yield();
 	}
 	// set_current_state(TASK_RUNNING);
-	// remove_wait_queue(&usblp->rwait, &waita);
+    remove_wait_queue(&usblp->rwait, &waita);
 	return rc;
 }
 
@@ -1291,6 +1290,7 @@ static int usblp_probe(struct usb_interface *intf,
 	struct usblp *usblp;
 	int protocol;
 	int retval;
+    int minor_base, minor;
 
 	char *pBuf; 
 	int nLength=0,total_len=0,plen=0;
@@ -1308,10 +1308,8 @@ static int usblp_probe(struct usb_interface *intf,
 	mutex_init(&usblp->wmut);
 	mutex_init(&usblp->mut);
 	spin_lock_init(&usblp->lock);
-	// init_waitqueue_head(&usblp->rwait);
-	// init_waitqueue_head(&usblp->wwait);
-    cyg_semaphore_init(&usblp->rwait, 0);
-    cyg_semaphore_init(&usblp->wwait, 0);
+    init_waitqueue_head(&usblp->rwait);
+    init_waitqueue_head(&usblp->wwait);
 	init_usb_anchor(&usblp->urbs);
 	usblp->ifnum = intf->cur_altsetting->desc.bInterfaceNumber;
 	usblp->intf = intf;
@@ -1383,7 +1381,17 @@ static int usblp_probe(struct usb_interface *intf,
 	//         USBLP_MINOR_BASE, retval);
 	//     goto abort_intfdata;
 	// }
+    minor_base = usblp_class.minor_base;
+    for (minor = minor_base; minor < MAX_USB_MINORS; ++minor) {
+        if (usb_minors[minor])
+            continue;
+
+        usb_minors[minor] = 1;
+        intf->minor = minor;
+        break;
+    }
 	usblp->minor = intf->minor;
+
 	printk(KERN_INFO "usblp%d: USB %sdirectional printer dev %d "
 		"if %d alt %d proto %d vid 0x%4.4X pid 0x%4.4X\n",
 		usblp->minor, usblp->bidir ? "Bi" : "Uni", dev->devnum,
@@ -1609,10 +1617,8 @@ static void usblp_disconnect(struct usb_interface *intf)
 	mutex_lock(&usblp_mutex);
 	mutex_lock(&usblp->mut);
 	usblp->present = 0;
-	// wake_up(&usblp->wwait);
-	// wake_up(&usblp->rwait);
-    cyg_semaphore_post(&usblp->wwait);
-    cyg_semaphore_post(&usblp->rwait);
+    wake_up(&usblp->wwait);
+    wake_up(&usblp->rwait);
 	usb_set_intfdata(intf, NULL);
 
 	usblp_unlink_urbs(usblp);
@@ -1739,6 +1745,8 @@ int usbprn_unattach( int minor )
 	struct usblp *usblp = usblp_table[minor];
 	int i1284 = NUM_OF_1284_PORT + usblp->dev->ttport;
 
+    usb_minors[minor] = 0;
+
 	if( PortIO[i1284].base && PortIO[i1284].base-1 == minor )
 	{
 		PortIO[i1284].base = 0;
@@ -1794,8 +1802,9 @@ int usbprn_close(int nPort)
 int usbprn_write(int nPort, u8 *pBuf, int nLength)
 {
 #ifdef USE_PS_LIBS
-	if( PortIO[nPort].base && usblp_table[PortIO[nPort].base-1] )
+	if( PortIO[nPort].base && usblp_table[PortIO[nPort].base-1] ) {
 		usblp_write( usblp_table[PortIO[nPort].base-1], pBuf, nLength, NULL );
+    }
 #endif /* USE_PS_LIBS */
 	return nLength;
 }

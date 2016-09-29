@@ -50,6 +50,7 @@ void zotmain( void )
     flsh_init();
     ralink_gpio_init();
 
+    read_version();
     EEPROMInit();
     WLan_get_EEPData(); 
 

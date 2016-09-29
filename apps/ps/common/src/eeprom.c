@@ -1036,6 +1036,8 @@ uint8	Loader_firmware_string[60]={0};
 
 void read_version()
 {
+    unsigned int hdr_offset = 0;
+    unsigned int firmware_size;
 	
 	read_flash((CODE1_START_ADDRESS+MAJOR_VER_OFFSET), &code1_major_ver, 1);
 	read_flash((CODE1_START_ADDRESS+MINOR_VER_OFFSET), &code1_minor_ver, 1);
@@ -1044,14 +1046,20 @@ void read_version()
 	read_flash((CODE1_START_ADDRESS+BUILD_VER_OFFSET+1), &code1_build_hi_ver, 1);
 	read_flash((CODE1_START_ADDRESS+FIRMWARE_STRING_OFFSET), &code1_firmware_string, 60);
 
+#if defined(ARCH_MIPS)
+    read_flash((RAM_CODE_START_ADDRESS+0x0C), &firmware_size, 4);
+    hdr_offset = (ntohl(firmware_size) + 255) / 256 * 256;
+#endif
 	
-	read_flash((RAM_CODE_START_ADDRESS+MAJOR_VER_OFFSET), &code2_major_ver, 1);
-	read_flash((RAM_CODE_START_ADDRESS+MINOR_VER_OFFSET), &code2_minor_ver, 1);
-	read_flash((RAM_CODE_START_ADDRESS+PS_MODEL_OFFSET), &code2_ps_model, 1);
-	read_flash((RAM_CODE_START_ADDRESS+BUILD_VER_OFFSET), &code2_build_low_ver, 1);
-	read_flash((RAM_CODE_START_ADDRESS+BUILD_VER_OFFSET+1), &code2_build_hi_ver, 1);
-	read_flash((RAM_CODE_START_ADDRESS+RELEASE_VER_OFFSET), &code2_release_ver, 1);
-	read_flash((RAM_CODE_START_ADDRESS+FIRMWARE_STRING_OFFSET), &code2_firmware_string, 60);
+	read_flash((RAM_CODE_START_ADDRESS+MAJOR_VER_OFFSET+hdr_offset), &code2_major_ver, 1);
+	read_flash((RAM_CODE_START_ADDRESS+MINOR_VER_OFFSET+hdr_offset), &code2_minor_ver, 1);
+	read_flash((RAM_CODE_START_ADDRESS+PS_MODEL_OFFSET+hdr_offset), &code2_ps_model, 1);
+	read_flash((RAM_CODE_START_ADDRESS+BUILD_VER_OFFSET+hdr_offset), &code2_build_low_ver, 1);
+	read_flash((RAM_CODE_START_ADDRESS+BUILD_VER_OFFSET+1+hdr_offset), &code2_build_hi_ver, 1);
+	read_flash((RAM_CODE_START_ADDRESS+RELEASE_VER_OFFSET+hdr_offset), &code2_release_ver, 1);
+	read_flash((RAM_CODE_START_ADDRESS+FIRMWARE_STRING_OFFSET+hdr_offset), &code2_firmware_string, 60);
+
+    diag_printf("Firmware version: %s\n", code2_firmware_string);
 
 	read_flash((LOADER_START_ADDRESS+FIRMWARE_STRING_OFFSET), &Loader_firmware_string, 60);
 }

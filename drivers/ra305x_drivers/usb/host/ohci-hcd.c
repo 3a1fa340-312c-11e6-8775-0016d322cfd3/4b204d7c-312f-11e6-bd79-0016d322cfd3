@@ -18,6 +18,7 @@
  * This file is licenced under the GPL.
  */
 
+#ifdef _LINUX_
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/pci.h>
@@ -43,6 +44,11 @@
 #include <asm/system.h>
 #include <asm/unaligned.h>
 #include <asm/byteorder.h>
+#else
+#include "os-dep.h"
+#include "usb.h"
+#include "hcd.h"
+#endif
 
 
 #define DRIVER_AUTHOR "Roman Weissgaerber, David Brownell"
@@ -105,7 +111,7 @@ static inline void sb800_prefetch(struct ohci_hcd *ohci, int on)
 
 
 #include "ohci-hub.c"
-#include "ohci-dbg.c"
+// #include "ohci-dbg.c"
 #include "ohci-mem.c"
 #include "ohci-q.c"
 
@@ -349,7 +355,8 @@ sanitize:
 			goto sanitize;
 		}
 		spin_unlock_irqrestore (&ohci->lock, flags);
-		schedule_timeout_uninterruptible(1);
+		// schedule_timeout_uninterruptible(1);
+        cyg_thread_delay(1);
 		goto rescan;
 	case ED_IDLE:		/* fully unlinked */
 		if (list_empty (&ed->td_list)) {
@@ -433,8 +440,7 @@ static void unlink_watchdog_func(unsigned long _ohci)
 	if (ohci->ed_to_check)
 		goto out;
 
-	// seen = kcalloc(max, sizeof *seen, GFP_ATOMIC);
-	seen = calloc(max, sizeof *seen, GFP_ATOMIC);
+    seen = kcalloc(max, sizeof *seen, GFP_ATOMIC);
 	if (!seen)
 		goto out;
 
@@ -484,8 +490,7 @@ static void unlink_watchdog_func(unsigned long _ohci)
 		}
 	}
 out:
-	// kfree(seen);
-	free(seen);
+    kfree(seen);
 	if (ohci->eds_scheduled)
 		mod_timer(&ohci->unlink_watchdog, round_jiffies(jiffies + HZ));
 done:
@@ -563,7 +568,7 @@ static int ohci_init (struct ohci_hcd *ohci)
 	if ((ret = ohci_mem_init (ohci)) < 0)
 		ohci_stop (hcd);
 	else {
-		create_debug_files (ohci);
+		// create_debug_files (ohci);
 	}
 
 	return ret;
@@ -734,12 +739,13 @@ retry:
 	hcd->state = HC_STATE_RUNNING;
 
 	if (quirk_zfmicro(ohci)) {
+        diag_printf("have ZF Micro watchdog!\n");
 		/* Create timer to watch for bad queue state on ZF Micro */
-		setup_timer(&ohci->unlink_watchdog, unlink_watchdog_func,
-				(unsigned long) ohci);
-
-		ohci->eds_scheduled = 0;
-		ohci->ed_to_check = NULL;
+		// setup_timer(&ohci->unlink_watchdog, unlink_watchdog_func,
+		//         (unsigned long) ohci);
+        // 
+		// ohci->eds_scheduled = 0;
+		// ohci->ed_to_check = NULL;
 	}
 
 	ohci_dump (ohci, 1);
@@ -897,11 +903,11 @@ static void ohci_stop (struct usb_hcd *hcd)
 
 	ohci_dump (ohci, 1);
 
-	flush_scheduled_work();
+	// flush_scheduled_work();
 
 	ohci_usb_reset (ohci);
 	ohci_writel (ohci, OHCI_INTR_MIE, &ohci->regs->intrdisable);
-	free_irq(hcd->irq, hcd);
+	// free_irq(hcd->irq, hcd);
 	hcd->irq = -1;
 
 	if (quirk_zfmicro(ohci))
@@ -909,7 +915,7 @@ static void ohci_stop (struct usb_hcd *hcd)
 	if (quirk_amdiso(ohci))
 		amd_iso_dev_put();
 
-	remove_debug_files (ohci);
+	// remove_debug_files (ohci);
 	ohci_mem_cleanup (ohci);
 	if (ohci->hcca) {
 		dma_free_coherent (hcd->self.controller,
@@ -989,301 +995,230 @@ static int ohci_restart (struct ohci_hcd *ohci)
 
 /*-------------------------------------------------------------------------*/
 
-MODULE_AUTHOR (DRIVER_AUTHOR);
-MODULE_DESCRIPTION(DRIVER_DESC);
-MODULE_LICENSE ("GPL");
+// MODULE_AUTHOR (DRIVER_AUTHOR);
+// MODULE_DESCRIPTION(DRIVER_DESC);
+// MODULE_LICENSE ("GPL");
 
-#ifdef CONFIG_PCI
-#include "ohci-pci.c"
-#define PCI_DRIVER		ohci_pci_driver
-#endif
-
-#if defined(CONFIG_ARCH_SA1100) && defined(CONFIG_SA1111)
-#include "ohci-sa1111.c"
-#define SA1111_DRIVER		ohci_hcd_sa1111_driver
-#endif
-
-#if defined(CONFIG_ARCH_S3C2410) || defined(CONFIG_ARCH_S3C64XX)
-#include "ohci-s3c2410.c"
-#define PLATFORM_DRIVER		ohci_hcd_s3c2410_driver
-#endif
-
-#ifdef CONFIG_USB_OHCI_HCD_OMAP1
-#include "ohci-omap.c"
-#define OMAP1_PLATFORM_DRIVER	ohci_hcd_omap_driver
-#endif
-
-#ifdef CONFIG_USB_OHCI_HCD_OMAP3
-#include "ohci-omap3.c"
-#define OMAP3_PLATFORM_DRIVER	ohci_hcd_omap3_driver
-#endif
-
-#ifdef CONFIG_ARCH_LH7A404
-#include "ohci-lh7a404.c"
-#define PLATFORM_DRIVER		ohci_hcd_lh7a404_driver
-#endif
-
-#if defined(CONFIG_PXA27x) || defined(CONFIG_PXA3xx)
-#include "ohci-pxa27x.c"
-#define PLATFORM_DRIVER		ohci_hcd_pxa27x_driver
-#endif
-
-#ifdef CONFIG_ARCH_EP93XX
-#include "ohci-ep93xx.c"
-#define PLATFORM_DRIVER		ohci_hcd_ep93xx_driver
-#endif
-
-#ifdef CONFIG_MIPS_ALCHEMY
-#include "ohci-au1xxx.c"
-#define PLATFORM_DRIVER		ohci_hcd_au1xxx_driver
-#endif
-
-#ifdef CONFIG_PNX8550
-#include "ohci-pnx8550.c"
-#define PLATFORM_DRIVER		ohci_hcd_pnx8550_driver
-#endif
-
-#ifdef CONFIG_USB_OHCI_HCD_PPC_SOC
-#include "ohci-ppc-soc.c"
-#define PLATFORM_DRIVER		ohci_hcd_ppc_soc_driver
-#endif
-
-#ifdef CONFIG_ARCH_AT91
-#include "ohci-at91.c"
-#define PLATFORM_DRIVER		ohci_hcd_at91_driver
-#endif
-
-#ifdef CONFIG_ARCH_PNX4008
-#include "ohci-pnx4008.c"
-#define PLATFORM_DRIVER		usb_hcd_pnx4008_driver
-#endif
-
-#if defined (CONFIG_RT3XXX_OHCI) || defined (CONFIG_RT3XXX_OHCI_MODULE)
 #include "ohci-rt3xxx.c"
 #define PLATFORM_DRIVER     ohci_hcd_rt3xxx_driver
-#endif
 
-#ifdef CONFIG_ARCH_DAVINCI_DA8XX
-#include "ohci-da8xx.c"
-#define PLATFORM_DRIVER		ohci_hcd_da8xx_driver
-#endif
+int platform_drv_probe(struct device *_dev);
+int platform_drv_remove(struct device *_dev);
+void platform_drv_shutdown(struct device *_dev);
+int platform_match(struct device *dev, struct device_driver *drv);
 
-#if defined(CONFIG_CPU_SUBTYPE_SH7720) || \
-    defined(CONFIG_CPU_SUBTYPE_SH7721) || \
-    defined(CONFIG_CPU_SUBTYPE_SH7763) || \
-    defined(CONFIG_CPU_SUBTYPE_SH7786)
-#include "ohci-sh.c"
-#define PLATFORM_DRIVER		ohci_hcd_sh_driver
-#endif
+static u64 rt3xxx_ohci_dmamask = ~(u32)0;
+static struct platform_device rt3xxx_ohci_device = {
+    .name           = "rt3xxx-ohci",
+    .id             = -1,
+    .dev            = {
+        .dma_mask       = &rt3xxx_ohci_dmamask,
+        .coherent_dma_mask  = 0xffffffff,
+    },
+    // .num_resources  = 2,
+    // .resource       = rt3xxx_ohci_resources,
+};
 
+static struct bus_type platform_bus_type = {
+	.name		= "platform",
+	// .dev_attrs	= platform_dev_attrs,
+	.match		= platform_match,
+	// .uevent		= platform_uevent,
+	// .pm		= &platform_dev_pm_ops,
+};
 
-#ifdef CONFIG_USB_OHCI_HCD_PPC_OF
-#include "ohci-ppc-of.c"
-#define OF_PLATFORM_DRIVER	ohci_hcd_ppc_of_driver
-#endif
-
-#ifdef CONFIG_PPC_PS3
-#include "ohci-ps3.c"
-#define PS3_SYSTEM_BUS_DRIVER	ps3_ohci_driver
-#endif
-
-#ifdef CONFIG_USB_OHCI_HCD_SSB
-#include "ohci-ssb.c"
-#define SSB_OHCI_DRIVER		ssb_ohci_driver
-#endif
-
-#ifdef CONFIG_MFD_SM501
-#include "ohci-sm501.c"
-#define SM501_OHCI_DRIVER	ohci_hcd_sm501_driver
-#endif
-
-#ifdef CONFIG_MFD_TC6393XB
-#include "ohci-tmio.c"
-#define TMIO_OHCI_DRIVER	ohci_hcd_tmio_driver
-#endif
-
-#ifdef CONFIG_MACH_JZ4740
-#include "ohci-jz4740.c"
-#define PLATFORM_DRIVER	ohci_hcd_jz4740_driver
-#endif
-
-#if	!defined(PCI_DRIVER) &&		\
-	!defined(PLATFORM_DRIVER) &&	\
-	!defined(OMAP1_PLATFORM_DRIVER) &&	\
-	!defined(OMAP3_PLATFORM_DRIVER) &&	\
-	!defined(OF_PLATFORM_DRIVER) &&	\
-	!defined(SA1111_DRIVER) &&	\
-	!defined(PS3_SYSTEM_BUS_DRIVER) && \
-	!defined(SM501_OHCI_DRIVER) && \
-	!defined(TMIO_OHCI_DRIVER) && \
-	!defined(SSB_OHCI_DRIVER)
-#error "missing bus glue for ohci-hcd"
-#endif
-
-static int __init ohci_hcd_mod_init(void)
+// static int __init ohci_hcd_mod_init(void)
+int __init ohci_hcd_mod_init(void)
 {
-	int retval = 0;
 
-	if (usb_disabled())
-		return -ENODEV;
+    struct platform_device *platform_dev = &rt3xxx_ohci_device;
+    struct platform_driver *platform_drv = &ohci_hcd_rt3xxx_driver;
 
-	printk(KERN_INFO "%s: " DRIVER_DESC "\n", hcd_name);
-	pr_debug ("%s: block sizes: ed %Zd td %Zd\n", hcd_name,
-		sizeof (struct ed), sizeof (struct td));
-	set_bit(USB_OHCI_LOADED, &usb_hcds_loaded);
+    bus_register(&platform_bus_type);
 
-#ifdef DEBUG
-	ohci_debug_root = debugfs_create_dir("ohci", usb_debug_root);
-	if (!ohci_debug_root) {
-		retval = -ENOENT;
-		goto error_debug;
-	}
-#endif
+    device_initialize(&platform_dev->dev);
+    platform_dev->dev.bus = &platform_bus_type;
+    device_add(&platform_dev->dev);
 
-#ifdef PS3_SYSTEM_BUS_DRIVER
-	retval = ps3_ohci_driver_register(&PS3_SYSTEM_BUS_DRIVER);
-	if (retval < 0)
-		goto error_ps3;
-#endif
+    platform_drv->driver.bus = &platform_bus_type;
+    if (platform_drv->probe)
+        platform_drv->driver.probe = platform_drv_probe;
+    if (platform_drv->remove)
+        platform_drv->driver.remove = platform_drv_remove;
+    if (platform_drv->shutdown)
+        platform_drv->driver.shutdown = platform_drv_shutdown;
 
-#ifdef PLATFORM_DRIVER
-	retval = platform_driver_register(&PLATFORM_DRIVER);
-	if (retval < 0)
-		goto error_platform;
-#endif
+    driver_register(&platform_drv->driver);
 
-#ifdef OMAP1_PLATFORM_DRIVER
-	retval = platform_driver_register(&OMAP1_PLATFORM_DRIVER);
-	if (retval < 0)
-		goto error_omap1_platform;
-#endif
+    return 0;
 
-#ifdef OMAP3_PLATFORM_DRIVER
-	retval = platform_driver_register(&OMAP3_PLATFORM_DRIVER);
-	if (retval < 0)
-		goto error_omap3_platform;
-#endif
-
-#ifdef OF_PLATFORM_DRIVER
-	retval = of_register_platform_driver(&OF_PLATFORM_DRIVER);
-	if (retval < 0)
-		goto error_of_platform;
-#endif
-
-#ifdef SA1111_DRIVER
-	retval = sa1111_driver_register(&SA1111_DRIVER);
-	if (retval < 0)
-		goto error_sa1111;
-#endif
-
-#ifdef PCI_DRIVER
-	retval = pci_register_driver(&PCI_DRIVER);
-	if (retval < 0)
-		goto error_pci;
-#endif
-
-#ifdef SSB_OHCI_DRIVER
-	retval = ssb_driver_register(&SSB_OHCI_DRIVER);
-	if (retval)
-		goto error_ssb;
-#endif
-
-#ifdef SM501_OHCI_DRIVER
-	retval = platform_driver_register(&SM501_OHCI_DRIVER);
-	if (retval < 0)
-		goto error_sm501;
-#endif
-
-#ifdef TMIO_OHCI_DRIVER
-	retval = platform_driver_register(&TMIO_OHCI_DRIVER);
-	if (retval < 0)
-		goto error_tmio;
-#endif
-
-	return retval;
-
-	/* Error path */
-#ifdef TMIO_OHCI_DRIVER
-	platform_driver_unregister(&TMIO_OHCI_DRIVER);
- error_tmio:
-#endif
-#ifdef SM501_OHCI_DRIVER
-	platform_driver_unregister(&SM501_OHCI_DRIVER);
- error_sm501:
-#endif
-#ifdef SSB_OHCI_DRIVER
-	ssb_driver_unregister(&SSB_OHCI_DRIVER);
- error_ssb:
-#endif
-#ifdef PCI_DRIVER
-	pci_unregister_driver(&PCI_DRIVER);
- error_pci:
-#endif
-#ifdef SA1111_DRIVER
-	sa1111_driver_unregister(&SA1111_DRIVER);
- error_sa1111:
-#endif
-#ifdef OF_PLATFORM_DRIVER
-	of_unregister_platform_driver(&OF_PLATFORM_DRIVER);
- error_of_platform:
-#endif
-#ifdef PLATFORM_DRIVER
-	platform_driver_unregister(&PLATFORM_DRIVER);
- error_platform:
-#endif
-#ifdef OMAP1_PLATFORM_DRIVER
-	platform_driver_unregister(&OMAP1_PLATFORM_DRIVER);
- error_omap1_platform:
-#endif
-#ifdef OMAP3_PLATFORM_DRIVER
-	platform_driver_unregister(&OMAP3_PLATFORM_DRIVER);
- error_omap3_platform:
-#endif
-#ifdef PS3_SYSTEM_BUS_DRIVER
-	ps3_ohci_driver_unregister(&PS3_SYSTEM_BUS_DRIVER);
- error_ps3:
-#endif
-#ifdef DEBUG
-	debugfs_remove(ohci_debug_root);
-	ohci_debug_root = NULL;
- error_debug:
-#endif
-
-	clear_bit(USB_OHCI_LOADED, &usb_hcds_loaded);
-	return retval;
+//     int retval = 0;
+// 
+//     if (usb_disabled())
+//         return -ENODEV;
+// 
+//     printk(KERN_INFO "%s: " DRIVER_DESC "\n", hcd_name);
+//     pr_debug ("%s: block sizes: ed %Zd td %Zd\n", hcd_name,
+//         sizeof (struct ed), sizeof (struct td));
+//     set_bit(USB_OHCI_LOADED, &usb_hcds_loaded);
+// 
+// #ifdef DEBUG
+//     ohci_debug_root = debugfs_create_dir("ohci", usb_debug_root);
+//     if (!ohci_debug_root) {
+//         retval = -ENOENT;
+//         goto error_debug;
+//     }
+// #endif
+// 
+// #ifdef PS3_SYSTEM_BUS_DRIVER
+//     retval = ps3_ohci_driver_register(&PS3_SYSTEM_BUS_DRIVER);
+//     if (retval < 0)
+//         goto error_ps3;
+// #endif
+// 
+// #ifdef PLATFORM_DRIVER
+//     retval = platform_driver_register(&PLATFORM_DRIVER);
+//     if (retval < 0)
+//         goto error_platform;
+// #endif
+// 
+// #ifdef OMAP1_PLATFORM_DRIVER
+//     retval = platform_driver_register(&OMAP1_PLATFORM_DRIVER);
+//     if (retval < 0)
+//         goto error_omap1_platform;
+// #endif
+// 
+// #ifdef OMAP3_PLATFORM_DRIVER
+//     retval = platform_driver_register(&OMAP3_PLATFORM_DRIVER);
+//     if (retval < 0)
+//         goto error_omap3_platform;
+// #endif
+// 
+// #ifdef OF_PLATFORM_DRIVER
+//     retval = of_register_platform_driver(&OF_PLATFORM_DRIVER);
+//     if (retval < 0)
+//         goto error_of_platform;
+// #endif
+// 
+// #ifdef SA1111_DRIVER
+//     retval = sa1111_driver_register(&SA1111_DRIVER);
+//     if (retval < 0)
+//         goto error_sa1111;
+// #endif
+// 
+// #ifdef PCI_DRIVER
+//     retval = pci_register_driver(&PCI_DRIVER);
+//     if (retval < 0)
+//         goto error_pci;
+// #endif
+// 
+// #ifdef SSB_OHCI_DRIVER
+//     retval = ssb_driver_register(&SSB_OHCI_DRIVER);
+//     if (retval)
+//         goto error_ssb;
+// #endif
+// 
+// #ifdef SM501_OHCI_DRIVER
+//     retval = platform_driver_register(&SM501_OHCI_DRIVER);
+//     if (retval < 0)
+//         goto error_sm501;
+// #endif
+// 
+// #ifdef TMIO_OHCI_DRIVER
+//     retval = platform_driver_register(&TMIO_OHCI_DRIVER);
+//     if (retval < 0)
+//         goto error_tmio;
+// #endif
+// 
+//     return retval;
+// 
+//     [> Error path <]
+// #ifdef TMIO_OHCI_DRIVER
+//     platform_driver_unregister(&TMIO_OHCI_DRIVER);
+//  error_tmio:
+// #endif
+// #ifdef SM501_OHCI_DRIVER
+//     platform_driver_unregister(&SM501_OHCI_DRIVER);
+//  error_sm501:
+// #endif
+// #ifdef SSB_OHCI_DRIVER
+//     ssb_driver_unregister(&SSB_OHCI_DRIVER);
+//  error_ssb:
+// #endif
+// #ifdef PCI_DRIVER
+//     pci_unregister_driver(&PCI_DRIVER);
+//  error_pci:
+// #endif
+// #ifdef SA1111_DRIVER
+//     sa1111_driver_unregister(&SA1111_DRIVER);
+//  error_sa1111:
+// #endif
+// #ifdef OF_PLATFORM_DRIVER
+//     of_unregister_platform_driver(&OF_PLATFORM_DRIVER);
+//  error_of_platform:
+// #endif
+// #ifdef PLATFORM_DRIVER
+//     platform_driver_unregister(&PLATFORM_DRIVER);
+//  error_platform:
+// #endif
+// #ifdef OMAP1_PLATFORM_DRIVER
+//     platform_driver_unregister(&OMAP1_PLATFORM_DRIVER);
+//  error_omap1_platform:
+// #endif
+// #ifdef OMAP3_PLATFORM_DRIVER
+//     platform_driver_unregister(&OMAP3_PLATFORM_DRIVER);
+//  error_omap3_platform:
+// #endif
+// #ifdef PS3_SYSTEM_BUS_DRIVER
+//     ps3_ohci_driver_unregister(&PS3_SYSTEM_BUS_DRIVER);
+//  error_ps3:
+// #endif
+// #ifdef DEBUG
+//     debugfs_remove(ohci_debug_root);
+//     ohci_debug_root = NULL;
+//  error_debug:
+// #endif
+// 
+//     clear_bit(USB_OHCI_LOADED, &usb_hcds_loaded);
+//     return retval;
 }
 module_init(ohci_hcd_mod_init);
 
 static void __exit ohci_hcd_mod_exit(void)
 {
-#ifdef TMIO_OHCI_DRIVER
-	platform_driver_unregister(&TMIO_OHCI_DRIVER);
-#endif
-#ifdef SM501_OHCI_DRIVER
-	platform_driver_unregister(&SM501_OHCI_DRIVER);
-#endif
-#ifdef SSB_OHCI_DRIVER
-	ssb_driver_unregister(&SSB_OHCI_DRIVER);
-#endif
-#ifdef PCI_DRIVER
-	pci_unregister_driver(&PCI_DRIVER);
-#endif
-#ifdef SA1111_DRIVER
-	sa1111_driver_unregister(&SA1111_DRIVER);
-#endif
-#ifdef OF_PLATFORM_DRIVER
-	of_unregister_platform_driver(&OF_PLATFORM_DRIVER);
-#endif
-#ifdef PLATFORM_DRIVER
-	platform_driver_unregister(&PLATFORM_DRIVER);
-#endif
-#ifdef PS3_SYSTEM_BUS_DRIVER
-	ps3_ohci_driver_unregister(&PS3_SYSTEM_BUS_DRIVER);
-#endif
-#ifdef DEBUG
-	debugfs_remove(ohci_debug_root);
-#endif
-	clear_bit(USB_OHCI_LOADED, &usb_hcds_loaded);
+// #ifdef TMIO_OHCI_DRIVER
+//     platform_driver_unregister(&TMIO_OHCI_DRIVER);
+// #endif
+// #ifdef SM501_OHCI_DRIVER
+//     platform_driver_unregister(&SM501_OHCI_DRIVER);
+// #endif
+// #ifdef SSB_OHCI_DRIVER
+//     ssb_driver_unregister(&SSB_OHCI_DRIVER);
+// #endif
+// #ifdef PCI_DRIVER
+//     pci_unregister_driver(&PCI_DRIVER);
+// #endif
+// #ifdef SA1111_DRIVER
+//     sa1111_driver_unregister(&SA1111_DRIVER);
+// #endif
+// #ifdef OF_PLATFORM_DRIVER
+//     of_unregister_platform_driver(&OF_PLATFORM_DRIVER);
+// #endif
+// #ifdef PLATFORM_DRIVER
+//     platform_driver_unregister(&PLATFORM_DRIVER);
+// #endif
+// #ifdef PS3_SYSTEM_BUS_DRIVER
+//     ps3_ohci_driver_unregister(&PS3_SYSTEM_BUS_DRIVER);
+// #endif
+// #ifdef DEBUG
+//     debugfs_remove(ohci_debug_root);
+// #endif
+//     clear_bit(USB_OHCI_LOADED, &usb_hcds_loaded);
 }
 module_exit(ohci_hcd_mod_exit);
+
+static void ohci_dump (struct ohci_hcd *controller, int verbose)
+{
+
+}
 

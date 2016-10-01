@@ -135,7 +135,7 @@ void erase_netif_ipaddr()
 	mib_DHCP_p->GwyAddr = DWordSwap(Lanface->gw.addr);
 }
 
-void updata_netif_ipaddr( struct netif *netif )
+void update_netif_ipaddr( struct netif *netif )
 {
 #if defined(WIRELESS_CARD) 
 	if (netif == WLanface){ //Ron modified on 12/07/04

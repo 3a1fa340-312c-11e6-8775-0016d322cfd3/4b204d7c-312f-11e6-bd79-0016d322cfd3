@@ -43,6 +43,7 @@ void usb_thread (cyg_addrword_t parameter)
 
     usb_init();
     ehci_hcd_init();
+    ohci_hcd_mod_init();
 
     usblp_init();
     cyg_semaphore_wait(&forever_sem);
@@ -1911,5 +1912,88 @@ struct scatterlist *sg_next(struct scatterlist *sg)
 		sg = sg_chain_ptr(sg);
 
 	return sg;
+}
+
+static unsigned long round_jiffies_common(unsigned long j, int cpu,
+		bool force_up)
+{
+	int rem;
+	unsigned long original = j;
+
+	/*
+	 * We don't want all cpus firing their timers at once hitting the
+	 * same lock or cachelines, so we skew each extra cpu with an extra
+	 * 3 jiffies. This 3 jiffies came originally from the mm/ code which
+	 * already did this.
+	 * The skew is done by adding 3*cpunr, then round, then subtract this
+	 * extra offset again.
+	 */
+	j += cpu * 3;
+
+	rem = j % HZ;
+
+	/*
+	 * If the target jiffie is just after a whole second (which can happen
+	 * due to delays of the timer irq, long irq off times etc etc) then
+	 * we should round down to the whole second, not up. Use 1/4th second
+	 * as cutoff for this rounding as an extreme upper bound for this.
+	 * But never round down if @force_up is set.
+	 */
+	if (rem < HZ/4 && !force_up) /* round down */
+		j = j - rem;
+	else /* round up */
+		j = j - rem + HZ;
+
+	/* now that we have rounded, subtract the extra skew again */
+	j -= cpu * 3;
+
+	if (j <= jiffies) /* rounding ate our timeout entirely; */
+		return original;
+	return j;
+}
+
+/**
+ * __round_jiffies - function to round jiffies to a full second
+ * @j: the time in (absolute) jiffies that should be rounded
+ * @cpu: the processor number on which the timeout will happen
+ *
+ * __round_jiffies() rounds an absolute time in the future (in jiffies)
+ * up or down to (approximately) full seconds. This is useful for timers
+ * for which the exact time they fire does not matter too much, as long as
+ * they fire approximately every X seconds.
+ *
+ * By rounding these timers to whole seconds, all such timers will fire
+ * at the same time, rather than at various times spread out. The goal
+ * of this is to have the CPU wake up less, which saves power.
+ *
+ * The exact rounding is skewed for each processor to avoid all
+ * processors firing at the exact same time, which could lead
+ * to lock contention or spurious cache line bouncing.
+ *
+ * The return value is the rounded version of the @j parameter.
+ */
+unsigned long __round_jiffies(unsigned long j, int cpu)
+{
+	return round_jiffies_common(j, cpu, false);
+}
+
+/**
+ * round_jiffies - function to round jiffies to a full second
+ * @j: the time in (absolute) jiffies that should be rounded
+ *
+ * round_jiffies() rounds an absolute time in the future (in jiffies)
+ * up or down to (approximately) full seconds. This is useful for timers
+ * for which the exact time they fire does not matter too much, as long as
+ * they fire approximately every X seconds.
+ *
+ * By rounding these timers to whole seconds, all such timers will fire
+ * at the same time, rather than at various times spread out. The goal
+ * of this is to have the CPU wake up less, which saves power.
+ *
+ * The return value is the rounded version of the @j parameter.
+ */
+unsigned long round_jiffies(unsigned long j)
+{
+	return round_jiffies_common(j, 0, false);
 }
 

@@ -1180,7 +1180,7 @@ static int ehci_get_frame (struct usb_hcd *hcd)
  * and compare it against the name of the driver. Return whether they match
  * or not.
  */
-static int platform_match(struct device *dev, struct device_driver *drv)
+int platform_match(struct device *dev, struct device_driver *drv)
 {
     struct platform_device *pdev = to_platform_device(dev);
     // struct platform_device *pdev;
@@ -1205,7 +1205,7 @@ static int platform_match(struct device *dev, struct device_driver *drv)
 /*
  * EHCI/OHCI Host controller.
  */
- static u64 rt3xxx_ehci_dmamask = ~(u32)0;
+static u64 rt3xxx_ehci_dmamask = ~(u32)0;
 static struct platform_device rt3xxx_ehci_device = {
     .name           = "rt3xxx-ehci",
     .id             = -1,
@@ -1217,7 +1217,7 @@ static struct platform_device rt3xxx_ehci_device = {
     // .resource       = rt3xxx_ehci_resources,
 };
 
-struct bus_type platform_bus_type = {
+static struct bus_type platform_bus_type = {
 	.name		= "platform",
 	// .dev_attrs	= platform_dev_attrs,
 	.match		= platform_match,
@@ -1225,7 +1225,7 @@ struct bus_type platform_bus_type = {
 	// .pm		= &platform_dev_pm_ops,
 };
 
-static int platform_drv_probe(struct device *_dev)
+int platform_drv_probe(struct device *_dev)
 {
 	struct platform_driver *drv = to_platform_driver(_dev->driver);
 	struct platform_device *dev = to_platform_device(_dev);
@@ -1233,7 +1233,7 @@ static int platform_drv_probe(struct device *_dev)
 	return drv->probe(dev);
 }
 
-static int platform_drv_remove(struct device *_dev)
+int platform_drv_remove(struct device *_dev)
 {
 	struct platform_driver *drv = to_platform_driver(_dev->driver);
 	struct platform_device *dev = to_platform_device(_dev);
@@ -1241,7 +1241,7 @@ static int platform_drv_remove(struct device *_dev)
 	return drv->remove(dev);
 }
 
-static void platform_drv_shutdown(struct device *_dev)
+void platform_drv_shutdown(struct device *_dev)
 {
 	struct platform_driver *drv = to_platform_driver(_dev->driver);
 	struct platform_device *dev = to_platform_device(_dev);
@@ -1249,16 +1249,12 @@ static void platform_drv_shutdown(struct device *_dev)
 	drv->shutdown(dev);
 }
 
-// platform_add_devices(rt3xxx_devices, ARRAY_SIZE(rt3xxx_devices));
-// device_initialize
-// platform_device_add
-
 // static u64 rt3xxx_ehci_dmamask = ~(u32)0;
 // struct device g_ehci_dev = {
 //     .dma_mask = &rt3xxx_ehci_dmamask,
 //     .coherent_dma_mask = 0xffffffff,
 // };
-// 
+
 int __init ehci_hcd_init(void)
 {
     struct platform_device *platform_dev = &rt3xxx_ehci_device;

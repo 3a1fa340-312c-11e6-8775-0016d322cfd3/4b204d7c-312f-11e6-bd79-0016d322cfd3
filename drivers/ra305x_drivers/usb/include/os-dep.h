@@ -39,6 +39,7 @@
 /* 
  * system spinlocks
  */
+#define spin_lock_t                     cyg_spin_lock_t
 static int irq_flag;
 #define spin_lock_init(x)               cyg_spinlock_init(x, false)
 #define spin_lock(x)                    cyg_spinlock_spin(x)
@@ -82,7 +83,14 @@ static int irq_flag;
     diag_printf(fmt, ##args)
 #define ehci_warn(ehci, fmt, args...) \
     diag_printf(fmt, ##args)
-
+#define ohci_dbg(ohci, fmt, args...) \
+    diag_printf(fmt, ##args)
+#define ohci_err(ohci, fmt, args...) \
+    diag_printf(fmt, ##args)
+#define ohci_info(ohci, fmt, args...) \
+    diag_printf(fmt, ##args)
+#define ohci_warn(ohci, fmt, args...) \
+    diag_printf(fmt, ##args)
 #else /* USB_DBG */
 
 #define printk
@@ -92,18 +100,28 @@ static int irq_flag;
 #define EPDBG do{}while(0)
 #define TADDR(fmt, addr)
 #define TVAL(fmt, val)
-#define ehci_dbg(ehci, fmt, args...) \
+#define ohci_dbg(ohci, fmt, args...) \
     do{}while(0) 
-#define ehci_err(ehci, fmt, args...) \
+#define ohci_err(ohci, fmt, args...) \
     do{}while(0)
-#define ehci_info(ehci, fmt, args...) \
+#define ohci_info(ohci, fmt, args...) \
     do{}while(0)
-#define ehci_warn(ehci, fmt, args...) \
+#define ohci_warn(ohci, fmt, args...) \
+    do{}while(0)
+#define ohci_dbg(ohci, fmt, args...) \
+    do{}while(0) 
+#define ohci_err(ohci, fmt, args...) \
+    do{}while(0)
+#define ohci_info(ohci, fmt, args...) \
+    do{}while(0)
+#define ohci_warn(ohci, fmt, args...) \
     do{}while(0)
 #endif /* USB_DBG */
 
 #define ehci_vdbg(ehci, fmt, args...)
+#define ohci_vdbg(ohci, fmt, args...)
 #define dbg_port(ehci, label, port, status)
+#define dbg_port(ohci, label, port, status)
 
 #define __ALIGN_KERNEL(x, a)		__ALIGN_KERNEL_MASK(x, (typeof(x))(a) - 1)
 #define __ALIGN_KERNEL_MASK(x, mask)	(((x) + (mask)) & ~(mask))
@@ -211,6 +229,7 @@ typedef struct {
 
 #define dbg_cmd(ehci, label, command)
 #define dbg_status(ehci, label, status) 
+#define __devinit
 
 #define KERN_WARNING
 #define KERN_DEBUG
@@ -804,6 +823,8 @@ static inline int test_and_change_bit(int nr, volatile unsigned long *addr)
 /*
  * device.h
  */
+#define platform_get_drvdata(_dev) dev_get_drvdata(&(_dev)->dev)
+
 struct kobject {
 	const char		*name;
 	struct list_head	entry;

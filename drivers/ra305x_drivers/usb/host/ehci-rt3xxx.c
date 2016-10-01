@@ -191,7 +191,6 @@ printk("*************%s************\n", __func__);
 	if (retval)
 		goto fail_add_hcd;
 
-    diag_printf("termy say, pass usb_add_hcd\n");
 	return retval;
 
 fail_add_hcd:

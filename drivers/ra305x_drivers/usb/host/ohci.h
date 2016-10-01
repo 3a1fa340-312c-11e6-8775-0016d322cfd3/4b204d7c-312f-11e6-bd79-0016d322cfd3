@@ -345,7 +345,8 @@ typedef struct urb_priv {
  */
 
 struct ohci_hcd {
-	spinlock_t		lock;
+	// spinlock_t		lock;
+    cyg_spinlock_t      lock;
 
 	/*
 	 * I/O memory used to communicate with the HC (dma-consistent)

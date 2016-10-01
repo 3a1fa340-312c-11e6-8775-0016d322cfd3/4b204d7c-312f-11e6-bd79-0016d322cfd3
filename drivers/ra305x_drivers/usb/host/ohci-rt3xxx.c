@@ -11,6 +11,7 @@
  * This file is licenced under the GPL.
  */
 
+#ifdef _LINUX_
 #include <linux/clk.h>
 #include <linux/device.h>
 #include <linux/signal.h>
@@ -18,35 +19,48 @@
 
 #include "ralink_usb.h"
 #include "mtk/mtk-phy.h"
+#else
+#include "os-dep.h"
+#include "ralink_usb.h"
+#include "mtk-phy.h"
+#endif /* _LINUX_ */
 
-static int usb_hcd_rt3xxx_probe(const struct hc_driver *driver, struct platform_device *pdev)
+// static int usb_hcd_rt3xxx_probe(const struct hc_driver *driver, struct platform_device *pdev)
+int usb_hcd_rt3xxx_probe(const struct hc_driver *driver, struct platform_device *pdev)
 {
 	int retval;
 	struct usb_hcd *hcd;
+    int irq = IRQ_RT3XXX_USB;
 
-	if (pdev->resource[1].flags != IORESOURCE_IRQ) {
-		pr_debug("resource[1] is not IORESOURCE_IRQ");
-		return -ENOMEM;
-	}
+    TTRACE;
+	// if (pdev->resource[1].flags != IORESOURCE_IRQ) {
+	//     pr_debug("resource[1] is not IORESOURCE_IRQ");
+	//     return -ENOMEM;
+	// }
 
 	hcd = usb_create_hcd(driver, &pdev->dev, "rt3xxx-ohci");
 	if (hcd == NULL)
 		return -ENOMEM;
 
-	hcd->rsrc_start = pdev->resource[0].start;
-	hcd->rsrc_len = pdev->resource[0].end - pdev->resource[0].start + 1;
-	if (!request_mem_region(hcd->rsrc_start, hcd->rsrc_len, hcd_name)) {
-		usb_put_hcd(hcd);
-		retval = -EBUSY;
-		goto err1;
-	}
+	// hcd->rsrc_start = pdev->resource[0].start;
+	// hcd->rsrc_len = pdev->resource[0].end - pdev->resource[0].start + 1;
+    hcd->rsrc_start = MEM_OHCI_START;
+    hcd->rsrc_len   = MEM_OHCI_END - MEM_OHCI_START;
 
-	hcd->regs = ioremap(hcd->rsrc_start, hcd->rsrc_len);
-	if (hcd->regs == NULL) {
-		pr_debug("ioremap failed");
-		retval = -ENOMEM;
-		goto err2;
-	}
+	// if (!request_mem_region(hcd->rsrc_start, hcd->rsrc_len, hcd_name)) {
+	//     usb_put_hcd(hcd);
+	//     retval = -EBUSY;
+	//     goto err1;
+	// }
+
+	// hcd->regs = ioremap(hcd->rsrc_start, hcd->rsrc_len);
+	// if (hcd->regs == NULL) {
+	//     pr_debug("ioremap failed");
+	//     retval = -ENOMEM;
+	//     goto err2;
+	// }
+
+    hcd->regs = 0xB01C1000;
 
 //	usb_host_clock = clk_get(&pdev->dev, "usb_host");
 //	ep93xx_start_hc(&pdev->dev);
@@ -59,16 +73,16 @@ static int usb_hcd_rt3xxx_probe(const struct hc_driver *driver, struct platform_
 
 	ohci_hcd_init(hcd_to_ohci(hcd));
 
-	retval = usb_add_hcd(hcd, pdev->resource[1].start, IRQF_DISABLED | IRQF_SHARED);
-	if (retval == 0)
-		return retval;
+	// retval = usb_add_hcd(hcd, pdev->resource[1].start, IRQF_DISABLED | IRQF_SHARED);
+    retval = usb_add_hcd(hcd, irq, IRQF_DISABLED | IRQF_SHARED);
+    // if (retval == 0)
+	//     return retval;
 
-    TTRACE;
-	iounmap(hcd->regs);
-err2:
-	release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
-err1:
-	usb_put_hcd(hcd);
+//     iounmap(hcd->regs);
+// err2:
+//     release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
+// err1:
+//     usb_put_hcd(hcd);
 
 	return retval;
 }
@@ -78,8 +92,8 @@ static void usb_hcd_rt3xxx_remove(struct usb_hcd *hcd, struct platform_device *p
 	usb_remove_hcd(hcd);
 //	ep93xx_stop_hc(&pdev->dev);
 //	clk_put(usb_host_clock);
-	iounmap(hcd->regs);
-	release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
+	// iounmap(hcd->regs);
+	// release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
 	usb_put_hcd(hcd);
 }
 
@@ -130,6 +144,7 @@ static int ohci_hcd_rt3xxx_drv_probe(struct platform_device *pdev)
 {
 	int ret;
 
+    TTRACE;
 	ret = -ENODEV;
 
 	if (!usb_disabled())
@@ -190,7 +205,7 @@ static int ohci_hcd_ep93xx_drv_resume(struct platform_device *pdev)
 static struct platform_driver ohci_hcd_rt3xxx_driver = {
 	.probe		= ohci_hcd_rt3xxx_drv_probe,
 	.remove		= ohci_hcd_rt3xxx_drv_remove,
-	.shutdown	= usb_hcd_platform_shutdown,
+	// .shutdown	= usb_hcd_platform_shutdown,
 /*
 #ifdef CONFIG_PM
 	.suspend	= ohci_hcd_rt3xxx_drv_suspend,

@@ -2314,17 +2314,19 @@ int usb_add_hcd(struct usb_hcd *hcd,
 		//             "request interrupt %d failed\n", irqnum);
 		//     goto err_request_irq;
 		// }
-        cyg_interrupt_create(CYGNUM_HAL_INTERRUPT_OTG,
-                0,
-                hcd,
-                (cyg_ISR_t *)ehci_isr,
-                (cyg_DSR_t *)ehci_dsr,
-                &ehci_intr_handle,
-                &ehci_intr_data
-                );
-        cyg_interrupt_attach(ehci_intr_handle);
-        cyg_interrupt_configure(CYGNUM_HAL_INTERRUPT_OTG, 1, 0);
-        cyg_interrupt_unmask(CYGNUM_HAL_INTERRUPT_OTG);
+        if (!(irqflags & IRQF_NOINT)) {
+            cyg_interrupt_create(CYGNUM_HAL_INTERRUPT_OTG,
+                                 0,
+                                 hcd,
+                                 (cyg_ISR_t *)ehci_isr,
+                                 (cyg_DSR_t *)ehci_dsr,
+                                 &ehci_intr_handle,
+                                 &ehci_intr_data
+                                 );
+            cyg_interrupt_attach(ehci_intr_handle);
+            cyg_interrupt_configure(CYGNUM_HAL_INTERRUPT_OTG, 1, 0);
+            cyg_interrupt_unmask(CYGNUM_HAL_INTERRUPT_OTG);
+        }
 
 		hcd->irq = irqnum;
 		dev_info(hcd->self.controller, "irq %d, %s 0x%08llx\n", irqnum,

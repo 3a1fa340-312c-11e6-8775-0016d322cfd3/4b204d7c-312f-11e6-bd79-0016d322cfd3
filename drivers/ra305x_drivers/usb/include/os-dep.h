@@ -1436,6 +1436,7 @@ static inline int device_trylock(struct device *dev)
 #define IRQF_IRQPOLL          0x00001000
 #define IRQF_ONESHOT          0x00002000
 #define IRQF_NO_SUSPEND       0x00004000
+#define IRQF_NOINT            0x00008000
 
 # define __acquires(x)
 # define __releases(x)

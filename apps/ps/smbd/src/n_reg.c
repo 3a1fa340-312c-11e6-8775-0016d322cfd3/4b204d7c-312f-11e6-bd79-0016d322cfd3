@@ -38,11 +38,12 @@
 
 //n_name.c
 extern void standard_success_register(struct subnet_record *subrec, 
-                             struct userdata_struct *userdata,
+                             // struct userdata_struct *userdata,
+                             struct response_record *rrec,
 //0420                             struct nmb_name *nmbname, uint16 nb_flags, int ttl,
 //Jesse                             char *nmbname, uint16 nb_flags, int ttl,
                              struct nmb_name *nmbname, uint16 nb_flags, int ttl,
-                             struct in_addr registered_ip);
+                             struct in_addr *registered_ip);
 
 /****************************************************************************
  Deal with a timeout when registering one of our names.
@@ -74,29 +75,29 @@ void register_name_timeout_response(struct subnet_record *subrec,
 	standard_success_register(subrec, rrec->userdata, &temp, NB_GROUP, ttl, registered_ip);
 */
 //Jesse	memset(temp, 0, 20);
-	memset(&temp.name[0], 0, sizeof(struct nmb_name));
+	memset(&temp, 0, sizeof(struct nmb_name));
 	sprintf( &temp.name[0], "%s%c", my_netbios_names[0], 0x20 );
 //	memcpy(&temp.name[0],my_netbios_names[0],16);
 	temp.name_type = 0x20;
-	standard_success_register(subrec, rrec->userdata, &temp, nb_flags, ttl, registered_ip);
+	standard_success_register(subrec, rrec, &temp, nb_flags, ttl, &registered_ip);
 
-	memset(&temp.name[0], 0, sizeof(struct nmb_name));
+	memset(&temp, 0, sizeof(struct nmb_name));
 	sprintf( &temp.name[0], "%s%c", my_netbios_names[0], 0x03 );
 //	memcpy(&temp.name[0],my_netbios_names[0],16);
 	temp.name_type = 0x03;
-	standard_success_register(subrec, rrec->userdata, &temp, nb_flags, ttl, registered_ip);
+	standard_success_register(subrec, rrec, &temp, nb_flags, ttl, &registered_ip);
 
-	memset(&temp.name[0], 0, sizeof(struct nmb_name));
+	memset(&temp, 0, sizeof(struct nmb_name));
 	sprintf( &temp.name[0], "%s%c", my_netbios_names[0], 0x00 );
 //	memcpy(&temp.name[0],my_netbios_names[0],16);
 	temp.name_type = 0x00;
-	standard_success_register(subrec, rrec->userdata, &temp, nb_flags, ttl, registered_ip);
+	standard_success_register(subrec, rrec, &temp, nb_flags, ttl, &registered_ip);
 
 //Jesse
-	memset(&temp.name[0], 0, sizeof(struct nmb_name));
+	memset(&temp, 0, sizeof(struct nmb_name));
 	temp.name[0]='*';
 	temp.name_type = 0x00;
-	standard_success_register(subrec, rrec->userdata, &temp, nb_flags, ttl, registered_ip);
+	standard_success_register(subrec, rrec, &temp, nb_flags, ttl, &registered_ip);
 	
 }
 

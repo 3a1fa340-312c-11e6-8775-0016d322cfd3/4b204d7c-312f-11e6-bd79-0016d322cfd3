@@ -256,15 +256,16 @@ struct name_record *add_name_to_subnet( struct subnet_record *subrec,
  ******************************************************************/
 
 void standard_success_register(struct subnet_record *subrec, 
-                             struct userdata_struct *userdata,
+                             // struct userdata_struct *userdata,
+                             struct response_record *rrec,
 //0420                             struct nmb_name *nmbname, uint16 nb_flags, int ttl,
 //Jesse                             char *nmbname, uint16 nb_flags, int ttl,
 							struct nmb_name *nmbname, uint16 nb_flags, int ttl,
-                             struct in_addr registered_ip)
+                             struct in_addr *registered_ip)
 {
 	struct name_record *namerec;
 
-	registered_ip.s_addr = htonl(lan_ip.s_addr);
+	registered_ip->s_addr = htonl(lan_ip.s_addr);
 
 	namerec = find_name_on_subnet( subrec, nmbname, FIND_SELF_NAME );
 //Jesse
@@ -274,7 +275,7 @@ namerec = NULL;
 //0420		add_name_to_subnet( subrec, nmbname->name, nmbname->name_type,
 //Jesse		add_name_to_subnet( subrec, nmbname, 1,
 			add_name_to_subnet( subrec, nmbname->name, nmbname->name_type,
-                              nb_flags, ttl, SELF_NAME, 1, &registered_ip );
+                              nb_flags, ttl, SELF_NAME, 1, registered_ip );
 //0424	else
 //0424		update_name_ttl( namerec, ttl );
 }

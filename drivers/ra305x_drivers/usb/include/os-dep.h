@@ -64,18 +64,16 @@ static int irq_flag;
 #define GFP_NOIO      ((gfp_t)0x10u)
 #define GFP_ATOMIC    ((gfp_t)0x20u)
 
+#ifdef USB_DBG
 #define printk        diag_printf
 #define pr_debug      diag_printf
 #define pr_info       diag_printf
 #define TTRACE        \
     diag_printf("%s(%d)\n", __func__, __LINE__)
-// #define TTRACE do{}while(0)
 #define EPDBG         \
     diag_printf("EPDBG: %s(%d)\n", __func__, __LINE__)
-// #define EPDBG do{}while(0)
 #define TADDR(fmt, addr) diag_printf("%s(%d) %s:%x\n", __func__, __LINE__, fmt, (u32)addr)
 #define TVAL(fmt, val) diag_printf("%s(%d) %s:%d\n", __func__, __LINE__, fmt, val)
-
 #define ehci_dbg(ehci, fmt, args...) \
     diag_printf(fmt, ##args)
 #define ehci_err(ehci, fmt, args...) \
@@ -84,6 +82,26 @@ static int irq_flag;
     diag_printf(fmt, ##args)
 #define ehci_warn(ehci, fmt, args...) \
     diag_printf(fmt, ##args)
+
+#else /* USB_DBG */
+
+#define printk
+#define pr_debug
+#define pr_info 
+#define TTRACE do{}while(0)
+#define EPDBG do{}while(0)
+#define TADDR(fmt, addr)
+#define TVAL(fmt, val)
+#define ehci_dbg(ehci, fmt, args...) \
+    do{}while(0) 
+#define ehci_err(ehci, fmt, args...) \
+    do{}while(0)
+#define ehci_info(ehci, fmt, args...) \
+    do{}while(0)
+#define ehci_warn(ehci, fmt, args...) \
+    do{}while(0)
+#endif /* USB_DBG */
+
 #define ehci_vdbg(ehci, fmt, args...)
 #define dbg_port(ehci, label, port, status)
 
@@ -179,10 +197,18 @@ typedef struct {
  * NULL descriptor
  */
 #define EXPORT_SYMBOL_GPL(x)
+#ifdef USB_DBG
 #define dev_dbg(dev, format, arg...) diag_printf(format, ##arg)
 #define dev_warn(dev, format, arg...) diag_printf(format, ##arg)
 #define dev_err(dev, format, arg...) diag_printf(format, ##arg)
-#define dev_info(dev, format, arg...) diag_printf(format, ##arg) 
+#define dev_info(dev, format, arg...) diag_printf(format, ##arg)
+#else /* USB_DBG */
+#define dev_dbg(dev, format, arg...) 
+#define dev_warn(dev, format, arg...) 
+#define dev_err(dev, format, arg...) 
+#define dev_info(dev, format, arg...) 
+#endif /* USB_DBG */
+
 #define dbg_cmd(ehci, label, command)
 #define dbg_status(ehci, label, status) 
 

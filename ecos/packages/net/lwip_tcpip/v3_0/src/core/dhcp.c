@@ -812,6 +812,8 @@ static void dhcp_bind(struct netif *netif)
   netif_set_up(netif);
   /* netif is now bound to DHCP leased address */
   dhcp_set_state(dhcp, DHCP_BOUND);
+
+  update_netif_ipaddr(netif);
 }
 
 /**

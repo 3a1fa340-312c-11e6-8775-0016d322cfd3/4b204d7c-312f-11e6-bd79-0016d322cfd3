@@ -1079,7 +1079,7 @@ static int usblp_wwait(struct usblp *usblp, int nonblock)
 			break;
 
 		// if (schedule_timeout(msecs_to_jiffies(1500)) == 0) 
-        cyg_thread_delay(msecs_to_jiffies(1500));
+        cyg_thread_delay(msecs_to_jiffies(10));
         {
 			if (usblp->flags & LP_ABORT) {
 				err = usblp_check_status(usblp, err);

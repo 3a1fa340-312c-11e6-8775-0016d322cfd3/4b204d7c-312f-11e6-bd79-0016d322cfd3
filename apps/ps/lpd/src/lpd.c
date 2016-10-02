@@ -849,7 +849,9 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 #ifdef USB_ZERO_CPY	
 	int retrycnt, dataremain;
 #endif
+#ifdef print_debug
 	char *pdata = 0x1B9000;
+#endif /* print_debug */
 	unsigned int datalen = 0;
 	uint32	startime_bin;
 
@@ -857,7 +859,7 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 	
 	if( first_flag == 0)
 		memset(pdata, 0, 156*1024);
-#endif //print_debug
+#endif /* print_debug */
 	
 	filesize++;	// add in status byte
 #ifndef USB_ZERO_CPY	
@@ -975,7 +977,7 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 			}
 		}
 		datalen+=bytes;
-#endif //print_debug
+#endif /* print_debug */
 		
 		if(total < filesize) {
 			PrnPutOutQueueBuf(PortNumber,pbuf,PRN_Q_NORMAL);
@@ -984,7 +986,7 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 			PrnPutOutQueueBuf(PortNumber,pbuf,PRN_Q_EOF); //end of printing
 #ifdef print_debug
 			first_flag = 1;
-#endif //print_debug			
+#endif /* print_debug */
 		}
 				
 	} while( total < filesize );

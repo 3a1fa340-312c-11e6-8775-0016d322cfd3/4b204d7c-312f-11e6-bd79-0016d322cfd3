@@ -99,6 +99,7 @@ EXPORT_SYMBOL_GPL(usb_hcds_loaded);
 /* host controllers we manage */
 LIST_HEAD (usb_bus_list);
 EXPORT_SYMBOL_GPL (usb_bus_list);
+LIST_HEAD (usb_hcd_list);
 
 /* used when allocating bus numbers */
 #define USB_MAXBUS		64
@@ -2080,29 +2081,37 @@ EXPORT_SYMBOL_GPL(usb_bus_start_enum);
 irqreturn_t usb_hcd_irq (int irq, void *__hcd)
 {
 	struct usb_hcd		*hcd = __hcd;
+    struct list_head    *entry, *tmp;
 	unsigned long		flags;
 	irqreturn_t		rc;
 
-	/* IRQF_DISABLED doesn't work correctly with shared IRQs
-	 * when the first handler doesn't use it.  So let's just
-	 * assume it's never used.
-	 */
-	local_irq_save(flags);
+    list_for_each_safe(entry, tmp, &usb_hcd_list)
+    {
+        hcd = list_entry(entry, struct usb_hcd, hcd_list);
 
-	if (unlikely(hcd->state == HC_STATE_HALT || !HCD_HW_ACCESSIBLE(hcd))) {
-		rc = IRQ_NONE;
-	} else if (hcd->driver->irq(hcd) == IRQ_NONE) {
-		rc = IRQ_NONE;
-	} else {
-		set_bit(HCD_FLAG_SAW_IRQ, &hcd->flags);
+        /* IRQF_DISABLED doesn't work correctly with shared IRQs
+         * when the first handler doesn't use it.  So let's just
+         * assume it's never used.
+         */
+        local_irq_save(flags);
 
-		if (unlikely(hcd->state == HC_STATE_HALT))
-			usb_hc_died(hcd);
-		rc = IRQ_HANDLED;
-	}
+        if (unlikely((hcd->state == HC_STATE_HALT) || !HCD_HW_ACCESSIBLE(hcd))) {
+            rc = IRQ_NONE;
+        } else if (hcd->driver->irq(hcd) == IRQ_NONE) {
+            rc = IRQ_NONE;
+        } else {
+            set_bit(HCD_FLAG_SAW_IRQ, &hcd->flags);
 
-	local_irq_restore(flags);
-	return rc;
+            if (unlikely(hcd->state == HC_STATE_HALT)) {
+                usb_hc_died(hcd);
+            }
+
+            rc = IRQ_HANDLED;
+        }
+
+        local_irq_restore(flags);
+    }
+    return rc;
 }
 EXPORT_SYMBOL_GPL(usb_hcd_irq);
 
@@ -2329,6 +2338,7 @@ int usb_add_hcd(struct usb_hcd *hcd,
         }
 
 		hcd->irq = irqnum;
+        list_add_tail(&hcd->hcd_list, &usb_hcd_list);
 		dev_info(hcd->self.controller, "irq %d, %s 0x%08llx\n", irqnum,
 				(hcd->driver->flags & HCD_MEMORY) ?
 					"io mem" : "io base",

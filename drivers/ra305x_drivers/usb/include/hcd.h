@@ -162,6 +162,7 @@ struct usb_hcd {
     // struct mutex           bandwidth_mutex;
     cyg_mutex_t            bandwidth_mutex;
 #endif // CONFIG_USB_MT7621_XHCI_HCD
+    struct list_head        hcd_list;
 
 
 #define HCD_BUFFER_POOLS       4

@@ -30,6 +30,7 @@ void wq_init (void);
 static char usb_stack[USB_STACK_SIZE];
 cyg_handle_t usb_thread_handle;
 cyg_thread usb_thread_data;
+extern struct list_head usb_hcd_list;
 
 void usb_thread (cyg_addrword_t parameter)
 {
@@ -42,6 +43,8 @@ void usb_thread (cyg_addrword_t parameter)
     wq_init();
 
     usb_init();
+    INIT_LIST_HEAD(&usb_hcd_list);
+
     ehci_hcd_init();
     ohci_hcd_mod_init();
 

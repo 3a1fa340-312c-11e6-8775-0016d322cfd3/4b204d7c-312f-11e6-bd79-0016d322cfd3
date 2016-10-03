@@ -484,7 +484,7 @@ static cyg_handle_t     NT3MAIN_TaskHdl;
 
 //NTUDP Task create information definition
 #define NTUDP_TASK_PRI         20	//ZOT716u2
-#define NTUDP_TASK_STACK_SIZE  2048 //ZOT716u2 4096
+#define NTUDP_TASK_STACK_SIZE  4096 //ZOT716u2 4096
 static uint8 			NTUDP_Stack[NTUDP_TASK_STACK_SIZE];
 static cyg_thread       NTUDP_Task;
 static cyg_handle_t     NTUDP_TaskHdl;
@@ -521,14 +521,14 @@ static cyg_handle_t     NDS_TaskHdl;
 
 //lpdStart Thread initiation information
 #define LpdStart_TASK_PRI         	20	//ZOT716u2
-#define LpdStart_TASK_STACK_SIZE  	2048 //ZOT716u2 4096
+#define LpdStart_TASK_STACK_SIZE  	4096 //ZOT716u2 4096
 static	uint8			LpdStart_Stack[LpdStart_TASK_STACK_SIZE];
 static  cyg_thread		LpdStart_Task;
 static  cyg_handle_t	LpdStart_TaskHdl;
 
 //rawtcpd Thread initiation information
 #define Rawtcpd_TASK_PRI         	20	//ZOT716u2
-#define Rawtcpd_TASK_STACK_SIZE  	2048 //ZOT716u2 4096
+#define Rawtcpd_TASK_STACK_SIZE  	4096 //ZOT716u2 4096
 static	uint8			Rawtcpd_Stack[Rawtcpd_TASK_STACK_SIZE];
 static  cyg_thread		Rawtcpd_Task;
 static  cyg_handle_t	Rawtcpd_TaskHdl;
@@ -578,7 +578,7 @@ uint8 ZIP_WAIT;
 
 //SNMPD Thread initiation information
 #define SNMPD_TASK_PRI         	20	//ZOT716u2
-#define SNMPD_TASK_STACK_SIZE  	2048//ZOT716u2 4096
+#define SNMPD_TASK_STACK_SIZE  	4096//ZOT716u2 4096
 static	uint8			SNMPD_Stack[SNMPD_TASK_STACK_SIZE];
 static  cyg_thread		SNMPD_Task;
 static  cyg_handle_t	SNMPD_TaskHdl;

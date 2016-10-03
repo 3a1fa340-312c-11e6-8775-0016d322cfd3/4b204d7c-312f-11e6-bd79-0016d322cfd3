@@ -62,14 +62,11 @@ static int rt3xxx_ehci_init(struct usb_hcd *hcd)
 
 	ehci_reset(ehci);
 
-    TTRACE;
 	retval = ehci_init(hcd);
 	if (retval)
 		return retval;
 
-    TTRACE;
 	ehci_port_power(ehci, 0);
-    TTRACE;
 
 	return retval;
 }

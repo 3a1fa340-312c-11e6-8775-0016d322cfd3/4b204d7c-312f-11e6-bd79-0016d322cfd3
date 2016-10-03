@@ -9,7 +9,7 @@ EXTRA_CFLAGS = -I. -D_KERNEL
 EXTRACFLAGS += -I./include -I./include/asm -I$(PROD_BUILD_DIR) \
 			   -DCONFIG_RALINK_MT7628 \
 			   -DCONFIG_USB_ANNOUNCE_NEW_DEVICES \
-			   -DUSB_DBG
+			   -DUSB_LED 
 #
 #ALL_OBJS = host/ehci-hcd.o host/ehci-rt3xxx.o host/ehci-hub.o \
 #		   host/ohci-hcd.o host/ohci-rt3xxx.o host/hoci-hub.o \

@@ -48,6 +48,20 @@
 #endif
 #endif
 
+#ifdef USB_LED
+#define MAX_USB_NUM_PORTS	8
+extern u32 usb_devices_per_port[MAX_USB_NUM_PORTS]; // for QC only
+
+extern u32 OHCI_LINK[MAX_USB_NUM_PORTS]; 
+extern u32 EHCI_LINK[MAX_USB_NUM_PORTS]; 
+#ifndef Usb11_Lite
+#define Usb11_Lite	   1	//GPIO 15; Green; Low active
+#endif /* Usb11_Lite */
+#ifndef Usb20_Lite
+#define Usb20_Lite	   2	//GPIO 15; Green; Low active
+#endif /* Usb20_Lite */
+#endif /* USB_LED */
+
 struct usb_hub {
     struct device       *intfdev;   /* the "interface" device */
     struct usb_device   *hdev;
@@ -3117,6 +3131,20 @@ static void hub_port_connect_change(struct usb_hub *hub, int port1,
                 && !(portstatus & USB_PORT_STAT_POWER))
             set_port_feature(hdev, port1, USB_PORT_FEAT_POWER);
 
+#ifdef USB_LED
+        // if((udev->parent == NULL) && (port == 1)) {
+		    if(udev->speed == USB_SPEED_HIGH)
+			    EHCI_LINK[0] = 0;
+		    else
+			    OHCI_LINK[0] = 0;
+        // }
+
+		if( !EHCI_LINK[0] && !OHCI_LINK[0] )	
+		{
+			usb_devices_per_port[0] = 0;
+			Light_Off(Usb11_Lite);	//ZOT716u2 no matter 1.1 or 2.0 
+		}
+#endif /* USB_LED */
         if (portstatus & USB_PORT_STAT_ENABLE)
             goto done;
         return;
@@ -3236,10 +3264,26 @@ static void hub_port_connect_change(struct usb_hub *hub, int port1,
         /* Run it through the hoops (find a driver, etc) */
         if (!status) {
             status = usb_new_device(udev);
+
             if (status) {
                 spin_lock_irq(&device_state_lock);
-                hdev->children[port1-1] = NULL;
+                hdev->children[port1 - 1] = NULL;
                 spin_unlock_irq(&device_state_lock);
+            }else  {
+        #ifdef USB_LED
+                // if ((hub->parent == NULL) && (port == 1)) {
+                if (udev->speed == USB_SPEED_HIGH) {
+                    EHCI_LINK[0] = 1;
+                    Light_On(Usb20_Lite);
+                }else{
+                    OHCI_LINK[0] = 1;
+                    Light_On(Usb11_Lite);
+                }
+                if (OHCI_LINK[0] || EHCI_LINK[0]) {
+                    usb_devices_per_port[0] = 1;
+                }
+                // }
+        #endif /* USB_LED */
             }
         }
 

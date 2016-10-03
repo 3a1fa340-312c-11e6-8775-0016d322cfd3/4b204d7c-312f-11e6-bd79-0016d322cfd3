@@ -158,7 +158,6 @@ timer_action(struct ehci_hcd *ehci, enum ehci_timer_action action)
              */
             // t = DIV_ROUND_UP(EHCI_SHRINK_FRAMES * HZ, 1000) + 1;
             t = DIV_ROUND_UP(EHCI_SHRINK_FRAMES * HZ, 1000);
-            // pr_debug("termy say, %s t = %ld\n", __func__, t);
             break;
         }
         mod_timer(&ehci->watchdog, t + jiffies);
@@ -377,7 +376,6 @@ static void ehci_iaa_watchdog(unsigned long param)
 
         ehci_vdbg(ehci, "IAA watchdog: status %x cmd %x\n",
                 status, cmd);
-        TTRACE;
         end_unlink_async(ehci);
     }
 
@@ -389,7 +387,6 @@ static void ehci_watchdog(unsigned long param)
     struct ehci_hcd     *ehci = (struct ehci_hcd *) param;
     unsigned long       flags;
 
-    // pr_debug("termy say, %s ---->", __func__);
     spin_lock_irqsave(&ehci->lock, flags);
 
     /* stop async processing after it's idled a bit */
@@ -473,7 +470,6 @@ static void ehci_port_power (struct ehci_hcd *ehci, int is_on)
  */
 static void ehci_work (struct ehci_hcd *ehci)
 {
-    // pr_debug("termy say, %s(%d)\n", __func__, __LINE__);
     timer_action_done (ehci, TIMER_IO_WATCHDOG);
 
     /* another CPU may drop ehci->lock during a schedule scan while
@@ -726,7 +722,6 @@ static int ehci_run (struct usb_hcd *hcd)
     msleep(5);
     // up_write(&ehci_cf_port_reset_rwsem);
     cyg_mutex_unlock(&ehci_cf_port_reset_rwsem);
-    pr_debug("term say %s(%d)\n", __func__, __LINE__);
     ehci->last_periodic_enable = ktime_get_real();
 
     temp = HC_VERSION(ehci_readl(ehci, &ehci->caps->hc_capbase));
@@ -782,7 +777,6 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
     /* unrequested/ignored: Frame List Rollover */
     dbg_status (ehci, "irq", status);
 #endif
-    // pr_debug("%s(%d) irq status = %x\n", __func__, __LINE__, status);
 
     /* INT, ERR, and IAA interrupt rates can be throttled */
 
@@ -873,7 +867,6 @@ dead:
     }
 
     if (bh) {
-        // pr_debug("termy say, %s ----->", __func__);
         ehci_work (ehci);
     }
     spin_unlock (&ehci->lock);
@@ -976,7 +969,6 @@ static int ehci_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
     unsigned long       flags;
     int         rc;
 
-    TTRACE;
     spin_lock_irqsave (&ehci->lock, flags);
     rc = usb_hcd_check_unlink_urb(hcd, urb, status);
     if (rc)

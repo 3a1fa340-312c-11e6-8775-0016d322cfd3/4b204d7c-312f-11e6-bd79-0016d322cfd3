@@ -100,13 +100,13 @@ static int irq_flag;
 #define EPDBG do{}while(0)
 #define TADDR(fmt, addr)
 #define TVAL(fmt, val)
-#define ohci_dbg(ohci, fmt, args...) \
+#define ehci_dbg(ehci, fmt, args...) \
     do{}while(0) 
-#define ohci_err(ohci, fmt, args...) \
+#define ehci_err(ehci, fmt, args...) \
     do{}while(0)
-#define ohci_info(ohci, fmt, args...) \
+#define ehci_info(ehci, fmt, args...) \
     do{}while(0)
-#define ohci_warn(ohci, fmt, args...) \
+#define ehci_warn(ehci, fmt, args...) \
     do{}while(0)
 #define ohci_dbg(ohci, fmt, args...) \
     do{}while(0) 

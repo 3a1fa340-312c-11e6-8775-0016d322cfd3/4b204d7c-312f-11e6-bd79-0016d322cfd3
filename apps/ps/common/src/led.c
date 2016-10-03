@@ -197,9 +197,7 @@ void LightOnForever(unsigned char LED)
 #ifdef WIRELESS_CARD
 extern int wlan_get_linkup ();
 #endif
-#ifdef ARM_USB
 extern uint32 usb_devices_per_port[NUM_PORTS] ;
-#endif /* ARM_USB */
 
 #ifdef WPSBUTTON_LEDFLASH_FLICK
 // Lance
@@ -258,12 +256,11 @@ void LightToggleProc(cyg_addrword_t data)
 #ifdef WPSBUTTON_LEDFLASH_FLICK
         }	// end of if(flash_wps_led == 1)
 #endif	// WPSBUTTON_LEDFLASH_FLICK
-#ifdef ARM_USB
+
       	if(usb_devices_per_port[0] == 1)
       		Light_On(Usb11_Lite);
       	else
       		Light_Off(Usb11_Lite);
-#endif /* ARM_USB */      	
       	
       	
 		nLEDValue = 0; 

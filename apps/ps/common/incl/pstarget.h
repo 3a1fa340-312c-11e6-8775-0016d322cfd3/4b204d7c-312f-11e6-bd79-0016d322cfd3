@@ -234,11 +234,11 @@ extern unsigned char kFarHeap_base[];
 #define ALLFLASHADDROFF        	0
 #define LOADERADDROFF			0x00000000
 #define WEBOFF					0x00090000
-
-#ifdef ARCH_ARM
 #define QC0ADDROFF              0x000FA000
 #define DEFAULTADDROFF         	0x000FC000
 #define EEPROMADDROFF         	0x000FE000
+
+#ifdef ARCH_ARM
 #define MAXFLASHOFF             0x00100000
 #define FLASHSIZE                1//M bytes
 #define FLASHBASE              	(0x30000000)	//ZOT716u2
@@ -253,9 +253,6 @@ extern unsigned char kFarHeap_base[];
 #endif /* ARCH_ARM */
 
 #ifdef ARCH_MIPS
-#define QC0ADDROFF              0x001FA000
-#define DEFAULTADDROFF         	0x001FC000
-#define EEPROMADDROFF         	0x001FE000
 #define MAXFLASHOFF             0x00200000
 #define FLASHSIZE               2//M bytes
 #define FLASHBASE               (0xBC000000)
@@ -266,6 +263,9 @@ extern unsigned char kFarHeap_base[];
 #define CODE1_SIZE              128	
 #define CODE2ADDROFF           	0x00050000
 #define CODE2_SIZE              1024
+
+#define WIFIEPADDROFF           0x00040000
+#define WIFIEEPROM_FLASH_ADDRESS FLASHBASE + WIFIEPADDROFF
 
 #endif /* ARCH_MIPS */
 

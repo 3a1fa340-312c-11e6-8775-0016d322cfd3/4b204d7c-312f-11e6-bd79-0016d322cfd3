@@ -100,6 +100,7 @@ CODE1MARK       = 0xB1
 CODE2MARK       = 0xB2
 EEPROMMARK      = 0xB3
 LOADERMARK      = 0xB4
+WIFIEPMARK		= 0xB5
 
 TOOLS_DIR = ./prod/$(PROD_NAME)/build/tools
 
@@ -251,6 +252,13 @@ loader: uboot.bin
 	wine $(TOOLS_DIR)/maketarget 
 	wine $(TOOLS_DIR)/makimage $(PSMODELINDEX) $(LOADERMARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersionPlus) $(BuildVer) $(MAKER_AND_CPU) $< MPS$(PSMODELINDEX)_loader.bin
 	cp MPS$(PSMODELINDEX)_loader.bin $(ROOT_DIR)/img/.
+	mv Target.def $(TARGET_DEF)
+
+eeprom: 7688A_v2_1.bin
+	cp $(TARGET_DEF) .
+	wine $(TOOLS_DIR)/maketarget 
+	wine $(TOOLS_DIR)/makimage $(PSMODELINDEX) $(WIFIEPMARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersionPlus) $(BuildVer) $(MAKER_AND_CPU) $< MPS$(PSMODELINDEX)_eeprom.bin
+	cp MPS$(PSMODELINDEX)_eeprom.bin $(ROOT_DIR)/img/.
 	mv Target.def $(TARGET_DEF)
 
 OBJ_DIR       = $(PROD_BUILD_DIR)/obj

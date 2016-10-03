@@ -55,6 +55,7 @@ typedef struct _header_ver{
 #define CODE2MARK       0xB2
 #define EEPROMMARK      0xB3
 #define LOADERMARK      0xB4
+#define WIFIEPMARK      0xB5
 
 
 //temp extern int flashWriteWord (int offset, unsigned short dat);
@@ -127,6 +128,13 @@ int vEraseLoader()
 {
 	return vEraseFlash( LOADER_START_ADDRESS, NUM_OF_LOADER_SECTOR );
 }
+
+#ifdef ARCH_MIPS
+int vEraseWifiEeprom()
+{
+    return vEraseFlash(WIFIEEPROM_FLASH_ADDRESS, 1);
+}
+#endif /* ARCH_MIPS */
 
 int vAllocCode2Memory()
 {
@@ -618,6 +626,18 @@ int vProgramWeb( char *pWebData, uint32 length)
 }
 #endif /* ARCH_ARM */
 
+#ifdef ARCH_MIPS
+int vProgramWifiEeprom (char *pWifiData, uint32 length)
+{
+    int rc = 0;
+    rc = vEraseWifiEeprom();
+    if (rc == 0) {
+        rc = vProgramFlash(WIFIEEPROM_FLASH_ADDRESS, pWifiData, length);
+    }
+    return rc;
+}
+#endif /* ARCH_MIPS */
+
 int vProgramDef( char *pDefData, uint32 length)
 {
 	int		rc = 0;
@@ -644,7 +664,7 @@ int vProgramCFG( EEPROM *pDefData, uint32 length)
 	if(rc == 0){
 	/* Now write the EEPROM_Data */
 		//rc = vProgramFlash( SYS_FLASH_ADDRESS, &EEPROM_Data, sizeof(EEPROM) );
-		rc = vProgramFlash( SYS_FLASH_ADDRESS, &pDefData, sizeof(EEPROM) );
+		rc = vProgramFlash( SYS_FLASH_ADDRESS, pDefData, sizeof(EEPROM) );
 	}
 	return rc;
 }
@@ -705,6 +725,11 @@ unsigned long PSCheckImageIntegrity(HEADER_VER *hdr1){
 	case EEPROMMARK:
 		offset = 	DEFAULTADDROFF;	
 		break;		
+    #ifdef ARCH_MIPS
+    case WIFIEPMARK:
+        offset =    WIFIEPADDROFF;
+        break;
+    #endif /* ARCH_MIPS */
 	default:
 		offset = 	MAXFLASHOFF;	//fail
 		break;						
@@ -790,16 +815,16 @@ ApUpgradeFirmware(char *pData, unsigned long len)
 				break;
 
 			case CODE1ADDROFF:
-#if defined(ARCH_ARM)
+            #if defined(ARCH_ARM)
 				nbytes += sizeof(HEADER_VER);
                 cyg_scheduler_lock();
                 vProgramCode1( hdr1, nbytes);
                 cyg_scheduler_unlock();
-#endif /*ARCH_ARM */
+            #endif /*ARCH_ARM */
 				break;
 
 			case CODE2ADDROFF:
-#if defined (ARCH_MIPS)
+            #if defined (ARCH_MIPS)
                 /*
                  * copy zot header to end
                  */
@@ -812,26 +837,29 @@ ApUpgradeFirmware(char *pData, unsigned long len)
                  */
                 nbytes = zhdr_offset + sizeof(HEADER_VER);
                 hdr1++;
-#endif /* ARCH_MIPS */
-#if defined (ARCH_ARM)
+            #endif /* ARCH_MIPS */
+            #if defined (ARCH_ARM)
                 nbytes += sizeof(HEADER_VER);
-#endif /* ARCH_ARM */
+            #endif /* ARCH_ARM */
                 cyg_scheduler_lock();
                 vProgramCode2( hdr1, nbytes);
                 cyg_scheduler_unlock();
                 break;
-
-                #if defined(ARCH_ARM)
-                case WEBOFF:
-                    nbytes += sizeof(HEADER_VER);
-                    vProgramWeb(hdr1, nbytes);
-                    break;
-
-                #endif /* ARCH_ARM */
-                case DEFAULTADDROFF:
-                    vProgramDef( hdr1, nbytes);
-                    break;
-	
+            #if defined(ARCH_ARM)
+            case WEBOFF:
+                nbytes += sizeof(HEADER_VER);
+                vProgramWeb(hdr1, nbytes);
+                break;
+            #endif /* ARCH_ARM */
+            case DEFAULTADDROFF:
+                vProgramDef( hdr1, nbytes);
+                break;
+            #if defined(ARCH_MIPS)
+            case WIFIEPADDROFF:
+                hdr1++;
+                vProgramWifiEeprom(hdr1, nbytes);
+                break;
+            #endif /* ARCH_MIPS */
 		}
 	
 		sti();

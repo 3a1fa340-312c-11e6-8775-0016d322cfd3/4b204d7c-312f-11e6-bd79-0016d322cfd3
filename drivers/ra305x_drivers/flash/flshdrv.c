@@ -266,7 +266,7 @@ int flsh_read(unsigned int addr, unsigned int to, unsigned int len)
 	
 	rc = cyg_flash_read(addr, to, len, &err_addr);
 	if (rc != CYG_FLASH_ERR_OK)
-		diag_printf("FLASH: read err=%d eaddr=%x\n", rc, err_addr);
+		diag_printf("%s(%d) FLASH: read err=%d eaddr=%x:%x\n", __func__, __LINE__, rc, err_addr, (unsigned int)addr);
 	return rc;
 }
 

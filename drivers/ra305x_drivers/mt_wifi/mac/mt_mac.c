@@ -2073,12 +2073,14 @@ INT mt_mac_init(RTMP_ADAPTER *pAd)
 
 	mt_mac_pse_init(pAd);
 
-	MtAsicInitMac(pAd);
+	// MtAsicInitMac(pAd);
 
 	/* re-set specific MAC registers for individual chip */
 	// TODO: Shiang-usw-win, here we need call "mt7603_init_mac_cr" for windows!
-	if (pAd->chipOps.AsicMacInit != NULL)
+    if (pAd->chipOps.AsicMacInit != NULL) 
 		pAd->chipOps.AsicMacInit(pAd);
+
+    MtAsicInitMac(pAd);
 
 	/* auto-fall back settings */
 	MtAsicAutoFallbackInit(pAd);

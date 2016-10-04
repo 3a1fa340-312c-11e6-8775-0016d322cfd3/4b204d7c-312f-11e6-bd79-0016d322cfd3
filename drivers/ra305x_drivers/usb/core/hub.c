@@ -48,7 +48,7 @@
 #endif
 #endif
 
-#ifdef USB_LED
+#ifdef USB_LED 
 #define MAX_USB_NUM_PORTS	8
 extern u32 usb_devices_per_port[MAX_USB_NUM_PORTS]; // for QC only
 
@@ -60,7 +60,7 @@ extern u32 EHCI_LINK[MAX_USB_NUM_PORTS];
 #ifndef Usb20_Lite
 #define Usb20_Lite	   2	//GPIO 15; Green; Low active
 #endif /* Usb20_Lite */
-#endif /* USB_LED */
+#endif /* USB_LED */ 
 
 struct usb_hub {
     struct device       *intfdev;   /* the "interface" device */
@@ -3133,7 +3133,7 @@ static void hub_port_connect_change(struct usb_hub *hub, int port1,
 
 #ifdef USB_LED
         // if((udev->parent == NULL) && (port == 1)) {
-		    if(udev->speed == USB_SPEED_HIGH)
+		    if(udev && udev->speed == USB_SPEED_HIGH)
 			    EHCI_LINK[0] = 0;
 		    else
 			    OHCI_LINK[0] = 0;
@@ -3272,7 +3272,7 @@ static void hub_port_connect_change(struct usb_hub *hub, int port1,
             }else  {
         #ifdef USB_LED
                 // if ((hub->parent == NULL) && (port == 1)) {
-                if (udev->speed == USB_SPEED_HIGH) {
+                if (udev && udev->speed == USB_SPEED_HIGH) {
                     EHCI_LINK[0] = 1;
                     Light_On(Usb20_Lite);
                 }else{

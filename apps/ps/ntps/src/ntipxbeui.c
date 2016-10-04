@@ -17,7 +17,7 @@
 
 //IPXUpgrade Thread initiation information
 #define IPXUpgrade_TASK_PRI         	20	//ZOT716u2
-#define IPXUpgrade_TASK_STACK_SIZE  	2048 //ZOT716u2 3072
+#define IPXUpgrade_TASK_STACK_SIZE  	4096 //ZOT716u2 3072
 static	uint8			IPXUpgrade_Stack[IPXUpgrade_TASK_STACK_SIZE];
 static  cyg_thread		IPXUpgrade_Task;
 static  cyg_handle_t	IPXUpgrade_TaskHdl;

@@ -868,7 +868,8 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 	blocksize = 8192;
 #endif
 	do {
-		startime = 0;
+		// startime = 0;
+        startime = rdclock();
 		while((pbuf = PrnGetInQueueBuf(PortNumber)) == NULL) {
 			
 			//10/11/99 Send Ack When Buffer is empty *****************

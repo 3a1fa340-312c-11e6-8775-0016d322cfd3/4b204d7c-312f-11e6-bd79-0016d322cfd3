@@ -263,7 +263,7 @@ err_t SendPacket(struct netif *netif, struct pbuf *p)
         dst != WLanface && 
         #endif
         dst != ULanface) {
-#if defined(N716U2W)
+#if defined(N716U2W) || defined(N716U2)
         #ifdef STAR_MAC
 		send_frame(p, p->tot_len, 1);
         #endif /* STAR_MAC */
@@ -375,16 +375,19 @@ int send_pkt(int intno,UINT8 *buffer,unsigned int length)
         #endif
 	}
 	
-#ifdef WIRELESS_CARD
-	if( dst != WLanface && dst != Lanface && dst != ULanface){
-#if defined(N716U2W)
+	if( dst != Lanface && 
+        #ifdef WIRELESS_CARD
+        dst != WLanface && 
+        #endif /* WIRELESS_CARD */
+        dst != ULanface){
+        #if defined(N716U2W) || defined(N716U2)
         #ifdef STAR_MAC
 		send_frame(buffer, length, 0);
         #endif /* STAR_MAC */
         #ifdef MT7688_MAC
         low_level_send_packet(Lanface, buffer, length);
         #endif /* MT7688_MAC */
-#endif /* N716U2W */
+        #endif /* N716U2W */
         #ifdef STAR_MAC
 		spin_lock_irqsave(&WLan_TX_lock, &flags);	//ZOT==> spin_lock_irqsave(&WLan_TX_lock, flags);//eason 20091008
 		if(WLan_queuecount > 10)
@@ -404,11 +407,10 @@ int send_pkt(int intno,UINT8 *buffer,unsigned int length)
 		WLan_tx_enqueue(&WLAN_READ_QUEUE,&pSkb);
 		spin_unlock_irqrestore(&WLan_TX_lock, &flags); //ZOT==> spin_unlock_irqrestore(&WLan_TX_lock, flags);//eason 20091008
         #endif /* STAR_MAC */
-        #ifdef MT7688_MAC
+        #if defined(MT7688_MAC) && defined(WIRELESS_CARD)
         low_level_send_packet(WLanface, buffer, length);
         #endif /* MT7688_MAC */
 	}
-#endif /* WIRELESS_CARD */
 	return 0;
 }
 //ZOT
@@ -505,7 +507,6 @@ void LanPktInit()
 	else
 	{
         diag_printf("DHCP off \n");
-        /*
 		ipaddr.addr = NGET32(EEPROM_Data.BoxIPAddress);
 		netmask.addr = NGET32(EEPROM_Data.SubNetMask);
 		gw.addr = NGET32(EEPROM_Data.GetwayAddress);
@@ -513,11 +514,10 @@ void LanPktInit()
 		mib_DHCP.IPAddr = get32(EEPROM_Data.BoxIPAddress);
 		mib_DHCP.SubnetMask = get32(EEPROM_Data.SubNetMask);
 		mib_DHCP.GwyAddr = get32(EEPROM_Data.GetwayAddress);
-        */
 
-	    IP_ADDR(&gw, CYGDAT_LWIP_SERV_ADDR);
-	    IP_ADDR(&ipaddr, CYGDAT_LWIP_MY_ADDR);
-	    IP_ADDR(&netmask, CYGDAT_LWIP_NETMASK);
+		// IP_ADDR(&gw, CYGDAT_LWIP_SERV_ADDR);
+		// IP_ADDR(&ipaddr, CYGDAT_LWIP_MY_ADDR);
+		// IP_ADDR(&netmask, CYGDAT_LWIP_NETMASK);
 
 	}
 

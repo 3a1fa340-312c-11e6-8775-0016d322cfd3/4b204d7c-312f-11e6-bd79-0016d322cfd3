@@ -326,8 +326,8 @@ char* WLan_config ()
                 str_buf[i] = 0x30;
         }
         offset = sprintf(config_buf, "Default\n");
-        //offset += sprintf(config_buf+offset, "MacAddress=%s\n", str_buf);
-        offset += sprintf(config_buf+offset, "MacAddress=00:AA:DE:AD:BE:EF\n");
+        offset += sprintf(config_buf+offset, "MacAddress=%s\n", str_buf);
+        /* offset += sprintf(config_buf+offset, "MacAddress=00:AA:DE:AD:BE:EF\n"); */
     }
     
     /* channel */

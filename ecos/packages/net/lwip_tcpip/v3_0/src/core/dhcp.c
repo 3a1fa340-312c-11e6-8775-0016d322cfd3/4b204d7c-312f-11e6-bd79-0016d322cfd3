@@ -82,6 +82,11 @@
 #include "lwip/opt.h"
 #include "lwip/dhcp.h"
 
+#ifdef ZOT_TCPIP
+#define LENGTH_OF_BOX_NAME 18
+extern char *__BoxName;
+#endif /* ZOT_TCPIP */
+
 #if LWIP_DHCP /* don't build if not configured for use in lwipopt.h */
 
 /** global transaction identifier, must be
@@ -215,6 +220,7 @@ static err_t dhcp_select(struct netif *netif)
   struct dhcp *dhcp = netif->dhcp;
   err_t result;
   u32_t msecs;
+  int i = 0, j = 0;
   LWIP_DEBUGF(DHCP_DEBUG | DBG_TRACE | 3, ("dhcp_select(netif=%p) %c%c%"U16_F"\n", (void*)netif, netif->name[0], netif->name[1], (u16_t)netif->num));
 
   /* create and initialize the DHCP message header */
@@ -239,6 +245,17 @@ static err_t dhcp_select(struct netif *netif)
     dhcp_option_byte(dhcp, DHCP_OPTION_ROUTER);
     dhcp_option_byte(dhcp, DHCP_OPTION_BROADCAST);
     dhcp_option_byte(dhcp, DHCP_OPTION_DNS_SERVER);
+
+#ifdef ZOT_TCPIP
+    j = strlen(__BoxName);
+
+    if(j > LENGTH_OF_BOX_NAME)
+        j = (int)LENGTH_OF_BOX_NAME;
+    dhcp_option(dhcp, DHCP_OPTION_HOSTNAME, j);				// select
+
+    for(i = 0; i < j; i++)
+    	dhcp_option_byte(dhcp, __BoxName[i]);
+#endif /* ZOT_TCPIP */
 
     dhcp_option_trailer(dhcp);
     /* shrink the pbuf to the actual content length */
@@ -574,6 +591,7 @@ void dhcp_inform(struct netif *netif)
 {
   struct dhcp *dhcp;
   err_t result = ERR_OK;
+  int i = 0, j = 0;
   dhcp = mem_malloc(sizeof(struct dhcp));
   if (dhcp == NULL) {
     LWIP_DEBUGF(DHCP_DEBUG | DBG_TRACE | 2, ("dhcp_inform(): could not allocate dhcp\n"));
@@ -600,6 +618,17 @@ void dhcp_inform(struct netif *netif)
     dhcp_option(dhcp, DHCP_OPTION_MAX_MSG_SIZE, DHCP_OPTION_MAX_MSG_SIZE_LEN);
     /* TODO: use netif->mtu ?! */
     dhcp_option_short(dhcp, 576);
+
+#ifdef ZOT_TCPIP
+    j = strlen(__BoxName);
+
+    if(j > LENGTH_OF_BOX_NAME)
+        j = (int)LENGTH_OF_BOX_NAME;
+    dhcp_option(dhcp, DHCP_OPTION_HOSTNAME, j);		
+
+    for(i = 0; i < j; i++)
+        dhcp_option_byte(dhcp, __BoxName[i]);
+#endif /* ZOT_TCPIP */
 
     dhcp_option_trailer(dhcp);
 
@@ -660,6 +689,7 @@ static err_t dhcp_decline(struct netif *netif)
   struct dhcp *dhcp = netif->dhcp;
   err_t result = ERR_OK;
   u16_t msecs;
+  int i = 0, j = 0;
   LWIP_DEBUGF(DHCP_DEBUG | DBG_TRACE | 3, ("dhcp_decline()\n"));
   dhcp_set_state(dhcp, DHCP_BACKING_OFF);
   /* create and initialize the DHCP message header */
@@ -674,6 +704,18 @@ static err_t dhcp_decline(struct netif *netif)
 
     dhcp_option(dhcp, DHCP_OPTION_REQUESTED_IP, 4);
     dhcp_option_long(dhcp, ntohl(dhcp->offered_ip_addr.addr));
+
+#ifdef ZOT_TCPIP
+    j = strlen(__BoxName);
+
+    if(j > LENGTH_OF_BOX_NAME)
+        j = (int)LENGTH_OF_BOX_NAME;
+
+    dhcp_option(dhcp, DHCP_OPTION_HOSTNAME, j);				// select
+
+    for(i = 0; i < j; i++)
+        dhcp_option_byte(dhcp, __BoxName[i]);
+#endif /* ZOT_TCPIP */
 
     dhcp_option_trailer(dhcp);
     /* resize pbuf to reflect true size of options */
@@ -881,6 +923,7 @@ static err_t dhcp_rebind(struct netif *netif)
   struct dhcp *dhcp = netif->dhcp;
   err_t result;
   u16_t msecs;
+  int i = 0, j = 0;
   LWIP_DEBUGF(DHCP_DEBUG | DBG_TRACE | DBG_STATE, ("dhcp_rebind()\n"));
   dhcp_set_state(dhcp, DHCP_REBINDING);
 
@@ -895,6 +938,17 @@ static err_t dhcp_rebind(struct netif *netif)
     dhcp_option(dhcp, DHCP_OPTION_MAX_MSG_SIZE, DHCP_OPTION_MAX_MSG_SIZE_LEN);
     dhcp_option_short(dhcp, 576);
 
+#ifdef ZOT_TCPIP
+    j = strlen(__BoxName);
+
+    if(j > LENGTH_OF_BOX_NAME)
+        j = (int)LENGTH_OF_BOX_NAME;
+
+    dhcp_option(dhcp, DHCP_OPTION_HOSTNAME, j);				// renew
+
+    for(i = 0; i < j; i++)
+        dhcp_option_byte(dhcp, __BoxName[i]);
+#endif /* ZOT_TCPIP */
 #if 0
     dhcp_option(dhcp, DHCP_OPTION_REQUESTED_IP, 4);
     dhcp_option_long(dhcp, ntohl(dhcp->offered_ip_addr.addr));

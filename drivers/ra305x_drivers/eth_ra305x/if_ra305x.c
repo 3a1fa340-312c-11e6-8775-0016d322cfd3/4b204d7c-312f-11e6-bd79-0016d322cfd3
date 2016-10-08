@@ -2089,6 +2089,7 @@ static void ra305x_txint(txctrl_t *ptxc)
 /*=============================================================*
  *  if_ra305x_init:
  *=============================================================*/
+extern unsigned char   mvEDDMAC[6];
 static bool if_ra305x_init(struct cyg_netdevtab_entry *pnde)
 {
 	struct eth_drv_sc *sc;
@@ -2113,6 +2114,7 @@ static bool if_ra305x_init(struct cyg_netdevtab_entry *pnde)
     // Read MAC value from flash
 	CFG_get_mac(unit, pifra305x->macaddr);
 #endif // BRANCH_ADV //
+    memcpy(pifra305x->macaddr, mvEDDMAC, 6);
 
 	pifra305x->sc = sc;
 	if (ra305x_addifp(unit, pifra305x) < 0)

@@ -70,7 +70,7 @@ int zot_recv ( ZOT_FILE *fp , char *buf , int len, int flag )
 
 //IPPD_Start Thread initiation information
 #define IPPD_TASK_PRI         	20	//ZOT716u2
-#define IPPD_TASK_STACK_SIZE  	1024 //ZOT716u2 3072
+#define IPPD_TASK_STACK_SIZE  	4096 //ZOT716u2 3072
 static	uint8			IPPD_Stack[IPPD_TASK_STACK_SIZE];
 static  cyg_thread		IPPD_Task;
 static  cyg_handle_t	IPPD_TaskHdl;

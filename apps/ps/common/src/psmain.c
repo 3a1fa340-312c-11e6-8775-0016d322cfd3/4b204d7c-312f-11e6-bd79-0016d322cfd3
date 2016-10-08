@@ -477,7 +477,7 @@ extern	uint8 PSMode2;
 
 //NT3MAIN Task create information definition
 #define NT3MAIN_TASK_PRI         20	//ZOT716u2
-#define NT3MAIN_TASK_STACK_SIZE	 2048 //ZOT716u2 3072
+#define NT3MAIN_TASK_STACK_SIZE	 4096 //ZOT716u2 3072
 static uint8 			NT3MAIN_Stack[NT3MAIN_TASK_STACK_SIZE];
 static cyg_thread       NT3MAIN_Task;
 static cyg_handle_t     NT3MAIN_TaskHdl;

@@ -5,11 +5,11 @@ CODE_TYPE   = 2
 
 PSMODELINDEX  = 47
 MajorVer      = 9
-MinorVer      = 8
+MinorVer      = 9
 ReleaseVer    = 114
-RDVersion     = 860
+RDVersion     = 1028
 BuildVer      = 9030
-FirmwareString = (STR8132-9.08.47.9030.00000860r-2015/11/10 12:31:55)
+FirmwareString = (STR8132-9.09.47.9030.00001028r-2016/10/07 23:23:49)
 
 #FLASH_SIZE UNIT Mbyte
 FLASH_SIZE    = 1

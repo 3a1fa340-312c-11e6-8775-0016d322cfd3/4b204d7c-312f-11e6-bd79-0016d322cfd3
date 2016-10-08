@@ -153,7 +153,11 @@ void update_netif_ipaddr( struct netif *netif )
 	}else{
 //		LWIP_ASSERT("updata_netif_ipaddr :network interface does not exist");
 	}
-#endif
+#else
+    Lanface->ip_addr.addr = netif->ip_addr.addr;
+    Lanface->netmask.addr = netif->netmask.addr;
+    Lanface->gw.addr = netif->gw.addr;
+#endif /* !WIRELESS_CARD */
 	
 	mib_DHCP_p->IPAddr = DWordSwap(Lanface->ip_addr.addr);
 	mib_DHCP_p->SubnetMask = DWordSwap(Lanface->netmask.addr);

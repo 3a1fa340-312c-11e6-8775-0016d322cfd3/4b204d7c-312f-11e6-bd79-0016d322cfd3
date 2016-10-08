@@ -377,7 +377,7 @@ WORD IPXInput(WORD InputFrameType, BYTE *SrcAddress,IPXHeader *p,int16 DataLen)
 #endif SNMPIPX
 
 		for(i = 0 ; (!ECBFound && i < socketTablePointer) ; i++ ) {
-			if( NGET16(p->destination.socket) == socketTable[i].socketNumber) {
+			if( p && (&p->destination) && (&socketTable[i]) && (NGET16(p->destination.socket) == socketTable[i].socketNumber)) {
 				if(socketTable[i].ECBLinkList == NULL) {
 					break;
 				}

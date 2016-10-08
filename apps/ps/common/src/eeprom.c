@@ -36,6 +36,7 @@ BYTE MyPhysNodeAddress[6];	//temp here. (in ipx.c)
 char *__BoxIPAddress = &EEPROM_Data.BoxIPAddress;
 char *__SubNetMask = &EEPROM_Data.SubNetMask;
 char *__GetwayAddress = &EEPROM_Data.GetwayAddress;
+char *__BoxName = &EEPROM_Data.BoxName;
 
 char	Hostname[LENGTH_OF_BOX_NAME+1] = {0};
 

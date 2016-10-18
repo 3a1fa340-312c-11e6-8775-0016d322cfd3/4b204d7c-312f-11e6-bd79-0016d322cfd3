@@ -105,6 +105,15 @@ static int err_to_errno_table[11] = {
       set_errno(sk->err); \
 } while (0)
 
+#ifdef ZOT_TCPIP
+sys_my_sockrcvtimeo( struct lwip_socket *sock, u32_t msecs)
+{
+	struct netconn *conn = sock->conn;
+	
+	conn->recvtimeo = msecs;
+
+}
+#endif /* ZOT_TCPIP */
 
 static struct lwip_socket *
 get_socket(int s)
@@ -377,15 +386,35 @@ lwip_recvfrom(int s, void *mem, int len, unsigned int flags,
        some from the network. */
     buf = netconn_recv(sock->conn);
 
-    if (!buf) {
-      /* We should really do some error checking here. */
-      LWIP_DEBUGF(SOCKETS_DEBUG, ("lwip_recvfrom(%d): buf == NULL!\n", s));
-      sock_set_errno(sock, 0);
-      return 0;
+#ifdef ZOT_TCPIP
+    if (buf == 0xFFFFFFFF) {
+        sock_set_errno(sock, 0);
+        return -2;    //eCos
+    }else if (!buf || (buf->p == NULL))    {
+        /* We should really do some error checking here. */
+        LWIP_DEBUGF(SOCKETS_DEBUG, ("lwip_recvfrom(%d): buf == NULL!\n", s));
+        sock_set_errno(sock, 0);
+        return -1;
     }
+    cyg_interrupt_disable();
+    if (((sock->conn)->type == NETCONN_UDP) && ((sock->conn)->recvcount > 0)) {
+        (sock->conn)->recvcount--;
+    }
+
+    buflen = netbuf_len(buf);
+    // cyg_interrupt_enable();
+#else
+    if (!buf) {
+        /* We should really do some error checking here. */
+        LWIP_DEBUGF(SOCKETS_DEBUG, ("lwip_recvfrom(%d): buf == NULL!\n", s));
+        sock_set_errno(sock, 0);
+        return 0;
+    }
+
+    buflen = netbuf_len(buf);
+#endif /* ZOT_TCPIP */
   }
 
-  buflen = netbuf_len(buf);
 
   buflen -= sock->lastoffset;
 
@@ -1179,6 +1208,9 @@ int lwip_getsockopt (int s, int level, int optname, void *optval, socklen_t *opt
 int lwip_setsockopt (int s, int level, int optname, const void *optval, socklen_t optlen)
 {
   struct lwip_socket *sock = get_socket(s);
+#ifdef ZOT_TCPIP
+  struct timeval * rcv_timeout;
+#endif /* ZOT_TCPIP */
   int err = 0;
 
   if(!sock) {
@@ -1198,7 +1230,15 @@ int lwip_setsockopt (int s, int level, int optname, const void *optval, socklen_
 /* Level: SOL_SOCKET */
   case SOL_SOCKET:
     switch(optname) {
-
+#ifdef ZOT_TCPIP
+    case SO_RCVTIMEO:
+        rcv_timeout = optval;
+        /*
+         * ZOT engineer use tv_usec to replace msecs ?
+         */
+    	sys_my_sockrcvtimeo(sock, (u32_t)((rcv_timeout->tv_sec * 1000) + rcv_timeout->tv_usec));
+        break;
+#endif /* ZOT_TCPIP */
     case SO_BROADCAST:
     /* UNIMPL case SO_DEBUG: */
     /* UNIMPL case SO_DONTROUTE: */
@@ -1399,7 +1439,6 @@ int	sendack(int s){
 	return 0;	
 }
 
-//ZOT add
 int get_socket_rcevent(	int s )
 {
 	int rcvevent=0;

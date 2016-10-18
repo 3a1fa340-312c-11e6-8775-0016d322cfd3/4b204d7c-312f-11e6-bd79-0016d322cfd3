@@ -14,7 +14,7 @@
 
 //PortNWrite Thread initiation information
 #define PortNWrite_TASK_PRI         	20	//ZOT716u2
-#define PortNWrite_TASK_STACK_SIZE  	1024
+#define PortNWrite_TASK_STACK_SIZE  	4096
 static	uint8			PortNWrite_Stack[PortNWrite_TASK_STACK_SIZE];
 static  cyg_thread		PortNWrite_Task;
 static  cyg_handle_t	PortNWrite_TaskHdl;

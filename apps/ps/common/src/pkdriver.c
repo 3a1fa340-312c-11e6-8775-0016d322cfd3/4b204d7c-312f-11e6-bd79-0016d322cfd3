@@ -919,6 +919,7 @@ void ProcessOtherPcktTask(cyg_addrword_t Data)
 	
 	while (1) {
 	
+        msg = NULL;
 		msg = cyg_mbox_timed_get(Process_OthPkt_mbox, cyg_current_time() + (timeout / MSPTICK));
 		
 		if (msg == NULL)

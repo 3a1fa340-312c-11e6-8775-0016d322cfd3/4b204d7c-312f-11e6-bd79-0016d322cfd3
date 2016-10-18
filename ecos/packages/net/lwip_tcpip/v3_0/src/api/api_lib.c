@@ -113,7 +113,14 @@ netbuf_chain(struct netbuf *head, struct netbuf *tail)
 u16_t
 netbuf_len(struct netbuf *buf)
 {
+#ifdef ZOT_TCPIP
+    if (buf->p)
+        return buf->p->tot_len;
+    else
+        return 0;
+#else
   return buf->p->tot_len;
+#endif /* ZOT_TCPIP */
 }
 
 err_t
@@ -220,6 +227,10 @@ netconn *netconn_new_with_proto_and_callback(enum netconn_type t, u16_t proto,
   conn->socket = 0;
   conn->callback = callback;
   conn->recv_avail = 0;
+#ifdef ZOT_TCPIP
+  conn->recvtimeo = 0;
+  conn->recvcount = 0;
+#endif
 
   if((msg = memp_malloc(MEMP_API_MSG)) == NULL) {
     memp_free(MEMP_NETCONN, conn);
@@ -540,7 +551,14 @@ netconn_recv(struct netconn *conn)
       return NULL;
     }
     
+#ifdef ZOT_TCPIP
+    if (conn->recvtimeo)
+	    sys_my_mbox_fetch(conn->recvmbox, (void **)&p, conn->recvtimeo);
+    else
+        sys_mbox_fetch(conn->recvmbox, (void **)&p);
+#else
     sys_mbox_fetch(conn->recvmbox, (void **)&p);
+#endif /* ZOT_TCPIP */
 
     if (p != NULL)
     {
@@ -585,18 +603,48 @@ netconn_recv(struct netconn *conn)
     sys_mbox_fetch(conn->mbox, NULL);
     memp_free(MEMP_API_MSG, msg);
   } else {
+#ifdef ZOT_TCPIP
+    if (conn->recvtimeo) {
+        buf = NULL;
+        sys_my_mbox_fetch(conn->recvmbox, (void **)&buf, conn->recvtimeo);
+
+        if (buf != NULL && buf > 0x80000000) {
+            if (buf->p) {
+                conn->recv_avail -= buf->p->tot_len;
+            }
+        }
+
+        /* Register event with callback */
+        if (conn->callback) {
+            if (buf == NULL || buf < 0x80000000) {
+                (*conn->callback)(conn, NETCONN_EVT_RCVMINUS, 0);
+            } else{
+                if (buf->p) {
+                    (*conn->callback)(conn, NETCONN_EVT_RCVMINUS, buf->p->tot_len);
+                }
+            }
+        }
+
+    }else  {
+        sys_mbox_fetch(conn->recvmbox, (void **)&buf);
+        conn->recv_avail -= buf->p->tot_len;
+
+        /* Register event with callback */
+        if (conn->callback) {
+            (*conn->callback)(conn, NETCONN_EVT_RCVMINUS, buf->p->tot_len);
+        }
+    }
+#else
     sys_mbox_fetch(conn->recvmbox, (void **)&buf);
-  conn->recv_avail -= buf->p->tot_len;
+    conn->recv_avail -= buf->p->tot_len;
     /* Register event with callback */
-    if (conn->callback)
+    if (conn->callback) {
         (*conn->callback)(conn, NETCONN_EVT_RCVMINUS, buf->p->tot_len);
+    }
+#endif /* ZOT_TCPIP */
   }
-
-  
-
     
   LWIP_DEBUGF(API_LIB_DEBUG, ("netconn_recv: received %p (err %d)\n", (void *)buf, conn->err));
-
 
   return buf;
 }

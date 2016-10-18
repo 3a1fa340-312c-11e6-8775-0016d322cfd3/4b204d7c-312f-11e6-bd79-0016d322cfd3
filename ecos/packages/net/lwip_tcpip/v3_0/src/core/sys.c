@@ -43,7 +43,19 @@ struct sswt_cb
     sys_sem_t *psem;
 };
 
+#ifdef ZOT_TCPIP
+void
+sys_my_mbox_fetch(sys_mbox_t mbox, void **msg, u32_t recvtimeo)
+{
 
+  if (recvtimeo == 0) {
+    sys_arch_mbox_fetch(mbox, msg, 0);
+  } else {
+    if (recvtimeo > 0)
+      sys_arch_mbox_fetch(mbox, msg, recvtimeo);
+    }
+}
+#endif /* ZOT_TCPIP */
 
 void
 sys_mbox_fetch(sys_mbox_t mbox, void **msg)

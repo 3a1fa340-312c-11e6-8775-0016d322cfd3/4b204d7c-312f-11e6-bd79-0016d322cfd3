@@ -88,6 +88,22 @@ recv_udp(void *arg, struct udp_pcb *pcb, struct pbuf *p,
       pbuf_free(p);
       return;
     } else {
+#ifdef ZOT_TCPIP
+      //NTUDP_recv can't more than 10 pbuf in recvmbox
+      cyg_interrupt_disable();
+
+      if ((conn->type == NETCONN_UDP) && (conn->recvcount >= 8)) {
+          pbuf_free(p);
+          pbuf_free(buf);
+          cyg_interrupt_enable();
+          return;
+      }else{
+          conn->recvcount++;
+      }
+
+      cyg_interrupt_enable();
+#endif /* ZOT_TCPIP */
+
       buf->p = p;
       buf->ptr = p;
       buf->fromaddr = addr;

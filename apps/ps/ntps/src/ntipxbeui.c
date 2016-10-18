@@ -189,14 +189,20 @@ int32 ipx_recvfrom(struct ipx_usock *ipx_usock, void *Data, int PortNumber)
 	int ErrTmp;
 	uint32 len = 0;
 	
-	while((buf = ipx_dequeue(&ipx_usock->rcvq)) == NULL)
-	{			
-		cyg_semaphore_init(&ipx_usock->sem_f,0);
-		ErrTmp = (int)cyg_semaphore_timed_wait(&ipx_usock->sem_f,cyg_current_time() + (TICKS_PER_SEC/3));
-
-		if(ErrTmp == 0)
-			return -1;	//time out
-	}
+    if (cyg_semaphore_timed_wait (&ipx_usock->sem_f, cyg_current_time() + (TICKS_PER_SEC/3))) {
+        buf = ipx_dequeue(&ipx_usock->rcvq);
+        CYG_ASSERT(buf != NULL, "ipx_dequeue NULL");
+    } 
+    else
+        return -1;
+	// while((buf = ipx_dequeue(&ipx_usock->rcvq)) == NULL)
+	// {			
+	//     cyg_semaphore_init(&ipx_usock->sem_f,0);
+	//     ErrTmp = (int)cyg_semaphore_timed_wait(&ipx_usock->sem_f,cyg_current_time() + (TICKS_PER_SEC/3));
+    // 
+	//     if(ErrTmp == 0)
+	//         return -1;
+	// }
 	
 	RecvReqData = (NTReqData *) &(buf->data)->Nt2.Cmd;	//queue ipx
 #ifdef USE_PS_LIBS	
@@ -234,9 +240,9 @@ BYTE NTRequestECB (BYTE PortNumber,BYTE *Data,int *DataLength)
 	int  EmptyDataCount = 0;
 	BYTE  RecvRetryCount;
 	int32 RecvBytes;
-	BYTE  VersionOffset;
-
-	VersionOffset = sizeof(NEW_NTRequestData) - sizeof(NTReqData);
+	// BYTE  VersionOffset;
+    // 
+	// VersionOffset = sizeof(NEW_NTRequestData) - sizeof(NTReqData);
 
 	if( NTPortInfo[PortNumber].Version == NT_VERSION_4 )
 		ReceivePacket = NTPortInfo[PortNumber].MaxRecvPackets;

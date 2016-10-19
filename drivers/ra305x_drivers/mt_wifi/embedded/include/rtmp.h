@@ -5030,6 +5030,9 @@ struct _RTMP_ADAPTER {
 #ifdef CONFIG_AP_SUPPORT
 	RALINK_TIMER_STRUCT PeriodicTimer;
 #endif /* CONFIG_AP_SUPPORT */
+#ifdef CONFIG_STA_SUPPORT
+    RALINK_TIMER_STRUCT AdhocBeaconTimer;
+#endif /* CONFIG_STA_SUPPORT */
 
 	/* for detect_wmm_traffic() BE TXOP use */
 	ULONG OneSecondnonBEpackets;	/* record non BE packets per second */
@@ -7687,6 +7690,14 @@ VOID ScanNextChannel(
 
 ULONG MakeIbssBeacon(
 	IN  RTMP_ADAPTER *pAd);
+
+
+VOID MakeAdhocIbssBeacon(
+	IN PVOID SystemSpecific1, 
+	IN PVOID FunctionContext, 
+	IN PVOID SystemSpecific2, 
+	IN PVOID SystemSpecific3);
+
 
 BOOLEAN MlmeScanReqSanity(
 	IN  RTMP_ADAPTER *pAd,

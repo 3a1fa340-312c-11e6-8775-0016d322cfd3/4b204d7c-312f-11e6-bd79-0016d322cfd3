@@ -3644,6 +3644,16 @@ ULONG MakeIbssBeacon(RTMP_ADAPTER *pAd)
 	return FrameLen;
 }
 
+VOID MakeAdhocIbssBeacon(
+	IN PVOID SystemSpecific1, 
+	IN PVOID FunctionContext, 
+	IN PVOID SystemSpecific2, 
+	IN PVOID SystemSpecific3) 
+{
+	RTMP_ADAPTER	*pAd = (RTMP_ADAPTER *)FunctionContext;
+    MakeIbssBeacon(pAd);
+}
+
 VOID InitChannelRelatedValue(RTMP_ADAPTER *pAd)
 {
 	UCHAR rf_channel;

@@ -4133,7 +4133,7 @@ INT TxOPUpdatingAlgo(RTMP_ADAPTER *pAd)
     if ((TxTotalByteCnt == 0) || (RxTotalByteCnt == 0))
     {
         /* Avoid to divide 0, when doing the traffic calculating */
-        MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_TRACE, ("Not expected one of them is 0, TxTotalByteCnt = %d, RxTotalByteCnt = %d\n", TxTotalByteCnt, RxTotalByteCnt));
+        MTWF_LOG(DBG_CAT_ALL, DBG_SUBCAT_ALL, DBG_LVL_INFO, ("Not expected one of them is 0, TxTotalByteCnt = %d, RxTotalByteCnt = %d\n", TxTotalByteCnt, RxTotalByteCnt));
     }
     else if ((pAd->MacTab.Size == 1) && TxopEnabled)
     {

@@ -82,6 +82,7 @@ static void rt_wlan_dsr( cyg_vector_t vector, cyg_ucount32 count, cyg_addrword_t
 
 
 extern struct netif *WLanface;
+extern unsigned char MyPhysNodeAddress[];
 
 static bool rt_ecos_init( struct cyg_netdevtab_entry *tab )
 {
@@ -182,12 +183,13 @@ static bool rt_ecos_init( struct cyg_netdevtab_entry *tab )
     get_mac_from_eeprom(pAd, &MacAddr[0]);
     {0x00, 0xaa, 0xde, 0xad, 0xbe, 0xef}
     */
-    MacAddr[0] = 0x00;
-    MacAddr[1] = 0xAA;
-    MacAddr[2] = 0xDE;
-    MacAddr[3] = 0xAD;
-    MacAddr[4] = 0xBE;
-    MacAddr[5] = 0xEF;
+    // MacAddr[0] = 0x00;
+    // MacAddr[1] = 0xAA;
+    // MacAddr[2] = 0xDE;
+    // MacAddr[3] = 0xAD;
+    // MacAddr[4] = 0xBE;
+    // MacAddr[5] = 0xEF;
+    memcpy((void *)MacAddr, (const void *)MyPhysNodeAddress, 6);
 
     /* Set up to handle interrupts */
     cyg_interrupt_create( RTMP_INTERRUPT_INIC,

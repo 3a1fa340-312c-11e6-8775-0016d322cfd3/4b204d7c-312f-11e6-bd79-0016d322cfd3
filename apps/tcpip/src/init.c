@@ -401,14 +401,12 @@ err_t ecosif_init(struct netif *netif)
 		}
 		else
 		{
-            /*
 			ipaddr.addr = NGET32(EEPROM_Data.BoxIPAddress);
 			netmask.addr = NGET32(EEPROM_Data.SubNetMask);
 			gw.addr = NGET32(EEPROM_Data.GetwayAddress);
-            */
-	        IP_ADDR(&gw, CYGDAT_LWIP_SERV_ADDR);
-	        IP_ADDR(&ipaddr, CYGDAT_LWIP_MY_ADDR);
-	        IP_ADDR(&netmask, CYGDAT_LWIP_NETMASK);
+			// IP_ADDR(&gw, CYGDAT_LWIP_SERV_ADDR);
+			// IP_ADDR(&ipaddr, CYGDAT_LWIP_MY_ADDR);
+			// IP_ADDR(&netmask, CYGDAT_LWIP_NETMASK);
 
 		}
 

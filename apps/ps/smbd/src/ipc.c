@@ -1039,7 +1039,7 @@ static int api_DosPrintQGetInfo(connection_struct *conn, uint16 vuid,
   uLevel = SVAL(p,0);
  
   /* remove any trailing username */
-  if ((p =   (QueueName,'%'))) *p = 0;
+  // if ((p =   (QueueName,'%'))) *p = 0;
  
   /* check it's a supported varient */
   if (!prefix_ok(str1,"zWrLh")) return False;

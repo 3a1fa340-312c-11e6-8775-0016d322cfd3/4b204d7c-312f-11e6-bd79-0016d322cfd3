@@ -396,13 +396,11 @@ lwip_recvfrom(int s, void *mem, int len, unsigned int flags,
         sock_set_errno(sock, 0);
         return -1;
     }
-    cyg_interrupt_disable();
+    cyg_scheduler_lock();
     if (((sock->conn)->type == NETCONN_UDP) && ((sock->conn)->recvcount > 0)) {
         (sock->conn)->recvcount--;
     }
-
-    buflen = netbuf_len(buf);
-    // cyg_interrupt_enable();
+    cyg_scheduler_unlock();
 #else
     if (!buf) {
         /* We should really do some error checking here. */
@@ -411,11 +409,11 @@ lwip_recvfrom(int s, void *mem, int len, unsigned int flags,
         return 0;
     }
 
-    buflen = netbuf_len(buf);
 #endif /* ZOT_TCPIP */
   }
 
 
+  buflen = netbuf_len(buf);
   buflen -= sock->lastoffset;
 
   if (len > buflen) {

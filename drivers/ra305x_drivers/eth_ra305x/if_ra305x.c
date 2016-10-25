@@ -1915,6 +1915,7 @@ static void ra305x_esw_dsr(cyg_vector_t vec, cyg_ucount32 count, cyg_addrword_t 
 /*=============================================================*
  *  ra305x_dsr:
  *=============================================================*/
+extern unsigned char LANLightToggle_down;
 static void ra305x_esw_dsr(cyg_vector_t vec, cyg_ucount32 count, cyg_addrword_t data)
 {
 	cyg_uint32 new_link, link_chg;
@@ -1937,6 +1938,12 @@ static void ra305x_esw_dsr(cyg_vector_t vec, cyg_ucount32 count, cyg_addrword_t 
 		if (link_chg)
         {
 			diag_printf("ifra305x: link change. link=%02x, change=%02x\n", new_link, link_chg);
+
+            if (new_link)
+		        LANLightToggle_down = 0;
+            else
+                LANLightToggle_down = 1;
+
 #ifdef ETH_DRV_SET_PHY
             mon_snd_cmd(MON_CMD_LINK_CHK);
 #endif

@@ -292,11 +292,12 @@ void LightToggleProc(cyg_addrword_t data)
 		if( LANLightToggle_down )
 		{
 			Light_Off(Status_Lite);
-			ppause(500);
+            cyg_thread_delay(50);
 			Light_On( Status_Lite );	
+            cyg_thread_delay(50);
 			
-			LANLightToggle_down--;
-			if( LANLightToggle_down > 5 ) LANLightToggle_down = 5;
+            // LANLightToggle_down--;
+            // if( LANLightToggle_down > 5 ) LANLightToggle_down = 5;
 		}
 #endif
 

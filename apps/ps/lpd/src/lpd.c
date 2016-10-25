@@ -775,7 +775,7 @@ static int receive_data_file(int PortNumber, unsigned long filesize, int s, int 
 #else
 
 	do {
-		startime = 0;  //10/11/99
+		startime = rdclock();  //10/11/99
 		while((pbuf = PrnGetInQueueBuf(PortNumber)) == NULL) {
 
 			//10/11/99 Send Ack When Buffer is empty *****************
@@ -873,8 +873,8 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 		while((pbuf = PrnGetInQueueBuf(PortNumber)) == NULL) {
 			
 			//10/11/99 Send Ack When Buffer is empty *****************
-//			if((( rdclock()-startime)  > ((uint32)TICKS_PER_SEC*5) )) {
-			if((( rdclock()-startime)  > ((uint32)TICKS_PER_SEC*10) )) {
+            // if((( rdclock()-startime)  > ((uint32)TICKS_PER_SEC*5) )) {
+            if((( rdclock()-startime)  > ((uint32)TICKS_PER_SEC*10) )) {
 				//if(startime)	//2003Nov28
 				sendack(s);
 				startime = rdclock();

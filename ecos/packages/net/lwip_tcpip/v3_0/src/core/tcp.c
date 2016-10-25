@@ -346,7 +346,11 @@ tcp_recved(struct tcp_pcb *pcb, u16_t len)
      */
     tcp_ack(pcb);
   } 
+#ifdef ZOT_TCPIP
+  else if (pcb->rcv_wnd >= TCP_MSS) {
+#else
   else if (pcb->flags & TF_ACK_DELAY && pcb->rcv_wnd >= TCP_WND/2) {
+#endif
     /* If we can send a window update such that there is a full
      * segment available in the window, do so now.  This is sort of
      * nagle-like in its goals, and tries to hit a compromise between

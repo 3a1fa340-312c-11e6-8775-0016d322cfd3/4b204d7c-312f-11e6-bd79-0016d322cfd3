@@ -1433,7 +1433,8 @@ int lwip_ioctl(int s, long cmd, void *argp)
 int	sendack(int s){
 	struct lwip_socket *sock = get_socket(s);	
 	
-	tcp_ack_now(sock->conn->pcb.tcp);
+    if (sock && sock->conn && sock->conn->pcb.tcp)
+	    tcp_ack_now(sock->conn->pcb.tcp);
 	return 0;	
 }
 

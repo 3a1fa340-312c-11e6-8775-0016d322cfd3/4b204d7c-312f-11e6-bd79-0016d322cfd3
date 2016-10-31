@@ -64,7 +64,7 @@ void zot_idle_task(cyg_addrword_t data)
 #endif	// defined(O_CONRAD)
 			}
 		}
-        #if defined(N716U2W) || defined(N716U2)
+        //#if defined(N716U2W) || defined(N716U2)
 		else if(value1 == 0)
 		{
 			if (start == 0)
@@ -77,15 +77,17 @@ void zot_idle_task(cyg_addrword_t data)
 
 				if( (current - start) > 50 )
 				{
+                    diag_printf("needwps = 1\n");
 					needwps = 1;
                     #ifdef WPSBUTTON_LEDFLASH_FLICK
 					// Lance
+                    diag_printf("flash_wps_led = 1\n");
 					flash_wps_led = 1;
                     #endif	// WPSBUTTON_LEDFLASH_FLICK
 				}
 			}							
 		}
-        #endif // defined(N716U2W)
+        //#endif // defined(N716U2W)
 		else
 		{
 			start = 0;

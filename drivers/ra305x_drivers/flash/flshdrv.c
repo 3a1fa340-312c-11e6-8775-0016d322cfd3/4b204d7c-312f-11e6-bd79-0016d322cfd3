@@ -151,8 +151,8 @@ int flsh_erase(unsigned int addr, unsigned int len)
 					break;
 				}
 
-			        rc = cyg_flash_erase(baddr, block_size, &err_addr);
-			        diag_printf("rc = %d after cyg_flash_erase\n", rc);
+		        rc = cyg_flash_erase(baddr, block_size, &err_addr);
+		        diag_printf("rc = %d after cyg_flash_erase\n", rc);
 
 				if (addr > baddr)
 				{	

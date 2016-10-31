@@ -1073,8 +1073,9 @@ void wlan_get_currbssid(unsigned char huge * bssid){
 		return;
 	}	
 
-    if (!rt_ioctl_giwap(g_wireless_dev, NULL, &ap_addr, NULL))
+    if (!rt_ioctl_giwap(g_wireless_dev, NULL, &ap_addr, NULL)) {
         memcpy(bssid, ap_addr.sa_data, WLAN_BSSID_LEN);
+    }
 }
 
 void wlan_get_currssid(unsigned char huge * ssid){
@@ -1212,7 +1213,6 @@ void wlan_request_key(int req)
 
 void wlan_set_wps_on()
 {
-#if 0
     char* config_buffer = NULL; 
 
  	if( WirelessInitFailed )
@@ -1238,7 +1238,6 @@ void wlan_set_wps_on()
 
     if (config_buffer)
         free(config_buffer);
-#endif
 }
 
 /*

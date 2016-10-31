@@ -2317,7 +2317,7 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 #if defined(WIRELESS_CARD)	
 	knownbss_t *curr;
 	char *cp,*cap_str,*wep_str,*trx_str;
-	char bssid[6]; 
+	unsigned char bssid[6]; 
 	int RSSI_TEMP = 0;
 #endif
 #ifdef SUPPORT_JOB_LOG

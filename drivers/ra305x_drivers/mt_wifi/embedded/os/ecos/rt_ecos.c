@@ -1180,8 +1180,7 @@ void RTMP_IndicateMediaState(
 	IN	PRTMP_ADAPTER		pAd,
 	IN  NDIS_MEDIA_STATE	media_state)
 {
-
-
+	pAd->IndicateMediaState = media_state;
 }
 
 extern INT wscNLSockRecv(char *pData, UINT32 dataLen);

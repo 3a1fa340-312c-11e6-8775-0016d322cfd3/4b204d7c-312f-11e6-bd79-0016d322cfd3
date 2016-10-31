@@ -47,7 +47,7 @@ SRCS=etharp.c tcpip.c ip.c icmp.c ip_addr.c ip_frag.c sockets.c api_lib.c api_ms
 		netif.c inet.c sys_arch.c linklip.c
 endif
 ifeq ($(CHIP),mt7688)
-SRCS = init.c
+SRCS = init.c linklip.c
 endif
 
 # DO not edit OBJS and DST

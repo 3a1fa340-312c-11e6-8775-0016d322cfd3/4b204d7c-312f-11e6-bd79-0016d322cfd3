@@ -79,7 +79,8 @@
 #define TELNETD
 #endif /* USE_NETAPP_LIBS */
 
-#if defined(NDWP2020) && defined(USE_PS_LIBS)
+//#if defined(NDWP2020) && defined(USE_PS_LIBS)
+#if defined(USE_PS_LIBS)
 #define RENDEZVOUS //Ron Add 11/24/04
 #endif
 

@@ -52,7 +52,7 @@ void usb_thread (cyg_addrword_t parameter)
     cyg_semaphore_wait(&forever_sem);
 } /* usb_thread */
 
-void usb_test()
+void usb_drv_init()
 {
     cyg_thread_create (USB_THREAD_PRIO,
             usb_thread,
@@ -64,7 +64,7 @@ void usb_test()
             &usb_thread_data
             );
     cyg_thread_resume(usb_thread_handle);
-} /* usb_test */
+} /* usb_drv_init */
 
 void *kzalloc(size_t size,int gfp)
 {

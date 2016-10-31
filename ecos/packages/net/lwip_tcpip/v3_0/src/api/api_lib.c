@@ -524,6 +524,8 @@ netconn_recv(struct netconn *conn)
   struct pbuf *p;
   u16_t len;
     
+  CYG_ASSERT(conn > 0x80000000, "netconn_recv error");
+
   if (conn == NULL) {
     return NULL;
   }
@@ -538,7 +540,7 @@ netconn_recv(struct netconn *conn)
   }
 
   if (conn->type == NETCONN_TCP) {
-    if (conn->pcb.tcp->state == LISTEN) {
+    if (conn->pcb.tcp && conn->pcb.tcp->state == LISTEN) {
       conn->err = ERR_CONN;
       return NULL;
     }
@@ -552,8 +554,9 @@ netconn_recv(struct netconn *conn)
     }
     
 #ifdef ZOT_TCPIP
+    p = NULL;
     if (conn->recvtimeo)
-	    sys_my_mbox_fetch(conn->recvmbox, (void **)&p, conn->recvtimeo);
+        sys_arch_mbox_fetch(conn->recvmbox, (void **)&p, conn->recvtimeo);
     else
         sys_mbox_fetch(conn->recvmbox, (void **)&p);
 #else
@@ -569,7 +572,7 @@ netconn_recv(struct netconn *conn)
         len = 0;
     
     /* Register event with callback */
-      if (conn->callback)
+    if (conn->callback) 
         (*conn->callback)(conn, NETCONN_EVT_RCVMINUS, len);
 
     /* If we are closed, we indicate that we no longer wish to receive
@@ -604,38 +607,35 @@ netconn_recv(struct netconn *conn)
     memp_free(MEMP_API_MSG, msg);
   } else {
 #ifdef ZOT_TCPIP
-    if (conn->recvtimeo) {
-        buf = NULL;
-        sys_my_mbox_fetch(conn->recvmbox, (void **)&buf, conn->recvtimeo);
-
-        if (buf != NULL && buf > 0x80000000) {
-            if (buf->p) {
-                conn->recv_avail -= buf->p->tot_len;
-            }
-        }
-
-        /* Register event with callback */
-        if (conn->callback) {
-            if (buf == NULL || buf < 0x80000000) {
-                (*conn->callback)(conn, NETCONN_EVT_RCVMINUS, 0);
-            } else{
-                if (buf->p) {
-                    (*conn->callback)(conn, NETCONN_EVT_RCVMINUS, buf->p->tot_len);
-                }
-            }
-        }
-
-    }else  {
+    buf = NULL;
+    if (conn->recvtimeo)
+        sys_arch_mbox_fetch(conn->recvmbox, (void **)&buf, conn->recvtimeo);
+    else
         sys_mbox_fetch(conn->recvmbox, (void **)&buf);
-        conn->recv_avail -= buf->p->tot_len;
 
-        /* Register event with callback */
-        if (conn->callback) {
-            (*conn->callback)(conn, NETCONN_EVT_RCVMINUS, buf->p->tot_len);
+    if (buf != NULL && buf > 0x80000000) {
+        if (buf->p) {
+            conn->recv_avail -= buf->p->tot_len;
+        }
+    }
+    else {
+        if (buf != NULL)
+            diag_printf("%s(%d) buf:%x\n", __func__, __LINE__, (unsigned int)buf);
+    }
+
+    /* Register event with callback */
+    if (conn->callback) {
+        if (buf == NULL || buf < 0x80000000) {
+            (*conn->callback)(conn, NETCONN_EVT_RCVMINUS, 0);
+        } else{
+            if (buf->p) {
+                (*conn->callback)(conn, NETCONN_EVT_RCVMINUS, buf->p->tot_len);
+            }
         }
     }
 #else
     sys_mbox_fetch(conn->recvmbox, (void **)&buf);
+    CYG_ASSERT(buf->p != NULL, "buf->p NULL");
     conn->recv_avail -= buf->p->tot_len;
     /* Register event with callback */
     if (conn->callback) {

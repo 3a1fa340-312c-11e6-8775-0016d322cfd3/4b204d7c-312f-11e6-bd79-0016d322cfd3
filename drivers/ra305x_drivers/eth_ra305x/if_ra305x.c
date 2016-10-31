@@ -456,7 +456,8 @@ static void rxctrl_init(rxctrl_t *prxc, cyg_uint32 rx_base, int num_rxd)
 
 		m = ra305x_getbuf();
 		CYG_ASSERTC(m != NULL);
-
+		if(!m)
+			{panic("rxctrl_init ra305x_getbuf"); return;}
 		prxd->pbuf0 = CYGARC_PHYSICAL_ADDRESS((cyg_uint32)m->m_data);
 		prxbuf[i] = (cyg_uint32) m;
 #else
@@ -486,11 +487,10 @@ static void rxctrl_init(rxctrl_t *prxc, cyg_uint32 rx_base, int num_rxd)
 static void rxctrl_free(rxctrl_t *prxc)
 {
 		int i;
-		pdma_rxdesc_t *prxd;
 		cyg_uint32 *prxbuf;
 		
 		prxbuf = prxc->prxbuf;
-		for (i=0; i< prxc->num_rxd; i++, prxd++)
+		for (i=0; i< prxc->num_rxd; i++)
 		{
 #ifdef ETH_DRV_RXMBUF
 			struct mbuf *m;
@@ -2497,7 +2497,7 @@ static void if_ra305x_send(struct eth_drv_sc *sc, struct eth_drv_sg *sg_list, in
 			ptxd = &ptxc->ptxd[ptxc->tx_head];
 			/*  Number of descriptors with two buffers (excluding the first one)  */
 			desc_cnt = sg_len / 2 - 1;
-			for (i=2; desc_cnt > 0; desc_cnt--, i+=2) {
+			for (i=2; desc_cnt > 0 && i+1 < 8; desc_cnt--, i+=2) {
 				/*  Fill descriptor with two buffers  */
 				--ptxc->num_freetxd;
 				if (++ptxc->tx_head == ptxc->num_txd)

@@ -36,7 +36,7 @@ int flsh_init (void);
 void WLan_get_EEPData (void);
 int ralink_gpio_init(void);
 
-extern void usb_test();
+extern void usb_drv_init();
 
 // uint8 usbprn_read_status( int nPort )
 // {
@@ -65,15 +65,18 @@ void zotmain( void )
     //
     //Print Server module
     //
-    
+#if defined(USE_PS_LIBS) 
 	IPXInitialize();
 	NETBEUInit();
 	Spooler_init();
-    
+#endif /* USE_PS_LIB */
+
 	ps_init();
     LED_Init();
 
-    usb_test();
+#if defined(USE_PS_LIBS)
+    usb_drv_init();
+#endif /* USE_PS_LIBS */
 	zot_idle_task_init();
 
     diag_printf("use zot function\n");

@@ -110,6 +110,18 @@ static struct etharp_entry arp_table[ARP_TABLE_SIZE];
 
 static s8_t find_entry(struct ip_addr *ipaddr, u8_t flags);
 static err_t update_arp_entry(struct netif *netif, struct ip_addr *ipaddr, struct eth_addr *ethaddr, u8_t flags);
+
+#ifdef LINKLOCAL_IP
+#define NO_USE 			0
+#define PROBE			1
+#define RETRY 			2
+#define ANNOUNCE 		3
+#define IDLE 			4
+unsigned char mRENVEnable;
+extern int ip_conflict_cnt;
+extern void linklocal_alarm(void);
+#endif
+
 /**
  * Initializes ARP module.
  */
@@ -368,8 +380,19 @@ update_arp_entry(struct netif *netif, struct ip_addr *ipaddr, struct eth_addr *e
   if (ip_addr_isany(ipaddr) ||
       ip_addr_isbroadcast(ipaddr, netif) ||
       ip_addr_ismulticast(ipaddr)) {
-    LWIP_DEBUGF(ETHARP_DEBUG | DBG_TRACE, ("update_arp_entry: will not add non-unicast IP address to ARP cache\n"));
-    return ERR_ARG;
+
+#ifdef LINKLOCAL_IP //Ron Add for Rendzvous 12/10/04    
+		if( mRENVEnable && ip_addr_isany(ipaddr) )
+    	{
+    		if (LinkLocal_get_current_state()== NO_USE )
+    			return ERR_ARG;
+    	}
+    	else	
+#endif    
+        {
+            LWIP_DEBUGF(ETHARP_DEBUG | DBG_TRACE, ("update_arp_entry: will not add non-unicast IP address to ARP cache\n"));
+            return ERR_ARG;
+        }
   }
   /* find or create ARP entry */
   i = find_entry(ipaddr, flags);
@@ -542,9 +565,61 @@ etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr, struct pbuf *p)
       hdr->ethhdr.type = htons(ETHTYPE_ARP);
       /* return ARP reply */
       netif->linkoutput(netif, p);
+
+#ifdef LINKLOCAL_IP //Ron Add for Rendzvous 12/10/04    
+	  if( mRENVEnable && (LinkLocal_get_current_state() != NO_USE ) 
+	  		&& is_linklocal_ip( dipaddr.addr ) )
+	  {
+	  		if( (LinkLocal_get_current_state() != IDLE) && ip_conflict_cnt++ == 0 )
+  	  			linklocal_alarm();
+  	  		else if( (LinkLocal_get_current_state() == IDLE) && ip_conflict_cnt++ == 0) 	
+  	  		{
+  	  			linklocal_alarm();
+  	  		}
+  	  }
+#endif	  
     /* we are not configured? */
     } else if (netif->ip_addr.addr == 0) {
       /* { for_us == 0 and netif->ip_addr.addr == 0 } */
+
+#ifdef LINKLOCAL_IP //Ron Add for Rendzvous 12/10/04    
+		if( mRENVEnable && (LinkLocal_get_current_state() != NO_USE )
+		  		&& is_linklocal_ip( dipaddr.addr ) )
+		{
+			if( (LinkLocal_get_current_state() != IDLE) && ip_conflict_cnt++ == 0 )
+  	  			linklocal_alarm();
+  	  		else if( (LinkLocal_get_current_state() == IDLE) && ip_conflict_cnt++ == 0) 	
+  	  		{
+  	  			linklocal_alarm();
+  	  		}
+  	  		
+   		    	hdr->opcode = htons(ARP_REPLY);
+				
+				hdr->sipaddr = hdr->dipaddr;
+				hdr->dipaddr = *(struct ip_addr2 *)&netif->ip_addr;
+//		      hdr->dipaddr = hdr->sipaddr;
+//		      hdr->sipaddr = *(struct ip_addr2 *)&netif->ip_addr;
+				
+		
+				for(i = 0; i < netif->hwaddr_len; ++i) {
+					hdr->dhwaddr.addr[i] = hdr->shwaddr.addr[i];
+					hdr->shwaddr.addr[i] = ethaddr->addr[i];
+					hdr->ethhdr.dest.addr[i] = hdr->dhwaddr.addr[i];
+					hdr->ethhdr.src.addr[i] = ethaddr->addr[i];
+				}
+		
+				hdr->hwtype = htons(HWTYPE_ETHERNET);
+				ARPH_HWLEN_SET(hdr, netif->hwaddr_len);
+				
+				hdr->proto = htons(ETHTYPE_IP);
+				ARPH_PROTOLEN_SET(hdr, sizeof(struct ip_addr));
+				
+				hdr->ethhdr.type = htons(ETHTYPE_ARP);
+				
+				netif->linkoutput(netif, p);
+		      
+		}
+#endif 
       LWIP_DEBUGF(ETHARP_DEBUG | DBG_TRACE, ("etharp_arp_input: we are unconfigured, ARP request ignored.\n"));
     /* request was not directed to us */
     } else {
@@ -563,6 +638,18 @@ etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr, struct pbuf *p)
      * */
     dhcp_arp_reply(netif, &sipaddr);
 #endif
+
+#ifdef LINKLOCAL_IP //Ron Add for Rendzvous 12/10/04    
+		if( mRENVEnable && (LinkLocal_get_current_state() != NO_USE ) && is_linklocal_ip( sipaddr.addr )  )
+		{
+	  		if( (LinkLocal_get_current_state() != IDLE) && ip_conflict_cnt++ == 0 )
+  	  			linklocal_alarm();
+  	  		else if( (LinkLocal_get_current_state() == IDLE) && ip_conflict_cnt++ == 0) 	
+  	  		{
+  	  			linklocal_alarm();
+  	  		}
+  	  	}
+#endif	  
     break;
   default:
     LWIP_DEBUGF(ETHARP_DEBUG | DBG_TRACE, ("etharp_arp_input: ARP unknown opcode type %"S16_F"\n", htons(hdr->opcode)));
@@ -829,3 +916,87 @@ err_t etharp_request(struct netif *netif, struct ip_addr *ipaddr)
   }
   return result;
 }
+
+#if 0//def LINKLOCAL_IP //Ron Add for Rendzvous 12/10/04    
+
+cyg_handle_t hAlarm;    
+unsigned int alarmData;    
+cyg_alarm timerAlarm;
+cyg_handle_t hSysClk;
+cyg_handle_t hCounter;
+int start_timer_flag =0;
+u32_t linklocal_start_time =0,linklocal_stop_time=0;
+
+extern char ReadPrintStatus( void );
+
+void linklocal_msg_timer(cyg_handle_t handle, cyg_addrword_t ptr){
+	int need_post_linklocal = ip_conflict_cnt;
+
+	if( start_timer_flag == 0 )
+	{
+		linklocal_start_time = msclock(); 
+		start_timer_flag = 1;
+	}
+	
+	linklocal_stop_time = msclock();
+	
+	if( (linklocal_stop_time - linklocal_start_time) > 10000)
+	{
+		ip_conflict_cnt = 0; // reset counter anyway
+		start_timer_flag = 0;
+		linklocal_stop_time = 0; 
+		cyg_alarm_delete(hAlarm);				//eCos
+		cyg_clock_delete(hSysClk);			    //eCos
+		cyg_counter_delete(hCounter);			//eCos		
+	}
+	
+
+    if( (LinkLocal_get_current_state() != IDLE) )
+    {
+    	ip_conflict_cnt = 0; // reset counter anyway
+    	start_timer_flag = 0; 
+    	cyg_semaphore_post(&linklocal_conflict);
+    	cyg_alarm_delete(hAlarm);				//eCos
+		cyg_clock_delete(hSysClk);			    //eCos
+		cyg_counter_delete(hCounter);			//eCos
+    }	
+	
+	if ( (need_post_linklocal > 1) && (LinkLocal_get_current_state() == IDLE) ){
+//		cyg_semaphore_post(&linklocal_conflict);//signal to inform ip conflict
+		ip_conflict_cnt = 0; // reset counter anyway
+		start_timer_flag = 0; 
+		
+		if( ReadPrintStatus() != 3 )
+		{	
+		LinkLocal_set_state(RETRY);	
+		cyg_semaphore_post(&linklocal_sem); //signal to restart set link local ip
+		}
+		cyg_alarm_delete(hAlarm);				//eCos
+		cyg_clock_delete(hSysClk);			    //eCos
+		cyg_counter_delete(hCounter);			//eCos		
+	}	   
+}
+
+void linklocal_alarm(void){
+
+
+	/* 10 sec, Follow Link Local IP Stard. If we got ip conflict twice 
+	   within 10 seconds, we have to change our link local ip.  
+	   											<<<Ron 12/13/04  >>> */    
+    int interval = 10; //10 sec
+    
+    /* Attach the timer to the real-time clock */
+    hSysClk = cyg_real_time_clock();
+
+    cyg_clock_to_counter(hSysClk, &hCounter);
+
+//    cyg_alarm_create(hCounter, (cyg_alarm_t *)linklocal_msg_post,
+	cyg_alarm_create(hCounter, (cyg_alarm_t *)linklocal_msg_timer,
+                     (cyg_addrword_t) &alarmData,
+                     &hAlarm, &timerAlarm);
+
+    /* This creates a periodic timer */
+    cyg_alarm_initialize(hAlarm, cyg_current_time() + interval, 10);
+	
+}
+#endif

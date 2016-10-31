@@ -242,9 +242,9 @@ err_t SendPacket(struct netif *netif, struct pbuf *p)
 
 	if( dst == ULanface)
 	{
-#if defined(PreTest) || defined(NDWP2020)
-		usbnet_start_xmit( p, p->tot_len, 1);
-#endif	
+// #if defined(PreTest) || defined(NDWP2020)
+//         usbnet_start_xmit( p, p->tot_len, 1);
+// #endif	
 		return 0;
 	}
 
@@ -330,9 +330,9 @@ int send_pkt(int intno,UINT8 *buffer,unsigned int length)
 
 	if( dst == ULanface)
 	{
-#if defined(PreTest) || defined(NDWP2020)
-		 usbnet_start_xmit( buffer, length, 0);
-#endif
+// #if defined(PreTest) || defined(NDWP2020)
+//          usbnet_start_xmit( buffer, length, 0);
+// #endif
 		return 0;
 	}
 

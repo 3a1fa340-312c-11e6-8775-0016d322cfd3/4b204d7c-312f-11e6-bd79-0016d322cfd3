@@ -252,6 +252,7 @@ void dhcp_serch( int dhcp_count )
 int Need_Rendezous_Reload = 0;
 
 extern cyg_handle_t	rendezvous_TaskHdl;
+extern cyg_sem_t rendezvous_sem;
 
 void dhcp_init(cyg_addrword_t arg)
 {

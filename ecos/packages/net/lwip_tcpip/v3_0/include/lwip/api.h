@@ -94,7 +94,7 @@ struct netconn {
   int socket;
   u16_t recv_avail;
   u32_t recvtimeo;
-  u32_t recvcount; //Ron to avoid UDP msg more than 8
+  u32_t recvcount; 
   void (* callback)(struct netconn *, enum netconn_evt, u16_t len);
 };
 

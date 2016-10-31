@@ -1300,5 +1300,9 @@ void wlan_check_edcca()
 #endif
 }
 
+#if defined(NDWP2020)
+void disassoc_cmd_sw(void)
+{
 
-
+}
+#endif /* NDWP2020 */

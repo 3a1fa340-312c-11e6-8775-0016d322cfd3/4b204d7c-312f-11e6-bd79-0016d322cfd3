@@ -145,7 +145,7 @@ static uint32 set_netif_ip(struct netif *netif)
 	SetNetmask(0x0000FFFF, netif);
 	SetGateway(0, netif);
 */	
-	updata_netif_ipaddr(netif);
+	update_netif_ipaddr(netif);
 }
 
 void Give_ip_by_myself(struct netif *netif){
@@ -305,5 +305,87 @@ void Link_local_ip_init(void){
 	
 	//Start NETWORK Thread
 	cyg_thread_resume(LINKLOCAL_IP_TaskHdl);
+}
+
+cyg_handle_t hAlarm;    
+unsigned int alarmData;    
+cyg_alarm timerAlarm;
+cyg_handle_t hSysClk;
+cyg_handle_t hCounter;
+int start_timer_flag =0;
+u32_t linklocal_start_time =0,linklocal_stop_time=0;
+int ip_conflict_cnt =0;
+
+extern char ReadPrintStatus( void );
+
+void linklocal_msg_timer(cyg_handle_t handle, cyg_addrword_t ptr){
+	int need_post_linklocal = ip_conflict_cnt;
+
+	if( start_timer_flag == 0 )
+	{
+		linklocal_start_time = msclock(); 
+		start_timer_flag = 1;
+	}
+	
+	linklocal_stop_time = msclock();
+	
+	if( (linklocal_stop_time - linklocal_start_time) > 10000)
+	{
+		ip_conflict_cnt = 0; // reset counter anyway
+		start_timer_flag = 0;
+		linklocal_stop_time = 0; 
+		cyg_alarm_delete(hAlarm);				//eCos
+		cyg_clock_delete(hSysClk);			    //eCos
+		cyg_counter_delete(hCounter);			//eCos		
+	}
+	
+
+    if( (LinkLocal_get_current_state() != IDLE) )
+    {
+    	ip_conflict_cnt = 0; // reset counter anyway
+    	start_timer_flag = 0; 
+    	cyg_semaphore_post(&linklocal_conflict);
+    	cyg_alarm_delete(hAlarm);				//eCos
+		cyg_clock_delete(hSysClk);			    //eCos
+		cyg_counter_delete(hCounter);			//eCos
+    }	
+	
+	if ( (need_post_linklocal > 1) && (LinkLocal_get_current_state() == IDLE) ){
+//		cyg_semaphore_post(&linklocal_conflict);//signal to inform ip conflict
+		ip_conflict_cnt = 0; // reset counter anyway
+		start_timer_flag = 0; 
+		
+		if( ReadPrintStatus() != 3 )
+		{	
+		LinkLocal_set_state(RETRY);	
+		cyg_semaphore_post(&linklocal_sem); //signal to restart set link local ip
+		}
+		cyg_alarm_delete(hAlarm);				//eCos
+		cyg_clock_delete(hSysClk);			    //eCos
+		cyg_counter_delete(hCounter);			//eCos		
+	}	   
+}
+
+void linklocal_alarm(void){
+
+
+	/* 10 sec, Follow Link Local IP Stard. If we got ip conflict twice 
+	   within 10 seconds, we have to change our link local ip.  
+	   											<<<Ron 12/13/04  >>> */    
+    int interval = 10; //10 sec
+    
+    /* Attach the timer to the real-time clock */
+    hSysClk = cyg_real_time_clock();
+
+    cyg_clock_to_counter(hSysClk, &hCounter);
+
+//    cyg_alarm_create(hCounter, (cyg_alarm_t *)linklocal_msg_post,
+	cyg_alarm_create(hCounter, (cyg_alarm_t *)linklocal_msg_timer,
+                     (cyg_addrword_t) &alarmData,
+                     &hAlarm, &timerAlarm);
+
+    /* This creates a periodic timer */
+    cyg_alarm_initialize(hAlarm, cyg_current_time() + interval, 10);
+	
 }
 #endif //#ifdef LINKLOCAL_IP

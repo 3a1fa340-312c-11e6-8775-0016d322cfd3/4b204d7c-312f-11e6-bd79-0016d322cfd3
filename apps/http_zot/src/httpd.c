@@ -134,17 +134,17 @@ static  cyg_handle_t	IPPD_Start_TaskHdl;
 
 //Http_Start Thread initiation information
 #define Http_Start_TASK_PRI         	20	//ZOT716u2
-#define Http_Start_TASK_STACK_SIZE  	4096
+#define Http_Start_TASK_STACK_SIZE  	8192
 static	uint8			Http_Start_Stack[Http_Start_TASK_STACK_SIZE];
 static  cyg_thread		Http_Start_Task;
 static  cyg_handle_t	Http_Start_TaskHdl;
 
 //Httpd Thread initiation information
 #define Httpd_TASK_PRI				20	//ZOT716u2
-#define Httpd_TASK_STACK_SIZE    	4096 //ZOT716u2 4096
-static uint8			Httpd_Stack[SOCKSUM][Httpd_TASK_STACK_SIZE];
+#define Httpd_TASK_STACK_SIZE    	8192 //ZOT716u2 4096
+static uint8			Httpd_Stack[SOCKSUM+1][Httpd_TASK_STACK_SIZE];
 static cyg_thread		Httpd_Task[SOCKSUM+1];
-static cyg_handle_t	Httpd_TaskHdl[SOCKSUM];
+static cyg_handle_t	Httpd_TaskHdl[SOCKSUM] = {0};
 
 
 //ksign
@@ -1157,17 +1157,17 @@ void httpstart (cyg_addrword_t data)
 			continue;
 		}	
 
-		cyg_scheduler_lock();
-		
-		for(i=0;i< SOCKSUM ;i++)
-		{
-			if(Usedsock[i].needrelase	== 1 )
-			{
-				cyg_thread_delete(Httpd_TaskHdl[i]);
-				Usedsock[i].needrelase = 0;
-			}
-		}
-		cyg_scheduler_unlock();
+		// cyg_scheduler_lock();
+		// 
+		// for(i=0;i< SOCKSUM ;i++)
+		// {
+		//     if(Usedsock[i].needrelase	== 1 )
+		//     {
+        //         cyg_thread_delete(Httpd_TaskHdl[i]);
+		//         Usedsock[i].needrelase = 0;
+		//     }
+		// }
+		// cyg_scheduler_unlock();
 
 //		if( HttpUsers >= HTTP_MAX_USER || availmem() != 0) {
 		if( HttpUsers >= HTTP_MAX_USER ) {
@@ -1213,6 +1213,7 @@ void httpstart (cyg_addrword_t data)
 					break;
 				}
 			}
+            CYG_ASSERT(i != SOCKSUM, "http:1216, No free socket!");
 			cyg_scheduler_unlock();
 		}
 	}

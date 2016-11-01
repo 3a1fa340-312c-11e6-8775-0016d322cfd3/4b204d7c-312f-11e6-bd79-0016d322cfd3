@@ -282,9 +282,9 @@ int ReadFromFactory(EEPROM *Data){
 	Data->BoxIPAddress[0] = 0xC0; //192, Box IP Address for TCP/IP only
 	Data->BoxIPAddress[1] = 0xA8; //168 
 #if defined(N716U2W) || defined(N716U2)
-    diag_printf("192.168.1.222\n");
-	Data->BoxIPAddress[2] = 0x1; //100
-	Data->BoxIPAddress[3] = 222; //5
+    // diag_printf("192.168.1.222\n");
+	Data->BoxIPAddress[2] = 0x0; //100
+	Data->BoxIPAddress[3] = 10; //5
 #endif
 #if defined(NDWP2020)
 	Data->BoxIPAddress[2] = 0x00; //0
@@ -297,7 +297,7 @@ int ReadFromFactory(EEPROM *Data){
 	
 	Data->GetwayAddress[0] = 0xC0;  //Getway Address for TCP/IP only
 	Data->GetwayAddress[1] = 0xA8;
-	Data->GetwayAddress[2] = 0x64;
+	Data->GetwayAddress[2] = 0x00;
 	Data->GetwayAddress[3] = 0x01;		
 #endif
 //SNMP

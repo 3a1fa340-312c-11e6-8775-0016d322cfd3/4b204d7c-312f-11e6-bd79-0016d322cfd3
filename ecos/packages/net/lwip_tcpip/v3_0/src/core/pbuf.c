@@ -129,6 +129,7 @@ pbuf_init(void)
 #endif
 }
 
+int pbuf_cnt = 0;
 /**
  * @internal only called from pbuf_alloc()
  */
@@ -165,6 +166,7 @@ pbuf_pool_alloc(void)
   pbuf_pool_alloc_lock = 0;
 #endif /* SYS_LIGHTWEIGHT_PROT */
 
+  pbuf_cnt ++;
 #if PBUF_STATS
   if (p != NULL) {
     ++lwip_stats.pbuf.used;
@@ -177,7 +179,6 @@ pbuf_pool_alloc(void)
   SYS_ARCH_UNPROTECT(old_level);
   return p;
 }
-
 
 /**
  * Allocates a pbuf of the given type (possibly a chain for PBUF_POOL type).
@@ -584,6 +585,8 @@ pbuf_free(struct pbuf *p)
         p->len = p->tot_len = PBUF_POOL_BUFSIZE;
         p->payload = (void *)((u8_t *)p + sizeof(struct pbuf));
         PBUF_POOL_FREE(p);
+        pbuf_cnt --;
+        // diag_printf("pbuf:%d\n", pbuf_cnt);
       /* is this a ROM or RAM referencing pbuf? */
       } else if (p->flags == PBUF_FLAG_ROM || p->flags == PBUF_FLAG_REF) {
         memp_free(MEMP_PBUF, p);

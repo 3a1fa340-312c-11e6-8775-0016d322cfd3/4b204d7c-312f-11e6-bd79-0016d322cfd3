@@ -948,13 +948,14 @@ static VOID RTMP_NetPktInput(
     struct netif        *ifp = NULL;
     int i;
 
-    pBuf = pbuf_alloc(PBUF_RAW, PBUF_POOL_BUFSIZE, PBUF_POOL);
+    // pBuf = pbuf_alloc(PBUF_RAW, PBUF_POOL_BUFSIZE, PBUF_POOL);
+    // pBuf = pbuf_alloc(PBUF_RAW, pPacket->pktLen, PBUF_POOL);
     //pBuf = pbuf_alloc(PBUF_RAW, 0, PBUF_REF);
 
-    if (pBuf == NULL) {
-        diag_printf("alloc pbuffer failure\n");
-        return;
-    } 
+    // if (pBuf == NULL) {
+    //     diag_printf("alloc pbuffer failure\n");
+    //     return;
+    // } 
     
 	pNetDev = GET_OS_PKT_NETDEV(pPacket);
     if (GET_OS_PKT_TOTAL_LEN(pPacket) < LENGTH_802_3) {
@@ -966,11 +967,21 @@ static VOID RTMP_NetPktInput(
     ifp = (struct net_if *)&pNetDev->sc_arpcom.ac_if;
     pBuffer = (PECOS_PKT_BUFFER) pPacket;
 
+    pBuf = pbuf_alloc(PBUF_RAW, pBuffer->pktLen, PBUF_POOL);
+
+    if (pBuf == NULL) {
+        diag_printf("alloc pbuffer failure\n");
+        return;
+    } 
+
     /* 
     pBuf->payload = pBuffer->pDataPtr;
     pBuf->tot_len = pBuffer->pktLen;
     pBuf->len     = pBuffer->pktLen;
     */ 
+
+    if (pBuffer->pktLen > 1540)
+        diag_printf("%s(%d) pktLen :%d\n", __func__, __LINE__, pBuffer->pktLen);
 
     memcpy(pBuf->payload, pBuffer->pDataPtr, pBuffer->pktLen);
     pBuf->len = pBuffer->pktLen;

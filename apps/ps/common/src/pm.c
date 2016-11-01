@@ -77,11 +77,9 @@ void zot_idle_task(cyg_addrword_t data)
 
 				if( (current - start) > 50 )
 				{
-                    diag_printf("needwps = 1\n");
 					needwps = 1;
                     #ifdef WPSBUTTON_LEDFLASH_FLICK
 					// Lance
-                    diag_printf("flash_wps_led = 1\n");
 					flash_wps_led = 1;
                     #endif	// WPSBUTTON_LEDFLASH_FLICK
 				}

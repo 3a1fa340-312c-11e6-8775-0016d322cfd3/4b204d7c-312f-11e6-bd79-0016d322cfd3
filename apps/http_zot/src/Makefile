@@ -70,7 +70,7 @@ SRCS = http_constant.c gmtime.c pfs.c httpd.c
 ifeq ($(TARGET),NDWP2020)
 SRCS += endmark_dwp2020_tp.c
 else
-SRCS += endmark.c
+SRCS += endmark_716u2_tp.c
 endif
 
 # DO not edit OBJS and DST

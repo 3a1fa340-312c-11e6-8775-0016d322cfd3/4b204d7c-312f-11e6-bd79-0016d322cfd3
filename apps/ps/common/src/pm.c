@@ -8,7 +8,7 @@
 #include "star_powermgt.h"
 
 #define ZOT_IDLE_TASK_PRI         20	
-#define ZOT_IDLE_TASK_STACK_SIZE	 2048 
+#define ZOT_IDLE_TASK_STACK_SIZE	 3072 
 static uint8 			ZOT_IDLE_Stack[ZOT_IDLE_TASK_STACK_SIZE];
 static cyg_thread       ZOT_IDLE_Task;
 static cyg_handle_t     ZOT_IDLE_TaskHdl;
@@ -32,6 +32,13 @@ void zot_idle_task(cyg_addrword_t data)
 	unsigned int start = 0, current = 0;
 	unsigned int needprint = 0, needboot = 0, needwps = 0;
 	
+    value = get_reset_input();
+    if (value == 0) {
+        // diag_printf("--------------------------------------------------------------load default\n");
+        // cyg_thread_delay(500);
+        // diag_printf("load defualt complete\n");
+    }
+
 	while(1){
 		
 		//===================================================	
@@ -44,8 +51,15 @@ void zot_idle_task(cyg_addrword_t data)
 		value1 &= 0xc2;
         #endif /* defined ARCH_ARM */
         #if defined(ARCH_MIPS)
+        #if defined(NDWP2020)
+        value  = get_wps_input();
+        #endif /* NDWP2020 */
+        #if defined(N716U2) || defined(N716U2W)
         value  = get_reset_input();
+        #endif /* N716U2 || N716U2W */
+        #if defined (N716U2W)
         value1 = get_wps_input();
+        #endif /* N716U2W */
         #endif /* defined ARCH_MIPS */
 		if(value == 0){
 			if (start == 0){
@@ -55,16 +69,26 @@ void zot_idle_task(cyg_addrword_t data)
 				current = cyg_current_time();
 
 				// George updated this at build0008 of 716U2W on May 4, 2012.
-#if defined(O_CONRAD)
-				if( (current - start) > 950 ) needboot = 1;		// 10 seconds
-				if( (current - start) > 1425 ) needprint = 1;	// 15 seconds
-#else
-				if( (current - start) > 10 ) needboot = 1;
-				if( (current - start) > 300 ) needprint = 1;
-#endif	// defined(O_CONRAD)
+// #if defined(O_CONRAD)
+//                 if( (current - start) > 950 ) needboot = 1;		// 10 seconds
+//                 if( (current - start) > 1425 ) needprint = 1;	// 15 seconds
+// #else
+//                 if( (current - start) > 10 ) needboot = 1;
+//                 if( (current - start) > 300 ) needprint = 1;
+                #if defined(N716U2) || defined(NDWP2020)
+                if ((current - start) > 500) {
+                    needboot = 1;
+                    needwps  = 0;
+                }
+                else needwps = 1;
+                #endif /* N716U2 || NDWP2020 */
+                #if defined(N716U2W)
+                if (current - start > 50) needboot = 1;
+                #endif /* defined N716U2 || N716U2W */
+//#endif	// defined(O_CONRAD)
 			}
 		}
-        //#if defined(N716U2W) || defined(N716U2)
+        #if defined(N716U2W)
 		else if(value1 == 0)
 		{
 			if (start == 0)
@@ -85,7 +109,7 @@ void zot_idle_task(cyg_addrword_t data)
 				}
 			}							
 		}
-        //#endif // defined(N716U2W)
+        #endif // defined(N716U2W)
 		else
 		{
 			start = 0;
@@ -98,6 +122,9 @@ void zot_idle_task(cyg_addrword_t data)
 				set_realtek_wps(1);
                 #endif /* defined ARCH_ARM */
                 #endif 
+                #ifdef WPSBUTTON_LEDFLASH_FLICK
+                flash_wps_led = 1;
+                #endif /* WPSBUTTON_LEDFLASH_FLICK */
                 wlan_set_wps_on();
 				needwps = 0;
 			}

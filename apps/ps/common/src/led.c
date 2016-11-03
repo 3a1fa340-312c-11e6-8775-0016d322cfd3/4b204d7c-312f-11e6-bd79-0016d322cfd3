@@ -215,6 +215,7 @@ void LightToggleProc(cyg_addrword_t data)
 	int flash_wps_led_state = 0;
 #endif	// WPSBUTTON_LEDFLASH_FLICK
 
+    Light_On(Status_Lite);
 	start_timer = jiffies;
 
 	for(;;) {
@@ -237,7 +238,7 @@ void LightToggleProc(cyg_addrword_t data)
 					Light_Off( Wireless_Lite );
 			}
 
-			if(flash_wps_led_count > 100)
+			if(flash_wps_led_count > 300)
 			{
 					flash_wps_led = 0;
 			}
@@ -247,10 +248,11 @@ void LightToggleProc(cyg_addrword_t data)
 	      	flash_wps_led_count = 0;
 #endif	// WPSBUTTON_LEDFLASH_FLICK
 #ifdef WIRELESS_CARD
-	        if( wlan_get_linkup() == 1 )
-	        	Light_On( Wireless_Lite );
-	        else
-	        	Light_Off( Wireless_Lite );
+            if( wlan_get_linkup() == 1 )
+                Light_On( Wireless_Lite );
+            else {
+                Light_Off( Wireless_Lite );
+            }
 #endif
 
 #ifdef WPSBUTTON_LEDFLASH_FLICK

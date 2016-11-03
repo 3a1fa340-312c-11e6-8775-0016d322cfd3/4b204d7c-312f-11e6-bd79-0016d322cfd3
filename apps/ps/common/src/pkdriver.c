@@ -681,6 +681,9 @@ int ProcessOtherPckt(unsigned char *pFrame, unsigned int lenFrame)
 }
 #define UBDG_DROP	( (struct netif *)4 )
 extern unsigned char LANLightToggle;	//eason 20100809
+#if defined(WIRELESS_CARD)
+extern unsigned char WirelessLightToggle;
+#endif /* WIRELESS_CARD */
 
 #ifdef STAR_MAC
 void LanRecv(unsigned char *data, unsigned int len)
@@ -833,7 +836,12 @@ void ecosif_input(struct netif *netif, struct pbuf *p)
             break;
     }
 
-    LANLightToggle ++;
+#if defined(WIRELESS_CARD)
+    if (netif == WLanface)
+        WirelessLightToggle ++;
+#endif /* WIRELESS_CARD */
+    if (netif == Lanface)
+        LANLightToggle ++;
 }
 
 void set_wlan_ip()

@@ -1049,7 +1049,7 @@ void read_version()
 
 #if defined(ARCH_MIPS)
     read_flash((RAM_CODE_START_ADDRESS+0x0C), &firmware_size, 4);
-    hdr_offset = (ntohl(firmware_size) + 255) / 256 * 256;
+    hdr_offset = ((ntohl(firmware_size) + 64 + 255) / 256) * 256;
 #endif
 	
 	read_flash((RAM_CODE_START_ADDRESS+MAJOR_VER_OFFSET+hdr_offset), &code2_major_ver, 1);

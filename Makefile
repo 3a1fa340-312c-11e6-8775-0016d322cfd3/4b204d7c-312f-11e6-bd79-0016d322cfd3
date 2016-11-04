@@ -215,7 +215,7 @@ N716U2W:
 DWP2020:
 	make package PROD_NAME=zotdwp2020
 package:
-	make clean
+	make PROD_NAME=$(PROD_NAME) clean
 ifeq ($(CHIP),arm9)
 	make COPTFLAGS=-O2 
 	cp $(DST_NAME) $(PROD_NAME).bin

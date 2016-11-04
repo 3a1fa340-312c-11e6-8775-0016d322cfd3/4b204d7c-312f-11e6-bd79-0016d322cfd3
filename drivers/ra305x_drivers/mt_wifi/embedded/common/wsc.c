@@ -1639,6 +1639,8 @@ VOID WscEapEnrolleeAction(
 					}
 				}
 #endif /* CONFIG_AP_SUPPORT */
+                if (pWscControl->WscState >= WSC_STATE_SENT_M1)
+                    break;
 
 				if (pWscControl->RegData.ReComputePke == 1)
 				{

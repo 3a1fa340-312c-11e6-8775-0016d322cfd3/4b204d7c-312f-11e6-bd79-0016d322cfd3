@@ -7,9 +7,9 @@ PSMODELINDEX  = 55
 MajorVer      = 9
 MinorVer      = 8
 ReleaseVer    = 115
-RDVersion     = 471
+RDVersion     = 472
 BuildVer      = 8
-FirmwareString = (STR8132-9.08.55.0008.00000471s-2016/11/03 11:34:30)
+FirmwareString = (STR8132-9.08.55.0008.00000472s-2016/11/04 14:52:37)
 
 #FLASH_SIZE UNIT Mbyte
 FLASH_SIZE    = 1

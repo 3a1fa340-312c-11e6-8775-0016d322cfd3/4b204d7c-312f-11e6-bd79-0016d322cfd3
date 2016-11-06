@@ -882,8 +882,8 @@ VOID AsicEnableIbssSync(RTMP_ADAPTER *pAd)
 		bssSync.BssSet = 0;
 		MtAsicEnableBssSync(pAd, bssSync);
         if (pAd->StaCfg.bcn_buf.BeaconPkt) {
-            RTMPCancelTimer(pAd, TRUE);
-            RTMPReleaseTimer(pAd, TRUE);
+            RTMPCancelTimer(&pAd->AdhocBeaconTimer, TRUE);
+            RTMPReleaseTimer(&pAd->AdhocBeaconTimer, TRUE);
             RTMPInitTimer(pAd, &pAd->AdhocBeaconTimer, GET_TIMER_FUNCTION(MakeAdhocIbssBeacon), pAd, TRUE);
             RTMPSetTimer(&pAd->AdhocBeaconTimer, pAd->CommonCfg.BeaconPeriod*10);
         }

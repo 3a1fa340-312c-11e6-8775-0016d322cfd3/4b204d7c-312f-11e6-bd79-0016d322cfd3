@@ -1214,6 +1214,7 @@ void wlan_request_key(int req)
 void wlan_set_wps_on()
 {
     char* config_buffer = NULL; 
+    BOOLEAN canceled = TRUE;
 
  	if( WirelessInitFailed )
 		return NULL;
@@ -1232,6 +1233,7 @@ void wlan_set_wps_on()
 
     diag_printf("wps on\n");
     //pAd->StaCfg.WscControl.WscDriverAutoConnect = 0x01;
+    RTMPCancelTimer(&pAd->AdhocBeaconTimer, &canceled);
     Set_WscConfMode_Proc(pAd, "1");  /* enrollee */
     Set_WscMode_Proc(pAd, "2");      /* PBC Mode */
     Set_WscGetConf_Proc(pAd, "1");   /* wsc_start */

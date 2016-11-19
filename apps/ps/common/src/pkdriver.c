@@ -640,39 +640,38 @@ int ProcessOtherPckt(unsigned char *pFrame, unsigned int lenFrame)
 			switch(FrameType) {
 				case IPXENII:  //IPX SNAP frame
                     #ifdef USE_PS_LIBS
-					if (lenFrame > 22)
-					    IPXInput(IPXSNAP,eth->src,(IPXHeader *)&pFrame[22],(lenFrame-22));
+                    if (lenFrame > 22)
+                        IPXInput(IPXSNAP,eth->src,(IPXHeader *)&pFrame[22],(lenFrame-22));
                     #endif /* USE_PS_LIBS */
 					break;
 				case ETHERTYPE_AARP: //APPLE-TALK AARP
-					if (lenFrame > 22)
-					    aarp_input2ambf(&pFrame[22],(lenFrame-22));
+                    if (lenFrame > 22)
+                        aarp_input2ambf(&pFrame[22],(lenFrame-22));
 					break;
 				case ETHERTYPE_AT: //APPLE-TALK DDP
-					if (lenFrame > 22)
-					    ddp_input2ambf(&pFrame[22],(lenFrame-22));
+                    if (lenFrame > 22)
+                        ddp_input2ambf(&pFrame[22],(lenFrame-22));
 					break;
     			default:
 					return -1;
 			}
 #else			
-			
-			if(FrameType == IPXENII) {
+            if(FrameType == IPXENII) {
                 #ifdef USE_PS_LIBS
-				if (lenFrame > 22)
-				    IPXInput(IPXSNAP,eth->src,(IPXHeader *)&pFrame[22],(lenFrame-22));
-                #endif /*USE_PS_LIBS */
-			}
+                if (lenFrame > 22)
+                    IPXInput(IPXSNAP,eth->src,(IPXHeader *)&pFrame[22],(lenFrame-22));
+                #endif /* USE_PS_LIBS */
+            }
 #endif ATALKD //2/23/99				
 			break;
 #ifdef NETBEUI
-		case IPXBEUI:
-			if(!memcmp(eth->dest,NETBEUI_MULTICAST,6)){
-				if (lenFrame > 17)
-				    NT_NETBEUItoIPXInput(FrameType,eth->src,(NETBEUIHeader *)&pFrame[17],(lenFrame-17));
-			}
-			else return -1;
-		break;
+        case IPXBEUI:
+            if(!memcmp(eth->dest,NETBEUI_MULTICAST,6)){
+                if (lenFrame > 17)
+                    NT_NETBEUItoIPXInput(FrameType,eth->src,(NETBEUIHeader *)&pFrame[17],(lenFrame-17));
+            }
+            else return -1;
+        break;
 #endif
 		default:
 			return -1;
@@ -832,6 +831,7 @@ void ecosif_input(struct netif *netif, struct pbuf *p)
         default:
             LWIP_DEBUGF(0, ("ecosif_input: Other packet\n"));
             OtherPckt_input(p->payload, p->len);
+            CYG_ASSERTC(p->ref > 0);
             pbuf_free(p);
             break;
     }
@@ -840,7 +840,7 @@ void ecosif_input(struct netif *netif, struct pbuf *p)
     if (netif == WLanface)
         WirelessLightToggle ++;
 #endif /* WIRELESS_CARD */
-    if (netif == Lanface)
+    if (netif == Lanface) 
         LANLightToggle ++;
 }
 

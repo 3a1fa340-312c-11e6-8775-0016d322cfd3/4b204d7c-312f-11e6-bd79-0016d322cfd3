@@ -25,6 +25,7 @@ int flash_wps_led = 0;
 //eason test
 extern void set_realtek_wps(int event);	//eason 20100407
 #endif /* defined ARCH_ARM */
+extern int ResetToDefalutFlash(int tmpip, int tmpkey, int nouse);
 
 void zot_idle_task(cyg_addrword_t data)
 {
@@ -32,12 +33,17 @@ void zot_idle_task(cyg_addrword_t data)
 	unsigned int start = 0, current = 0;
 	unsigned int needprint = 0, needboot = 0, needwps = 0;
 	
-    value = get_reset_input();
+    #if defined(ARCH_MIPS)
+    #if defined(N716U2) || defined(N716U2W)
+    value = get_reset_input();      /* GPIO39 */
+    #endif /* N716U2 || N716U2W */
+    #if defined(NDWP2020)
+    value = get_wps_input();        /* GPIO38 */
+    #endif /* DWP2020 */
     if (value == 0) {
-        // diag_printf("--------------------------------------------------------------load default\n");
-        // cyg_thread_delay(500);
-        // diag_printf("load defualt complete\n");
+        ResetToDefalutFlash(1, 0, 0);
     }
+    #endif /* ARCH_MIPS */
 
 	while(1){
 		

@@ -44,16 +44,75 @@ struct sswt_cb
 };
 
 #ifdef ZOT_TCPIP
-void
-sys_my_mbox_fetch(sys_mbox_t mbox, void **msg, u32_t recvtimeo)
-{
+// void
+// sys_my_mbox_fetch(sys_mbox_t mbox, void **msg, u32_t recvtimeo)
+// {
+//
+//   if (recvtimeo == 0) {
+//     sys_arch_mbox_fetch(mbox, msg, 0);
+//   } else {
+//     if (recvtimeo > 0)
+//       sys_arch_mbox_fetch(mbox, msg, recvtimeo);
+//     }
+// }
 
-  if (recvtimeo == 0) {
-    sys_arch_mbox_fetch(mbox, msg, 0);
-  } else {
-    if (recvtimeo > 0)
-      sys_arch_mbox_fetch(mbox, msg, recvtimeo);
-    }
+void sys_my_mbox_fetch(sys_mbox_t mbox, void **msg, u32_t recvtimeo)
+{
+  u32_t               time;
+  struct sys_timeouts *timeouts;
+  struct sys_timeout  *tmptimeout;
+  sys_timeout_handler h;
+  void                *arg;
+
+
+  again:
+  timeouts = sys_arch_timeouts();
+
+  if (!timeouts || !timeouts->next) {
+      if (recvtimeo == 0)
+        sys_arch_mbox_fetch(mbox, msg, 0);
+      else {
+        sys_arch_mbox_fetch(mbox, msg, recvtimeo);
+      }
+  }
+  else {
+      if (timeouts->next->time > 0) {
+          time = sys_arch_mbox_fetch(mbox, msg, timeouts->next->time);
+      }
+      else {
+          time = SYS_ARCH_TIMEOUT;
+      }
+
+      if (time == SYS_ARCH_TIMEOUT) {
+          /* If time == SYS_ARCH_TIMEOUT, a timeout occured before a message
+           *  could be fetched. We should now call the timeout handler and
+           *  deallocate the memory allocated for the timeout. */
+          tmptimeout     = timeouts->next;
+          timeouts->next = tmptimeout->next;
+          h   = tmptimeout->h;
+          arg = tmptimeout->arg;
+          memp_free(MEMP_SYS_TIMEOUT, tmptimeout);
+
+          if (h != NULL) {
+              LWIP_DEBUGF(SYS_DEBUG, ("smf calling h=%p(%p)\n", (void *)h, (void *)arg));
+              h(arg);
+          }
+
+          /* We try again to fetch a message from the mbox. */
+          goto again;
+      }
+      else {
+          /* If time != SYS_ARCH_TIMEOUT, a message was received before the timeout
+           *  occured. The time variable is set to the number of
+           *  milliseconds we waited for the message. */
+          if (time <= timeouts->next->time) {
+              timeouts->next->time -= time;
+          }
+          else {
+              timeouts->next->time = 0;
+          }
+      }
+  }
 }
 #endif /* ZOT_TCPIP */
 

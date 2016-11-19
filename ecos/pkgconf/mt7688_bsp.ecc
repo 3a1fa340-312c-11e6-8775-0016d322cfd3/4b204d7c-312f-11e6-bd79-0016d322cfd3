@@ -3664,7 +3664,7 @@ cdl_package CYGPKG_INFRA {
 cdl_component CYGPKG_INFRA_DEBUG {
     # Flavor: bool
     # No user value, uncomment the following line to provide one.
-    # user_value 0
+    user_value 0
     # value_source default
     # Default value: 0
 
@@ -3699,7 +3699,7 @@ cdl_component CYGDBG_USE_ASSERTS {
 
     # Flavor: bool
     # No user value, uncomment the following line to provide one.
-    # user_value 1
+    user_value 1
     # value_source default
     # Default value: 1
     # Requires:  1 == CYGINT_INFRA_DEBUG_TRACE_IMPL 
@@ -3730,7 +3730,7 @@ cdl_option CYGDBG_INFRA_DEBUG_PRECONDITIONS {
 
     # Flavor: bool
     # No user value, uncomment the following line to provide one.
-    # user_value 1
+    user_value 1
     # value_source default
     # Default value: 1
 };
@@ -3747,7 +3747,7 @@ cdl_option CYGDBG_INFRA_DEBUG_POSTCONDITIONS {
 
     # Flavor: bool
     # No user value, uncomment the following line to provide one.
-    # user_value 1
+    user_value 1
     # value_source default
     # Default value: 1
 };
@@ -3766,7 +3766,7 @@ cdl_option CYGDBG_INFRA_DEBUG_LOOP_INVARIANTS {
 
     # Flavor: bool
     # No user value, uncomment the following line to provide one.
-    # user_value 1
+    user_value 1
     # value_source default
     # Default value: 1
 };
@@ -3790,7 +3790,7 @@ cdl_option CYGDBG_INFRA_DEBUG_ASSERT_MESSAGE {
 
     # Flavor: bool
     # No user value, uncomment the following line to provide one.
-    # user_value 1
+    user_value 1
     # value_source default
     # Default value: 1
 };
@@ -14218,6 +14218,14 @@ cdl_option CYGOPT_LWIP_DHCP_DOES_ARP_CHECK {
 cdl_component CYGDBG_LWIP_DEBUG {
     user_value 0		
 };
+
+cdl_option CYGDBG_LWIP_DEBUG_TCP {
+    user_value 0
+};
+
+cdl_option CYGDBG_LWIP_ASSERTS {
+    user_value 0
+}
 # <
 # <
 

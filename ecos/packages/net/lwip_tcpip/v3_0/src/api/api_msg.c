@@ -79,38 +79,38 @@ recv_udp(void *arg, struct udp_pcb *pcb, struct pbuf *p,
   conn = arg;
   
   if (conn == NULL) {
+    CYG_ASSERTC(p->ref > 0);
     pbuf_free(p);
     return;
   }
+
+#ifdef ZOT_TCPIP
+  //NTUDP_recv can't more than 10 pbuf in recvmbox
+  // cyg_interrupt_disable();
+  // if ((conn->type == NETCONN_UDP) && (conn->recvcount >= 8)) {
+  //       CYG_ASSERTC(p->ref > 0);
+  //       pbuf_free(p);
+  //       cyg_interrupt_enable();
+  //       return;
+  // }
+  // cyg_interrupt_enable();
+#endif /* ZOT_TCPIP */
+
   if (conn->recvmbox != SYS_MBOX_NULL) {
     buf = memp_malloc(MEMP_NETBUF);
     if (buf == NULL) {
+      CYG_ASSERTC(p->ref > 0);
       pbuf_free(p);
       return;
     } else {
-#ifdef ZOT_TCPIP
-      //NTUDP_recv can't more than 10 pbuf in recvmbox
-      cyg_interrupt_disable();
-
-      if ((conn->type == NETCONN_UDP) && (conn->recvcount >= 8)) {
-          pbuf_free(p);
-          pbuf_free(buf);
-          cyg_interrupt_enable();
-          return;
-      }else{
-          conn->recvcount++;
-      }
-
-      cyg_interrupt_enable();
-#endif /* ZOT_TCPIP */
-
+      conn->recvcount ++;
       buf->p = p;
       buf->ptr = p;
       buf->fromaddr = addr;
       buf->fromport = port;
     }
 
-  conn->recv_avail += p->tot_len;
+    conn->recv_avail += p->tot_len;
     /* Register event with callback */
     if (conn->callback)
         (*conn->callback)(conn, NETCONN_EVT_RCVPLUS, p->tot_len);
@@ -129,6 +129,7 @@ recv_tcp(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
   conn = arg;
 
   if (conn == NULL) {
+    CYG_ASSERTC(p->ref > 0);
     pbuf_free(p);
     return ERR_VAL;
   }
@@ -760,7 +761,7 @@ do_write(struct api_msg_msg *msg)
    previously transmitted data on the connection remains
    unacknowledged. */
       if(err == ERR_OK && (msg->conn->pcb.tcp->unacked == NULL || (msg->conn->pcb.tcp->flags & TF_NODELAY)) ) {
-  tcp_output(msg->conn->pcb.tcp);
+        tcp_output(msg->conn->pcb.tcp);
       }
       msg->conn->err = err;
       if (msg->conn->callback)

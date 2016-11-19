@@ -31,7 +31,7 @@
 #include <eventlog.h>
 #endif /* BRANCH_ADV */
 
-ULONG RTDebugLevel = DBG_LVL_TRACE;
+ULONG RTDebugLevel = DBG_LVL_ERROR;
 // ULONG RTDebugLevel = DBG_LVL_INFO;
 ULONG RTDebugFunc = 0;
 ULONG DebugCategory = DBG_CAT_ALL;

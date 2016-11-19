@@ -492,21 +492,21 @@ static cyg_handle_t     NTUDP_TaskHdl;
 //615wu::No PSMain
 //NovellPSMAIN Task create information definition
 #define NovellPSMAIN_TASK_PRI         20	//ZOT716u2
-#define NovellPSMAIN_TASK_STACK_SIZE    2048	
+#define NovellPSMAIN_TASK_STACK_SIZE  4096	
 static uint8 			NovellPSMAIN_Stack[NovellPSMAIN_TASK_STACK_SIZE];
 static cyg_thread       NovellPSMAIN_Task;
 static cyg_handle_t     NovellPSMAIN_TaskHdl;
 
 //Novell-SAP Task create information definition
 #define NSAP_TASK_PRI         20	//ZOT716u2
-#define NSAP_TASK_STACK_SIZE  2048
+#define NSAP_TASK_STACK_SIZE  4096
 static uint8 			NSAP_Stack[NSAP_TASK_STACK_SIZE];
 static cyg_thread       NSAP_Task;
 static cyg_handle_t     NSAP_TaskHdl;
 
 //Novell-Connect Task create information definition
 #define NCON_TASK_PRI         20	//ZOT716u2
-#define NCON_TASK_STACK_SIZE  2048
+#define NCON_TASK_STACK_SIZE  4096
 static uint8 			NCON_Stack[NCON_TASK_STACK_SIZE];
 static cyg_thread       NCON_Task;
 static cyg_handle_t     NCON_TaskHdl;
@@ -514,7 +514,7 @@ static cyg_handle_t     NCON_TaskHdl;
 
 //Novell-NDS Task create information definition
 #define NDS_TASK_PRI         20	//ZOT716u2
-#define NDS_TASK_STACK_SIZE  2048
+#define NDS_TASK_STACK_SIZE  4096
 static uint8 			NDS_Stack[NDS_TASK_STACK_SIZE];
 static cyg_thread       NDS_Task;
 static cyg_handle_t     NDS_TaskHdl;
@@ -586,7 +586,7 @@ static  cyg_handle_t	SNMPD_TaskHdl;
 #ifdef RENDEZVOUS
 //Rendezous Thread initiation information
 #define Rendezous_TASK_PRI         	20	//ZOT716u2
-#define Rendezous_TASK_STACK_SIZE  	2048
+#define Rendezous_TASK_STACK_SIZE  	4096
 static	uint8			Rendezous_Stack[Rendezous_TASK_STACK_SIZE];
 static  cyg_thread		Rendezous_Task;
 static  cyg_handle_t	Rendezous_TaskHdl;
@@ -594,28 +594,28 @@ static  cyg_handle_t	Rendezous_TaskHdl;
 
 //TFTPD Thread initiation information
 #define TFTPD_TASK_PRI         	20	//ZOT716u2
-#define TFTPD_TASK_STACK_SIZE  	2048
+#define TFTPD_TASK_STACK_SIZE  	4096
 static	uint8			TFTPD_Stack[TFTPD_TASK_STACK_SIZE];
 static  cyg_thread		TFTPD_Task;
 static  cyg_handle_t	TFTPD_TaskHdl;
 
 //SMTP ALERT Thread initiation information
 #define SMTP_ALERT_TASK_PRI         	20	//ZOT716u2
-#define SMTP_ALERT_TASK_STACK_SIZE  	1024
+#define SMTP_ALERT_TASK_STACK_SIZE  	4096
 static	uint8			SMTP_ALERT_Stack[SMTP_ALERT_TASK_STACK_SIZE];
 static  cyg_thread		SMTP_ALERT_Task;
 static  cyg_handle_t	SMTP_ALERT_TaskHdl;
 
 //MAIL ALERT Thread initiation information
 #define MAIL_ALERT_TASK_PRI         	20	//ZOT716u2
-#define MAIL_ALERT_TASK_STACK_SIZE  	1024
+#define MAIL_ALERT_TASK_STACK_SIZE  	4096
 static	uint8			MAIL_ALERT_Stack[MAIL_ALERT_TASK_STACK_SIZE];
 static  cyg_thread		MAIL_ALERT_Task;
 static  cyg_handle_t	MAIL_ALERT_TaskHdl;
 
 //TELNET Thread initiation information
 #define TELNET_TASK_PRI         	20	//ZOT716u2
-#define TELNET_TASK_STACK_SIZE  	2048
+#define TELNET_TASK_STACK_SIZE  	4096
 static	uint8			TELNET_Stack[TELNET_TASK_STACK_SIZE];
 static  cyg_thread		TELNET_Task;
 static  cyg_handle_t	TELNET_TaskHdl;
@@ -998,7 +998,7 @@ void ps_init(void)
 	                  &MAIL_ALERT_Task);
 		
 		//Start MAIL ALERT Thread
-		cyg_thread_resume(MAIL_ALERT_TaskHdl);	
+        cyg_thread_resume(MAIL_ALERT_TaskHdl);
 	}
 #endif	// !defined(N716U2S) && !defined(O_ELEC)
 #endif //Print_ALERT
@@ -1021,7 +1021,7 @@ void ps_init(void)
 		              &TELNET_Task);
 		
 		//Start TELNET Thread
-		cyg_thread_resume(TELNET_TaskHdl);	
+        cyg_thread_resume(TELNET_TaskHdl);
 	}
 #endif	// (!defined(O_ELEC) && !defined(N716U2S))
 #endif TELNETD

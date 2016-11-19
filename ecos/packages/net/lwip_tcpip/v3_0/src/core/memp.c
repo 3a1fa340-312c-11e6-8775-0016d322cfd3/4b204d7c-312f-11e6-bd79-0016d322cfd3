@@ -30,6 +30,7 @@
  *
  */
 
+#include <cyg/infra/cyg_ass.h>
 #include "lwip/opt.h"
 
 #include "lwip/memp.h"
@@ -143,44 +144,45 @@ memp_sanity(void)
 #endif /* MEMP_SANITY_CHECK*/
 
 void
-memp_init(void)
+memp_init (void)
 {
-  struct memp *m, *memp;
-  u16_t i, j;
-  u16_t size;
-      
+    struct memp *m, *memp;
+    u16_t       i, j;
+    u16_t       size;
+
 #if MEMP_STATS
-  for(i = 0; i < MEMP_MAX; ++i) {
-    lwip_stats.memp[i].used = lwip_stats.memp[i].max =
-      lwip_stats.memp[i].err = 0;
-    lwip_stats.memp[i].avail = memp_num[i];
-  }
+    for (i = 0; i < MEMP_MAX; ++i) {
+        lwip_stats.memp[i].used = lwip_stats.memp[i].max =
+                                      lwip_stats.memp[i].err = 0;
+        lwip_stats.memp[i].avail = memp_num[i];
+    }
 #endif /* MEMP_STATS */
 
-  memp = (struct memp *)&memp_memory[0];
-  for(i = 0; i < MEMP_MAX; ++i) {
-    size = MEM_ALIGN_SIZE(memp_sizes[i] + sizeof(struct memp));
-    if (memp_num[i] > 0) {
-      memp_tab[i] = memp;
-      m = memp;
-      
-      for(j = 0; j < memp_num[i]; ++j) {
-  m->next = (struct memp *)MEM_ALIGN((u8_t *)m + size);
-  memp = m;
-  m = m->next;
-      }
-      memp->next = NULL;
-      memp = m;
-    } else {
-      memp_tab[i] = NULL;
+    memp = (struct memp *)&memp_memory[0];
+
+    for (i = 0; i < MEMP_MAX; ++i) {
+        size = MEM_ALIGN_SIZE(memp_sizes[i] + sizeof(struct memp));
+
+        if (memp_num[i] > 0) {
+            memp_tab[i] = memp;
+            m           = memp;
+
+            for (j = 0; j < memp_num[i]; ++j) {
+                m->next = (struct memp *)MEM_ALIGN((u8_t *)m + size);
+                memp    = m;
+                m       = m->next;
+            }
+
+            memp->next = NULL;
+            memp       = m;
+        } else {
+            memp_tab[i] = NULL;
+        }
     }
-  }
 
 #if !SYS_LIGHTWEIGHT_PROT
-  mutex = sys_sem_new(1);
+    mutex = sys_sem_new(1);
 #endif
-
-  
 }
 
 void *

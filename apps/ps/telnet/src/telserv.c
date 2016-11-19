@@ -111,7 +111,7 @@ void telnetstart(cyg_addrword_t data)
 	int    s;
 	FILE   *network;
 	char   Buffer[50];
-	int16  clen;
+	int  clen;
 	
 #ifdef ARCH_ARM
     while (Network_TCPIP_ON == 0)
@@ -121,6 +121,7 @@ void telnetstart(cyg_addrword_t data)
 	if (telnetlink != -1)
 	 return;
 
+    memset(&lsocket, 0, sizeof(lsocket));
 	lsocket.sin_family = AF_INET;
 	lsocket.sin_addr.s_addr = htonl(INADDR_ANY);
 	
@@ -156,8 +157,8 @@ void telnetstart(cyg_addrword_t data)
 		    // Spawn a child process
 		//        newproc("ServicedForTelnet",1024,TServerMainFunction,s,NULL,NULL,0);
 				
-			if( TELNET_SERVER_MAIN_TaskHdl != 0 )
-					cyg_thread_delete(TELNET_SERVER_MAIN_TaskHdl);
+			// if( TELNET_SERVER_MAIN_TaskHdl != 0 )
+			//         cyg_thread_delete(TELNET_SERVER_MAIN_TaskHdl);
 			
 			//Create TELNET_SERVER_MAIN Thread
 			cyg_thread_create(TELNET_SERVER_MAIN_TASK_PRI,

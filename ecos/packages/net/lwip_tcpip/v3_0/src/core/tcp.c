@@ -573,6 +573,13 @@ tcp_slowtmr(void)
       }
     }
 
+#ifdef ZOT_TCPIP
+    if ((pcb->reset_delay == 1) && (pcb->rcv_wnd == TCP_WND)) {
+        ++pcb_remove;
+        TCP_EVENT_ERR(pcb->errf, pcb->callback_arg, ERR_RST);
+    }
+#endif /* ZOT_TCPIP */
+
     /* If the PCB should be removed, do it. */
     if (pcb_remove) {
       tcp_pcb_purge(pcb);      
@@ -692,6 +699,7 @@ tcp_seg_free(struct tcp_seg *seg)
   
   if (seg != NULL) {
     if (seg->p != NULL) {
+      CYG_ASSERTC(seg->p->ref > 0);
       count = pbuf_free(seg->p);
 #if TCP_DEBUG
       seg->p = NULL;
@@ -738,6 +746,7 @@ tcp_recv_null(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
 {
   arg = arg;
   if (p != NULL) {
+    CYG_ASSERTC(p->ref > 0);
     pbuf_free(p);
   } else if (err == ERR_OK) {
     return tcp_close(pcb);
@@ -848,6 +857,9 @@ tcp_alloc(u8_t prio)
     /* Init KEEPALIVE timer */
     pcb->keepalive = TCP_KEEPDEFAULT;
     pcb->keep_cnt = 0;
+#ifdef ZOT_TCPIP
+    pcb->reset_delay = 0;
+#endif /* ZOT_TCPIP */
   }
   return pcb;
 }

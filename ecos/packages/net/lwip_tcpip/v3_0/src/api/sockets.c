@@ -276,6 +276,8 @@ lwip_close(int s)
 
   netconn_delete(sock->conn);
   if (sock->lastdata) {
+    // CYG_ASSERTC(sock->lastdata->p->ref > 0);
+    if (sock->lastdata->p->ref > 0)
     netbuf_delete(sock->lastdata);
   }
   sock->lastdata = NULL;
@@ -468,6 +470,7 @@ lwip_recvfrom(int s, void *mem, int len, unsigned int flags,
   } else {
     sock->lastdata = NULL;
     sock->lastoffset = 0;
+    // CYG_ASSERTC(buf->p->ref > 0);
     netbuf_delete(buf);
   }
 

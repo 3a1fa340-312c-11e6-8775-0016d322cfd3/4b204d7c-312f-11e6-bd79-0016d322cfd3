@@ -226,11 +226,11 @@ eth_drv_tx_done(struct eth_drv_sc *sc, CYG_ADDRWORD key, int status)
 #endif  
 }
 
-//#ifdef ZOT_TCPIP
-//extern void ecosif_input(struct netif *netif, struct pbuf* pbuf);
-//#else
+#ifdef ZOT_TCPIP
+extern void ecosif_input(struct netif *netif, struct pbuf* pbuf);
+#else
 static void ecosif_input(struct netif *netif, struct pbuf* pbuf);
-//#endif
+#endif
 
 #define MAX_ETH_MSG 1540
 //
@@ -381,5 +381,5 @@ ecosif_init(struct netif *netif)
   lwip_set_addr(netif);
   return ERR_OK;
 }
-#endif
+#endif /* !ZOT_TCPIP */
 

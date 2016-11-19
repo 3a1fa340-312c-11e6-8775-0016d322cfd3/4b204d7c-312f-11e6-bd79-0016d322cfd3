@@ -105,6 +105,8 @@ sys_mbox_t sys_mbox_new(void)
  */
 void sys_mbox_free(sys_mbox_t mbox)
 {
+    cyg_mbox_tryput(mbox, NULL);
+    while(cyg_mbox_tryget(mbox) != NULL);
 	cyg_mbox_delete(mbox);
 	cyg_mempool_var_free(var_mempool_h,(void*)mbox);
 }

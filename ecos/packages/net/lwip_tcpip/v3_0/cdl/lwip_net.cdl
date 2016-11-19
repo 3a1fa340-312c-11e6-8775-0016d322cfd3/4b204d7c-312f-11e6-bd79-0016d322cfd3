@@ -235,7 +235,7 @@ cdl_package CYGPKG_NET_LWIP {
 			display		"Simultaneous TCP segments queued"
 			flavor		data
             #default_value 	8
-            default_value 	32
+            default_value 	64
 			description   	"
 				MEMP_NUM_TCP_SEG: the number of simultaneously queued TCP
 				segments."
@@ -693,7 +693,7 @@ cdl_package CYGPKG_NET_LWIP {
 		cdl_option CYGNUM_LWIP_THREAD_STACK_SIZE {
 			display		"Size of per thread stack in lwIP"
 			flavor		data
-			default_value 	4096
+			default_value 	8192
 			description	"
 					Since stack space for threads needs to be statically allocated you can
 					specify the amount of memory to use for each network thread.

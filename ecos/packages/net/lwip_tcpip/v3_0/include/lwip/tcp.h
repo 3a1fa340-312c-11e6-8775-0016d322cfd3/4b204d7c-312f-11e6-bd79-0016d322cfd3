@@ -310,6 +310,9 @@ struct tcp_pcb {
   
   /* KEEPALIVE counter */
   u8_t keep_cnt;
+#ifdef ZOT_TCPIP
+  u8_t reset_delay;
+#endif /* ZOT_TCPIP */
 };
 
 struct tcp_pcb_listen {  

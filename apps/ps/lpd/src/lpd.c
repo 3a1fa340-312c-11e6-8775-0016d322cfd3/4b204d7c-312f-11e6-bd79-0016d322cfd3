@@ -153,11 +153,11 @@ struct Lpr_Task {
 struct Lpr_Task LPRTaskInUse[LPRTask] = {0};
 
 //615wu::no psmain
-	struct LPDtrans LPD[LPRTask][3];	//for port 0 - 2
+struct LPDtrans LPD[LPRTask][3];	//for port 0 - 2
 
 //LpdRecv Thread initiation information	//615wu::no psmain
 #define LpdRecv_TASK_PRI         	20	//ZOT716u2
-#define LpdRecv_TASK_STACK_SIZE  	4096 //ZOT716u2 4096
+#define LpdRecv_TASK_STACK_SIZE  	8192//ZOT716u2 4096
 static	uint8			LpdRecv_Stack[LPRTask][LpdRecv_TASK_STACK_SIZE];
 static  cyg_thread		LpdRecv_Task[LPRTask];
 static  cyg_handle_t	LpdRecv_TaskHdl[LPRTask];
@@ -298,7 +298,7 @@ void lpdstart(cyg_addrword_t data)
 				{
 					if(LPRTaskInUse[task_index].needrelase	== 1 )
 					{
-						cyg_thread_delete(LpdRecv_TaskHdl[task_index]);
+						// cyg_thread_delete(LpdRecv_TaskHdl[task_index]);
 						LPRTaskInUse[task_index].needrelase = 0;
 					}
 				}
@@ -876,7 +876,7 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
             // if((( rdclock()-startime)  > ((uint32)TICKS_PER_SEC*5) )) {
             if((( rdclock()-startime)  > ((uint32)TICKS_PER_SEC*10) )) {
 				//if(startime)	//2003Nov28
-				sendack(s);
+                sendack(s);
 				startime = rdclock();
 			}
 			//********************************************************

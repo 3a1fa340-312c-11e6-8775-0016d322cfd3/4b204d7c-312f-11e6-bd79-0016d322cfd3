@@ -114,6 +114,7 @@ tcp_input(struct pbuf *p, struct netif *inp)
     LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_input: short packet (%"U16_F" bytes) discarded\n", p->tot_len));
     TCP_STATS_INC(tcp.lenerr);
     TCP_STATS_INC(tcp.drop);
+    CYG_ASSERTC(p->ref > 0);
     pbuf_free(p);
     return;
   }
@@ -121,6 +122,7 @@ tcp_input(struct pbuf *p, struct netif *inp)
   /* Don't even process incoming broadcasts/multicasts. */
   if (ip_addr_isbroadcast(&(iphdr->dest), inp) ||
       ip_addr_ismulticast(&(iphdr->dest))) {
+    CYG_ASSERTC(p->ref > 0);
     pbuf_free(p);
     return;
   }
@@ -139,6 +141,7 @@ tcp_input(struct pbuf *p, struct netif *inp)
     TCP_STATS_INC(tcp.chkerr);
     TCP_STATS_INC(tcp.drop);
 
+    CYG_ASSERTC(p->ref > 0);
     pbuf_free(p);
     return;
   }
@@ -203,37 +206,41 @@ tcp_input(struct pbuf *p, struct netif *inp)
      many segments for connections in TIME-WAIT. */
   LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_input: packed for TIME_WAITing connection.\n"));
   tcp_timewait_input(pcb);
+  CYG_ASSERTC(p->ref > 0);
   pbuf_free(p);
   return;
       }
     }
 
   /* Finally, if we still did not get a match, we check all PCBs that
-     are LISTENing for incoming connections. */
-    prev = NULL;
-    for(lpcb = tcp_listen_pcbs.listen_pcbs; lpcb != NULL; lpcb = lpcb->next) {
-      if ((ip_addr_isany(&(lpcb->local_ip)) ||
-    ip_addr_cmp(&(lpcb->local_ip), &(iphdr->dest))) &&
-   lpcb->local_port == tcphdr->dest) {
-  /* Move this PCB to the front of the list so that subsequent
-     lookups will be faster (we exploit locality in TCP segment
-     arrivals). */
-  if (prev != NULL) {
-    ((struct tcp_pcb_listen *)prev)->next = lpcb->next;
-          /* our successor is the remainder of the listening list */
-    lpcb->next = tcp_listen_pcbs.listen_pcbs;
-          /* put this listening pcb at the head of the listening list */
-    tcp_listen_pcbs.listen_pcbs = lpcb;
-  }
+   *  are LISTENing for incoming connections. */
+  prev = NULL;
 
-  LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_input: packed for LISTENing connection.\n"));
-  tcp_listen_input(lpcb);
-  pbuf_free(p);
-  return;
+  for (lpcb = tcp_listen_pcbs.listen_pcbs; lpcb != NULL; lpcb = lpcb->next) {
+      if ((ip_addr_isany(&(lpcb->local_ip)) ||
+           ip_addr_cmp(&(lpcb->local_ip), &(iphdr->dest))) &&
+          (lpcb->local_port == tcphdr->dest)) {
+          /* Move this PCB to the front of the list so that subsequent
+           *  lookups will be faster (we exploit locality in TCP segment
+           *  arrivals). */
+          if (prev != NULL) {
+              ((struct tcp_pcb_listen *)prev)->next = lpcb->next;
+              /* our successor is the remainder of the listening list */
+              lpcb->next = tcp_listen_pcbs.listen_pcbs;
+              /* put this listening pcb at the head of the listening list */
+              tcp_listen_pcbs.listen_pcbs = lpcb;
+          }
+
+          LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_input: packed for LISTENing connection.\n"));
+          tcp_listen_input(lpcb);
+          CYG_ASSERTC(p->ref > 0);
+          pbuf_free(p);
+          return;
       }
+
       prev = (struct tcp_pcb *)lpcb;
-    }
   }
+  } /* pcb == NULL */
 
 #if TCP_INPUT_DEBUG
   LWIP_DEBUGF(TCP_INPUT_DEBUG, ("+-+-+-+-+-+-+-+-+-+-+-+-+-+- tcp_input: flags "));
@@ -311,7 +318,10 @@ tcp_input(struct pbuf *p, struct netif *inp)
        increase the reference counter in the pbuf. If so, the buffer
        isn't actually deallocated by the call to pbuf_free(), only the
        reference count is decreased. */
-    if (inseg.p != NULL) pbuf_free(inseg.p);
+    if (inseg.p != NULL) {
+        CYG_ASSERTC(inseg.p->ref > 0);
+        pbuf_free(inseg.p);
+    }
 #if TCP_INPUT_DEBUG
 #if TCP_DEBUG
     tcp_debug_print_state(pcb->state);
@@ -330,6 +340,7 @@ tcp_input(struct pbuf *p, struct netif *inp)
         &(iphdr->dest), &(iphdr->src),
         tcphdr->dest, tcphdr->src);
     }
+    CYG_ASSERTC(p->ref > 0);
     pbuf_free(p);
   }
 
@@ -342,7 +353,7 @@ tcp_input(struct pbuf *p, struct netif *inp)
  * Called by tcp_input() when a segment arrives for a listening
  * connection.
  */
-
+static int errcnt = 0;
 static err_t
 tcp_listen_input(struct tcp_pcb_listen *pcb)
 {
@@ -452,7 +463,25 @@ tcp_process(struct tcp_pcb *pcb)
           TCP_SEQ_LEQ(seqno, pcb->rcv_nxt + pcb->rcv_wnd)) {
       */
       if (TCP_SEQ_BETWEEN(seqno, pcb->rcv_nxt, pcb->rcv_nxt+pcb->rcv_wnd)) {
+#ifdef ZOT_TCPIP
+          if ((pcb->local_port != 515) && 
+              (pcb->local_port != 9100) &&
+              (pcb->local_port != 9101) &&
+              (pcb->local_port != 9102) &&
+              (pcb->local_port != 9103)) {
+#endif /* ZOT_TCPIP */
         acceptable = 1;
+#ifdef ZOT_TCPIP
+          }
+          else if (pcb->rcv_wnd == TCP_WND) {
+              pcb->reset_delay = 0;
+              acceptable = 1;
+          }
+          else {
+              pcb->reset_delay = 1;
+              acceptable = 0;
+          }
+#endif /* ZOT_TCPIP */
       }
     }
 

@@ -59,6 +59,7 @@ netbuf_delete(struct netbuf *buf)
 {
   if (buf != NULL) {
     if (buf->p != NULL) {
+      // CYG_ASSERTC(buf->p->ref > 0);
       pbuf_free(buf->p);
       buf->p = buf->ptr = NULL;
     }
@@ -71,6 +72,7 @@ netbuf_alloc(struct netbuf *buf, u16_t size)
 {
   /* Deallocate any previously allocated memory. */
   if (buf->p != NULL) {
+    CYG_ASSERTC(buf->p->ref > 0);
     pbuf_free(buf->p);
   }
   buf->p = pbuf_alloc(PBUF_TRANSPORT, size, PBUF_RAM);
@@ -85,6 +87,7 @@ void
 netbuf_free(struct netbuf *buf)
 {
   if (buf->p != NULL) {
+    CYG_ASSERTC(buf->p->ref > 0);
     pbuf_free(buf->p);
   }
   buf->p = buf->ptr = NULL;
@@ -272,6 +275,7 @@ netconn_delete(struct netconn *conn)
 {
   struct api_msg *msg;
   void *mem;
+  struct pbuf *ptr_ass;
   
   if (conn == NULL) {
     return ERR_OK;
@@ -291,8 +295,11 @@ netconn_delete(struct netconn *conn)
   if (conn->recvmbox != SYS_MBOX_NULL) {
     while (sys_arch_mbox_fetch(conn->recvmbox, &mem, 1) != SYS_ARCH_TIMEOUT) {
       if (conn->type == NETCONN_TCP) {
-        if(mem != NULL)
+        if(mem != NULL) {
+          ptr_ass = (struct pbuf *)mem;
+          CYG_ASSERTC(ptr_ass->ref > 0);
           pbuf_free((struct pbuf *)mem);
+        }
       } else {
         netbuf_delete((struct netbuf *)mem);
       }
@@ -555,10 +562,12 @@ netconn_recv(struct netconn *conn)
     
 #ifdef ZOT_TCPIP
     p = NULL;
-    if (conn->recvtimeo)
-        sys_arch_mbox_fetch(conn->recvmbox, (void **)&p, conn->recvtimeo);
-    else
-        sys_mbox_fetch(conn->recvmbox, (void **)&p);
+    // if (conn->recvtimeo)
+    //     sys_arch_mbox_fetch(conn->recvmbox, (void **)&p, conn->recvtimeo);
+    // else
+    //     sys_mbox_fetch(conn->recvmbox, (void **)&p);
+    // sys_my_mbox_fetch(conn->recvmbox, (void **)&p, conn->recvtimeo);
+    sys_arch_mbox_fetch(conn->recvmbox, (void **)&p, conn->recvtimeo);
 #else
     sys_mbox_fetch(conn->recvmbox, (void **)&p);
 #endif /* ZOT_TCPIP */
@@ -608,10 +617,12 @@ netconn_recv(struct netconn *conn)
   } else {
 #ifdef ZOT_TCPIP
     buf = NULL;
-    if (conn->recvtimeo)
-        sys_arch_mbox_fetch(conn->recvmbox, (void **)&buf, conn->recvtimeo);
-    else
-        sys_mbox_fetch(conn->recvmbox, (void **)&buf);
+    // if (conn->recvtimeo)
+    //     sys_arch_mbox_fetch(conn->recvmbox, (void **)&buf, conn->recvtimeo);
+    // else
+    //     sys_mbox_fetch(conn->recvmbox, (void **)&buf);
+    // sys_my_mbox_fetch(conn->recvmbox, (void **)&buf, conn->recvtimeo);
+    sys_arch_mbox_fetch(conn->recvmbox, (void **)&buf, conn->recvtimeo);
 
     if (buf != NULL && buf > 0x80000000) {
         if (buf->p) {
@@ -677,12 +688,15 @@ netconn_send(struct netconn *conn, struct netbuf *buf)
   return conn->err;
 }
 
+
 err_t
 netconn_write(struct netconn *conn, void *dataptr, u16_t size, u8_t copy)
 {
   struct api_msg *msg;
   u16_t len;
   
+  CYG_ASSERT(dataptr > 0x80000000, "dataptr unexpection!");
+
   if (conn == NULL) {
     return ERR_VAL;
   }
@@ -710,22 +724,24 @@ netconn_write(struct netconn *conn, void *dataptr, u16_t size, u8_t copy)
     msg->msg.msg.w.dataptr = dataptr;
     msg->msg.msg.w.copy = copy;
     
-    if (conn->type == NETCONN_TCP) {
-      if (tcp_sndbuf(conn->pcb.tcp) == 0) {
-  sys_sem_wait(conn->sem);
-  if (conn->err != ERR_OK) {
-    goto ret;
-  }
-      }
-      if (size > tcp_sndbuf(conn->pcb.tcp)) {
-  /* We cannot send more than one send buffer's worth of data at a
-     time. */
-  len = tcp_sndbuf(conn->pcb.tcp);
-      } else {
-  len = size;
-      }
+  if (conn->type == NETCONN_TCP) {
+    // CYG_ASSERT(conn->pcb.tcp != NULL, "conn->pcb.tcp NULL!");
+    // CYG_ASSERT(conn->pcb.tcp > 0x80000000, "conn->pcb.tcp unexpected!");
+    if (conn->pcb.tcp && tcp_sndbuf(conn->pcb.tcp) == 0) {
+        sys_sem_wait(conn->sem);
+        if (conn->err != ERR_OK) {
+            goto ret;
+        }
+    }
+
+    // CYG_ASSERT(conn->pcb.tcp != NULL, "conn->pcb.tcp NULL!");
+    // CYG_ASSERT(conn->pcb.tcp > 0x80000000, "conn->pcb.tcp unexpected!");
+    if (conn->pcb.tcp && (size > tcp_sndbuf(conn->pcb.tcp))) {
+        /* We cannot send more than one send buffer's worth of data at a
+         time. */
+        len = tcp_sndbuf(conn->pcb.tcp);
     } else {
-      len = size;
+        len = size;
     }
     
     LWIP_DEBUGF(API_LIB_DEBUG, ("netconn_write: writing %d bytes (%d)\n", len, copy));
@@ -737,11 +753,12 @@ netconn_write(struct netconn *conn, void *dataptr, u16_t size, u8_t copy)
       size -= len;
     } else if (conn->err == ERR_MEM) {
       conn->err = ERR_OK;
+      CYG_ASSERT(conn->sem != SYS_SEM_NULL, "conn->sem NULL!");
       sys_sem_wait(conn->sem);
     } else {
       goto ret;
     }
-  }
+ }
  ret:
   memp_free(MEMP_API_MSG, msg);
   conn->state = NETCONN_NONE;

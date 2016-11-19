@@ -126,7 +126,7 @@ struct u_sock Usedsock[SOCKSUM]={0};
 #ifdef IPPD
 //IPPD_Start Thread initiation information
 #define IPPD_Start_TASK_PRI         	20	//ZOT716u2
-#define IPPD_Start_TASK_STACK_SIZE  	 4096
+#define IPPD_Start_TASK_STACK_SIZE  	8192
 static	uint8			IPPD_Start_Stack[IPPD_Start_TASK_STACK_SIZE];
 static  cyg_thread		IPPD_Start_Task;
 static  cyg_handle_t	IPPD_Start_TaskHdl;
@@ -141,7 +141,7 @@ static  cyg_handle_t	Http_Start_TaskHdl;
 
 //Httpd Thread initiation information
 #define Httpd_TASK_PRI				20	//ZOT716u2
-#define Httpd_TASK_STACK_SIZE    	8192 //ZOT716u2 4096
+#define Httpd_TASK_STACK_SIZE    	8192//ZOT716u2 4096
 static uint8			Httpd_Stack[SOCKSUM+1][Httpd_TASK_STACK_SIZE];
 static cyg_thread		Httpd_Task[SOCKSUM+1];
 static cyg_handle_t	Httpd_TaskHdl[SOCKSUM] = {0};
@@ -382,7 +382,7 @@ int zot_fclose( ZOT_FILE* fp)
  	free(fp->obuf);
  	free(fp);
  	
- 	shutdown(csd,2);
+     // shutdown(csd,2);
  	close(csd);
  	
  	return 0;
@@ -1098,7 +1098,7 @@ void httpd_init()
 							&IPPD_Start_Task);
 	
 		//Start IPPD_start Thread
-		cyg_thread_resume(IPPD_Start_TaskHdl);
+		// cyg_thread_resume(IPPD_Start_TaskHdl);
 	}
 #endif
 }
@@ -1114,7 +1114,7 @@ void httpstart (cyg_addrword_t data)
 	int16 sd,csd;	 //socket
 	struct sockaddr_in sa_server;
 	struct sockaddr_in sa_client;
-	uint16 clen;
+	int clen;
 	int i=0,j=0;
 	
 #ifdef ARCH_ARM
@@ -1153,10 +1153,10 @@ void httpstart (cyg_addrword_t data)
 		memset(&sa_client, 0, clen);
 		if( (csd = accept(sd,(struct sockaddr *) &sa_client, &clen)) == -1) {			
 			
+            diag_printf("accept failure\n");
 			ppause(10);
 			continue;
 		}	
-
 		// cyg_scheduler_lock();
 		// 
 		// for(i=0;i< SOCKSUM ;i++)
@@ -1171,7 +1171,7 @@ void httpstart (cyg_addrword_t data)
 
 //		if( HttpUsers >= HTTP_MAX_USER || availmem() != 0) {
 		if( HttpUsers >= HTTP_MAX_USER ) {
-			shutdown(csd,2); //8/10/2000 changed
+			// shutdown(csd,2); //8/10/2000 changed
 			close(csd);			//Jesse 
 ////		close_s(csd);
 
@@ -1696,7 +1696,7 @@ if (!((EEPROM_Data.SPECIAL_OEM == 0x02) && (diag_flag == 1))) {
 
 		httpHeaders(network,Outline,RESP_200,&rq);
 		httpFileInfo(network,Outline, fp, rq.version, thetype);
-        
+
 		if(rq.method)	{
 			if(thetype != T_htm) {// if not .htm, just send
 				fflush(network);
@@ -2294,8 +2294,9 @@ sendhtml (PFS_FILE *fp, FILE *network, int8 *inbuf,int16 inbuflen,int8 *outbuf, 
 			}
 			bufptr = remainder;
 		}
-		if(bufptr != NULL)
+		if(bufptr != NULL) {
 			fputs(bufptr,network);
+        }    
         
 	}
 }

@@ -94,8 +94,8 @@ _memcpy( void *s1, const void *s2, size_t n )
     char *dst = (char *) s1;
     const char *src = (const char *) s2;
 
-    CYG_ASSERT((dst >= (src+n)) || ((dst+n) <= src),
-               "memcpy() has undefined result for overlapping copies");
+    // CYG_ASSERT((dst >= (src+n)) || ((dst+n) <= src),
+    //            "memcpy() has undefined result for overlapping copies");
 	
 #if defined(CYGIMP_INFRA_PREFER_SMALL_TO_FAST_MEMCPY) || defined(__OPTIMIZE_SIZE__)
     

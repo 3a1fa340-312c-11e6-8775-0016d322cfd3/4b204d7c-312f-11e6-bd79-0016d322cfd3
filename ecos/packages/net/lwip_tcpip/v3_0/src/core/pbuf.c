@@ -216,6 +216,7 @@ pbuf_alloc(pbuf_layer l, u16_t length, pbuf_flag flag)
   u16_t offset;
   s32_t rem_len; /* remaining length */
   LWIP_DEBUGF(PBUF_DEBUG | DBG_TRACE | 3, ("pbuf_alloc(length=%"U16_F")\n", length));
+  CYG_ASSERTC(length < 1600);
 
   /* determine header offset */
   offset = 0;
@@ -551,7 +552,7 @@ pbuf_free(struct pbuf *p)
 
   LWIP_ASSERT("p != NULL", p != NULL);
   /* if assertions are disabled, proceed with debug output */
-  if (p == NULL) {
+  if (p == NULL || p->ref == 0) {
     LWIP_DEBUGF(PBUF_DEBUG | DBG_TRACE | 2, ("pbuf_free(p == NULL) was called.\n"));
     return 0;
   }
@@ -564,6 +565,7 @@ pbuf_free(struct pbuf *p)
     p->flags == PBUF_FLAG_REF || p->flags == PBUF_FLAG_POOL);
 
   count = 0;
+
   /* Since decrementing ref cannot be guaranteed to be a single machine operation
    * we must protect it. Also, the later test of ref must be protected.
    */
@@ -571,6 +573,13 @@ pbuf_free(struct pbuf *p)
   /* de-allocate all consecutive pbufs from the head of the chain that
    * obtain a zero reference count after decrementing*/
   while (p != NULL) {
+      if (p->ref <= 0) {
+          diag_printf("%s(%d), p:%x p->ref:%d, payload:%x, flag:%x, len:%d\n", __func__, __LINE__, (unsigned int)p, p->ref,
+                  (unsigned int)p->payload,
+                  p->flags,
+                  p->len);
+      }
+      CYG_ASSERTC(p->ref > 0);
     /* all pbufs in a chain are referenced at least once */
     LWIP_ASSERT("pbuf_free: p->ref > 0", p->ref > 0);
     /* decrease reference count (number of pointers to pbuf) */

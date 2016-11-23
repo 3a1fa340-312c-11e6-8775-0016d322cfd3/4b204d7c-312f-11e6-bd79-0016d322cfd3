@@ -62,7 +62,8 @@ void PrnQueueInit(void)
 		for(j = 0 ; j < PRNQUEUELEN ;j++)
 		{
 			PrinterList[i].buf[j].data = pBuf;
-			pBuf += 8192;
+            pBuf += (1460*10);
+            // pBuf += 8192;
 		}
 	}
 #endif		

@@ -72,7 +72,7 @@
 #define DRIVER_AUTHOR "Michael Gee, Pavel Machek, Vojtech Pavlik, Randy Dunlap, Pete Zaitcev, David Paschal"
 #define DRIVER_DESC "USB Printer Device Class driver"
 
-#define USBLP_BUF_SIZE		8192
+#define USBLP_BUF_SIZE		4096
 #define USBLP_BUF_SIZE_IN	1024
 #define USBLP_DEVICE_ID_SIZE	1024
 
@@ -1079,7 +1079,8 @@ static int usblp_wwait(struct usblp *usblp, int nonblock)
 			break;
 
 		// if (schedule_timeout(msecs_to_jiffies(1500)) == 0) 
-        cyg_thread_delay(msecs_to_jiffies(10));
+        // cyg_thread_delay(msecs_to_jiffies(10));
+        if (cyg_semaphore_timed_wait(&waita.wait_sem, cyg_current_time + 150) == false)
         {
 			if (usblp->flags & LP_ABORT) {
 				err = usblp_check_status(usblp, err);
@@ -1089,9 +1090,9 @@ static int usblp_wwait(struct usblp *usblp, int nonblock)
 				}
 			} else {
 				/* Prod the printer, Gentoo#251237. */
-				mutex_lock(&usblp->mut);
-				usblp_read_status(usblp, usblp->statusbuf);
-				mutex_unlock(&usblp->mut);
+                mutex_lock(&usblp->mut);
+                usblp_read_status(usblp, usblp->statusbuf);
+                mutex_unlock(&usblp->mut);
 			}
 		}
 	}

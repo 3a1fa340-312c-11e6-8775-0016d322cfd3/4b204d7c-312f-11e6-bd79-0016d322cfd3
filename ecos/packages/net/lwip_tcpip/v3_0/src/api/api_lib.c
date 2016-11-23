@@ -743,6 +743,10 @@ netconn_write(struct netconn *conn, void *dataptr, u16_t size, u8_t copy)
     } else {
         len = size;
     }
+  }
+  else {
+    len = size;
+  }
     
     LWIP_DEBUGF(API_LIB_DEBUG, ("netconn_write: writing %d bytes (%d)\n", len, copy));
     msg->msg.msg.w.len = len;

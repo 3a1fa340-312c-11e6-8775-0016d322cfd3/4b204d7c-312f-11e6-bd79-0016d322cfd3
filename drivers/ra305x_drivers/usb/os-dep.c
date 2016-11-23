@@ -26,7 +26,7 @@ cyg_alarm       alarm_obj;
 void wq_init (void);
 
 #define USB_THREAD_PRIO 20
-#define USB_STACK_SIZE  4096 
+#define USB_STACK_SIZE  8192 
 static char usb_stack[USB_STACK_SIZE];
 cyg_handle_t usb_thread_handle;
 cyg_thread usb_thread_data;
@@ -183,7 +183,6 @@ void __init_waitqueue_head(wait_queue_head_t *q)
 {
     spin_lock_init(&q->lock);
     INIT_LIST_HEAD(&q->task_list);
-    cyg_semaphore_init(&q->semaphore, 0);
 }
 
 void add_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
@@ -194,6 +193,7 @@ void add_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
     spin_lock_irqsave(&q->lock, flags);
     list_add(&wait->task_list, &q->task_list); 
     spin_unlock_irqrestore(&q->lock, flags);
+    cyg_semaphore_init(&wait->wait_sem, 0);
 }
 
 void remove_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
@@ -204,6 +204,7 @@ void remove_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
     spin_lock_irqsave(&q->lock, flags);
     list_del(&wait->task_list); 
     spin_unlock_irqrestore(&q->lock, flags);
+    cyg_semaphore_destroy(&wait->wait_sem);
 }
 
 /*
@@ -242,6 +243,7 @@ void finish_wait(wait_queue_head_t *q, wait_queue_t *wait)
 
 int default_wake_function(wait_queue_t *wait, unsigned mode, int flags, void *key)
 {
+    cyg_semaphore_post(&wait->wait_sem);
     return 1;
 }
 
@@ -330,7 +332,7 @@ found:
 }
 
 #define QUEUE_WORK_PRIO 20
-#define WORK_QUEUE_STACK_SIZE   2048
+#define WORK_QUEUE_STACK_SIZE  4096 
 static char wq_stack[WORK_QUEUE_STACK_SIZE];
 cyg_handle_t wq_thread_handle;
 cyg_handle_t wq_mbox_handle;

@@ -355,16 +355,16 @@ void aarptfree(cyg_handle_t handle, cyg_addrword_t p)
 	if(aat->prev != NULL) aat->prev->next = aat->next;
 	else aarptab[AARPTAB_HASH(aat->aat_ataddr)] = aat->next;	
 	
-	if ((aat->aat_sysClk != 0) && (aat->aat_counter!= 0) && (aat->aat_alarm != 0)){
-		cyg_alarm_delete(aat->aat_alarm);				//eCos
-		cyg_clock_delete(aat->aat_sysClk);				//eCos
-		cyg_counter_delete(aat->aat_counter);			//eCos
-		
-		aat->aat_sysClk = 0;									//eCos
-		aat->aat_counter = 0;									//eCos
-		aat->aat_alarm = 0;										//eCos
-		memset(&(aat->aat_timerAlarm), 0x00, sizeof(cyg_alarm));//eCos
-	}
+	// if ((aat->aat_sysClk != 0) && (aat->aat_counter!= 0) && (aat->aat_alarm != 0)){
+	//     cyg_alarm_delete(aat->aat_alarm);				//eCos
+	//     cyg_clock_delete(aat->aat_sysClk);				//eCos
+	//     cyg_counter_delete(aat->aat_counter);			//eCos
+	//
+	//     aat->aat_sysClk = 0;									//eCos
+	//     aat->aat_counter = 0;									//eCos
+	//     aat->aat_alarm = 0;										//eCos
+	//     memset(&(aat->aat_timerAlarm), 0x00, sizeof(cyg_alarm));//eCos
+	// }
 
 	free_q(&aat->pending);
     restore(prot);	//eCos

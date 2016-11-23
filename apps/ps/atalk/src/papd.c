@@ -258,7 +258,7 @@ void papd(cyg_addrword_t data)
 			{
 				if(pap_socksum[i].needrelase == 1 )
 				{
-					cyg_thread_delete(PAPConn1_TaskHdl[i]);
+					// cyg_thread_delete(PAPConn1_TaskHdl[i]);
 					pap_socksum[i].needrelase = 0;
 				}
 			}

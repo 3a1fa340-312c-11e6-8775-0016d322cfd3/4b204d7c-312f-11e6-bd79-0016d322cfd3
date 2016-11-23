@@ -335,7 +335,7 @@ void linklocal_msg_timer(cyg_handle_t handle, cyg_addrword_t ptr){
 		start_timer_flag = 0;
 		linklocal_stop_time = 0; 
 		cyg_alarm_delete(hAlarm);				//eCos
-		cyg_clock_delete(hSysClk);			    //eCos
+		//cyg_clock_delete(hSysClk);			    //eCos
 		cyg_counter_delete(hCounter);			//eCos		
 	}
 	
@@ -346,7 +346,7 @@ void linklocal_msg_timer(cyg_handle_t handle, cyg_addrword_t ptr){
     	start_timer_flag = 0; 
     	cyg_semaphore_post(&linklocal_conflict);
     	cyg_alarm_delete(hAlarm);				//eCos
-		cyg_clock_delete(hSysClk);			    //eCos
+		//cyg_clock_delete(hSysClk);			    //eCos
 		cyg_counter_delete(hCounter);			//eCos
     }	
 	
@@ -361,7 +361,7 @@ void linklocal_msg_timer(cyg_handle_t handle, cyg_addrword_t ptr){
 		cyg_semaphore_post(&linklocal_sem); //signal to restart set link local ip
 		}
 		cyg_alarm_delete(hAlarm);				//eCos
-		cyg_clock_delete(hSysClk);			    //eCos
+		//cyg_clock_delete(hSysClk);			    //eCos
 		cyg_counter_delete(hCounter);			//eCos		
 	}	   
 }

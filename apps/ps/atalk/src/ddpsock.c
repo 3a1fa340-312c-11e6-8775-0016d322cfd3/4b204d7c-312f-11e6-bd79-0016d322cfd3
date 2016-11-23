@@ -43,11 +43,11 @@ int so_ddp_recv(
 			return -1;
 		} else {	
 			if(up->noblock == SO_RCV_TIMEOUT){
-				cyg_semaphore_init(&up->sem_f,0);
+				// cyg_semaphore_init(&up->sem_f,0);
 				ErrTmp = (int)cyg_semaphore_timed_wait(&up->sem_f,cyg_current_time() + ((DDP_RECV_TIME_OUT*1000L) / MSPTICK));
 			}
 			else{
-				cyg_semaphore_init(&up->sem_f,0);
+				// cyg_semaphore_init(&up->sem_f,0);
 				cyg_semaphore_wait(&up->sem_f);
 				ErrTmp = 1;
 			}

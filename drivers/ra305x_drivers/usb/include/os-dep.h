@@ -288,6 +288,7 @@ struct __wait_queue {
     void *private;
     wait_queue_func_t func;
     struct list_head task_list;
+    cyg_sem_t   wait_sem;
 };
 
 struct __wait_queue_head {

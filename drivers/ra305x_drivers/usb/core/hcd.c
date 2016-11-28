@@ -2121,12 +2121,16 @@ static cyg_handle_t ehci_intr_handle;
 static cyg_uint32 ehci_isr(cyg_vector_t vector, cyg_addrword_t data)
 {
     usb_hcd_irq(vector, data);
-    cyg_interrupt_acknowledge(vector);
+    // cyg_interrupt_acknowledge(vector);
     return CYG_ISR_CALL_DSR;
 }
 
+// extern void ehci_dirq (struct usb_hcd *hcd);
 static void ehci_dsr(cyg_vector_t vector, cyg_ucount32 count, cyg_addrword_t data)
 {
+    struct usb_hcd *hcd = (struct usb_hcd *)data;
+    ehci_dirq(hcd);
+    cyg_interrupt_acknowledge(vector);
 }
 
 /*-------------------------------------------------------------------------*/

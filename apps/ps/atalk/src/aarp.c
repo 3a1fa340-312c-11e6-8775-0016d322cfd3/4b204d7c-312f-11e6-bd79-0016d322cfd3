@@ -74,11 +74,13 @@ void aarp_input2ambf(void * Data,int16 DataLen)
 struct aarptab * aarp_lookup(struct at_addr *addr)
 {
 	struct aarptab *aat;
+    unsigned int prot = 0;
 
 	for(aat= aarptab[AARPTAB_HASH(*addr)]; aat != NULL; aat = NGET32(&aat->next) )
 	{
-		if ( NGET16(&aat->aat_ataddr.s_net) == NGET16(&addr->s_net) &&
-		    aat->aat_ataddr.s_node == addr->s_node )
+		if (aat->state != AARP_TIMEOUT &&
+            NGET16(&aat->aat_ataddr.s_net) == NGET16(&addr->s_net) &&
+		    aat->aat_ataddr.s_node == addr->s_node)
 			break;
 	}
 	
@@ -337,7 +339,8 @@ void aarptfree(cyg_handle_t handle, cyg_addrword_t p)
 	if( (aat = (struct aarptab *) p) == NULL) {
 		return;
 	}
-	
+    aat->state = AARP_TIMEOUT;
+#if 0	
 	prot = dirps();	//eCos	
 	
 	sat_addr.s_net =  aat->aat_ataddr.s_net;
@@ -355,50 +358,83 @@ void aarptfree(cyg_handle_t handle, cyg_addrword_t p)
 	if(aat->prev != NULL) aat->prev->next = aat->next;
 	else aarptab[AARPTAB_HASH(aat->aat_ataddr)] = aat->next;	
 	
-	// if ((aat->aat_sysClk != 0) && (aat->aat_counter!= 0) && (aat->aat_alarm != 0)){
-	//     cyg_alarm_delete(aat->aat_alarm);				//eCos
-	//     cyg_clock_delete(aat->aat_sysClk);				//eCos
-	//     cyg_counter_delete(aat->aat_counter);			//eCos
-	//
-	//     aat->aat_sysClk = 0;									//eCos
-	//     aat->aat_counter = 0;									//eCos
-	//     aat->aat_alarm = 0;										//eCos
-	//     memset(&(aat->aat_timerAlarm), 0x00, sizeof(cyg_alarm));//eCos
-	// }
+    if ((aat->aat_sysClk != 0) && (aat->aat_counter!= 0) && (aat->aat_alarm != 0)){
+        diag_printf("%s(%d)\n", __func__, __LINE__);
+        cyg_alarm_delete(aat->aat_alarm);				//eCos
+        //cyg_clock_delete(aat->aat_sysClk);				//eCos
+        //cyg_counter_delete(aat->aat_counter);			//eCos
+
+        //aat->aat_sysClk = 0;									//eCos
+        //aat->aat_counter = 0;									//eCos
+        aat->aat_alarm = 0;										//eCos
+        memset(&(aat->aat_timerAlarm), 0x00, sizeof(cyg_alarm));//eCos
+    }
 
 	free_q(&aat->pending);
     restore(prot);	//eCos
 	
 	free(aat);
+#endif
 	return;
 
 }
 
 struct aarptab *aarptadd(struct at_addr	*addr,uint8 *hw_addr)
 {
-	struct aarptab *aat;
+	struct aarptab *aat, *free_aat;
 	uint16 hashval;
+    unsigned int prot;
 	
+
 	if( ( aat = (struct aarptab *)malloc( sizeof(struct aarptab) ) ) == NULL){
 		return NULL;
 	}
 	
 	memset(aat, 0x00, sizeof(struct aarptab));
 
-	hashval = AARPTAB_HASH(*addr);
+    hashval = AARPTAB_HASH(*addr);
 	aat->prev =	NULL;
 	aat->next = aarptab[hashval];
     aat->aat_ataddr.s_net = addr->s_net;
     aat->aat_ataddr.s_node = addr->s_node;
+
+    prot = dirps();
 	aarptab[hashval] = aat;
-	
 	if(aat->next != NULL){
 		aat->next->prev = aat;
 	}
+    restore(prot);
 	
 	aarp_update(aat,hw_addr);
 
-	return aat;
+    //
+    // remove timeout aap
+    //
+	for (aat = aarptab[hashval]; aat != NULL; aat = NGET32(&aat->next)) {
+        if (aat->state == AARP_TIMEOUT) {
+            prot = dirps();
+            if(aat->next != NULL) 
+                aat->next->prev = aat->prev;
+            if(aat->prev != NULL) 
+                aat->prev->next = aat->next;
+            else 
+                aarptab[AARPTAB_HASH(aat->aat_ataddr)] = aat->next;	
+
+            if (aat->aat_alarm != NULL)
+                cyg_alarm_delete(aat->aat_alarm);
+
+            free_q(&aat->pending);
+            free_aat = aat;
+            if (aat->prev == NULL)
+                aat = aarptab[hashval];
+            else
+                aat = aat->prev;
+
+            free(free_aat);
+            restore(prot);
+        }
+    }
+	return aarptab[hashval];
 }
 
 void aarp_update(struct aarptab *aat, uint8 *hw_addr)

@@ -14,7 +14,7 @@
 
 //PortNWrite Thread initiation information
 #define PortNWrite_TASK_PRI         	20	//ZOT716u2
-#define PortNWrite_TASK_STACK_SIZE  	8192
+#define PortNWrite_TASK_STACK_SIZE  	2048
 static	uint8			PortNWrite_Stack[PortNWrite_TASK_STACK_SIZE];
 static  cyg_thread		PortNWrite_Task;
 static  cyg_handle_t	PortNWrite_TaskHdl;
@@ -301,7 +301,6 @@ void PortNWrite(cyg_addrword_t data)
 #ifndef PRNTEST
 					// check if it is IEEE1284 or USB printer device
 					written = usbprn_write( port, PortIO[port].DataPtr, PortIO[port].DataSize );
-//written = PortIO[port].DataSize;
 #else					
 					written = PortIO[port].DataSize;			//615wu-spooler-temp
 #endif					
@@ -347,6 +346,7 @@ void PortNWrite(cyg_addrword_t data)
 		PNW_Statu[port] = 0;	//for dbg
 		
 		G_PortReady |= ( 1 << port );
+        diag_printf("%s(%d) use stack size:%d\n", __func__, __LINE__,cyg_thread_measure_stack_usage(cyg_thread_self()));
 	}
 }
 

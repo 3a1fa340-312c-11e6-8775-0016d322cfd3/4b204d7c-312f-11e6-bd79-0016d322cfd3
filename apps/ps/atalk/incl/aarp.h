@@ -61,7 +61,8 @@ struct aarptab {
     uint8	aat_enaddr[ 6 ];
 	enum {
 		AARP_PENDING,	/* Incomplete */
-		AARP_VALID	/* Complete */
+		AARP_VALID,	    /* Complete */
+        AARP_TIMEOUT    /* Timeout */
 	} state;
 };
 

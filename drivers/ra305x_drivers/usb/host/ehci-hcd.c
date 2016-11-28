@@ -745,12 +745,12 @@ static int ehci_run (struct usb_hcd *hcd)
 }
 
 /*-------------------------------------------------------------------------*/
-
+int bh;
 static irqreturn_t ehci_irq (struct usb_hcd *hcd)
 {
     struct ehci_hcd     *ehci = hcd_to_ehci (hcd);
     u32         status, masked_status, pcd_status = 0, cmd;
-    int         bh;
+    // int         bh;
 
     spin_lock (&ehci->lock);
 
@@ -866,13 +866,23 @@ dead:
         bh = 1;
     }
 
-    if (bh) {
-        ehci_work (ehci);
-    }
+    // if (bh) {
+    //     ehci_work (ehci);
+    // }
     spin_unlock (&ehci->lock);
     if (pcd_status)
         usb_hcd_poll_rh_status(hcd);
     return IRQ_HANDLED;
+}
+
+void ehci_dirq (struct usb_hcd *hcd)
+{
+    struct ehci_hcd     *ehci = hcd_to_ehci (hcd);
+    if (bh) {
+        spin_lock_irq (&ehci->lock);
+        ehci_work(ehci);
+        spin_unlock_irq (&ehci->lock);
+    }
 }
 
 /*-------------------------------------------------------------------------*/

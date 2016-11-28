@@ -66,19 +66,21 @@ void usb_drv_init()
     cyg_thread_resume(usb_thread_handle);
 } /* usb_drv_init */
 
-void *kzalloc(size_t size,int gfp)
-{
-	void *p=malloc(size);
-	memset(p,0,size);
-	return p;
-}
+// void *kzalloc(size_t size,int gfp)
+// {
+//     void *p=malloc(size);
+//     memset(p,0,size);
+//     return p;
+// }
 
 static void timer_handler(cyg_handle_t alarmobj, unsigned long data)
 {
     struct timer_list *timer = (struct timer_list *)data;
     
-    if (timer->function)
+    CYG_ASSERTC(timer != NULL);
+    if (timer->function){
         timer->function(timer->data);
+    }
 
 }
 
@@ -87,6 +89,7 @@ void init_timer(struct timer_list *timer)
     CYG_ASSERT(timer != NULL, "timer is NULL!");
     if (!timer->valid) {
         timer->entry.next = NULL;
+        timer->function = NULL;
         cyg_clock_to_counter (cyg_real_time_clock(), &timer->counter_hdl);
         cyg_alarm_create (timer->counter_hdl, 
                 timer_handler, 
@@ -349,6 +352,7 @@ void wq_thread (cyg_addrword_t parameter)
         if (work->delay)
             cyg_thread_delay(work->delay);
         if (work) {
+            diag_printf("%s(%d) func:%x\n", __func__, __LINE__, (unsigned int)work->func);
             work->func(work);
         }
     } /* while (true) */

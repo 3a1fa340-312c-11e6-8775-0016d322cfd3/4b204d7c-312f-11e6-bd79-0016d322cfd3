@@ -22,7 +22,7 @@ struct pap_sock pap_socksum[PAP_SOCKSUM]={0};
 
 //PAPConn1 Thread initiation information
 #define PAPConn1_TASK_PRI         	20	//ZOT716u2
-#define PAPConn1_TASK_STACK_SIZE  	8192//ZOT716u2 8192
+#define PAPConn1_TASK_STACK_SIZE  	4096//ZOT716u2 8192
 static	uint8			PAPConn1_Stack[PAP_SOCKSUM][PAPConn1_TASK_STACK_SIZE];
 static  cyg_thread		PAPConn1_Task[PAP_SOCKSUM];
 static  cyg_handle_t	PAPConn1_TaskHdl[PAP_SOCKSUM];
@@ -258,7 +258,7 @@ void papd(cyg_addrword_t data)
 			{
 				if(pap_socksum[i].needrelase == 1 )
 				{
-					// cyg_thread_delete(PAPConn1_TaskHdl[i]);
+                    cyg_thread_delete(PAPConn1_TaskHdl[i]);
 					pap_socksum[i].needrelase = 0;
 				}
 			}

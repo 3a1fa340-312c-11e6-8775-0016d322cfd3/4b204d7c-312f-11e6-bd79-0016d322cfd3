@@ -161,7 +161,7 @@ static void ehci_clear_tt_buffer_complete(struct usb_hcd *hcd,
 static void ehci_clear_tt_buffer(struct ehci_hcd *ehci, struct ehci_qh *qh,
 		struct urb *urb, u32 token)
 {
-
+    diag_printf("%s(%d)\n", __func__, __LINE__);
 	/* If an async split transaction gets an error or is unlinked,
 	 * the TT buffer may be left in an indeterminate state.  We
 	 * have to clear the TT buffer.
@@ -335,7 +335,6 @@ qh_completions (struct ehci_hcd *ehci, struct ehci_qh *qh)
 	state = qh->qh_state;
 	qh->qh_state = QH_STATE_COMPLETING;
 	stopped = (state == QH_STATE_IDLE);
-
  rescan:
 	last = NULL;
 	last_status = -EINPROGRESS;
@@ -394,7 +393,6 @@ qh_completions (struct ehci_hcd *ehci, struct ehci_qh *qh)
 	"detected XactErr len %zu/%zu retry %d\n",
 	qtd->length - QTD_LENGTH(token), qtd->length, qh->xacterrs);
 
-            pr_debug("termy say, %s(%d) token = %x, qtd addr = %x\n", __func__, __LINE__, token, (u32)qtd);
                     /* reset the token in the qtd and the
                      * qh overlay (which still contains
                      * the qtd) so that we pick up from

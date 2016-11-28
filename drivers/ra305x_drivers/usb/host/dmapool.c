@@ -170,8 +170,8 @@ void *dma_alloc_coherent(struct device *dev, size_t size,
 {
     void *ret;
 
-    // ret = (void *)get_free_pages(size);
-    ret = (void *)kaligned_alloc(size, 0x1000);
+    ret = (void *)get_free_pages(size);
+    //ret = (void *)kaligned_alloc(size, 0x1000);
     if (ret) {
         memset (ret, 0, size);
         *dma_handle = plat_map_dma_mem (dev, ret, size);
@@ -179,6 +179,7 @@ void *dma_alloc_coherent(struct device *dev, size_t size,
         ret = UNCAC_ADDR(ret);
         __sync();
     }
+    diag_printf("%s(%d) page addr:%x\n", __func__, __LINE__, (unsigned int)ret);
 
     return ret;
 }
@@ -186,8 +187,8 @@ void *dma_alloc_coherent(struct device *dev, size_t size,
 void dma_free_coherent(struct device *dev, size_t size, void *vaddr,
         dma_addr_t *dma_handle)
 {
-    // free_pages(vaddr);
-    kaligned_free(vaddr);
+    free_pages(vaddr);
+    //kaligned_free(vaddr);
 }
 
 /**
@@ -398,7 +399,6 @@ void *dma_pool_alloc(struct dma_pool *pool, gfp_t mem_flags,
 	spin_lock_irqsave(&pool->lock, flags);
  restart:
 	list_for_each_entry(page, &pool->page_list, page_list) {
-        // pr_debug("termy say, %s: page:%x, offset:%d, allocation:%d\n", __func__, (u32)page, page->offset, pool->allocation);
 		if (page->offset < pool->allocation)
 			goto ready;
 	}
@@ -427,8 +427,6 @@ void *dma_pool_alloc(struct dma_pool *pool, gfp_t mem_flags,
 	page->offset = *(int *)(page->vaddr + offset);
 	retval = offset + page->vaddr;
 	*handle = offset + page->dma;
-    // pr_debug("%s(%d) page:%x vaddr:%x retval:%x offset:%d-%d\n", __func__, __LINE__, (u32)page, (u32)page->vaddr, (u32)retval, offset, page->in_use);
-    // pr_debug("%s(%d) page->offset:%x\n", __func__, __LINE__, (u32)page->offset);
 #ifdef	DMAPOOL_DEBUG
 	memset(retval, POOL_POISON_ALLOCATED, pool->size);
 #endif

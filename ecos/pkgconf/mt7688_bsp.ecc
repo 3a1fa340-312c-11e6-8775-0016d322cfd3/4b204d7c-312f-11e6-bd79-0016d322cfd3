@@ -3664,7 +3664,7 @@ cdl_package CYGPKG_INFRA {
 cdl_component CYGPKG_INFRA_DEBUG {
     # Flavor: bool
     # No user value, uncomment the following line to provide one.
-    user_value 0
+    user_value 1
     # value_source default
     # Default value: 0
 
@@ -14224,7 +14224,7 @@ cdl_option CYGDBG_LWIP_DEBUG_TCP {
 };
 
 cdl_option CYGDBG_LWIP_ASSERTS {
-    user_value 0
+    user_value 1
 }
 # <
 # <

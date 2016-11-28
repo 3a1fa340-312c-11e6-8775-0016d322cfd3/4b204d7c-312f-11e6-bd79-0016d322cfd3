@@ -84,9 +84,9 @@
 #define RENDEZVOUS //Ron Add 11/24/04
 #endif
 
-#ifdef RENDEZVOUS 
-#define LINKLOCAL_IP //Ron Add 12/07/04
-#endif
+// #ifdef RENDEZVOUS
+// #define LINKLOCAL_IP //Ron Add 12/07/04
+// #endif
 
 //IEEE1284
 #ifdef USE_PS_LIBS

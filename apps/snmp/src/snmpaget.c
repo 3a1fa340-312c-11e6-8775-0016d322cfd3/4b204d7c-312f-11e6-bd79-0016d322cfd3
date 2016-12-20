@@ -70,6 +70,7 @@ void SnmpAgent(cyg_addrword_t data)	//615wu
 
         for (;;)  {
                 snmp_read (&session);
+                sys_check_stack();
 				cyg_thread_yield();	//615wu
         }
 }

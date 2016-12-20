@@ -154,6 +154,7 @@ void NT3main(cyg_addrword_t data)
 		PrnSetNoUse(CurPortNumber);
 		NTPortInfo[CurPortNumber].HaveRecvPacket = 1;
 //		PrnSetNTUnHold(CurPortNumber);        //615wu::No PSMain
+        sys_check_stack();
 	} //for(;;)....
 }
 

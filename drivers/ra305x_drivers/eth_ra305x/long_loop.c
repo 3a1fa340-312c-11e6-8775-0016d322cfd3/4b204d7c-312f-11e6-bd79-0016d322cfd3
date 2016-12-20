@@ -195,6 +195,7 @@ int long_loop_main(void)
 			}
 		}
 		//usleep(LOOP_DELAY);
+        sys_check_stack();
 		cyg_thread_delay(LOOP_DELAY/1000/10);	//cyg_thread_delay unit:10ms
 
 	}

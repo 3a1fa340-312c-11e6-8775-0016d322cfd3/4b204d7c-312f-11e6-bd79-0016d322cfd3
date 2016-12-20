@@ -150,6 +150,7 @@ void zot_idle_task(cyg_addrword_t data)
 			}
 		}		
 		
+        sys_check_stack();
 		cyg_thread_yield();
 	}
 }

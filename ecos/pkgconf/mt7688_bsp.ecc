@@ -173,7 +173,7 @@ cdl_option CYGBLD_GLOBAL_COMMAND_PREFIX {
 #
 cdl_option CYGBLD_GLOBAL_CFLAGS {
     # Flavor: data
-    user_value "-Wall -Wpointer-arith -Wstrict-prototypes -Wundef  -Wno-write-strings -EL -mips32r2 -msoft-float -g -gstabs -O2 -ffunction-sections -fdata-sections -fno-rtti -fno-exceptions -G0 -DCONFIG_MT7628_ASIC -DZOT_TCPIP -DLINKLOCAL_IP"
+    user_value "-Wall -Wpointer-arith -Wstrict-prototypes -Wundef  -Wno-write-strings -EL -mips32r2 -msoft-float -g -gstabs -O2 -ffunction-sections -fdata-sections -fno-rtti -fno-exceptions -G0 -DCONFIG_MT7628_ASIC -DZOT_TCPIP"
     # value_source user
     # Default value:  CYGBLD_GLOBAL_WARNFLAGS .
     #                                 (CYGPKG_HAL_MIPS_LSBFIRST ? "-EL" : "-EB") .

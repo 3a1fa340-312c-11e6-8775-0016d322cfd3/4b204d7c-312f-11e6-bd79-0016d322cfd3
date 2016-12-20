@@ -945,7 +945,7 @@ void ProcessOtherPcktTask(cyg_addrword_t Data)
 			sti();	
 			
 		}
-	
+        sys_check_stack();
 	}	
 #endif	//ZOT716u2	
 }

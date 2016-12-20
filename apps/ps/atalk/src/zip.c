@@ -46,6 +46,7 @@ void zip_info_query(cyg_addrword_t data)
 			at_iface.netrange.last  = STARTUP_LASTNET;
 			memcpy(at_iface.zonename,"*",2); //Zone not found
 		}
+        sys_check_stack();
 	}while(*needwait);
 }
 

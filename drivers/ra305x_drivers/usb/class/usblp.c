@@ -1043,7 +1043,7 @@ static ssize_t usblp_read(struct usblp *usblp/*struct file *file*/, char __user 
 	}
 
 done:
-	mutex_unlock(&usblp->mut);
+	// mutex_unlock(&usblp->mut);
 	return count;
 }
 
@@ -1150,7 +1150,8 @@ static int usblp_rwait_and_lock(struct usblp *usblp, int nonblock)
 			break;
 		mutex_unlock(&usblp->mut);
 		// schedule();
-        cyg_thread_yield();
+        // cyg_thread_yield();
+        cyg_thread_delay(50);
 	}
 	// set_current_state(TASK_RUNNING);
     remove_wait_queue(&usblp->rwait, &waita);

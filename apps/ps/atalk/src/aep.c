@@ -47,5 +47,6 @@ void aep_input(cyg_addrword_t data)
 			sendto2( s,aep_packet,rcv_len, 0, (struct sockaddr *)&addr,
 			        sizeof( struct sockaddr_at ));		        
 		}
+        sys_check_stack();
 	} //for(;;);
 }

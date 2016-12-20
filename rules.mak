@@ -35,12 +35,12 @@ CFLAGS    = -Wall $(INC_DIR) -ffunction-sections -fdata-sections
 CFLAGS   += -D__ECOS -DECOS \
 			-D$(TARGET) \
 			-D$(ARCH) \
-			-DLINKLOCAL_IP \
 			-DUART_OUTPUT \
 			-DUSE_SYS_LIBS \
 			-DUSE_ADMIN_LIBS \
 			-DUSE_PS_LIBS \
 			-DUSE_NETAPP_LIBS
+			# -DLINKLOCAL_IP \
 
 #-DWIRELESS_CARD for wireless function
 #-DMTK7601 to use mt7601 wifi module

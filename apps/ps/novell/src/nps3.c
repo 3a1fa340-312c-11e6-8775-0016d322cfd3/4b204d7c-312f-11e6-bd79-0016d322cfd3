@@ -395,6 +395,7 @@ void ConnectNetware(cyg_addrword_t data)
 	}
 	//615wu
 	PrimaryConnectFinish = 1;
+    sys_check_stack();
 }
 #endif NOVELL_PS
 
@@ -2705,6 +2706,7 @@ void SendNovellSAP(cyg_addrword_t data)
 #ifdef SNMPIPX
 //		SendJetAdminSAP();	//6/21/2000
 #endif SNMPIPX
+        sys_check_stack();
 		ppause(60000L);  //sleep 60 second.
 	}
 }
@@ -3615,7 +3617,7 @@ void NovellPSmain(cyg_addrword_t data)
 			}	
 			ppause(PollingTime / 10);
 		}
-		
+	    sys_check_stack();	
 	}
 }
 #endif // defined(N716U2W)
@@ -3662,7 +3664,7 @@ void NovellPSmain(cyg_addrword_t data)
 			else	
 			ppause(PollingTime / 10);
 		}
-		
+	    sys_check_stack();	
 	}
 }
 #endif // defined(DWP2020)

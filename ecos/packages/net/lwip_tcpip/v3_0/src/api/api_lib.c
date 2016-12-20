@@ -274,7 +274,7 @@ err_t
 netconn_delete(struct netconn *conn)
 {
   struct api_msg *msg;
-  void *mem;
+  void *mem = NULL;
   struct pbuf *ptr_ass;
   
   if (conn == NULL) {
@@ -296,9 +296,15 @@ netconn_delete(struct netconn *conn)
     while (sys_arch_mbox_fetch(conn->recvmbox, &mem, 1) != SYS_ARCH_TIMEOUT) {
       if (conn->type == NETCONN_TCP) {
         if(mem != NULL) {
-          ptr_ass = (struct pbuf *)mem;
-          CYG_ASSERTC(ptr_ass->ref > 0);
-          pbuf_free((struct pbuf *)mem);
+            // ptr_ass = (struct pbuf *)mem;
+            // if (ptr_ass->ref == 0) {
+            //   diag_printf("c:%d len:%d flags:%x ptr:%x next:%x\n", c, ptr_ass->len, ptr_ass->flags, ptr_ass, ptr_ass->next);
+            // }
+            // CYG_ASSERTC(((struct pbuf *)mem)->ref > 0);
+            if (((struct pbuf *)mem)->ref > 0) {
+                pbuf_free((struct pbuf *)mem);
+                mem = NULL;
+            }
         }
       } else {
         netbuf_delete((struct netbuf *)mem);

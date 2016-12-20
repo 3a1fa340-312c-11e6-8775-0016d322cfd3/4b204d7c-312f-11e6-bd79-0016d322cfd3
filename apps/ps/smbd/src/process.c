@@ -682,6 +682,7 @@ int testInbufsize=0, testOutbufsize=0;
       process_smb(InBuffer, OutBuffer, ProcSockID, threadid);
     } //if 
 //os	kwait(NULL);
+    sys_check_stack();
 	cyg_thread_yield();
   } //while
 

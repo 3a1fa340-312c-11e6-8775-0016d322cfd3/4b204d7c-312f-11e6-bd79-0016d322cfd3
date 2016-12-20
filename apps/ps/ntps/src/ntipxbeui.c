@@ -525,6 +525,7 @@ void IPXUpgrade(cyg_addrword_t data)
 	PSUpgradeMode = WAIT_UPGRADE_MODE;
 	
 	// for exit thread
+    sys_check_stack();
 	cyg_thread_exit();
 }
 

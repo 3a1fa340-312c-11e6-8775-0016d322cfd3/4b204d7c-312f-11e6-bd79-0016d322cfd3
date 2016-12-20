@@ -41,4 +41,5 @@ void SMBInit(cyg_addrword_t data)
 
     nb_init();
     smbmain();
+    sys_check_stack();
 }

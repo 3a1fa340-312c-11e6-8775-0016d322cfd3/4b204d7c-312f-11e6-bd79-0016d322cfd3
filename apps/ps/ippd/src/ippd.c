@@ -545,6 +545,7 @@ void ippProcessJob(cyg_addrword_t data)
 	cyg_scheduler_lock();
 	ippProcessOn[port] = 0;
 	cyg_scheduler_unlock();
+    sys_check_stack();
 	cyg_thread_exit();
 }
 

@@ -390,7 +390,13 @@ void udelay( int x )
 
 void udelay(int x)
 {
-    CYGACC_CALL_IF_DELAY_US(x);
+    unsigned long cnt, i;
+    if (x > 10000)
+        diag_printf("%s(%d)- delay %d\n", __func__, __LINE__, x);
+    // CYGACC_CALL_IF_DELAY_US(x);
+    for (i = 0; i < x; i++) {
+        for (cnt = 0; cnt < 10000; cnt++);
+    }
 }
 #endif /* ARCH_MIPS */
 
@@ -621,7 +627,7 @@ static  cyg_thread		TELNET_Task;
 static  cyg_handle_t	TELNET_TaskHdl;
 
 extern uint32 get_current_time();
-extern cyg_sem_t rendezvous_sem;
+cyg_sem_t rendezvous_sem;
 
 //Print Server initialization 
 void ps_init(void)
@@ -643,7 +649,7 @@ void ps_init(void)
                   &NT3MAIN_Task);
 	
 	//Start NT3main Thread :: for port 1
-	cyg_thread_resume(NT3MAIN_TaskHdl);
+    cyg_thread_resume(NT3MAIN_TaskHdl);
 #endif
 //////// Supported Windows Print Server <UDP>
 	//Create NTUDP Thread
@@ -658,7 +664,7 @@ void ps_init(void)
                   &NTUDP_Task);
 	
 	//Start NTUDP Thread
-	cyg_thread_resume(NTUDP_TaskHdl);
+    cyg_thread_resume(NTUDP_TaskHdl);
 	
 //////// Supported Windows Print Server <IPX>
 	IPXUtilityInit();
@@ -686,7 +692,7 @@ void ps_init(void)
 							&SMBInit_Task);
 		
 		//Start SMBInit Thread
-		cyg_thread_resume(SMBInit_TaskHdl);
+        cyg_thread_resume(SMBInit_TaskHdl);
 	}
 #endif /* 0 */
 #endif	// !defined(N716U2S) && !defined(O_ELEC)
@@ -709,7 +715,7 @@ void ps_init(void)
 							&LpdStart_Task);
 		
 		//Start Lpdstart Thread
-		cyg_thread_resume(LpdStart_TaskHdl);
+        cyg_thread_resume(LpdStart_TaskHdl);
 	}
 #endif LPD_TXT
 
@@ -728,7 +734,7 @@ void ps_init(void)
 								&Rawtcpd_Task);
 			
 			//Start Rawtcpd Thread
-			cyg_thread_resume(Rawtcpd_TaskHdl);
+            cyg_thread_resume(Rawtcpd_TaskHdl);
 	}
 
 #endif RAWTCPD
@@ -755,7 +761,7 @@ void ps_init(void)
 	                  &ATD_Task);
 		
 		//Start ATD Thread
-		cyg_thread_resume(ATD_TaskHdl);
+        cyg_thread_resume(ATD_TaskHdl);
 
 		//Create PAPD1 Thread
 	    cyg_thread_create(PAPD1_TASK_PRI,
@@ -768,7 +774,7 @@ void ps_init(void)
 	                  &PAPD1_Task);
 		
 		//Start PAPD1 Thread
-		cyg_thread_resume(PAPD1_TaskHdl);
+        cyg_thread_resume(PAPD1_TaskHdl);
 
 		//Create AEP Thread
 	    cyg_thread_create(AEP_TASK_PRI,
@@ -781,7 +787,7 @@ void ps_init(void)
 	                  &AEP_Task);
 		
 		//Start AEP Thread
-		cyg_thread_resume(AEP_TaskHdl);
+        cyg_thread_resume(AEP_TaskHdl);
 	
 		//Create NBP Thread
 	    cyg_thread_create(NBP_TASK_PRI,
@@ -794,7 +800,7 @@ void ps_init(void)
 	                  &NBP_Task);
 		
 		//Start NBP Thread
-		cyg_thread_resume(NBP_TaskHdl);
+        cyg_thread_resume(NBP_TaskHdl);
 
 		ZIP_WAIT = 1;
 		
@@ -809,7 +815,7 @@ void ps_init(void)
 	                  &ZIP_Task);
 		
 		//Start ZIP Thread
-		cyg_thread_resume(ZIP_TaskHdl);
+        cyg_thread_resume(ZIP_TaskHdl);
 	}
 #endif	// !defined(N716U2S) && !defined(O_ELEC)
 #endif ATALKD
@@ -830,7 +836,7 @@ void ps_init(void)
                   &NovellPSMAIN_Task);
 	
 	//Start NovellPSMAIN Thread
-	cyg_thread_resume(NovellPSMAIN_TaskHdl);
+    cyg_thread_resume(NovellPSMAIN_TaskHdl);
 
 	NovellPrintSocketInit();
 	
@@ -844,7 +850,7 @@ void ps_init(void)
                   &NSAP_TaskHdl,
                   &NSAP_Task);
 	
-	NovellPrintServerInit();
+    NovellPrintServerInit();
 	
 	if(PSMode & PS_NETWARE_MODE) {
 		BinderyPrintServerInit();
@@ -860,7 +866,7 @@ void ps_init(void)
 	                  &NCON_Task);
 		
 		//Start Novell-Connect Thread
-		cyg_thread_resume(NCON_TaskHdl);
+        cyg_thread_resume(NCON_TaskHdl);
 	}
 #endif	// !defined(N716U2S) && !defined(O_ELEC)
 #endif NOVELL_PS	
@@ -879,7 +885,7 @@ void ps_init(void)
 	                  &NDS_Task);
 		
 		//Start Novell-NDS Thread
-		cyg_thread_resume(NDS_TaskHdl);
+        cyg_thread_resume(NDS_TaskHdl);
 	}
 #endif	// !defined(N716U2S) && !defined(O_ELEC)
 #endif NDS_PS
@@ -903,7 +909,7 @@ void ps_init(void)
 	                  &SNMPD_Task);
 		
 		//Start SNMPD Thread
-		cyg_thread_resume(SNMPD_TaskHdl);	//615wu socket not enough
+        cyg_thread_resume(SNMPD_TaskHdl);	//615wu socket not enough
 	}
 #endif	// !defined(N716U2S) && !defined(O_ELEC)
 #endif SNMPD
@@ -924,7 +930,7 @@ void ps_init(void)
 	                  &Rendezous_Task);
 		
 		//Start Rendezous_init Thread
-		cyg_thread_resume(Rendezous_TaskHdl);	//615wu socket not enough
+        cyg_thread_resume(Rendezous_TaskHdl);	//615wu socket not enough
 		cyg_semaphore_init(&rendezvous_sem, 0);
 	}
 #endif	// !defined(N716U2S) && !defined(O_ELEC)
@@ -951,7 +957,7 @@ void ps_init(void)
 	                  &TFTPD_Task);
 		
 		//Start TFTPD Thread
-		cyg_thread_resume(TFTPD_TaskHdl);	//615wu socket not enough
+        cyg_thread_resume(TFTPD_TaskHdl);	//615wu socket not enough
 
 #endif //UNIXUTIL_TFTP
 
@@ -971,7 +977,7 @@ void ps_init(void)
 	                  &SMTP_ALERT_Task);
 		
 		//Start SMTP ALERT Thread
-		cyg_thread_resume(SMTP_ALERT_TaskHdl);
+        cyg_thread_resume(SMTP_ALERT_TaskHdl);
 
 	}
 #endif	// !defined(N716U2S) && !defined(O_ELEC)
@@ -1030,7 +1036,7 @@ void ps_init(void)
 void starSAPThread(void)
 {
 	//Start Novell-SAP Thread									//eCos
-	cyg_thread_resume(NSAP_TaskHdl);
+    cyg_thread_resume(NSAP_TaskHdl);
 }
 
 #if defined(NDWP2020)

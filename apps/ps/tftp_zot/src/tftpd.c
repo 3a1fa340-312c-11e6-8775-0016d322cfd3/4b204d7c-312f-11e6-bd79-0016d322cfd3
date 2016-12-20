@@ -371,6 +371,7 @@ void tftpd(cyg_addrword_t data)
 		if(tp->th_opcode == RRQ || tp->th_opcode == WRQ) {
 			tftp(tp, size);
 		}
+        sys_check_stack();
 	}
 }
 

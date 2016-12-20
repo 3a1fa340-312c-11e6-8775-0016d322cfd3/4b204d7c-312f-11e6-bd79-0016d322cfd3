@@ -362,6 +362,7 @@ void PrnStartSpooler(cyg_addrword_t data)
 			}
 		}
 //ZOT716u2		cyg_thread_yield();
+        sys_check_stack();
 		cyg_thread_delay(100);	//ZOT716u2
 	}
 	

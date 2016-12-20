@@ -100,6 +100,7 @@ Return Value:
 Note:
 ========================================================================
 */
+extern void start_emi_thread(void);
 
 int rt28xx_open(IN VOID *dev)
 {				 
@@ -168,6 +169,8 @@ int rt28xx_open(IN VOID *dev)
 
     g_wireless_dev = net_dev;
     WirelessInitFailed = 0;
+
+    start_emi_thread();
 
 	return (retval);
 

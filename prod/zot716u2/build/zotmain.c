@@ -43,6 +43,14 @@ extern void usb_drv_init();
 // 
 // }
 
+inline void sys_check_stack(void)
+{
+#ifdef CYGDBG_USE_ASSERTS
+    CYG_ASSERT(cyg_thread_measure_stack_usage(cyg_thread_self()) <
+               cyg_thread_get_stack_size(cyg_thread_self()), "stack overflow !!!");
+#endif
+}
+
 void zotmain( void )
 //void zotmain(cyg_addrword_t p)
 {

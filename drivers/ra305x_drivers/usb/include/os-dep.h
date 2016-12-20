@@ -679,6 +679,7 @@ struct timer_list {
     cyg_handle_t    counter_hdl;
     cyg_handle_t    alarm_hdl;
     cyg_alarm       alarm_obj;
+    cyg_spinlock_t  lock;
     bool            valid;
     bool            pending;
 };

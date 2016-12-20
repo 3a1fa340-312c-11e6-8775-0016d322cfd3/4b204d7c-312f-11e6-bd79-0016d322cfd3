@@ -44,4 +44,5 @@ void atalkd_init(cyg_addrword_t data)
 
 	papd_init();
     ATD_INIT_OK = 1;
+    sys_check_stack();
 }

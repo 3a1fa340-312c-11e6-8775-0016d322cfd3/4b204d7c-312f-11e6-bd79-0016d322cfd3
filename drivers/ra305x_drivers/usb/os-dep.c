@@ -13,12 +13,6 @@
 #include "asm/r4kcache.h"
 
 
-void alarm_callback(cyg_handle_t alarm, cyg_addrword_t data)
-{
-    static int iloop = 0;
-    diag_printf("termy say, alarm_callback ! (%d)\n", iloop++);
-}
-
 cyg_handle_t    counter_hdl;
 cyg_handle_t    alarm_hdl;
 cyg_alarm       alarm_obj;
@@ -49,6 +43,7 @@ void usb_thread (cyg_addrword_t parameter)
     ohci_hcd_mod_init();
 
     usblp_init();
+    sys_check_stack();
     cyg_semaphore_wait(&forever_sem);
 } /* usb_thread */
 
@@ -90,6 +85,7 @@ void init_timer(struct timer_list *timer)
     if (!timer->valid) {
         timer->entry.next = NULL;
         timer->function = NULL;
+        spin_lock_init(&timer->lock);
         cyg_clock_to_counter (cyg_real_time_clock(), &timer->counter_hdl);
         cyg_alarm_create (timer->counter_hdl, 
                 timer_handler, 
@@ -118,9 +114,12 @@ void add_timer_on(struct timer_list *timer, int cpu)
 int del_timer(struct timer_list *timer)
 {
     CYG_ASSERT(timer != NULL, "del_timer: timer is NULL!");
+    unsigned long flags;
 
     if (timer->valid && timer->alarm_hdl) {
+        spin_lock_irqsave (&timer->lock, flags);
         cyg_alarm_disable(timer->alarm_hdl);
+        spin_unlock_irqrestore(&timer->lock, flags);
         // cyg_alarm_delete(timer->alarm_hdl);
         // timer->alarm_hdl = NULL;
         // timer->valid = 0;
@@ -133,18 +132,24 @@ int del_timer(struct timer_list *timer)
 int mod_timer(struct timer_list *timer, unsigned long expires)
 {
     CYG_ASSERT(timer != NULL, "mod_timer: timer is NULL!");
+    unsigned long flags;
 
-    if (timer->valid && timer->alarm_hdl) {
+    if (timer->valid && timer->alarm_hdl && timer->expires < expires) {
+        spin_lock_irqsave(&timer->lock, flags);
         cyg_alarm_disable(timer->alarm_hdl);
+        timer->expires = expires;
         // expires = (expires * OS_HZ) / 1000;
         if (expires > 0) {
             // cyg_alarm_initialize(timer->alarm_hdl, cyg_current_time() + expires, 0);
             cyg_alarm_initialize(timer->alarm_hdl, expires, 0);
             cyg_alarm_enable(timer->alarm_hdl);
+            spin_unlock_irqrestore(&timer->lock, flags);
             return 1;
         }
         else
             diag_printf("mod_timer: expires < 0 !");
+
+        spin_unlock_irqrestore(&timer->lock, flags);
     }
     return 0;
 }

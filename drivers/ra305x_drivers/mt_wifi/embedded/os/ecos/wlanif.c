@@ -368,6 +368,7 @@ char* WLan_config ()
             wirelessMode = 9;
             break;
     }
+
     offset += sprintf(config_buf+offset, "WirelessMode=%d\n", wirelessMode);
 
     //offset += sprintf(config_buf+offset, "CountryCode=TW\n");
@@ -1307,3 +1308,256 @@ void disassoc_cmd_sw(void)
 
 }
 #endif /* NDWP2020 */
+
+VOID RTMPStartEMITx (PRTMP_ADAPTER pAdapter, UCHAR txPower, UCHAR channel, UCHAR wireless_mode, UCHAR tx_rate)
+{
+	/* check EVM & Power
+	 * set	ATE			= STASTOP
+	 * set	ATEDA		= 00:11:22:33:44:55
+	 * set	ATDSA		= 00:aa:bb:cc:dd:ee
+	 * set	ATEBSSID 	= 00:11:22:33:44:55
+	 * set	ATETXRATE 	= 11;
+	 * set	ATECHANNEL 	= 1;
+	 * set	ATETXLEN	= 1024;
+	 * set	ATETXPOW	= 18;
+	 * set	ATETXCNT	= 1000000;
+	 * set	ATE			= TXFRAME;
+	 *
+	 */
+
+	 UCHAR	wlMode = 0;
+	 UCHAR  TxMode = 0;
+	 int ratevalue = 0;
+     char str_buffer[32];
+	 
+	 SetATE(pAdapter, "ATESTART");
+	 
+	 if(tx_rate < 12)
+	 {
+		 switch(tx_rate)
+		 {
+			case 0:  //bit0 (1M)
+		        ratevalue = 0;
+				break;
+			case 1:  //bit1 (2M)
+		        ratevalue = 1;
+				break;
+			case 2:  //bit2 (5.5M)
+		        ratevalue = 2;
+				break;
+			case 3:  //bit3 (11M)
+		        ratevalue = 3;
+				break;				
+			case 4:  //bit0 (6M)
+				ratevalue = 0;
+				break;
+			case 5:  //bit1 (9M)
+				ratevalue = 1;
+				break;
+			case 6:  //bit1 (12M)
+				ratevalue = 2;
+				break;
+			case 7:  //bit1 (18M)
+				ratevalue = 3;
+				break;
+			case 8:  //bit1 (24M)
+				ratevalue = 4;
+				break;	
+			case 9:  //bit1 (36M)
+				ratevalue = 5;
+				break;
+			case 10:  //bit1 (48M)
+				ratevalue = 6;
+				break;
+			case 11:  //bit1 (54M)
+				ratevalue = 7;
+				break;						
+			default:
+		        ratevalue = 11;
+				break;
+		  }
+	 }else{
+	   	ratevalue = tx_rate - 12;
+	 }	 
+		
+    /* wireless mode */
+    //@> WirelessMode=value
+	//value	
+    //		0: legacy 11b/g mixed 
+    //		1: legacy 11B only 
+    //		2: legacy 11A only          //Not support in RfIcType=1(id=RFIC_5225) and RfIcType=2(id=RFIC_5325)
+    //		3: legacy 11a/b/g mixed     //Not support in RfIcType=1(id=RFIC_5225) and RfIcType=2(id=RFIC_5325)
+    //		4: legacy 11G only
+    //		5: 11ABGN mixed
+    //		6: 11N only
+    //		7: 11GN mixed
+    //		8: 11AN mixed
+    //		9: 11BGN mixed
+    //	   10: 11AGN mixed	
+    //
+    //	    mvTxMode;		            // 0x00: B-G mixed  0x01: B only  0x02: G only 0x03:B-G-N mixed 
+
+	 if (wireless_mode == 0){
+	 	wlMode = PHY_11BG_MIXED;
+	 	if(tx_rate > 3)
+	 		TxMode = 1;
+	 	else
+	 		TxMode = 0;	
+	} else if (wireless_mode == 1){
+	 	wlMode = PHY_11B;
+		TxMode = 0;	
+		if(tx_rate > 3)	
+			ratevalue = 3;		
+	} else if (wireless_mode == 2){
+	 	wlMode = PHY_11G;
+		TxMode = 1;
+		if(tx_rate > 11)	
+			ratevalue = 7;	
+	} else if (wireless_mode == 4){
+		wlMode = PHY_11N_2_4G;
+		TxMode = 2;
+		if(tx_rate > 11)	
+			ratevalue = 7;
+	} else{ 	
+	 	wlMode = PHY_11BGN_MIXED;
+	 	if(tx_rate > 11)
+	 		TxMode = 2;
+	 	else if(tx_rate > 3)
+	 		TxMode = 1;	
+	 	else
+	 		TxMode = 0;
+	}
+	 	
+    /*
+    sprintf(str_buffer, "%d\0", wlMode);
+    Set_WirelessMode_Proc (pAdapter, str_buffer);
+    */
+	 	 
+    SetATEDa (pAdapter, "00:11:22:33:44:55");
+    SetATESa (pAdapter, "00:aa:bb:cc:dd:ee");
+    SetATEBssid (pAdapter, "00-11-22-33-44-55");
+
+    sprintf(str_buffer, "%d\0", TxMode);
+    SetATETxMode(pAdapter, str_buffer);
+    sprintf(str_buffer, "%d\0", channel);
+    SetATEChannel (pAdapter, str_buffer);
+    sprintf(str_buffer, "%d\0", mvBandWidth);
+    SetATETxBw(pAdapter, str_buffer);
+    /*
+    sprintf(str_buffer, "%d\0", ratevalue);
+    Set_ATE_TX_MCS_Proc (pAdapter, str_buffer);	 	 
+    */
+	 
+    SetATETxLength (pAdapter, "1024");
+    #ifdef WIFI_CERTIFICATION
+    if (txPower > 9) txPower = 9;
+    #endif
+    sprintf(str_buffer, "%d\0", txPower);
+    SetATETxPower0 (pAdapter, str_buffer);
+    SetATETxCount (pAdapter, "1000000");
+    SetATE(pAdapter, "TXFRAME");		
+	 
+	SetATE(pAdapter, "TXCONT");
+	
+}
+
+VOID RTMPStartEMIRx (PRTMP_ADAPTER pAdapter, UCHAR tx_rate)
+{
+	/* rx follow
+	 * set	ATE				= STASTOP;
+	 * set	ResetCounter	= 0;
+	 * set	ATETXRATE		= 11;
+	 * set	ATE				= RXFRAME;
+	 */
+    char str_buffer[32];
+    int ratevalue;
+	
+	SetATE(pAdapter, "ATESTART");
+	Set_ResetStatCounter_Proc (pAdapter, 0);
+
+	 if(tx_rate < 12)
+	 {
+		 switch(tx_rate)
+		 {
+			case 0:  //bit0 (1M)
+		        ratevalue = 0;
+				break;
+			case 1:  //bit1 (2M)
+		        ratevalue = 1;
+				break;
+			case 2:  //bit2 (5.5M)
+		        ratevalue = 2;
+				break;
+			case 3:  //bit3 (11M)
+		        ratevalue = 3;
+				break;				
+			case 4:  //bit0 (6M)
+				ratevalue = 0;
+				break;
+			case 5:  //bit1 (9M)
+				ratevalue = 1;
+				break;
+			case 6:  //bit1 (12M)
+				ratevalue = 2;
+				break;
+			case 7:  //bit1 (18M)
+				ratevalue = 3;
+				break;
+			case 8:  //bit1 (24M)
+				ratevalue = 4;
+				break;	
+			case 9:  //bit1 (36M)
+				ratevalue = 5;
+				break;
+			case 10:  //bit1 (48M)
+				ratevalue = 6;
+				break;
+			case 11:  //bit1 (54M)
+				ratevalue = 7;
+				break;						
+			default:
+		        ratevalue = 11;
+				break;
+		  }
+    }else{
+	   	ratevalue = tx_rate - 12;
+    }	
+    sprintf(str_buffer, "%d\n", ratevalue);
+	SetATETxMcs (pAdapter, str_buffer);
+	SetATE(pAdapter, "RXFRAME");
+
+}
+
+void emi_task(cyg_addrword_t data)
+{
+    RTMP_ADAPTER *pAd;
+    diag_printf("%s(%d)\n", __func__, __LINE__);
+    GET_PAD_FROM_NET_DEV(pAd, g_wireless_dev);
+    if (mvCTX) {
+        RTMPStartEMITx(pAd, mvTxPower, mvChannel, mvTxMode, mvDataRate);
+    }
+    else if (mvCRX) {
+        RTMPStartEMIRx(pAd, mvDataRate);
+    }
+}
+
+#define EMI_TASK_PRI    20
+#define EMI_TASK_STACK_SIZE 8192
+static unsigned char EMI_Stack[EMI_TASK_STACK_SIZE];
+static cyg_thread   EMI_Task;
+static cyg_handle_t EMI_TaskHdl;
+
+void start_emi_thread(void)
+{
+    if (mvCTX != 0 || mvCRX != 0) {
+        cyg_thread_create(EMI_TASK_PRI,
+                emi_task,
+                0,
+                "EMI_Task",
+                (void *)EMI_Stack,
+                EMI_TASK_STACK_SIZE,
+                &EMI_TaskHdl,
+                &EMI_Task);
+        cyg_thread_resume(EMI_TaskHdl);
+    }
+}

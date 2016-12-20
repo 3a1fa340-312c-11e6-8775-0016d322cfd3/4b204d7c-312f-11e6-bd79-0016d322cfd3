@@ -117,7 +117,7 @@ static err_t update_arp_entry(struct netif *netif, struct ip_addr *ipaddr, struc
 #define RETRY 			2
 #define ANNOUNCE 		3
 #define IDLE 			4
-unsigned char mRENVEnable;
+extern unsigned char mRENVEnable;
 extern int ip_conflict_cnt;
 extern void linklocal_alarm(void);
 #endif

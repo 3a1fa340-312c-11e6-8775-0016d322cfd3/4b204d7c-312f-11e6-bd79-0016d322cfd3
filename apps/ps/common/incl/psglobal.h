@@ -302,4 +302,6 @@ extern uint32 IPXSNAPRecv;
 #define TTRACE        \
     diag_printf("%s(%d)\n", __func__, __LINE__)
 
+extern inline void sys_check_stack();
+
 #endif  /*_PSGLOBAL_H*/

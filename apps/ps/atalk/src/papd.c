@@ -317,6 +317,7 @@ void papd(cyg_addrword_t data)
 #endif _PC
 			break;
 		}
+        sys_check_stack();
 	} //for (;;) {
 }
 

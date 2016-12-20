@@ -121,7 +121,7 @@ void mail_alert(cyg_addrword_t data)
 			}
 #endif //Mail_ALERT
 		}
-		
+	    sys_check_stack();	
 		ppause(Send_Mail_Interval);		//90sec
 	}
 }
@@ -271,6 +271,7 @@ skip:
 	cb->lock = 0;
 //	alertSignal = 0;
 
+    sys_check_stack();
 	ppause(1000L);
 	goto loop;
 

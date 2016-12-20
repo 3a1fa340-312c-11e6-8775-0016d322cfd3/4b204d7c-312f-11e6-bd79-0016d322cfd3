@@ -82,6 +82,7 @@ void snmpd(cyg_addrword_t data)
 		
 		ppause (30000L);
         SendTrap (SNMP_TRAP_COLDSTART, SNMP_TRAP_COLDSTART,"Cold Start");
+        sys_check_stack();
 //      ppause (1500L);
 //      SendTrap (SNMP_TRAP_LINKUP, SNMP_TRAP_LINKUP,"LINK UP");
 }
@@ -166,5 +167,6 @@ void SnmpCheckPrintStatus(cyg_addrword_t data)
                         }
                 }
                 LastPrnStatus = CurPrnStatus;
+                sys_check_stack();
         }
 }

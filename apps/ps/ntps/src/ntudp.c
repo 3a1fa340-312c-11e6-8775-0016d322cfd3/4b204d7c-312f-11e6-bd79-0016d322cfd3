@@ -591,6 +591,7 @@ void NTUtilityUDP(cyg_addrword_t data)
         if(Version == NT_VERSION_4) 
             NTDoCommandUDP(&fromsock);
         
+        sys_check_stack();
     }
 }
 

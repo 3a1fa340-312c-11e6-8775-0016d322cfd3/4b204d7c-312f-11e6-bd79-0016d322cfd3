@@ -163,6 +163,7 @@ void SnmpIPXAgent1(int nouse, void *nouse1,void *nouse2)
 						cyg_thread_resume(SnmpdIPX2_TaskHdl);	
 						cyg_thread_yield();	//615wu
                 }
+                sys_check_stack();
         }
 }
 

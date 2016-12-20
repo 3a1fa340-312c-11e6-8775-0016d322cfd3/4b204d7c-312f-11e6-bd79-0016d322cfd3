@@ -256,6 +256,7 @@ void nbp_input(cyg_addrword_t _data)
 			          sizeof( struct sockaddr_at ) );		          
 			}
 		}
+        sys_check_stack();
 	}//for(;;);
 
 }

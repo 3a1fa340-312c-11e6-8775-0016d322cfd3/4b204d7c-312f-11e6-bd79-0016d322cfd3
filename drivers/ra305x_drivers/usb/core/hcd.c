@@ -693,7 +693,7 @@ void usb_hcd_poll_rh_status(struct usb_hcd *hcd)
 	if (length > 0) {
 
 		/* try to complete the status urb */
-		spin_lock_irqsave(&hcd_root_hub_lock, flags);
+        spin_lock_irqsave(&hcd_root_hub_lock, flags);
 		urb = hcd->status_urb;
 		if (urb) {
 			clear_bit(HCD_FLAG_POLL_PENDING, &hcd->flags);

@@ -174,6 +174,7 @@ void telnetstart(cyg_addrword_t data)
 			cyg_thread_resume(TELNET_SERVER_MAIN_TaskHdl);	
 		
 		}
+        sys_check_stack();
 	}
 	
 	return;
@@ -331,5 +332,6 @@ void TServerMainFunction(cyg_addrword_t data)
 //Jesse     up->refcnt = 1;
    fclose(network);
    
+   sys_check_stack();
    cyg_thread_exit();
 }

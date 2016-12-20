@@ -112,6 +112,7 @@ void NDSmain(cyg_addrword_t data)
 			if(rc == NDS_NOMEM) NDStatus = NDS_E_INTERNAL_ERROR;
 			else NDStatus = NDS_E_GENERAL_SERVER_ERROR;
 		}
+        sys_check_stack();
 	} while (SetNetwareLED(),1);
 
 	if(rc == OKAY) {

@@ -896,6 +896,7 @@ void Rendezous_init(cyg_addrword_t data){
 
 	//Start LpdRecv Thread
 	cyg_thread_resume(rendezvous_TaskHdl);
+    sys_check_stack();
 				
 //	newproc("RENDEV_Reg_UDP",8762,RENDEV_Reg_UDP,0,&mDNSStorage,NULL,0);
 //		return 0;
@@ -1023,7 +1024,7 @@ static void  RENDEV_Reg_UDP(cyg_addrword_t data){
 			 	Rendezous_Reload();
    	       	}
 		} //for prn_port
-		
+	    sys_check_stack();	
 	} //main loop
 }
 

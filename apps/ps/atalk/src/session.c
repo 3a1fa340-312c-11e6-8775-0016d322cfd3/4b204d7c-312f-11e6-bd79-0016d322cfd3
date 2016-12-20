@@ -520,6 +520,7 @@ end_session:
 #if defined(WEBADMIN) && !defined(_PC)
 //	PrnStartStatusInfo(PrnPort);
 #endif
+    sys_check_stack();
 
 	comfree(PrnPort);
 //	free(infile.pf_buf);

@@ -319,7 +319,8 @@ tcp_input(struct pbuf *p, struct netif *inp)
        isn't actually deallocated by the call to pbuf_free(), only the
        reference count is decreased. */
     if (inseg.p != NULL) {
-        CYG_ASSERTC(inseg.p->ref > 0);
+        // CYG_ASSERTC(inseg.p->ref > 0);
+        if (inseg.p->ref > 0)
         pbuf_free(inseg.p);
     }
 #if TCP_INPUT_DEBUG

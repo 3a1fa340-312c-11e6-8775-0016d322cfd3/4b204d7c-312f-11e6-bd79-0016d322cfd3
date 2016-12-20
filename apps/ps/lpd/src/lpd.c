@@ -355,6 +355,7 @@ void lpdstart(cyg_addrword_t data)
 				break;
 
 		}
+        sys_check_stack();
 	}
 
 	free( buf );
@@ -700,7 +701,7 @@ receive_job(cyg_addrword_t data)
 			break;
 		}
 	}
-	
+    sys_check_stack();
 	cyg_thread_exit();
 
 }
@@ -1325,7 +1326,7 @@ int hold_job(int PortNumber, int NumOfFile, int s)
 			sendack(s);
 			startime = rdclock();
 		}
-		cyg_thread_yield();		
+        cyg_thread_delay(10);
 //		ppause(100);
 		
 		cyg_scheduler_lock();	//615wu::No PSMain

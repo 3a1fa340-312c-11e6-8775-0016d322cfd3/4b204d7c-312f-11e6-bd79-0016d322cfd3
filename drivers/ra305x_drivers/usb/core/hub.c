@@ -569,7 +569,7 @@ int usb_hub_clear_tt_buffer(struct urb *urb)
     /* tell keventd to clear state for this TT */
     spin_lock_irqsave (&tt->lock, flags);
     list_add_tail (&clear->clear_list, &tt->clear_list);
-    schedule_work(&tt->clear_work);
+    // schedule_work(&tt->clear_work);
     spin_unlock_irqrestore (&tt->lock, flags);
     return 0;
 }
@@ -3554,6 +3554,7 @@ static int hub_thread(void *__unused)
     do {
         hub_events();
         wait_event(khubd_wait, !list_empty(&hub_event_list));
+        sys_check_stack();
     } while (!list_empty(&hub_event_list));
 
     pr_debug("%s: khubd exiting\n", usbcore_name);

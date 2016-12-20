@@ -456,6 +456,7 @@ void LightToggleProc(cyg_addrword_t data)
 			ppause(50);
 		}
 #endif	//ZOT716u2			
+        sys_check_stack();
 	}
 
 }

@@ -285,6 +285,7 @@ input_thread(void *arg)
 	(sc->funs->deliver) (sc);
       }
     }
+    sys_check_stack();
   }
 
 }

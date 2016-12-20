@@ -37,7 +37,8 @@ static int rt_set_host(void)
 	// host mode
 	val |= USB0_HOST_MODE;		
 	rt_writel(val, SYSCFG1);
-	mdelay (100);
+	// mdelay (100);
+    cyg_thread_delay(10);
 }
 
 static int rt_usbhost_reset(void)
@@ -47,7 +48,8 @@ static int rt_usbhost_reset(void)
 	rt_writel(val, RT2880_RSTCTRL_REG);
 	val &= ~(RALINK_UHST_RST);
 	rt_writel(val, RT2880_RSTCTRL_REG);
-	mdelay (100);
+	// mdelay (100);
+    cyg_thread_delay(10);
 }
 
 static int rt3xxx_ehci_init(struct usb_hcd *hcd)

@@ -181,7 +181,7 @@ iaa_watchdog_start(struct ehci_hcd *ehci)
 
 static inline void iaa_watchdog_done(struct ehci_hcd *ehci)
 {
-	del_timer(&ehci->iaa_watchdog);
+    del_timer(&ehci->iaa_watchdog);
 }
 
 enum ehci_timer_action {

@@ -1216,6 +1216,7 @@ void httpstart (cyg_addrword_t data)
             CYG_ASSERT(i != SOCKSUM, "http:1216, No free socket!");
 			cyg_scheduler_unlock();
 		}
+        sys_check_stack();
 	}
 	
 }	
@@ -1639,7 +1640,8 @@ if (!((EEPROM_Data.SPECIAL_OEM == 0x02) && (diag_flag == 1))) {
 #endif
 
 //os	kwait(NULL); // Let's be nice to others
-	cyg_thread_yield();
+    // cyg_thread_yield();
+    cyg_thread_delay(10);
 
 	if(rq.query) {
 		process_cgi(network,Inline, Outline, &rq);
@@ -1729,6 +1731,7 @@ if (!((EEPROM_Data.SPECIAL_OEM == 0x02) && (diag_flag == 1))) {
 
 quit:
 quit0:
+    sys_check_stack();
 
 	if(fp) PFSclose(fp);
 //      free(rq.myname);

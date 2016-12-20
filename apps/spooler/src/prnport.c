@@ -37,8 +37,8 @@ cyg_sem_t	 SP_SIGNAL_PORT_1;
 #define PRN_EXIT_PRINT_MODE_TIME			7000
 
 //PrnStateSpooler Thread initiation information
-#define PrnStateSpooler_TASK_PRI				20	//ZOT716u2
-#define PrnStateSpooler_TASK_STACK_SIZE    	1024
+#define PrnStateSpooler_TASK_PRI			20	//ZOT716u2
+#define PrnStateSpooler_TASK_STACK_SIZE    	2048
 static	uint8			PrnStateSpooler_Stack[PrnStateSpooler_TASK_STACK_SIZE];
 static  cyg_thread		PrnStateSpooler_Task;
 static  cyg_handle_t	PrnStateSpooler_TaskHdl;
@@ -238,7 +238,7 @@ void PrnStateSpooler(cyg_addrword_t data)
 				}		
 			}
 		}
-		
+	    sys_check_stack();	
 		ppause(StateSpooler_Interval);		//90sec
 	}
 
@@ -346,7 +346,7 @@ void PortNWrite(cyg_addrword_t data)
 		PNW_Statu[port] = 0;	//for dbg
 		
 		G_PortReady |= ( 1 << port );
-        diag_printf("%s(%d) use stack size:%d\n", __func__, __LINE__,cyg_thread_measure_stack_usage(cyg_thread_self()));
+        sys_check_stack();
 	}
 }
 

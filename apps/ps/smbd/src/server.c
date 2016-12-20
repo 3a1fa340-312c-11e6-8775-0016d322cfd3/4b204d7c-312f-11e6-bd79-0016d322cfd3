@@ -222,6 +222,7 @@ void open_sockets(cyg_addrword_t data)
 				cyg_thread_resume(SMB_Proc_TaskHdl[i]);	
 					
 		 }
+         sys_check_stack();
 	} /* end while 1 */
 }
 

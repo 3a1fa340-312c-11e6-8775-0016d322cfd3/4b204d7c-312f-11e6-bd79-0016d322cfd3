@@ -132,6 +132,7 @@ tcpip_thread(void *arg)
       break;
     }
     memp_free(MEMP_TCPIP_MSG, msg);
+    sys_check_stack();
   }
 }
 

@@ -41,7 +41,7 @@ static cyg_handle_t     LINKLOCAL_IP_TaskHdl;
 
 cyg_sem_t linklocal_sem;
 cyg_sem_t linklocal_conflict;
-cyg_sem_t rendezvous_sem;
+extern cyg_sem_t rendezvous_sem;
 cyg_sem_t DhcpWaitLinklocal_sem;
 
 extern struct netif *Lanface;   

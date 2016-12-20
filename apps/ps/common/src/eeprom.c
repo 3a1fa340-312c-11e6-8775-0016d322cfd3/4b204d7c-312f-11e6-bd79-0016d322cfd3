@@ -41,7 +41,7 @@ char *__BoxName = &EEPROM_Data.BoxName;
 char	Hostname[LENGTH_OF_BOX_NAME+1] = {0};
 
 #ifdef RENDEZVOUS
-extern BYTE mRENVEnable;
+BYTE mRENVEnable;
 #endif //RENDEZVOUS
 
 // Charles 2001/07/17

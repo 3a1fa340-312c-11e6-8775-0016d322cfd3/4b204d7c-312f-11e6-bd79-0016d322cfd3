@@ -211,6 +211,7 @@ void nb_proc (cyg_addrword_t data)
 			last = t;
 		}	
 		
+        sys_check_stack();
 		ppause( 50 );
 	}
 } /* process */

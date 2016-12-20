@@ -193,6 +193,7 @@ void rawtcpd(cyg_addrword_t data)
         
 #endif /* USE_PS_LIBS */
  		close( s );
+        sys_check_stack();
 	}
 }
 //#endif

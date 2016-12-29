@@ -26,7 +26,7 @@ static  cyg_handle_t	PortNWrite_TaskHdl;
 
 //Spooler Thread initiation information
 #define PrnSpooler_TASK_PRI				20	//ZOT716u2
-#define PrnSpooler_TASK_STACK_SIZE    	1024
+#define PrnSpooler_TASK_STACK_SIZE    	2048
 static	uint8			PrnSpooler_Stack[PrnSpooler_TASK_STACK_SIZE];
 static  cyg_thread		PrnSpooler_Task;
 static  cyg_handle_t	PrnSpooler_TaskHdl;
@@ -38,7 +38,7 @@ cyg_sem_t	 SP_SIGNAL_PORT_1;
 
 //PrnStateSpooler Thread initiation information
 #define PrnStateSpooler_TASK_PRI			20	//ZOT716u2
-#define PrnStateSpooler_TASK_STACK_SIZE    	2048
+#define PrnStateSpooler_TASK_STACK_SIZE    	4096
 static	uint8			PrnStateSpooler_Stack[PrnStateSpooler_TASK_STACK_SIZE];
 static  cyg_thread		PrnStateSpooler_Task;
 static  cyg_handle_t	PrnStateSpooler_TaskHdl;

@@ -866,9 +866,9 @@ dead:
         bh = 1;
     }
 
-    // if (bh) {
-    //     ehci_work (ehci);
-    // }
+    if (bh) {
+        ehci_work (ehci);
+    }
     spin_unlock (&ehci->lock);
     if (pcd_status)
         usb_hcd_poll_rh_status(hcd);
@@ -877,12 +877,12 @@ dead:
 
 void ehci_dirq (struct usb_hcd *hcd)
 {
-    struct ehci_hcd     *ehci = hcd_to_ehci (hcd);
-    if (bh) {
-        spin_lock_irq (&ehci->lock);
-        ehci_work(ehci);
-        spin_unlock_irq (&ehci->lock);
-    }
+    // struct ehci_hcd     *ehci = hcd_to_ehci (hcd);
+    // if (bh) {
+    //     spin_lock_irq (&ehci->lock);
+    //     ehci_work(ehci);
+    //     spin_unlock_irq (&ehci->lock);
+    // }
 }
 
 /*-------------------------------------------------------------------------*/

@@ -80,6 +80,7 @@ static volatile u8_t pbuf_pool_free_lock, pbuf_pool_alloc_lock;
 static sys_sem_t pbuf_pool_free_sem;
 #endif
 
+
 static struct pbuf *pbuf_pool = NULL;
 
 /**
@@ -129,7 +130,6 @@ pbuf_init(void)
 #endif
 }
 
-int pbuf_cnt = 0;
 /**
  * @internal only called from pbuf_alloc()
  */
@@ -153,10 +153,12 @@ pbuf_pool_alloc(void)
   pbuf_pool_alloc_lock = 1;
   if (!pbuf_pool_free_lock) {
 #endif /* SYS_LIGHTWEIGHT_PROT */
+    cyg_scheduler_lock();
     p = pbuf_pool;
     if (p) {
       pbuf_pool = p->next;
     }
+    cyg_scheduler_unlock();
 #if !SYS_LIGHTWEIGHT_PROT
 #if PBUF_STATS
   } else {
@@ -166,7 +168,6 @@ pbuf_pool_alloc(void)
   pbuf_pool_alloc_lock = 0;
 #endif /* SYS_LIGHTWEIGHT_PROT */
 
-  pbuf_cnt ++;
 #if PBUF_STATS
   if (p != NULL) {
     ++lwip_stats.pbuf.used;
@@ -352,9 +353,12 @@ pbuf_alloc(pbuf_layer l, u16_t length, pbuf_flag flag)
 #endif /* PBUF_STATS */
 
 #define PBUF_POOL_FAST_FREE(p)  do {                                    \
+                                  cyg_scheduler_lock();                 \
                                   p->next = pbuf_pool;                  \
+                                  CYG_ASSERTC(p->next != NULL);         \
                                   pbuf_pool = p;                        \
                                   DEC_PBUF_STATS;                       \
+                                  cyg_scheduler_unlock();               \
                                 } while (0)
 
 #if SYS_LIGHTWEIGHT_PROT
@@ -594,8 +598,6 @@ pbuf_free(struct pbuf *p)
         p->len = p->tot_len = PBUF_POOL_BUFSIZE;
         p->payload = (void *)((u8_t *)p + sizeof(struct pbuf));
         PBUF_POOL_FREE(p);
-        pbuf_cnt --;
-        // diag_printf("pbuf:%d\n", pbuf_cnt);
       /* is this a ROM or RAM referencing pbuf? */
       } else if (p->flags == PBUF_FLAG_ROM || p->flags == PBUF_FLAG_REF) {
         memp_free(MEMP_PBUF, p);

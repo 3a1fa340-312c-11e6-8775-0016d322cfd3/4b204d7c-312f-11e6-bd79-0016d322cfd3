@@ -315,7 +315,7 @@ cdl_package CYGPKG_NET_LWIP {
 			display		"PBUF pool size"
 			flavor		data
             #default_value 	60
-            default_value 	320
+            default_value   160	
 			description   	"
 			PBUF_POOL_SIZE: the number of buffers in the pbuf pool."
 	
@@ -325,7 +325,7 @@ cdl_package CYGPKG_NET_LWIP {
 			display		"PBUF buffer size"
 			flavor		data
             #default_value 	1024
-            default_value 	1600
+            default_value 	2048
 			description   	"
 			PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool."
 		}		

@@ -14224,8 +14224,12 @@ cdl_option CYGDBG_LWIP_DEBUG_TCP {
 };
 
 cdl_option CYGDBG_LWIP_ASSERTS {
-    user_value 1
-}
+    user_value 0
+};
+
+cdl_option CYGDBG_LWIP_STATS {
+    user_value 0
+};
 # <
 # <
 

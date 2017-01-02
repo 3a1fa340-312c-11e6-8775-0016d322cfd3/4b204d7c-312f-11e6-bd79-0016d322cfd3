@@ -146,10 +146,11 @@ recv_tcp(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
     /* Register event with callback */
     if (conn->callback)
         (*conn->callback)(conn, NETCONN_EVT_RCVPLUS, len);
-    if (p != NULL) {
-        CYG_ASSERTC(p->ref > 0);
-        sys_mbox_post(conn->recvmbox, p);
-    }
+    //  if (p != NULL) {
+    //      CYG_ASSERTC(p->ref > 0);
+    //      sys_mbox_post(conn->recvmbox, p);
+    //  }
+    sys_mbox_post(conn->recvmbox, p);
   }  
   return ERR_OK;
 }

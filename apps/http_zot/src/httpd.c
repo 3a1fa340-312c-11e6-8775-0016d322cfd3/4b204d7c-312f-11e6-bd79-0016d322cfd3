@@ -471,9 +471,9 @@ ZOT_FILE *fp
         return buf;
 }
 
-char zot_fgetc(ZOT_FILE *fp)
+unsigned char zot_fgetc(ZOT_FILE *fp)
 {
-	char cp = 0;
+	unsigned char cp = 0;
 	
 	if( fp->ibuf_cnt ==0 )
 	{

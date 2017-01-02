@@ -34,7 +34,11 @@ int ralink_gpio_init (void)
     // 0 -> input
     //
     REG(RALINK_REG_PIO6332DIR) = 0;
-    REG(RALINK_REG_PIO6332DIR) |= (1 << PS_GPIO_POS_USB | 1 << PS_GPIO_POS_STATUS | 1 << PS_GPIO_POS_WIRELESS);
+    REG(RALINK_REG_PIO6332DIR) |= (1 << PS_GPIO_POS_USB | 
+                                   1 << PS_GPIO_POS_STATUS | 
+                                   1 << PS_GPIO_POS_WIRELESS |
+                                   1 << PS_GPIO_POS_100M |
+                                   1 << PS_GPIO_POS_10M);
 
     // 
     // test function
@@ -76,8 +80,21 @@ inline void light_wireless_on(void)
 inline void light_wireless_off(void)
 {
     REG(RALINK_REG_PIO6332DATA) |= (1 << PS_GPIO_POS_WIRELESS);
-    
 }
+
+#if defined(N716U2)
+inline void light_network_100M(void)
+{
+    REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_100M));
+    REG(RALINK_REG_PIO6332DATA) |= (1 << PS_GPIO_POS_10M);
+}
+
+inline void light_network_10M(void)
+{
+    REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_10M));
+    REG(RALINK_REG_PIO6332DATA) |= (1 << PS_GPIO_POS_100M);
+}
+#endif /* N716U2 */
 
 //
 // return value > 0 indicate key press down

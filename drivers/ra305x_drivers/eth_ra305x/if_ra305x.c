@@ -1916,10 +1916,11 @@ static void ra305x_esw_dsr(cyg_vector_t vec, cyg_ucount32 count, cyg_addrword_t 
  *  ra305x_dsr:
  *=============================================================*/
 extern unsigned char LANLightToggle_down;
+extern unsigned char LANLightToggle_100;
 static void ra305x_esw_dsr(cyg_vector_t vec, cyg_ucount32 count, cyg_addrword_t data)
 {
 	cyg_uint32 new_link, link_chg;
-	cyg_uint32 intstatus;
+	cyg_uint32 intstatus, port_ability;
 
 	DBGPRINTF(DBG_ISR, "ifra305x: dsr\n");
 	if (pra305x== NULL)
@@ -1931,7 +1932,8 @@ static void ra305x_esw_dsr(cyg_vector_t vec, cyg_ucount32 count, cyg_addrword_t 
 
 	if (intstatus & RAESW_INT_PORT_ST_CHG)
     {
-		new_link = (RAESW_REG(RAESW_PORT_ABILITY_REG) >> RAESW_PHY_LINK_SHIFT) & RAESW_PHY_PORT_MASK;
+        port_ability = RAESW_REG(RAESW_PORT_ABILITY_REG);
+		new_link = (port_ability >> RAESW_PHY_LINK_SHIFT) & RAESW_PHY_PORT_MASK;
 		link_chg = pra305x->esw_linkmask ^ new_link;
 		pra305x->esw_linkmask = new_link;
 
@@ -1944,6 +1946,10 @@ static void ra305x_esw_dsr(cyg_vector_t vec, cyg_ucount32 count, cyg_addrword_t 
             else
                 LANLightToggle_down = 1;
 
+            if (port_ability & RAESW_PHY_SPEED_MASK)
+                LANLightToggle_100  = 1;
+            else
+                LANLightToggle_100  = 0;
 #ifdef ETH_DRV_SET_PHY
             mon_snd_cmd(MON_CMD_LINK_CHK);
 #endif

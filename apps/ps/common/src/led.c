@@ -33,6 +33,7 @@ BYTE WirelessLightToggle;
 #endif
 BYTE LANLightToggle = 0;		//eason 20100809
 BYTE LANLightToggle_down = 0;	//eason 20100809
+BYTE LANLightToggle_100 = 0;
 
 void LightToggleProc(cyg_addrword_t data);
 //void LightToggleProc(void);
@@ -302,6 +303,13 @@ void LightToggleProc(cyg_addrword_t data)
             // if( LANLightToggle_down > 5 ) LANLightToggle_down = 5;
 		}
 #endif
+
+#if defined(N716U2)
+        if (LANLightToggle_100)
+            light_network_100M();
+        else
+            light_network_10M();
+#endif /* N716U2 */
 
 #ifdef  USB_LED		
 #if 0	//ZOT716u2

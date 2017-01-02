@@ -137,8 +137,8 @@
 #define PS_GPIO_POS_RESET           7
 #define PS_GPIO_POS_USB             8               // (40 - 32)
 #define PS_GPIO_POS_STATUS          9               // (41 - 32) 
-#define PS_GPIO_POS_REV1            10              // (42 - 32) 
-#define PS_GPIO_POS_REV2            11              // (43 - 32) 
+#define PS_GPIO_POS_10M             10              // (42 - 32) 
+#define PS_GPIO_POS_100M            11              // (43 - 32) 
 #define PS_GPIO_POS_WIRELESS        12              // (44 - 32) 
 
 #define RALINK_GPIO_NUMBER		    73

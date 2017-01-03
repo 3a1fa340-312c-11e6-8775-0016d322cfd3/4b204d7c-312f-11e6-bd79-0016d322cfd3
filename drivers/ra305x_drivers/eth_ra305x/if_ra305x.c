@@ -1180,11 +1180,11 @@ static void ra305x_esw_init(void)
 	val =HAL_SYSCTL_REG(0x64);
 #if defined (CONFIG_ETH_ONE_PORT_ONLY)
 	val &= 0xf003f003;
-	val |= 0x05500550;
-	HAL_SYSCTL_REG(0x64)=val; // set P0 EPHY LED mode
+    val |= 0x05500554;
+    HAL_SYSCTL_REG(0x64)=val; // set P0 EPHY LED mode
 #else
 	val &= 0xf003f003;
-	HAL_SYSCTL_REG(0x64)=val; // set P0~P4 EPHY LED mode
+    HAL_SYSCTL_REG(0x64)=val; // set P0~P4 EPHY LED mode
 #endif
 
 
@@ -1941,15 +1941,22 @@ static void ra305x_esw_dsr(cyg_vector_t vec, cyg_ucount32 count, cyg_addrword_t 
         {
 			diag_printf("ifra305x: link change. link=%02x, change=%02x\n", new_link, link_chg);
 
-            if (new_link)
-		        LANLightToggle_down = 0;
-            else
+            if (new_link) {
+                LANLightToggle_down = 0;
+                if (port_ability & RAESW_PHY_SPEED_MASK) {
+                    light_network_on_100M();
+                    LANLightToggle_100  = 1;
+                }
+                else {
+                    light_network_on_10M();
+                    LANLightToggle_100  = 0;
+                }
+            }
+            else {
+                light_network_off();
                 LANLightToggle_down = 1;
+            }
 
-            if (port_ability & RAESW_PHY_SPEED_MASK)
-                LANLightToggle_100  = 1;
-            else
-                LANLightToggle_100  = 0;
 #ifdef ETH_DRV_SET_PHY
             mon_snd_cmd(MON_CMD_LINK_CHK);
 #endif

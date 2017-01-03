@@ -178,6 +178,7 @@
 #define Usb11_Lite	   1	//GPIO 15; Green; Low active
 #define Usb20_Lite	   2	//GPIO 15; Green; Low active
 #define Wireless_Lite  3	//GPIO 14; Yellow; Low active
+#define Network_Lite   4
 
 /***********************************************************************/
 /*                          WEB Definition                             */

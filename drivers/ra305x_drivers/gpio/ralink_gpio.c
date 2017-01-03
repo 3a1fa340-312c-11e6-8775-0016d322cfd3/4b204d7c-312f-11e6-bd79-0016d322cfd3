@@ -21,6 +21,7 @@ int ralink_gpio_init (void)
     // use WDT_RST_N as WPS_KEY (GPIO38, input)
     //
     REG(RALINK_REG_GPIOMODE)  |= RALINK_GPIOMODE_WDT;
+    REG(RALINK_REG_GPIOMODE2) = 0;
     REG(RALINK_REG_GPIOMODE2) |= (RALINK_GPIOMODE_EPHY0|
                                   RALINK_GPIOMODE_EPHY1|
                                   RALINK_GPIOMODE_EPHY2|
@@ -83,6 +84,26 @@ inline void light_wireless_off(void)
 }
 
 #if defined(N716U2)
+inline void light_network_on_100M(void)
+{
+    REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_100M));
+}
+
+inline void light_network_off_100M(void)
+{
+    REG(RALINK_REG_PIO6332DATA) |= (1 << PS_GPIO_POS_100M);
+}
+
+inline void light_network_on_10M(void)
+{
+    REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_10M));
+}
+
+inline void light_network_off_10M(void)
+{
+    REG(RALINK_REG_PIO6332DATA) |= (1 << PS_GPIO_POS_10M);
+}
+
 inline void light_network_100M(void)
 {
     REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_100M));
@@ -93,6 +114,18 @@ inline void light_network_10M(void)
 {
     REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_10M));
     REG(RALINK_REG_PIO6332DATA) |= (1 << PS_GPIO_POS_100M);
+}
+
+inline void light_network_on(void)
+{
+    REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_100M));
+    REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_10M));
+}
+
+inline void light_network_off(void)
+{
+    REG(RALINK_REG_PIO6332DATA) |= (1 << PS_GPIO_POS_100M);
+    REG(RALINK_REG_PIO6332DATA) |= (1 << PS_GPIO_POS_10M);
 }
 #endif /* N716U2 */
 

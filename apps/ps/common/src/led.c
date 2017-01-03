@@ -286,7 +286,10 @@ void LightToggleProc(cyg_addrword_t data)
 #if defined(N716U2W) || defined(N716U2)
 		if( LANLightToggle )
 		{
-			nLEDValue |= (1 << Status_Lite);
+            nLEDValue |= (1 << Status_Lite);
+#if defined(N716U2)
+            nLEDValue |= (1 << Network_Lite);
+#endif /* N716U2 */
 
 			LANLightToggle--;
 			if( LANLightToggle > 5 ) LANLightToggle = 5;
@@ -298,18 +301,10 @@ void LightToggleProc(cyg_addrword_t data)
             cyg_thread_delay(50);
 			Light_On( Status_Lite );	
             cyg_thread_delay(50);
-			
             // LANLightToggle_down--;
             // if( LANLightToggle_down > 5 ) LANLightToggle_down = 5;
 		}
 #endif
-
-#if defined(N716U2)
-        if (LANLightToggle_100)
-            light_network_100M();
-        else
-            light_network_10M();
-#endif /* N716U2 */
 
 #ifdef  USB_LED		
 #if 0	//ZOT716u2
@@ -385,6 +380,7 @@ void LightToggleProc(cyg_addrword_t data)
                 #endif /* defined ARCH_ARM */
                 #if defined(ARCH_MIPS)
                 light_status_off();
+                light_network_off();
                 #endif /* defined ARCH_MIPS */
 			}
 
@@ -455,6 +451,16 @@ void LightToggleProc(cyg_addrword_t data)
             }
             else if(nLEDValue & (1 << Usb20_Lite)) {
                 light_usb_on(); 
+            }
+            if (nLEDValue & (1 << Network_Lite)) {
+                #if defined(N716U2)
+                if (LANLightToggle_down == 0) {
+                    if (LANLightToggle_100)
+                        light_network_on_100M();
+                    else
+                        light_network_on_10M();
+                }
+                #endif /* N716U2 */
             }
             #endif /* defined ARCH_MIPS */
 			ppause(30);

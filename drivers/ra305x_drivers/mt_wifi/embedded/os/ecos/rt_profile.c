@@ -285,6 +285,13 @@ NDIS_STATUS	RTMPReadParametersHook(
 			diag_printf("RTMPReadParametersHook->first wifi\n");
 		}	
     
+    #ifdef WIFI_CERTIFICATION
+    set_rx_gain(pAd, "10500=46F0776F\0");
+    set_rx_gain(pAd, "11500=46F0776F\0");
+    set_rx_gain(pAd, "1050C=B2D0D5E3\0");
+    set_rx_gain(pAd, "1150C=B2D0D5E3\0");
+    #endif /* WIFI_CERTIFICATION */
+
     if (wlanbuf)
         free (wlanbuf);
     

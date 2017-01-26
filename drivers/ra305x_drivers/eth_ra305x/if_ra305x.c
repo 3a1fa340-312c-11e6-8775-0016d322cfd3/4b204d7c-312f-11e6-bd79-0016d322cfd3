@@ -1944,16 +1944,22 @@ static void ra305x_esw_dsr(cyg_vector_t vec, cyg_ucount32 count, cyg_addrword_t 
             if (new_link) {
                 LANLightToggle_down = 0;
                 if (port_ability & RAESW_PHY_SPEED_MASK) {
+                    #if defined(N716U2)
                     light_network_on_100M();
+                    #endif /* N716U2 */
                     LANLightToggle_100  = 1;
                 }
                 else {
+                    #if defined(N716U2)
                     light_network_on_10M();
+                    #endif /* N716U2 */
                     LANLightToggle_100  = 0;
                 }
             }
             else {
+                #if defined(N716U2)
                 light_network_off();
+                #endif /* N716U2 */
                 LANLightToggle_down = 1;
             }
 

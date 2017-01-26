@@ -794,7 +794,20 @@ void EEPROMInit(void)
 		NeedWriteEEPROM = 1;
 		NeedWriteDEFAULT = 1;
 	}
-	
+//Andy:20161229 disable httpd feature+++
+#if !defined(O_ZOTCH) && !defined(O_ZOTCHS) && !defined(O_LINEUP)
+	if(((unsigned char)DEFAULT_Data.PrintServerMode2 != 0x23) || ((unsigned char)EEPROM_Data.PrintServerMode2 != 0x23))
+	{
+		// RAWTCP, FTP, HTTP must be enabled.
+		EEPROM_Data.PrintServerMode2 |= ( PS_RAWTCP_MODE | PS_FTP_MODE | PS_HTTP_MODE );
+		DEFAULT_Data.PrintServerMode2 |= ( PS_RAWTCP_MODE | PS_FTP_MODE | PS_HTTP_MODE );
+		
+		NeedWriteEEPROM = 1;
+		NeedWriteDEFAULT = 1;
+	}
+#endif	// !defined(O_ZOTCH) && !defined(O_ZOTCHS) && !defined(O_LINEUP)
+//Andy:20161229 disable httpd feature---	
+
 #if defined(N716U2W)
 	// WPS -- RT8188
 	if(EEPROM_Data.WLMode > 0)

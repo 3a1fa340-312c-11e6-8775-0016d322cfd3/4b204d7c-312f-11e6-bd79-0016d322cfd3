@@ -29,6 +29,7 @@
 #define PS_WEBJETADMIN_ON	0x04	//2002/03/06
 #define PS_SNMP_MODE		0x08	// George added at build0014 on June 1, 2009
 #define PS_TELNET_MODE		0x10	// George added at build0014 on June 1, 2009
+#define PS_HTTP_MODE        	0x20
 #define PS_CENTRAL_PRINT	0x80	//2002/05/22
 
 //PSUpgradeMode type:
@@ -36,5 +37,9 @@
 #define WAIT_UPGRADE_MODE	0x01
 #define IPX_UPGRADE_MODE	0x02
 #define TFTP_UPGRADE_MODE	0x03
+
+//Type of IP_LOAD_DEFAULT or IPLoadDef:
+#define PS_HWIP_LOADDEFAULT  0x01
+#define PS_WEBIP_LOADDEFAULT 0x02
 
 #endif  _PSDEFINE.H

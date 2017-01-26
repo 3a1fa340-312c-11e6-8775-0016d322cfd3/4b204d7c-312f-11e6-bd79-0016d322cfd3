@@ -2,8 +2,14 @@
 #define _EEPROM_H
 
 #define LENGTH_OF_BOX_NAME		18	
-#define SETUP_PASSWD_LEN		8	
-
+//Andy:20161229 modify lineup password len to 14 +++
+#ifdef O_LINEUP
+#define SETUP_PASSWD_LEN        14 //20161102:add for LINEUP password len +++
+#define SETUP_USERNAME_LEN		8 //20161102:add for LINEUP Username +++
+#else
+#define SETUP_PASSWD_LEN		8
+#endif
+//Andy:20161229 modify lineup password len to 14 ---
 //For NDS
 #define NDS_TREE_LEN			33
 #define NDS_CONTEXT_LEN 		251

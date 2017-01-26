@@ -3049,8 +3049,8 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 			k = 0;
 			for(j = 0 ; j < NUM_OF_PRN_PORT; j++) {
 				if (CurOFTotal[j] == 0 ) continue;
-				JobList = JOBLIST[(CurOFTotal[j] % MAX_JOB_LIST)-1];
-				if (JobList->Status == 0) continue;
+                JobList = JOBLIST[(CurOFTotal[j]-1) % MAX_JOB_LIST];
+                if (JobList->Status == 0) continue;
 //				if(JobList->Status != 1) continue;	// I only need "printing", include "paper out".
 				k++;
 #if (defined(N616U2) || defined(N716U2)) && defined(O_IOG)

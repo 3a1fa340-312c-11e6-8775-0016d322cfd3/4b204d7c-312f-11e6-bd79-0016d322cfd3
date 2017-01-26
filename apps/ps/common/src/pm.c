@@ -6,7 +6,8 @@
 
 #include "star_gpio.h"
 #include "star_powermgt.h"
-
+#include "eeprom.h"
+#include "led.h"
 #define ZOT_IDLE_TASK_PRI         20	
 #define ZOT_IDLE_TASK_STACK_SIZE	 3072 
 static uint8 			ZOT_IDLE_Stack[ZOT_IDLE_TASK_STACK_SIZE];
@@ -42,6 +43,7 @@ void zot_idle_task(cyg_addrword_t data)
     #endif /* DWP2020 */
     if (value == 0) {
         ResetToDefalutFlash(1, 0, 0);
+        REBOOT();//Andy:20170105 Reboot after power on load default+++
     }
     #endif /* ARCH_MIPS */
 
@@ -81,16 +83,24 @@ void zot_idle_task(cyg_addrword_t data)
 // #else
 //                 if( (current - start) > 10 ) needboot = 1;
 //                 if( (current - start) > 300 ) needprint = 1;
-                #if defined(N716U2) || defined(NDWP2020)
+                #if  defined(NDWP2020)
                 if ((current - start) > 500) {
                     needboot = 1;
                     needwps  = 0;
                 }
                 else needwps = 1;
-                #endif /* N716U2 || NDWP2020 */
-                #if defined(N716U2W)
+                #endif /* NDWP2020 */
+                //Andy:20170105 add test page+++
+                #if defined(N716U2)
+                if ((current - start) > 500)
+                    needprint=1;
+                #endif /* N716U2 */
+                //Andy:20170105 add test page---
+
+                #if defined(N716U2W) || defined(N716U2)
+                //#if defined(N716U2W)
                 if (current - start > 50) needboot = 1;
-                #endif /* defined N716U2 || N716U2W */
+                #endif /* N716U2W */
 //#endif	// defined(O_CONRAD)
 			}
 		}
@@ -145,8 +155,26 @@ void zot_idle_task(cyg_addrword_t data)
 			needprint = 0;
 			if (needboot) 
 			{
-				REBOOT();	//ZOT 20100713
-				ppause(10000);
+			//Andy:20161229  Start HTTPD after system reset+++
+				#if defined(O_ZOTCH) || defined(O_LINEUP)//Andy:20161201 add O_LINEUP to Start HTTPD after system reset.
+					// George added this at build0019 in 716U2 on November 18, 2010.
+					// Start HTTPD after system reboot.
+					// Start IPPD, too? No. It's up to the administrator.
+					EEPROM_Data.PrintServerMode2 |= PS_HTTP_MODE;
+					
+					if( WriteToEEPROM(&EEPROM_Data) != 0 )
+						ErrLightOnForever(Status_Lite); // Write EEPROM Data error
+					
+					// Jesse modified this at build0019 in 716U2 on November 18, 2010.
+					REBOOT();
+					//ppause(10000);
+					// Jesse modified this at build0019 in 716U2 on November 23, 2010.
+					while(1)
+						cyg_thread_yield();
+				#else
+					REBOOT();
+				#endif	// defined(O_ZOTCH) || defined(O_LINEUP)
+			//Andy:20161229  Start HTTPD after system reset---
 			}
 		}		
 		

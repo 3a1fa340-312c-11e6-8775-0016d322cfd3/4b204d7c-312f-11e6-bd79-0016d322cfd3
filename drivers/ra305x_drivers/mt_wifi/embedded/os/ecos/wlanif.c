@@ -372,6 +372,7 @@ char* WLan_config ()
     offset += sprintf(config_buf+offset, "WirelessMode=%d\n", wirelessMode);
 
     //offset += sprintf(config_buf+offset, "CountryCode=TW\n");
+    offset += sprintf(config_buf+offset, "CountryCode=FR\n");
     /* country region */
     //offset += sprintf(config_buf+offset, "CountryRegion=%d\n", mvWDomain);
     offset += sprintf(config_buf+offset, "CountryRegion=%d\n", mt7601_countryRegion);
@@ -1560,4 +1561,13 @@ void start_emi_thread(void)
                 &EMI_Task);
         cyg_thread_resume(EMI_TaskHdl);
     }
+}
+
+void set_rx_gain(RTMP_ADAPTER *pAd, char* config_string)
+{
+    RTMP_IOCTL_INPUT_STRUCT wrq;
+
+    wrq.u.data.pointer = config_string;
+    wrq.u.data.length = strlen(config_string);
+    RTMPIoctlMAC(pAd, &wrq);
 }

@@ -746,7 +746,14 @@ void ps_init(void)
 #if defined(O_ZOTCH) || defined(O_AXIS)
 	if(EEPROM_Data.APPTLKEn)
 #else
+//Andy:20161229 make sure lineup apple talk on +++
+#if defined(O_LINEUP)
+	EEPROM_Data.APPTLKEn=0x01;
+	if(EEPROM_Data.APPTLKEn)
+#else
 	if(PSMode & PS_ATALK_MODE)
+#endif //defined(O_LINEUP)
+//Andy:20161229 make sure lineup apple talk on ---
 #endif	// defined(O_ZOTCH)
 	{
 
@@ -939,9 +946,11 @@ void ps_init(void)
 //Supported HTTP
 //////// Supported Windows Print Server <IPP>
 #ifdef HTTPD
-	#if defined(O_ZOTCH)
+	//Andy:20161229 add LINEUP disable httpd function+++ 
+	#if defined(O_ZOTCH) || defined(O_LINEUP)
+	//Andy:20161229 add LINEUP disable httpd function--- 
 	if(PSMode2 & PS_HTTP_MODE)
-	#endif	// defined(O_ZOTCH)
+	#endif	// defined(O_ZOTCH) || defined(O_LINEUP)
 	httpd_init();
 #endif HTTPD	
 
@@ -1011,10 +1020,12 @@ void ps_init(void)
 
 #ifdef TELNETD
 #if (!defined(O_ELEC) && !defined(N716U2S))
-#if defined(O_ZOTCH) || defined(O_ZOTCHW)
+//Andy:20161229 add LINEUP disable telnet feature+++
+#if defined(O_ZOTCH) || defined(O_ZOTCHW) || defined(O_LINEUP)
+//Andy:20161229 add LINEUP disable telnet feature---
 	// George Add June 1, 2009
 	if(PSMode2 & PS_TELNET_MODE)
-#endif	// defined(O_ZOTCH) || defined(O_ZOTCHW)
+#endif	// defined(O_ZOTCH) || defined(O_ZOTCHW) || defined(O_LINEUP)
 	{	
 		//Create TELNET Thread
 		cyg_thread_create(TELNET_TASK_PRI,

@@ -380,7 +380,9 @@ void LightToggleProc(cyg_addrword_t data)
                 #endif /* defined ARCH_ARM */
                 #if defined(ARCH_MIPS)
                 light_status_off();
+                #if defined(N716U2) 
                 light_network_off();
+                #endif /* N716U2 */
                 #endif /* defined ARCH_MIPS */
 			}
 

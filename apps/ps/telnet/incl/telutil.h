@@ -10,7 +10,13 @@
 
 // define length
 #define LENGTH_OF_USERNAME      48 // string (include zero char)
+//Andy:20161229 modify lineup password len to 14 +++
+#ifdef O_LINEUP
+#define LENGTH_OF_PASSWORD      14 //20161102:add for LINEUP password len
+#else
 #define LENGTH_OF_PASSWORD       8 // string (include zero char)
+#endif
+//Andy:20161229 modify lineup password len to 14 ---
 #define LENGTH_OF_PS_NAMES      48 // string (include zero char)
 #define LENGTH_OF_MULTI_CHOICE  10 // string (include zero char)
 #define LENGTH_OF_BUFFER        30

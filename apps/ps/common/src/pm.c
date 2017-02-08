@@ -42,8 +42,8 @@ void zot_idle_task(cyg_addrword_t data)
     value = get_wps_input();        /* GPIO38 */
     #endif /* DWP2020 */
     if (value == 0) {
-        ResetToDefalutFlash(1, 0, 0);
-        REBOOT();//Andy:20170105 Reboot after power on load default+++
+        ResetToDefalutFlash(0, 0, 0);
+        REBOOT();
     }
     #endif /* ARCH_MIPS */
 
@@ -90,17 +90,15 @@ void zot_idle_task(cyg_addrword_t data)
                 }
                 else needwps = 1;
                 #endif /* NDWP2020 */
-                //Andy:20170105 add test page+++
-                #if defined(N716U2)
-                if ((current - start) > 500)
-                    needprint=1;
-                #endif /* N716U2 */
-                //Andy:20170105 add test page---
 
                 #if defined(N716U2W) || defined(N716U2)
-                //#if defined(N716U2W)
+                if ((current - start) > 500)
+                    needprint=1;
+                #endif /* defined N716U2 || N716U2W */
+
+                #if defined(N716U2W) || defined(N716U2)
                 if (current - start > 50) needboot = 1;
-                #endif /* N716U2W */
+                #endif /* defined N716U2 || N716U2W */
 //#endif	// defined(O_CONRAD)
 			}
 		}
@@ -156,7 +154,7 @@ void zot_idle_task(cyg_addrword_t data)
 			if (needboot) 
 			{
 			//Andy:20161229  Start HTTPD after system reset+++
-				#if defined(O_ZOTCH) || defined(O_LINEUP)//Andy:20161201 add O_LINEUP to Start HTTPD after system reset.
+				#if defined(O_ZOTCH) 
 					// George added this at build0019 in 716U2 on November 18, 2010.
 					// Start HTTPD after system reboot.
 					// Start IPPD, too? No. It's up to the administrator.

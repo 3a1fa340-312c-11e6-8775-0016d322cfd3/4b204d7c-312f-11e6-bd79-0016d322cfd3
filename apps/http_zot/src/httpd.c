@@ -682,7 +682,8 @@ BYTE IsSeedPassword(int8 *buf, int8 *pwd);
 
 //BYTE WebLangVersion; //4/26/2000
 
-int8 HttpNeedWriteEEPROM = 0, HttpNeedLoadDefault = 0;
+
+int8 HttpNeedWriteEEPROM = 0, HttpNeedLoadDefault = 0, HttpNeedLoadDefaultAll=0;
 int8 HttpNeedReboot = 0, HttpNeedReset = 0;
 int8 WlanNeedServey = 0;
 const int8 *Cgi_Error;
@@ -999,6 +1000,24 @@ extern const int8*  MediaMode[];  //9/27/99
 
 #define ECHO_WLBANDWIDTH			204
 #define ECHO_WLDATARATE				205
+
+// IPX enable/disable	// George Add June 29, 2006
+#define ECHO_IPX_DISABLED			206
+
+// Services				// George added these in PSWB at build0014 on May 27, 2009.
+						// George added these in 716U2 at build0016 on January 25, 2010.
+#define ECHO_LPR_MODE				207
+#define ECHO_IPP_MODE				208
+#define ECHO_SMB_MODE				209
+#define ECHO_FTP_MODE				210
+#define ECHO_TELNET_MODE			211
+#define ECHO_SNMP_MODE				212
+
+// Load default			// George added these in PSWB at build0017 on June 11, 2010.
+						// George added these in 716U2 at build0019 on November 11, 2010.
+#define ECHO_WEBIP_LOADDEFAULT			213
+#define ECHO_LOAD_DEFAULTALL			214
+#define ECHO_HTTP_MODE				215
 
 #define CGI_IP_ERROR            0
 #define CGI_SUBNET_ERROR        1
@@ -3091,6 +3110,41 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 			}
 			break;
 #endif	//SUPPORT_JOB_LOG
+#if defined(O_ZOTCH)
+		// George added this in PSWB at build0017 on June 11, 2010.
+		// George added this in 716U2 at build0019 on November 11, 2010.
+		case ECHO_WEBIP_LOADDEFAULT:
+			//if( EEPROM_Data.IPLoadDef & PS_WEBIP_LOADDEFAULT == PS_WEBIP_LOADDEFAULT )
+			switch(EEPROM_Data.IPLoadDef)
+			{
+			case 0x00:
+				strcpy(OutBuf,"0");
+				break;
+			case 0x01:
+				strcpy(OutBuf,"1");
+				break;
+			case 0x02:
+				strcpy(OutBuf,"2");
+				break;
+			case 0x03:
+				strcpy(OutBuf,"3");
+				break;
+			default:
+				strcpy(OutBuf,"4");
+			}
+			fputs(OutBuf,network);
+			break;
+
+		// George added this in 716U2 at build0019 on November 11, 2010.
+        //zoteh lineup feature
+		case ECHO_HTTP_MODE:
+			if( (BYTE)(EEPROM_Data.PrintServerMode2) & (BYTE)PS_HTTP_MODE  )
+				strcpy(OutBuf,"1");
+			else
+				strcpy(OutBuf,"0");
+			fputs(OutBuf,network);
+			break;
+#endif//defined(O_ZOTCH)
 #ifdef RENDEZVOUS
 		case ECHO_RANDVOUS:
 			sprintf(OutBuf, "%d", EEPROM_Data.RENVEnable);
@@ -3103,11 +3157,62 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 #endif//RENDEZVOUS
 #ifdef ATALKD
 		case ECHO_ATALKSETTINGS:
+#if defined(O_ZOTCH)
+			// sprintf(OutBuf, "%d", EEPROM_Data.APPTLKEn);
+			// George modified at build0016 on January 27, 2010.
+			if( EEPROM_Data.PrintServerMode & PS_ATALK_MODE )
+				strcpy(OutBuf,"1");
+			else
+				strcpy(OutBuf,"0");
+			fputs(OutBuf,network);
+		break;
+#else
 			sprintf(OutBuf, "%d", EEPROM_Data.APPTLKEn);
 			fputs(OutBuf,network);
 		break;
-#endif ATALKD
+#endif//N716U2
+#endif //ATALKD
+#if defined(O_ZOTCH)||defined(O_LINEUP)
+#ifdef TELNETD
+		case ECHO_TELNET_MODE:	// George Add June 1, 2009
+			if( EEPROM_Data.PrintServerMode2 & PS_TELNET_MODE )
+				strcpy(OutBuf,"1");
+			else
+				strcpy(OutBuf,"0");
+			fputs(OutBuf,network);
+			break;
+#endif //TELNETD
+            //zotch feature
+#ifdef FTPD
+		case ECHO_FTP_MODE:		// George Add May 27, 2009
+			if( EEPROM_Data.PrintServerMode2 & PS_FTP_MODE )
+				strcpy(OutBuf,"1");
+			else
+				strcpy(OutBuf,"0");
+			fputs(OutBuf,network);
+			break;
+#endif //FTPD
+            //zotch feature
+#ifdef LPD_TXT		// In other source codes, it is named UNIX_PS.
+		case ECHO_LPR_MODE:		// George Add May 27, 2009
+			if( EEPROM_Data.PrintServerMode & PS_UNIX_MODE )
+				strcpy(OutBuf,"1");
+			else
+				strcpy(OutBuf,"0");
+			fputs(OutBuf,network);
+			break;
+#endif //LPD_TXT
+#endif/*defined(O_ZOTCH)||defined(O_LINEUP)*/
 #ifdef IPPD
+#if defined(O_ZOTCH)
+		case ECHO_IPP_MODE:		// George Add May 27, 2009
+			if( EEPROM_Data.PrintServerMode & PS_IPP_MODE )
+				strcpy(OutBuf,"1");
+			else
+				strcpy(OutBuf,"0");
+			fputs(OutBuf,network);
+			break;
+#endif//defined(O_ZOTCH)
 		case ECHO_IPP_JOBS:
 		{
 			ipp_t *ippPrnJob;
@@ -3141,6 +3246,14 @@ void EchoOutput(FILE *network,int8 *OutBuf, int8 *EchoItem)
 			fputs(OutBuf,network);
 			HttpNeedLoadDefault = 1;
 			break;
+#if defined(O_ZOTCH)
+		// George added this at build0019 in 716U2 on November 15, 2010.
+		case ECHO_LOAD_DEFAULTALL:
+			strcpy(OutBuf,"");
+			fputs(OutBuf,network);
+			HttpNeedLoadDefaultAll = 1;
+			break;
+#endif//defined(O_ZOTCH)
 		case ECHO_SAVE_EEPROM:
 			strcpy(OutBuf,"");
 			fputs(OutBuf,network);
@@ -4594,6 +4707,14 @@ int CGIBoxSetting(FILE *network,int8 *inbuf, int8 *outbuf, struct reqInfo *rq)
 	} //if(p[ECHO_SET_FSNAME])
 
 #ifdef SNMPD
+#if defined(O_ZOTCH)
+	if(p[ECHO_SNMP_MODE]) {
+		if( atoi(p[ECHO_SNMP_MODE]) )
+			EEPROM_Data.PrintServerMode2 |= PS_SNMP_MODE;
+		else
+			EEPROM_Data.PrintServerMode2 &= ~((BYTE)PS_SNMP_MODE);
+	}
+#endif//defined(O_ZOTCH)
 	if(p[ECHO_SNMP_SYS_CONTACT]) {
 	    memcpy(EEPROM_Data.SnmpSysContact,p[ECHO_SNMP_SYS_CONTACT],SNMP_SYSCONTACT_LEN-1);
 		EEPROM_Data.SnmpSysContact[SNMP_SYSCONTACT_LEN-1] = '\0';
@@ -4660,6 +4781,18 @@ int CGIBoxSetting(FILE *network,int8 *inbuf, int8 *outbuf, struct reqInfo *rq)
 	}
 #endif SNMPD
 #ifdef ATALKD
+#if defined(O_ZOTCH)
+	if(p[ECHO_ATALKSETTINGS])
+	{
+		EEPROM_Data.APPTLKEn = (BYTE)atoi(p[ECHO_ATALKSETTINGS]);
+		
+		// George modified this at build0019 on December 1, 2010.
+		if(EEPROM_Data.APPTLKEn)
+			EEPROM_Data.PrintServerMode |= PS_ATALK_MODE;
+		else
+			EEPROM_Data.PrintServerMode &= ~((BYTE)PS_ATALK_MODE);
+	}
+#endif/*defined(O_ZOTCH)*/
 	for(i = 0 ; i < NUM_OF_PRN_PORT ; i++) {
 		if(p[i + ECHO_ATALK_PORT1_TYPE]) {
 			memcpy(EEPROM_Data.ATPortType[i],p[i + ECHO_ATALK_PORT1_TYPE],ATALK_TYPE_LEN-1);
@@ -4689,6 +4822,72 @@ int CGIBoxSetting(FILE *network,int8 *inbuf, int8 *outbuf, struct reqInfo *rq)
 	}
 
 #endif ATALKD
+#if defined(O_ZOTCH)
+#ifdef IPX_DISABLE
+	if(p[ECHO_IPX_DISABLED])
+		EEPROM_Data.IPXDisable = (BYTE)atoi(p[ECHO_IPX_DISABLED]);
+#endif //IPX_DISABLE
+
+#ifdef LPD_TXT		// In other source codes, it is named UNIX_PS.
+	if(p[ECHO_LPR_MODE])
+	{
+		if(atoi(p[ECHO_LPR_MODE]))
+			EEPROM_Data.PrintServerMode |= PS_UNIX_MODE;
+		else
+			EEPROM_Data.PrintServerMode &= ~((BYTE)PS_UNIX_MODE);
+	}
+#endif //LPD_TXT
+
+	// George added this in PSWB at build0017 on June 14, 2010.
+	// George added this in 716U2 at build0019 on November 11, 2010.
+	if(p[ECHO_WEBIP_LOADDEFAULT])
+	{
+		if(atoi(p[ECHO_WEBIP_LOADDEFAULT]))
+		{
+			// Web Load Default, including TCP/IP settings. -- If the administrator needs this.
+			EEPROM_Data.IPLoadDef |= PS_WEBIP_LOADDEFAULT;
+		}
+		else
+		{
+			// Web Load Default, excluding TCP/IP settings. -- Factory Default
+			EEPROM_Data.IPLoadDef &= ~((BYTE)PS_WEBIP_LOADDEFAULT);
+		}
+	}
+
+#ifdef IPPD						// George Add May 27, 2009
+	// George added this at build0009 in 716U2 on November 11, 2010.
+	if(p[ECHO_HTTP_MODE])
+	{
+		if(atoi(p[ECHO_HTTP_MODE]))
+			EEPROM_Data.PrintServerMode2 |= PS_HTTP_MODE;
+		else
+		{
+			EEPROM_Data.PrintServerMode2 &= ~((BYTE)PS_HTTP_MODE);
+
+			// We cannot run IPPD without running HTTPD.
+			// Therefore stop IPPD, too.
+			EEPROM_Data.PrintServerMode &= ~((BYTE)PS_IPP_MODE);
+		}
+	}
+	
+	if(p[ECHO_IPP_MODE])
+	{
+		if(atoi(p[ECHO_IPP_MODE]))
+			EEPROM_Data.PrintServerMode |= PS_IPP_MODE;
+		else
+			EEPROM_Data.PrintServerMode &= ~((BYTE)PS_IPP_MODE);
+	}
+#else
+	// George added this at build0016 in PSRDC_636U2P on January 25, 2010.
+	if(p[ECHO_HTTP_MODE])
+	{
+		if(atoi(p[ECHO_HTTP_MODE]))
+			EEPROM_Data.PrintServerMode2 |= PS_HTTP_MODE;
+		else
+			EEPROM_Data.PrintServerMode2 &= ~((BYTE)PS_HTTP_MODE);
+	}
+#endif //IPPD
+#endif //defined(O_ZOTCH)
 #ifdef RENDEZVOUS
 	if(p[ECHO_RANDVOUS])
 		EEPROM_Data.RENVEnable = (BYTE)atoi(p[ECHO_RANDVOUS]);
@@ -5452,6 +5651,15 @@ int CGIBoxSetting(FILE *network,int8 *inbuf, int8 *outbuf, struct reqInfo *rq)
 #endif //defined(WIRELESS_CARD)
 
 #ifdef SMBD
+#if defined(O_ZOTCH)
+	if(p[ECHO_SMB_MODE])
+	{
+		if(atoi(p[ECHO_SMB_MODE]))
+			EEPROM_Data.PrintServerMode |= PS_SMB_MODE;
+		else
+			EEPROM_Data.PrintServerMode &= ~((BYTE)PS_SMB_MODE);
+	}
+#endif//defined(O_ZOTCH)
 	if(p[ECHO_WORKGROUP]){
 		strcpy( EEPROM_Data.WorkGroupName, p[ECHO_WORKGROUP] );
 	}
@@ -5467,7 +5675,27 @@ int CGIBoxSetting(FILE *network,int8 *inbuf, int8 *outbuf, struct reqInfo *rq)
 	if(p[ECHO_SHAREPRINT3]){
 		strcpy( EEPROM_Data.ServiceName[2],p[ECHO_SHAREPRINT3] );
 	}
-#endif 
+#endif //SMBD
+#if defined(O_ZOTCH)||defined(O_LINEUP)
+#ifdef TELNETD					// George Add June 1, 2009
+	if(p[ECHO_TELNET_MODE])
+	{
+		if(atoi(p[ECHO_TELNET_MODE]))
+			EEPROM_Data.PrintServerMode2 |= PS_TELNET_MODE;
+		else
+			EEPROM_Data.PrintServerMode2 &= ~((BYTE)PS_TELNET_MODE);
+	}
+#endif //TELNETD
+#ifdef FTPD						// George Add May 27, 2009
+	if(p[ECHO_FTP_MODE])
+	{
+		if(atoi(p[ECHO_FTP_MODE]))
+			EEPROM_Data.PrintServerMode2 |= PS_FTP_MODE;
+		else
+			EEPROM_Data.PrintServerMode2 &= ~((BYTE)PS_FTP_MODE);
+	}
+#endif //FTPD
+#endif/*defined(O_ZOTCH)||defined(O_LINEUP)*/
 #ifdef Mail_ALERT
 	if(p[ECHO_MAILALERT]){
 		EEPROM_Data.AlertEnabled = atoi(p[ECHO_MAILALERT]);

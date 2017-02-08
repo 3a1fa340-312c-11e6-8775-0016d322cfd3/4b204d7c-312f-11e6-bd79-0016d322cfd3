@@ -672,7 +672,36 @@ const char *EchoName[] = {
 	,"WLBandWidth"	
 
 #define ECHO_WLDATARATE				205
-	,"WLDataRate"		
+	,"WLDataRate"
+// IPX enable/disable	// George Add June 29, 2006
+#define ECHO_IPX_DISABLED		    206	
+	,"IPX_Disabled"
+	
+
+// Services				// George added these in PSWB at build0014 on May 27, 2009.
+						// George added these in 716U2 at build0016 on January 25, 2010.
+#define ECHO_LPR_MODE				207
+	,"UNIX_MODE"
+#define ECHO_IPP_MODE				208
+	,"IPP_MODE"
+#define ECHO_SMB_MODE			    209	
+	,"SMB_MODE"
+#define ECHO_FTP_MODE				210
+	,"FTP_MODE"
+#define ECHO_TELNET_MODE			211
+	,"TELNET_MODE"
+#define ECHO_SNMP_MODE				212
+	,"SNMP_MODE"
+
+// Load default			// George added these in PSWB at build0017 on June 11, 2010.
+						// George added these in 716U2 at build0019 on November 11, 2010.
+#define ECHO_WEBIP_LOADDEFAULT		213
+	,"WEBIP_LOADDEFAULT"
+#define ECHO_LOAD_DEFAULTALL		214
+	,"LoadDefaultAll"
+#define ECHO_HTTP_MODE				215
+	,"HTTP_MODE"
+		
 //////////////////////////////////////////////
 	// Max Echo Item < (HLINELEN / 4)
 	// please search (while( (HLINELEN/4) <= i)) , LINE 26XX

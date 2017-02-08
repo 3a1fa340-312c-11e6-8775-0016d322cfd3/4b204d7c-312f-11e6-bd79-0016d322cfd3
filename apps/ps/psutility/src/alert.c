@@ -322,6 +322,16 @@ register struct smtpcli *cb;
 {
 	int error = 0;
 	uint8 mail_status = 0;
+    //Bug: Mail alert will send password to user.
+    //I try to fix it by add \0 while EEPROM_Data.BoxName initlize.(in the file eeprom.c)
+    //But in web GUI,the length of EEPROM_Data.BoxName filed is 18,it will cover the \0.
+    //If user input 18 char in web GUI,the bug will happen again.
+    //Maybe change the web gui is easier,but I have to change all web GUI.
+    //I'm not sure which solution is better so I try to fix it for temporarily. 
+    unsigned char temp_message[19];
+    strncpy(temp_message,EEPROM_Data.BoxName,sizeof(EEPROM_Data.BoxName));
+    temp_message[18]='\0';
+
 	
 	strcpy(cb->buf,"\r\n");
 
@@ -329,7 +339,7 @@ register struct smtpcli *cb;
 		Fputc('.',cb->network);
 		
 	if (alertType[0] == 0)
-		sendcmd(cb, "$( %s ) %d port PrintServer is ready\r\n", EEPROM_Data.BoxName, MailPort);
+		sendcmd(cb, "$( %s ) %d port PrintServer is ready\r\n", temp_message, MailPort);
 	else
 	{
 		if (!Is_Constraint)
@@ -338,13 +348,13 @@ register struct smtpcli *cb;
 		switch(mail_status)
 		{
 		case 1:		//current ststus : ALERT_RECOVERY
-			sendcmd(cb, "$( %s ) port %d is out of paper or (offline)\r\n", EEPROM_Data.BoxName, MailPort+1);
+			sendcmd(cb, "$( %s ) port %d is out of paper or (offline)\r\n", temp_message, MailPort+1);
 			break;
 		case 2:		//current ststus : ALERT_ERROR
-			sendcmd(cb, "$( %s ) port %d is ready\r\n", EEPROM_Data.BoxName, MailPort+1);
+			sendcmd(cb, "$( %s ) port %d is ready\r\n", temp_message, MailPort+1);
 			break;
 		default:
-			sendcmd(cb, "$( %s ) MAC is reset\r\n", EEPROM_Data.BoxName);
+			sendcmd(cb, "$( %s ) MAC is reset\r\n", temp_message);
 			break;
 		}
 	}

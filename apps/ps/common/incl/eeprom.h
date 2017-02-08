@@ -77,7 +77,12 @@ typedef struct EEPROM {
 								//40:636U2PW	41:8636U2		42:P101S
 								//43:DWP1000	44:DWM1000		45:iN-210
 								//46:PU201S
+                                //47:716U2
 								//50:716U2W
+                                //55:DWP2020
+                                //56(0x38):716U2  (MT7688)
+                                //57(0x39):716U2W (MT7688)
+                                //58(0x3A):DWP2021(MT7688)
 
 	BYTE BoxName[LENGTH_OF_BOX_NAME]; //Device Name. (none zero string)
 	BYTE Password[SETUP_PASSWD_LEN];	//Configuration Device Password.

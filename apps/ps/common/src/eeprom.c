@@ -212,7 +212,7 @@ int ReadFromFactory(EEPROM *Data){
 	Data->Version[0] = 0x00;  //Hardware version = Version[0] & 0xF
 	Data->Version[1] = 0x06;  //Software version = BYTE[1] * 0x10 + (BYTE[0] >> 4)
 #if defined(N716U2W)
-	Data->Model = 0x32; 	   //00:N6101EP    01:N6102EP		02:N6200EP
+	Data->Model = 57; 	       //00:N6101EP    01:N6102EP		02:N6200EP
 							   //03:N6300EP    04:N6301EP		06:N6300II
 							   //07:737,6300+  08:7227			09:PCI520
 							   //10:7117	   11:7339,7339+	12:7119
@@ -224,12 +224,16 @@ int ReadFromFactory(EEPROM *Data){
 							   //28:           29:              30:
 							   //31:           32:615WU
 							   //50:716U2W								   
+                               //55:DWP2020
+                               //56(0x38):716U2  (MT7688)
+                               //57(0x39):716U2W (MT7688)
+                               //58(0x3A):DWP2021(MT7688)
 #endif
 #if defined(N716U2)
-    Data->Model = 0x2F;
+    Data->Model = 56;
 #endif
 #if defined(NDWP2020)
-    Data->Model = 0x37;
+    Data->Model = 58;
 #endif
 	memset(Data->BoxName, 0x00, LENGTH_OF_BOX_NAME); //Device Name. (none zero string) 
 #ifdef O_AXIS

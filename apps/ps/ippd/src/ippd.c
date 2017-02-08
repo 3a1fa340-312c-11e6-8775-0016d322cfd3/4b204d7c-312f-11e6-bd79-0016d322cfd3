@@ -559,7 +559,7 @@ void ippProcessBINJob (int port, ipp_t *ippObj)
 	
 	
 	do {
-		startime = 0;
+		startime = rdclock();
 		while((pbuf = PrnGetInQueueBuf(port)) == NULL) {
 
 			//********************************************************

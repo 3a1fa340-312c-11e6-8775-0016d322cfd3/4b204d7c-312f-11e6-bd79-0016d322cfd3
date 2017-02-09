@@ -3,7 +3,7 @@ HTML_FILE   = O_ZOT
 TARGET      = N716U2W
 CODE_TYPE   = 2
 
-PSMODELINDEX  = 50
+PSMODELINDEX  = 57
 MajorVer      = 9
 MinorVer      = 8
 ReleaseVer    = 114

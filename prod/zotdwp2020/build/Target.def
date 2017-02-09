@@ -3,13 +3,13 @@ HTML_FILE   = O_TPLINK
 TARGET      = NDWP2020
 CODE_TYPE   = 2
 
-PSMODELINDEX  = 55
+PSMODELINDEX  = 58
 MajorVer      = 9
 MinorVer      = 8
 ReleaseVer    = 115
-RDVersion     = 545
+RDVersion     = 548
 BuildVer      = 8
-FirmwareString = (STR8132-9.08.55.0008.00000545s-2017/01/16 12:41:18)
+FirmwareString = (STR8132-9.08.58.0008.00000548s-2017/02/09 10:25:58)
 
 #FLASH_SIZE UNIT Mbyte
 FLASH_SIZE    = 1

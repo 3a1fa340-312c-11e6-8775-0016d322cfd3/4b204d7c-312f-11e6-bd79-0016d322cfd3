@@ -371,8 +371,11 @@ char* WLan_config ()
 
     offset += sprintf(config_buf+offset, "WirelessMode=%d\n", wirelessMode);
 
-    //offset += sprintf(config_buf+offset, "CountryCode=TW\n");
+    #ifdef WIFI_CERTIFICATION
     offset += sprintf(config_buf+offset, "CountryCode=FR\n");
+    #else
+    offset += sprintf(config_buf+offset, "CountryCode=TW\n");
+    #endif
     /* country region */
     //offset += sprintf(config_buf+offset, "CountryRegion=%d\n", mvWDomain);
     offset += sprintf(config_buf+offset, "CountryRegion=%d\n", mt7601_countryRegion);
@@ -509,6 +512,8 @@ char* WLan_config ()
 
     //      mvWEPType : 1 -> 64-bit  , key at mvWEPKEY1-4
     //      mvWEPType : 2 -> 128-bit , key at mvWEP128KEY1-4
+    //      WLWEPFormat : 0 -> Alphanumeric
+    //      WLWEPFormat : 1 -> Hexadecimal
     #if 1
     switch(mvAuthenticationType) {
         case 1: /* open */
@@ -579,24 +584,56 @@ char* WLan_config ()
     //		5 or 13 characters  (key type=1)
     //    (usage : reading profile only)	
     
-    offset += sprintf(config_buf+offset, "Key1Type=1\n");
-    offset += sprintf(config_buf+offset, "Key2Type=1\n");
-    offset += sprintf(config_buf+offset, "Key3Type=1\n");
-    offset += sprintf(config_buf+offset, "Key4Type=1\n");
+    if (EEPROM_Data.WLWEPKeyType) {
+        offset += sprintf(config_buf+offset, "Key1Type=0\n");
+        offset += sprintf(config_buf+offset, "Key2Type=0\n");
+        offset += sprintf(config_buf+offset, "Key3Type=0\n");
+        offset += sprintf(config_buf+offset, "Key4Type=0\n");
+    }
+    else {
+        offset += sprintf(config_buf+offset, "Key1Type=1\n");
+        offset += sprintf(config_buf+offset, "Key2Type=1\n");
+        offset += sprintf(config_buf+offset, "Key3Type=1\n");
+        offset += sprintf(config_buf+offset, "Key4Type=1\n");
+    }
 
     #if 1
     if ((mvAuthenticationType == 1) || (mvAuthenticationType == 2)) {
         if (mvWEPType == 1) {
+            if (EEPROM_Data.WLWEPKeyType) {
+                wep_hex_to_string(mvWEPKey, mvWEPKey1, 5);
+                offset += sprintf(config_buf+offset, "Key1Str=%s\n", mvWEPKey);
+                wep_hex_to_string(mvWEPKey, mvWEPKey2, 5);
+                offset += sprintf(config_buf+offset, "Key2Str=%s\n", mvWEPKey);
+                wep_hex_to_string(mvWEPKey, mvWEPKey3, 5);
+                offset += sprintf(config_buf+offset, "Key3Str=%s\n", mvWEPKey);
+                wep_hex_to_string(mvWEPKey, mvWEPKey4, 5);
+                offset += sprintf(config_buf+offset, "Key4Str=%s\n", mvWEPKey);
+            }
+            else {
                 offset += sprintf(config_buf+offset, "Key1Str=%s\n", mvWEPKey1);
                 offset += sprintf(config_buf+offset, "Key2Str=%s\n", mvWEPKey2);
                 offset += sprintf(config_buf+offset, "Key3Str=%s\n", mvWEPKey3);
                 offset += sprintf(config_buf+offset, "Key4Str=%s\n", mvWEPKey4);
+            }        
         } 
         if (mvWEPType == 2) {
+            if (EEPROM_Data.WLWEPKeyType) {
+                wep_hex_to_string(mvWEPKey, mvWEPKey1, 13);
+                offset += sprintf(config_buf+offset, "Key1Str=%s\n", mvWEPKey);
+                wep_hex_to_string(mvWEPKey, mvWEPKey2, 13);
+                offset += sprintf(config_buf+offset, "Key2Str=%s\n", mvWEPKey);
+                wep_hex_to_string(mvWEPKey, mvWEPKey3, 13);
+                offset += sprintf(config_buf+offset, "Key3Str=%s\n", mvWEPKey);
+                wep_hex_to_string(mvWEPKey, mvWEPKey4, 13);
+                offset += sprintf(config_buf+offset, "Key4Str=%s\n", mvWEPKey);
+            }
+            else {
                 offset += sprintf(config_buf+offset, "Key1Str=%s\n", mvWEP128Key);
                 offset += sprintf(config_buf+offset, "Key2Str=%s\n", mvWEP128Key2);
                 offset += sprintf(config_buf+offset, "Key3Str=%s\n", mvWEP128Key3);
                 offset += sprintf(config_buf+offset, "Key4Str=%s\n", mvWEP128Key4);
+            }
         }
     }
 
@@ -605,8 +642,8 @@ char* WLan_config ()
     }
 
     #else
-    offset += sprintf(config_buf+offset, "WPAPSK=termy22688953\n");
-    //offset += sprintf(config_buf+offset, "Key1Str=termy22688953\n");
+    //  offset += sprintf(config_buf+offset, "WPAPSK=termy22688953\n");
+    offset += sprintf(config_buf+offset, "Key1Str=0123456789\n");
     //offset += sprintf(config_buf+offset, "WPAPSK=0287971234\n");
     //offset += sprintf(config_buf+offset, "WPAPSK=d4607bd36975b7c5272d4cf498cd95acac31e90134b9da663342bf8bdf0f62fb\n");
     //offset += sprintf(config_buf+offset, "Key1Str=termy22688953\n");
@@ -1000,7 +1037,7 @@ void wlan_site_survey(void){
 #endif
 #endif //CODE2
 
-    //rt_ioctl_siwscan(g_wireless_dev, NULL, NULL, NULL);
+    rt_ioctl_siwscan(g_wireless_dev, NULL, NULL, NULL);
 	return;
 	
 }
@@ -1102,7 +1139,7 @@ int wlan_get_channel(void){
 	GET_PAD_FROM_NET_DEV(pAd, g_wireless_dev);
 
     if (pAd)
-        return pAd->MlmeAux.Channel;
+        return pAd->CommonCfg.Channel;
     else
         return -1;
 }
@@ -1571,3 +1608,15 @@ void set_rx_gain(RTMP_ADAPTER *pAd, char* config_string)
     wrq.u.data.length = strlen(config_string);
     RTMPIoctlMAC(pAd, &wrq);
 }
+
+void wep_hex_to_string(char *wepStr, unsigned char *data, int number)
+{
+    int loop, offset = 0;
+    char *pString = wepStr;
+    
+    for (loop = 0; loop < number; loop++) {
+        offset += sprintf(pString+offset, "%02x", *(data++));
+    }
+    *(pString+offset) = '\0';
+}
+

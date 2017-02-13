@@ -200,7 +200,6 @@ void WLan_get_EEPData(void)
 		memcpy( mvWEPKey2, EEPROM_Data.WLWEPKey2, sizeof(EEPROM_Data.WLWEPKey2) );
 		memcpy( mvWEPKey3, EEPROM_Data.WLWEPKey3, sizeof(EEPROM_Data.WLWEPKey3) );
 		memcpy( mvWEPKey4, EEPROM_Data.WLWEPKey4, sizeof(EEPROM_Data.WLWEPKey4) );
-		memcpy( mvWEP128Key, EEPROM_Data.WLWEP128Key, sizeof(EEPROM_Data.WLWEP128Key) );
 #ifdef WLWEP128_FOURKEYS
 		memcpy( mvWEP128Key, EEPROM_Data.WLWEP128Key, sizeof(EEPROM_Data.WLWEP128Key) );
 		memcpy( mvWEP128Key2, EEPROM_Data.WLWEP128Key2, sizeof(EEPROM_Data.WLWEP128Key2) );
@@ -619,13 +618,13 @@ char* WLan_config ()
         } 
         if (mvWEPType == 2) {
             if (EEPROM_Data.WLWEPKeyType) {
-                wep_hex_to_string(mvWEPKey, mvWEPKey1, 13);
+                wep_hex_to_string(mvWEPKey, mvWEP128Key, 13);
                 offset += sprintf(config_buf+offset, "Key1Str=%s\n", mvWEPKey);
-                wep_hex_to_string(mvWEPKey, mvWEPKey2, 13);
+                wep_hex_to_string(mvWEPKey, mvWEP128Key2, 13);
                 offset += sprintf(config_buf+offset, "Key2Str=%s\n", mvWEPKey);
-                wep_hex_to_string(mvWEPKey, mvWEPKey3, 13);
+                wep_hex_to_string(mvWEPKey, mvWEP128Key3, 13);
                 offset += sprintf(config_buf+offset, "Key3Str=%s\n", mvWEPKey);
-                wep_hex_to_string(mvWEPKey, mvWEPKey4, 13);
+                wep_hex_to_string(mvWEPKey, mvWEP128Key4, 13);
                 offset += sprintf(config_buf+offset, "Key4Str=%s\n", mvWEPKey);
             }
             else {

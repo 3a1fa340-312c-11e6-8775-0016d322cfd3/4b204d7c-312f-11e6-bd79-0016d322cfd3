@@ -10347,7 +10347,7 @@ void    WscWriteConfToDatFile(
 {
 	PWSC_CTRL		pWscControl = NULL;
 	PWSC_CREDENTIAL	pCredentail = NULL;
-    //UCHAR*          config_buf;
+    UCHAR*          config_buf;
 
     char            temp_buf[3] = {0};
     int             i;
@@ -10513,9 +10513,9 @@ void    WscWriteConfToDatFile(
 		}
 
         WriteToEEPROM(&EEPROM_Data);
-        //config_buf = WLan_config();
-        //RTMPSetProfileParameters (pAd, config_buf);
-        //free(config_buf);
+        config_buf = WLan_config();
+        RTMPSetProfileParameters (pAd, config_buf);
+        free(config_buf);
 	}
 #endif /* CONFIG_STA_SUPPORT */
 

@@ -576,7 +576,7 @@ pbuf_free(struct pbuf *p)
   SYS_ARCH_PROTECT(old_level);
   /* de-allocate all consecutive pbufs from the head of the chain that
    * obtain a zero reference count after decrementing*/
-  while (p != NULL) {
+  while (p != NULL && p->ref > 0) {
       if (p->ref <= 0) {
           diag_printf("%s(%d), p:%x p->ref:%d, payload:%x, flag:%x, len:%d\n", __func__, __LINE__, (unsigned int)p, p->ref,
                   (unsigned int)p->payload,

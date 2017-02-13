@@ -187,9 +187,9 @@ void rawtcpd(cyg_addrword_t data)
 				JL_EndList(port, 0);	// Completed. George Add January 26, 2007
 #endif SUPPORT_JOB_LOG		
 		}
-		else {
-			cyg_scheduler_unlock();	//615wu::No PSMain
-        }
+		//  else {
+		//      cyg_scheduler_unlock();	//615wu::No PSMain
+        //  }
         
 #endif /* USE_PS_LIBS */
  		close( s );

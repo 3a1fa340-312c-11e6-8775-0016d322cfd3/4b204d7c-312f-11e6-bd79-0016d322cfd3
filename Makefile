@@ -20,6 +20,7 @@ TOPDIR = $(ROOT_DIR)
 HDR_MAK = $(ROOT_DIR)/rules.mak
 #ENDIAN=$(shell echo $(ECOS_GLOBAL_CFLAGS) | sed -e "s/.*-EL.*/-EL/" )
 ENDIAN = -EL
+HOSTOS = $(shell uname)
 
 PROD_DIR= $(ROOT_DIR)/prod
 APPS_DIR = $(ROOT_DIR)/apps
@@ -29,9 +30,15 @@ TARGET_DEF = $(PROD_BUILD_DIR)/Target.def
 
 TARGET_OS = ECOS
 ECOS_REPOSITORY := $(ROOT_DIR)/ecos/packages
-ECOS_TOOL_PATH := $(ROOT_DIR)/tools/bin
+ECOS_TOOL_PATH := $(ROOT_DIR)/tools/$(HOSTOS)/bin
+ifeq ($(HOSTOS),Darwin)
+ECOS_MIPSTOOL_PATH := $(ROOT_DIR)/tools/mipsel-linux-uclibc/bin
+TFTP_DIR = /private/tftpboot
+export STAGING_DIR =
+else
 ECOS_MIPSTOOL_PATH := $(ROOT_DIR)/tools/mipsisa32-elf/bin
-#ECOS_MIPSTOOL_PATH := /opt/buildroot-gcc463/bin
+TFTP_DIR = /tftpboot
+endif
 DRIVERS =
 EXTOBJS =
 
@@ -83,8 +90,11 @@ ARCH = ARCH_ARM
 endif
 
 ifeq ($(CHIP),mt7688)
+ifeq ($(HOSTOS),Darwin)
+GCC_DIR = $(ROOT_DIR)/tools/mipsel-linux-uclibc/bin
+else
 GCC_DIR = $(ROOT_DIR)/tools/mipsisa32-elf/bin
-#GCC_DIR = /opt/buildroot-gcc463/bin
+endif
 ARCH = ARCH_MIPS
 endif
 
@@ -115,7 +125,7 @@ PATH := $(ECOS_TOOL_PATH):$(ECOS_MIPSTOOL_PATH):$(PATH)
 endif
 
 export PATH ROOT_DIR TOPDIR PROD_DIR APPS_DIR HDR_MAK FTR_MAK GCC_DIR TARGET_DEF ARCH
-export PKG_INSTALL_DIR ECOS_REPOSITORY ECOS_TOOL_PATH ECOS_MIPSTOOL_PATH TARGET_OS 
+export PKG_INSTALL_DIR ECOS_REPOSITORY ECOS_TOOL_PATH ECOS_MIPSTOOL_PATH TARGET_OS HOSTOS
 
 ifeq ($(CHIP),arm9)
 all: DIR_CHECK RM_AXF_FILE $(DST_NAME) 
@@ -235,17 +245,17 @@ endif
 	mv Target.def $(TARGET_DEF)
 
 target.ld:
-	cp $(ROOT_DIR)/ecos/target.ld $(PKG_INSTALL_DIR)/lib/
+	cp $(ROOT_DIR)/ecos/$(HOSTOS)-target.ld $(PKG_INSTALL_DIR)/lib/$@
 
 lzmaImage: DIR_CHECK RM_AXF_FILE target.ld $(DST_NAME) $(PROD_NAME).bin $(PROD_NAME).map
 	$(MAKE) CFAGS="$(CFLAGS)" ENDIAN=$(ENDIAN) -C zload
-	tools/bin/lzma e $(PROD_NAME).bin bin.gz	
-	$(XLD) $(ENDIAN) $(LD_EXTRA) -Ttext=$(CONFIG_ZLOAD_BUF) -Tzload/zload.ld -o $@ zload/zload.o -\( -bbinary bin.gz -\) -Map zload.map
+	$(ECOS_TOOL_PATH)/lzma e $(PROD_NAME).bin bin.gz	
+	$(XLD) $(ENDIAN) $(LD_EXTRA) -Ttext=$(CONFIG_ZLOAD_BUF) -Tzload/zload.ld -o $@ zload/zload.o -\( -b binary bin.gz -\) -Map zload.map
 	$(XNM) $@ | grep -v '\(compiled\)\|\(\.o$$\)\|\( [aUw] \)\|\(\.\.ng$$\)\|\(LASH[RL]DI\)' | sort > $@.map
 
 mt7688_ecos.img: lzmaImage.bin 
 	mkimage -A mips -T standalone -C none -a $(CONFIG_ZLOAD_BUF) -e $(CONFIG_ZLOAD_BUF) -n $(PROD_NAME) -d $< $@ 
-	sudo cp $@ /tftpboot
+	sudo cp $@ $(TFTP_DIR) 
 
 loader: uboot.bin
 	cp $(TARGET_DEF) .
@@ -281,6 +291,9 @@ endif
 
 
 $(OBJ_DIR)/%.o: $(PROD_BUILD_DIR)/%.c
+	$(warning ecos_mipstool_path:$(ECOS_MIPSTOOL_PATH))
+	$(warning hostos = $(HOSTOS))
+	$(warning path = $(PATH))
 	$(CC) -c -o $(OBJ_DIR)/$*.o $(CFLAGS) $(EXTRACFLAGS) $<
 
 SRCS=$(PROD_BUILD_DIR)/zotmain.c
@@ -313,7 +326,7 @@ ifeq ($(CHIP),mt7688)
 	if [ ! -d $(KERNEL_BUILD_DIR) ]; \
 		then mkdir $(KERNEL_BUILD_DIR); \
 		cd $(KERNEL_BUILD_DIR); \
-		cp ../\pkgconf/\mt7688_bsp.ecc .; \
+		cp ../\pkgconf/\$(HOSTOS)-mt7688_bsp.ecc mt7688_bsp.ecc; \
 		ecosconfig --config=mt7688_bsp.ecc tree; \
 		make;\
 		rm $(PKG_INSTALL_DIR)/include/network.h;\

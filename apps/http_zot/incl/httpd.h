@@ -28,7 +28,7 @@
 #define METHOD_HTML     3   // used when a cgi func is called from inside a html doc
 #define METHOD_UNKNOWN  -1
 
-#define HLINELEN        768+128
+#define HLINELEN        2048 //768+128
 
 struct reqInfo {
 //    int index;

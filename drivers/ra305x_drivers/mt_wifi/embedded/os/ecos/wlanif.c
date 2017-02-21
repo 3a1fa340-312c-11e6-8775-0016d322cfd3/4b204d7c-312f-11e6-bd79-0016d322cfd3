@@ -370,15 +370,28 @@ char* WLan_config ()
 
     offset += sprintf(config_buf+offset, "WirelessMode=%d\n", wirelessMode);
 
-    #ifdef WIFI_CERTIFICATION
-    offset += sprintf(config_buf+offset, "CountryCode=FR\n");
-    #else
-    offset += sprintf(config_buf+offset, "CountryCode=TW\n");
-    #endif
+    switch (mt7601_countryRegion) {
+        case 1:
+            offset += sprintf(config_buf+offset, "CountryCode=SE\n");
+            break;
+        case 2:
+            offset += sprintf(config_buf+offset, "CountryCode=ES\n");
+            break;
+        case 3:
+            offset += sprintf(config_buf+offset, "CountryCode=FR\n");
+            break;
+        case 4:
+        case 5:
+            offset += sprintf(config_buf+offset, "CountryCode=JP\n");
+            break;
+        case 0:
+        default:
+            offset += sprintf(config_buf+offset, "CountryCode=US\n");
+            break;
+    }
+
     /* country region */
-    //offset += sprintf(config_buf+offset, "CountryRegion=%d\n", mvWDomain);
     offset += sprintf(config_buf+offset, "CountryRegion=%d\n", mt7601_countryRegion);
-    //offset += sprintf(config_buf+offset, "CountryRegion=5\n");
 
     /* country region aband */
     //@> CountryRegionABand=value      							
@@ -1264,20 +1277,23 @@ void wlan_set_wps_on()
     EEPROM_Data.WLMode = 0;
     mvTxMode 	= 9;
     EEPROM_Data.WLTxMode = 9;
+    mvAuthenticationType = 1;
+    mvWPAauth = 0;
+    mvESSID[0] = '\0';
+    mvAuthenticationType = 5;
+    mvWPAType = 1;
 
-    config_buffer = WLan_config();
-    if (config_buffer)
-        RTMPSetProfileParameters (pAd, config_buffer);
+    RTMPCancelTimer(&pAd->AdhocBeaconTimer, &canceled);
+	AsicDisableSync(pAd);
+
+    Set_NetworkType_Proc(pAd, "Infra");
+    mt_hw_tb_init(pAd, FALSE);
 
     diag_printf("wps on\n");
-    //pAd->StaCfg.WscControl.WscDriverAutoConnect = 0x01;
-    RTMPCancelTimer(&pAd->AdhocBeaconTimer, &canceled);
     Set_WscConfMode_Proc(pAd, "1");  /* enrollee */
     Set_WscMode_Proc(pAd, "2");      /* PBC Mode */
     Set_WscGetConf_Proc(pAd, "1");   /* wsc_start */
 
-    if (config_buffer)
-        free(config_buffer);
 }
 
 /*

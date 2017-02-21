@@ -10513,9 +10513,9 @@ void    WscWriteConfToDatFile(
 		}
 
         WriteToEEPROM(&EEPROM_Data);
-        config_buf = WLan_config();
-        RTMPSetProfileParameters (pAd, config_buf);
-        free(config_buf);
+        //  config_buf = WLan_config();
+        //  RTMPSetProfileParameters (pAd, config_buf);
+        //  free(config_buf);
 	}
 #endif /* CONFIG_STA_SUPPORT */
 

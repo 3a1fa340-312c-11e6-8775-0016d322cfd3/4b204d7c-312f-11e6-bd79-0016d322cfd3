@@ -259,9 +259,6 @@ BYTE NTRequestECB (BYTE PortNumber,BYTE *Data,int *DataLength)
 			RecvRetryCount = 0;
 			
 			do{
-                #if defined(NDWP2020)
-                for (j = 0; j < 30; j++) {
-                #endif
 
 				RecvBytes = ipx_recvfrom(&IPXUSOCK, Data, PortNumber); 
 					
@@ -269,12 +266,6 @@ BYTE NTRequestECB (BYTE PortNumber,BYTE *Data,int *DataLength)
 					//end of printing
 					return (PRN_Q_EOF);
 				}
-
-                #if defined(NDWP2020)
-                if(RecvBytes > 0)
-                    break;
-                }
-                #endif
                 
 //				if(RecvBytes ==-1 || ++RecvRetryCount > NTPortInfo[PortNumber].MaxRecvPackets ) {
 				if(RecvBytes ==-1  ) {

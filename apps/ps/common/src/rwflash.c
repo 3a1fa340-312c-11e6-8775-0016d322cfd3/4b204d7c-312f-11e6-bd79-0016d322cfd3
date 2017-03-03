@@ -695,6 +695,7 @@ unsigned long PSCheckImageIntegrity(HEADER_VER *hdr1){
      * TERMY TODO:
      * After debug, to add back the following lines
      */
+#ifndef WIFI_CERTIFICATION
    if( hdr1->mark[0] != 'X' ||
 #if defined(N716U2S)
        hdr1->mark[1] != 'X' ||
@@ -704,6 +705,7 @@ unsigned long PSCheckImageIntegrity(HEADER_VER *hdr1){
        hdr1->mark[2] != 'Z' ||
        hdr1->model   != CURRENT_PS_MODEL)
        return offset; //Mark Error
+#endif /* ! WIFI_CERTIFICATION */
 
 	memcpy( &checksum1, &hdr1->crc32_chksum, 4 );
 	imagelen = NGET32((char *)&(hdr1->file_len));

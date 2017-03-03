@@ -375,7 +375,7 @@ char* WLan_config ()
             offset += sprintf(config_buf+offset, "CountryCode=SE\n");
             break;
         case 2:
-            offset += sprintf(config_buf+offset, "CountryCode=ES\n");
+            offset += sprintf(config_buf+offset, "CountryCode=FR\n");
             break;
         case 3:
             offset += sprintf(config_buf+offset, "CountryCode=FR\n");
@@ -443,9 +443,9 @@ char* WLan_config ()
 
     /* tx power default 100*/
     #if 1
-    #ifdef WIFI_CERTIFICATION
-    if (mvTxPower > 70) mvTxPower = 70;
-    #endif
+    //  #ifdef WIFI_CERTIFICATION
+    //  if (mvTxPower > 70) mvTxPower = 70;
+    //  #endif
     offset += sprintf(config_buf+offset, "TxPower=%d\n", mvTxPower);
     //offset += sprintf(config_buf+offset, "TxPower=100\n");
     #else
@@ -1502,9 +1502,9 @@ VOID RTMPStartEMITx (PRTMP_ADAPTER pAdapter, UCHAR txPower, UCHAR channel, UCHAR
     */
 	 
     SetATETxLength (pAdapter, "1024");
-    #ifdef WIFI_CERTIFICATION
-    if (txPower > 9) txPower = 9;
-    #endif
+    //  #ifdef WIFI_CERTIFICATION
+    //  if (txPower > 9) txPower = 9;
+    //  #endif
     sprintf(str_buffer, "%d\0", txPower);
     SetATETxPower0 (pAdapter, str_buffer);
     SetATETxCount (pAdapter, "1000000");

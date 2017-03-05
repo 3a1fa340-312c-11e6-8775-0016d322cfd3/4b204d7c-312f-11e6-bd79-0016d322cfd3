@@ -162,6 +162,7 @@ static void ehci_clear_tt_buffer(struct ehci_hcd *ehci, struct ehci_qh *qh,
 		struct urb *urb, u32 token)
 {
     diag_printf("%s(%d)\n", __func__, __LINE__);
+#if 0
 	/* If an async split transaction gets an error or is unlinked,
 	 * the TT buffer may be left in an indeterminate state.  We
 	 * have to clear the TT buffer.
@@ -188,6 +189,7 @@ static void ehci_clear_tt_buffer(struct ehci_hcd *ehci, struct ehci_qh *qh,
 			 */
 		}
 	}
+#endif
 }
 
 static int qtd_copy_status (

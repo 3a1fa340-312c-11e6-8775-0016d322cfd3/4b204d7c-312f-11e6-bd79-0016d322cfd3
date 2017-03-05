@@ -31,8 +31,10 @@
 #include "led.h"
 #include "joblog.h"
 
+#ifdef APP_SENDACK
 /*Ron Add 11/5/2004 */
 extern int	sendack(int s);
+#endif /* APP_SENDACK */
 
 
 #ifndef USE_PS_LIBS
@@ -2042,7 +2044,9 @@ void ippSendResp(ipp_t *ippObj)
 		goto FreeIppObj;
 	}
 
+#ifdef APP_SENDACK
 	sendack(ippObj->s);	 //force to send it immediately !
+#endif /* APP_SENDACK */
 
 FreeIppObj:
 	

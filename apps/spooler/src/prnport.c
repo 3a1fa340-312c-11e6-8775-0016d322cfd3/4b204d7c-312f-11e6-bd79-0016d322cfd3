@@ -21,7 +21,7 @@ static  cyg_handle_t	PortNWrite_TaskHdl;
 
 
 #define PRNTEST
-#undef PRNTEST
+//  #undef PRNTEST
 
 
 //Spooler Thread initiation information
@@ -251,6 +251,9 @@ void PortNWrite(cyg_addrword_t data)
 	uint32 start;
 	int    written;
 	int port = UsedPortNumber;
+#ifdef PRNTEST
+    int   pktcnt = 0;
+#endif /* PRNTEST */
 
 #ifdef SUPPORT_PRN_COUNT
 	BYTE	reqbuf[40] = {0x1B,0x25,0x2D,0x31,0x32,0x33,0x34,0x35,0x58,
@@ -302,7 +305,14 @@ void PortNWrite(cyg_addrword_t data)
 					// check if it is IEEE1284 or USB printer device
 					written = usbprn_write( port, PortIO[port].DataPtr, PortIO[port].DataSize );
 #else					
-					written = PortIO[port].DataSize;			//615wu-spooler-temp
+                    written = PortIO[port].DataSize;			//615wu-spooler-temp
+                    //  written = PortIO[port].DataSize > 8192 ? 8192:PortIO[port].DataSize;
+                    cyg_thread_delay(2);
+                    pktcnt ++;
+                    if (pktcnt > 40) {
+                        pktcnt = 0;
+                        cyg_thread_delay(40);
+                    }
 #endif					
 					PortIO[port].DataSize = PortIO[port].TotalSize - written;
 					if( PortIO[port].DataSize ) 
@@ -322,9 +332,11 @@ void PortNWrite(cyg_addrword_t data)
 			
 			if( DMAPrinting( port ) == 0 ) {
 //				ppause( 20 );
-				ppause( 10 );
-				if( PrnGetPrinterStatus( port ) == PrnNoUsed )
-					ppause( 100 );
+                cyg_thread_delay(10);
+                if( PrnGetPrinterStatus( port ) == PrnNoUsed ) {
+                    cyg_thread_delay(100);
+                    //  ppause( 100 );
+                }
 			}
 		}							
 		
@@ -416,11 +428,11 @@ BYTE PrnReadPortStatus( BYTE port )
 
 BYTE ReadPortStatus(BYTE port)
 {
-#ifdef PRNTEST
-	return 0;
-#else	
+//  #ifdef PRNTEST
+//      return 0;
+//  #else
 	return( PortIO[port].HasGetDeviceID ? PrnReadPortStatus(port) : PORT_OFF_LINE );
-#endif	
+//  #endif
 }
 
 int GetDeviceID( int port )

@@ -32,7 +32,9 @@ void rawtcpd(cyg_addrword_t data)
 	struct prnbuf *pbuf;
 	int ss, s, from_len, bytes;
 	int port = DEFAULT_PORT;
+#ifdef APP_SENDACK
 	uint32 startime;
+#endif /* APP_SENDACK */
 	BYTE	btTimeout;
 #ifdef USB_ZERO_CPY	
 	int retrycnt, dataremain;
@@ -69,7 +71,9 @@ void rawtcpd(cyg_addrword_t data)
 		if( ReadPortStatus(port) != PORT_OFF_LINE )
 		{
 			cyg_scheduler_lock();	//615wu::No PSMain
+#ifdef APP_SENDACK
 			startime = rdclock();			
+#endif /* APP_SENDACK */
 			
 			while( (PrnGetPrinterStatus(port) != PrnNoUsed ) ||//&&
 					 (ReadPortStatus(port) != PORT_READY) )
@@ -79,14 +83,16 @@ void rawtcpd(cyg_addrword_t data)
                     break;
 
 				cyg_scheduler_unlock();	//615wu::No PSMain
-				
+#ifdef APP_SENDACK	
 				if((( rdclock()-startime)  > ((uint32)TICKS_PER_SEC*10) )) {
 			
 					sendack(s);
 					startime = rdclock();
 				}
 				cyg_thread_yield();
-				//ppause(100);
+#else
+                cyg_thread_delay(20);
+#endif /* APP_SENDACK */
 			
 				cyg_scheduler_lock();	//615wu::No PSMain
 			
@@ -103,8 +109,12 @@ void rawtcpd(cyg_addrword_t data)
 
 			while( 1 )
 			{
+#ifdef APP_SENDACK
 				startime = rdclock();
+#endif /* APP_SENDACK */
+                
 				while( ( pbuf = PrnGetInQueueBuf(port) ) == NULL) {
+#ifdef APP_SENDACK
 /*
 //os					kwait(NULL);
 						cyg_thread_yield();
@@ -118,6 +128,9 @@ void rawtcpd(cyg_addrword_t data)
 						//********************************************************
 //os					kwait(0);
 						cyg_thread_yield();
+#else
+                        cyg_thread_delay(20);
+#endif /* APP_SENDACK */
 				}
 				pbuf->size = 0;
 				btTimeout = 0;
@@ -163,8 +176,8 @@ void rawtcpd(cyg_addrword_t data)
 						PrnPutInQueueBuf(port, pbuf);
 					
 					// George Add February 14, 2007
-					if((rdclock()-startime) > ((uint32)(EEPROM_Data.TimeOutValue))*10)
-						btTimeout = 1;
+                    if((rdclock()-startime) > ((uint32)(EEPROM_Data.TimeOutValue))*10)
+                        btTimeout = 1;
 						
 					break;
 				}

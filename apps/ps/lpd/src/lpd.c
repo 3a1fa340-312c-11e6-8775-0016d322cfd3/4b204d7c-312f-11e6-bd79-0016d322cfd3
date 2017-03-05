@@ -107,7 +107,9 @@ extern int zot_fputs (int8 *buf ,ZOT_FILE *fp );
 extern int availmem();
 extern void rip(char *s);
 extern char 			Hostname[];
+#ifdef APP_SENDACK
 extern int	sendack(int s);
+#endif /* APP_SENDACK */
 //extern int recv(int s, void *buf, size_t len, int flags);
 //extern int send(int s, const void *buf, size_t len, int flags);
 
@@ -210,7 +212,7 @@ void lpdstart(cyg_addrword_t data)
         ppause (100);
 #endif /* ARCH_ARM */
 
-	buf = malloc( BUFFER_SIZE );
+    buf = malloc( BUFFER_SIZE );
 	if( buf == NULL )
 		return ;
 
@@ -298,7 +300,7 @@ void lpdstart(cyg_addrword_t data)
 				{
 					if(LPRTaskInUse[task_index].needrelase	== 1 )
 					{
-						// cyg_thread_delete(LpdRecv_TaskHdl[task_index]);
+                        cyg_thread_delete(LpdRecv_TaskHdl[task_index]);
 						LPRTaskInUse[task_index].needrelase = 0;
 					}
 				}
@@ -573,7 +575,8 @@ receive_job(cyg_addrword_t data)
 	rc = 0;
 	while( rc == 0 ) {
 //Jesse		if(fgets( buffer, sizeof(buffer) , LPD->network ) == NULL ){
-		if(recv( LPD->remote, buffer , sizeof(buffer) , 0  ) < 0){
+		//  if(recv( LPD->remote, buffer , sizeof(buffer) , 0  ) < 0){
+		if(recv( LPD->remote, buffer , BUFFER_SIZE , 0  ) < 0){
 			// He closed on us
 			break;
 		}
@@ -741,7 +744,9 @@ static int receive_data_file(int PortNumber, unsigned long filesize, int s, int 
 	unsigned long total;
 	char status = STATUS_OK;
 	struct prnbuf *pbuf;
+#ifdef APP_SENDACK
 	uint32 startime;  //10/11/99
+#endif /* APP_SENDACK */
 
 	total = 0;
 	filesize++;	// add in status byte
@@ -776,9 +781,11 @@ static int receive_data_file(int PortNumber, unsigned long filesize, int s, int 
 #else
 
 	do {
+#ifdef APP_SENDACK
 		startime = rdclock();  //10/11/99
+#endif /* APP_SENDACK */
 		while((pbuf = PrnGetInQueueBuf(PortNumber)) == NULL) {
-
+#ifdef APP_SENDACK
 			//10/11/99 Send Ack When Buffer is empty *****************
 			if(((rdclock()-startime) > ((uint32)TICKS_PER_SEC*5))) {
 				if(startime) sendack(s);
@@ -790,6 +797,9 @@ static int receive_data_file(int PortNumber, unsigned long filesize, int s, int 
 			cyg_thread_yield();
 			//queue buffer is full, waiting for printing
 			//printf("Warning: Can not get In buffer !!!\n");
+#else
+            cyg_thread_delay(20);
+#endif /* APP_SENDACK */
 		}
 
 		if(PrnGetPrinterStatus(PortNumber) == PrnAbortUsed) {
@@ -845,7 +855,9 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 	unsigned long total = 0;
 	char status = STATUS_OK;
 	struct prnbuf *pbuf;
+#ifdef APP_SENDACK
 	uint32 startime;
+#endif /* APP_SENDACK */
 	int recv_bytes;
 #ifdef USB_ZERO_CPY	
 	int retrycnt, dataremain;
@@ -869,10 +881,11 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 	blocksize = 8192;
 #endif
 	do {
-		// startime = 0;
+#ifdef APP_SENDACK
         startime = rdclock();
+#endif /* APP_SENDACK */
 		while((pbuf = PrnGetInQueueBuf(PortNumber)) == NULL) {
-			
+#ifdef APP_SENDACK	
 			//10/11/99 Send Ack When Buffer is empty *****************
             // if((( rdclock()-startime)  > ((uint32)TICKS_PER_SEC*5) )) {
             if((( rdclock()-startime)  > ((uint32)TICKS_PER_SEC*10) )) {
@@ -883,6 +896,9 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 			//********************************************************
 //os			kwait(0);
 			cyg_thread_yield();
+#else
+            cyg_thread_delay(20);
+#endif /* APP_SENDACK */
 		}
 
 		if(PrnGetPrinterStatus(PortNumber) == PrnAbortUsed) {
@@ -897,7 +913,9 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 //		}
 		
 		// George Add April 3, 2007
+        cyg_scheduler_lock();
 		startime_bin = rdclock();
+        cyg_scheduler_unlock();
 		
 ///*
 		bytes = 0;
@@ -947,6 +965,7 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 				pbuf->size = 0;
 				status = STATUS_ERR;
 			}
+
 			break;
 		}
 //*/
@@ -997,9 +1016,15 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 		PrnAbortSpooler(PortNumber,pbuf);
 #ifdef SUPPORT_JOB_LOG
 		// George Add April 3, 2007
-		if((rdclock()-startime_bin) > ((uint32)(EEPROM_Data.TimeOutValue))*10)
+        cyg_scheduler_lock();
+		if((rdclock()-startime_bin) > ((uint32)(EEPROM_Data.TimeOutValue))*10) {
+            cyg_scheduler_unlock();
 			return -3;
-		else
+        }
+        else {
+            cyg_scheduler_unlock();
+            return -1;
+        }
 #endif //SUPPORT_JOB_LOG
 		return -1;
 	}
@@ -1012,7 +1037,9 @@ static int receive_txt_data_file(int PortNumber,unsigned long filesize, int s)
 	unsigned long total = 0;
 	char status = STATUS_OK;
 	struct prnbuf *pbuf[3];
+#ifdef APP_SENDACK
 	uint32 startime = 0;
+#endif /* APP_SENDACK */
 
 	int  i;
 	uint8 KeepCR = 0;
@@ -1021,7 +1048,7 @@ static int receive_txt_data_file(int PortNumber,unsigned long filesize, int s)
 	blocksize = filesize > BLOCKSIZE ? BLOCKSIZE : filesize;
 
 	while((pbuf[2] = PrnGetInQueueBuf(PortNumber)) == NULL) {
-
+#ifdef APP_SENDACK
 		//********************************************************
 		if(((rdclock()-startime) > ((uint32)TICKS_PER_SEC*5))) {
 			if(startime)	sendack(s);
@@ -1031,14 +1058,19 @@ static int receive_txt_data_file(int PortNumber,unsigned long filesize, int s)
 
 //os		kwait(0);
 		cyg_thread_yield();
+#else
+        cyg_thread_delay(20);
+#endif /* APP_SENDACK */
 	}
 	pbuf[2]->size = 0;
 
 	do {
+#ifdef APP_SENDACK
 		startime = 0;  //10/11/99
+#endif /* APP_SENDACK */
 		for(i = 0 ; i < 2; i++) {
 			while((pbuf[i] = PrnGetInQueueBuf(PortNumber)) == NULL) {
-
+#ifdef APP_SENDACK
 				//********************************************************
 				if(((rdclock()-startime) > ((uint32)TICKS_PER_SEC*5))) {
 					//if(startime)	//2003Nov28
@@ -1049,6 +1081,9 @@ static int receive_txt_data_file(int PortNumber,unsigned long filesize, int s)
 
 //os				kwait(0);
 				cyg_thread_yield();
+#else
+                cyg_thread_delay(20);
+#endif /* APP_SENDACK */
 			}
 			pbuf[i]->size = 0;
 		}
@@ -1287,7 +1322,9 @@ int CheckRemoveJobID(char *buf,int PortNumber)
 // return (1) Abort by user
 int hold_job(int PortNumber, int NumOfFile, int s)
 {
+#ifdef APP_SENDACK
 	uint32 startime;  	
+#endif /* APP_SENDACK */
 #if 0	//615wu::no psmain
 	do {
 		if(NumOfFile) {
@@ -1315,19 +1352,23 @@ int hold_job(int PortNumber, int NumOfFile, int s)
 	
 	cyg_scheduler_lock();	//615wu::No PSMain
 	
+#ifdef APP_SENDACK
 	startime = rdclock();
-	
+#endif /* APP_SENDACK */
+
 	while( ReadPortStatus(PortNumber) != PORT_READY ||
 		   PrnGetPrinterStatus(PortNumber) != PrnNoUsed){
 		cyg_scheduler_unlock();	//615wu::No PSMain
-		
+#ifdef APP_SENDACK	
 		if((( rdclock()-startime)  > ((uint32)TICKS_PER_SEC*10) )) {
 			
 			sendack(s);
 			startime = rdclock();
 		}
         cyg_thread_delay(10);
-//		ppause(100);
+#else
+        cyg_thread_delay(20);
+#endif /* APP_SENDACK */
 		
 		cyg_scheduler_lock();	//615wu::No PSMain
 		

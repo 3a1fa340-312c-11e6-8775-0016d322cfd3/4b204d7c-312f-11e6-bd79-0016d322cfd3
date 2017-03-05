@@ -88,7 +88,9 @@ extern int stricmp( char * dst,  char * src );
 
 //from httpd.c
 extern void ippSendResp(ipp_t *ippObj);
+#ifdef APP_SENDACK
 extern int	sendack(int s);
+#endif /* APP_SENDACK */
 
 //from prnport.c
 extern BYTE ReadPortStatus(BYTE port);
@@ -417,7 +419,9 @@ ippResp:
 
 			}
 			else{
+#ifdef APP_SENDACK
 				sendack(ippObj->s);
+#endif /* APP_SENDACK */
 				cyg_scheduler_unlock();
 			}
 			return;
@@ -434,13 +438,16 @@ void ippProcessJob(cyg_addrword_t data)
 {
 	int port = data;
 	ipp_t *ippObj;
+#ifdef APP_SENDACK
 	uint32 startime;
+#endif /* APP_SENDACK */
 	ipp_t *TmpObjList;
-	int i;
 	
 	cyg_scheduler_lock();	//615wu::No PSMain
 	
+#ifdef APP_SENDACK
 	startime = rdclock();
+#endif /* APP_SENDACK */
 	
 	while(ippJobsNo[port]) {
 	
@@ -449,7 +456,7 @@ void ippProcessJob(cyg_addrword_t data)
 		{
 //os			kwait(NULL);
 			cyg_scheduler_unlock();	//615wu::No PSMain
-			
+#ifdef APP_SENDACK			
 			if(((rdclock()-startime) > ((uint32)TICKS_PER_SEC*5))) {
 //				if(startime)	//2003Nov28
 				
@@ -467,6 +474,10 @@ void ippProcessJob(cyg_addrword_t data)
 			}
 			
 			cyg_thread_yield();
+#else
+
+            cyg_thread_delay(10);
+#endif /* APP_SENDACK */
 			
 			cyg_scheduler_lock();	//615wu::No PSMain
 			
@@ -475,7 +486,7 @@ void ippProcessJob(cyg_addrword_t data)
 
 		PrnSetIppInUse(port);
 		
-		cyg_scheduler_unlock();	//615wu::No PSMain
+	    cyg_scheduler_unlock();	//615wu::No PSMain
 
 		ippObj = ippObjList[port];
 
@@ -551,7 +562,9 @@ void ippProcessJob(cyg_addrword_t data)
 
 void ippProcessBINJob (int port, ipp_t *ippObj)
 {
+#ifdef APP_SENDACK
 	uint32 startime;
+#endif /* APP_SENDACK */
 	struct prnbuf *pbuf;
 //	int bytes,recv_bytes;
 	ipp_t *TmpObjList;
@@ -559,9 +572,11 @@ void ippProcessBINJob (int port, ipp_t *ippObj)
 	
 	
 	do {
+#ifdef APP_SENDACK
 		startime = rdclock();
+#endif /* APP_SENDACK */
 		while((pbuf = PrnGetInQueueBuf(port)) == NULL) {
-
+#ifdef APP_SENDACK
 			//********************************************************
 			if(((rdclock()-startime) > ((uint32)TICKS_PER_SEC*5))) {
 //				if(startime)	//2003Nov28
@@ -581,6 +596,9 @@ void ippProcessBINJob (int port, ipp_t *ippObj)
 
 //os			kwait(0);
 			cyg_thread_yield();
+#else
+            cyg_thread_delay(20);
+#endif /* APP_SENDACK */
 		}
 
 		if((pbuf->size = httpRead(ippObj,pbuf->data,BLOCKSIZE)) <= 0) {
@@ -642,14 +660,19 @@ void ippProcessBINJob (int port, ipp_t *ippObj)
 
 void ippProcessTXTJob(int port, ipp_t *ippObj)
 {
+#ifdef APP_SENDACK
 	uint32 startime;
+#endif /* APP_SENDACK */
 	struct prnbuf *pbuf[3];
 	int16 bytes;
 	BYTE  KeepCR = 0, i;
 
-	startime = 0;
+#ifdef APP_SENDACK
+	startime = rdclock();
+#endif /* APP_SENDACK */
 	while((pbuf[2] = PrnGetInQueueBuf(port)) == NULL) {
 
+#ifdef APP_SENDACK
 		//********************************************************
 		if(((rdclock()-startime) > ((uint32)TICKS_PER_SEC*5))) {
 			if(startime) sendack(ippObj->s);
@@ -659,14 +682,20 @@ void ippProcessTXTJob(int port, ipp_t *ippObj)
 
 //os		kwait(0);
 		cyg_thread_yield();
+#else
+        cyg_thread_delay(20);
+#endif /* APP_SENDACK */
 	}
 	pbuf[2]->size = 0;
 
 	do {
+#ifdef APP_SENDACK
 		startime = 0;
+#endif /* APP_SENDACK */
 		for(i = 0 ; i < 2; i++) {
 			while((pbuf[i] = PrnGetInQueueBuf(port)) == NULL) {
 
+#ifdef APP_SENDACK
 				//********************************************************
 				if(((rdclock()-startime) > ((uint32)TICKS_PER_SEC*5))) {
 //					if(startime)	//2003Nov28
@@ -677,6 +706,9 @@ void ippProcessTXTJob(int port, ipp_t *ippObj)
 
 //os				kwait(0);
 				cyg_thread_yield();
+#else
+                cyg_thread_delay(20);
+#endif /* APP_SENDACK */
 			}
 			pbuf[i]->size = 0;
 		}

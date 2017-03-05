@@ -220,6 +220,7 @@ PrnSetQueueInUse( int PrnPort, int value )
 	i_state = dirps();
 //	cyg_scheduler_lock();
 
+    //  diag_printf("%s(%d) value = %x\n", __func__, __LINE__, value);
 	PrinterList[PrnPort].InUse = value;
 
 //	cyg_scheduler_unlock();

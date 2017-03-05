@@ -136,7 +136,7 @@ externC void cyg_scheduler_safe_lock(void) __THROW
 externC void cyg_scheduler_unlock(void) __THROW
 {
     cyg_ucount32 slock = Cyg_Scheduler::get_sched_lock();
-    CYG_ASSERT( 0 < slock, "Scheduler not locked" );
+    //CYG_ASSERT( 0 < slock, "Scheduler not locked" );
     // And program defensively too:
     if ( 0 < slock )
         Cyg_Scheduler::unlock();

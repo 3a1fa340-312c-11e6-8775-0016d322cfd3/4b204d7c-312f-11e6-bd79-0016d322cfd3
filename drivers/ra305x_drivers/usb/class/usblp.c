@@ -474,6 +474,9 @@ static int usblp_open(struct usblp *usblp/*struct inode *inode, struct file *fil
 
 	mutex_lock(&usblp_mutex);
 
+    if (usblp && usblp->used)
+        goto out;
+
 	retval = -ENODEV;
 	intf = usb_find_interface(&usblp_driver, minor);
 	if (!intf)
@@ -1747,6 +1750,10 @@ int usbprn_unattach( int minor )
 	struct usblp *usblp = usblp_table[minor];
 	int i1284 = NUM_OF_1284_PORT + usblp->dev->ttport;
 
+    if (usblp->used) {
+        usbprn_close(minor);
+    }
+
     usb_minors[minor] = 0;
 
 	if( PortIO[i1284].base && PortIO[i1284].base-1 == minor )
@@ -1786,8 +1793,12 @@ u8 usbprn_read_status( int nPort )
 int usbprn_open(int nPort)
 {
 #ifdef USE_PS_LIBS
-	if( PortIO[nPort].base && usblp_table[PortIO[nPort].base-1] )
-		usblp_open(	usblp_table[PortIO[nPort].base-1] );
+    struct usblp *usblp;
+    if( PortIO[nPort].base && usblp_table[PortIO[nPort].base-1] ) {
+        usblp = (struct usblp *)usblp_table[PortIO[nPort].base -1];
+        if (!usblp->used)
+		    usblp_open(	usblp_table[PortIO[nPort].base-1] );
+    }
 #endif /* USE_PS_LIBS */
 	return 0;
 }

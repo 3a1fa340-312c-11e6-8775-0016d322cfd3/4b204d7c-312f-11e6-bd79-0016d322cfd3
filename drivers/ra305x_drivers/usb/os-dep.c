@@ -357,9 +357,9 @@ void wq_thread (cyg_addrword_t parameter)
         if (work->delay)
             cyg_thread_delay(work->delay);
         if (work) {
-            diag_printf("%s(%d) func:%x\n", __func__, __LINE__, (unsigned int)work->func);
             work->func(work);
         }
+        sys_check_stack();
     } /* while (true) */
 }
 

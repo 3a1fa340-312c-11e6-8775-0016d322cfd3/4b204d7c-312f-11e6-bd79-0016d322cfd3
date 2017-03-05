@@ -11,6 +11,7 @@
 #include <stdio.h>
 
 #include <cyg/kernel/kapi.h>
+#include <cyg/infra/cyg_ass.h>
 #include "pstarget.h"
 #include "psglobal.h"
 #include "eeprom.h"
@@ -95,6 +96,7 @@ static void kmallocinit(void)
 	//for(i = 1 ; i < MEM_BLOCKS ; i++) {
 	for(i = 0 ; i < KMEM_BLOCKS ; i++) {
 		//CurBlock->s.Next = (MCB HUGE*) MK_FP(BLOCK2_BEGIN_SEG*i,0);
+        CurBlock->c[0] = 'N';
 		CurBlock->s.Next = (MCB HUGE*)_kFarHeap[i];
 		CurBlock->s.Next->s.McbSize = nu;
 		CurBlock = CurBlock->s.Next;
@@ -203,6 +205,7 @@ kmalloc(size_t nb, int flag)
 		}
 	}
 
+    CurMcb->c[0] = 'O';
 	restore(i_state);
 	return (void *)CurMcb;
 }
@@ -216,6 +219,8 @@ kfree(void *block, int flag)
 
 	if(block == NULL)	return;		/* Required by ANSI */
 	CurMcb = ((MCB HUGE *)block) - 1;
+
+    CYG_ASSERT(CurMcb->c[0] != 'O', "memory check error !");
 
 	/* Audit check */
 	if(CurMcb->s.Next != CurMcb){
@@ -235,6 +240,7 @@ kfree(void *block, int flag)
 
 	i_state = dirps();
 
+    CurMcb->c[0] = 'N';
     // if (flag == 0)
     kAvailmem += CurMcb->s.McbSize;
 

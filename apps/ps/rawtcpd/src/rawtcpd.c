@@ -32,9 +32,7 @@ void rawtcpd(cyg_addrword_t data)
 	struct prnbuf *pbuf;
 	int ss, s, from_len, bytes;
 	int port = DEFAULT_PORT;
-#ifdef APP_SENDACK
 	uint32 startime;
-#endif /* APP_SENDACK */
 	BYTE	btTimeout;
 #ifdef USB_ZERO_CPY	
 	int retrycnt, dataremain;
@@ -135,6 +133,9 @@ void rawtcpd(cyg_addrword_t data)
 				pbuf->size = 0;
 				btTimeout = 0;
 				
+#ifndef APP_SNEDACK
+                startime = rdclock();
+#endif /* APP_SENDACK */
 #ifndef USB_ZERO_CPY				
 				while( ( bytes = recv( s, &pbuf->data[pbuf->size], BLOCK_SIZE, 0 ) ) > 0 )
 #else

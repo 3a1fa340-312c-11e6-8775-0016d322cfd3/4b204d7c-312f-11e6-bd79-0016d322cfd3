@@ -20,7 +20,7 @@
 
 
 #define to_urb(d) container_of(d, struct urb, kref)
-
+static int urb_used_cnt = 0;
 
 static void urb_destroy(struct kref *kref)
 {
@@ -29,6 +29,10 @@ static void urb_destroy(struct kref *kref)
 	if (urb->transfer_flags & URB_FREE_BUFFER)
 		kfree(urb->transfer_buffer);
 
+    CYG_ASSERT(urb->audit == 0x2253, "URB audit error");
+    CYG_ASSERT(urb_used_cnt < 20, "URB used over 20");
+    urb->audit = 0;
+    urb_used_cnt --;
     kfree(urb);
 }
 
@@ -84,6 +88,8 @@ struct urb *usb_alloc_urb(int iso_packets, gfp_t mem_flags)
 		return NULL;
 	}
 	usb_init_urb(urb);
+    urb->audit = 0x2253;
+    urb_used_cnt ++;
 	return urb;
 }
 EXPORT_SYMBOL_GPL(usb_alloc_urb);
@@ -100,7 +106,7 @@ EXPORT_SYMBOL_GPL(usb_alloc_urb);
  */
 void usb_free_urb(struct urb *urb)
 {
-	if (urb)
+    if (urb) 
 		kref_put(&urb->kref, urb_destroy);
 }
 EXPORT_SYMBOL_GPL(usb_free_urb);

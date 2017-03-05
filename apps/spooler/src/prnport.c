@@ -21,7 +21,7 @@ static  cyg_handle_t	PortNWrite_TaskHdl;
 
 
 #define PRNTEST
-//  #undef PRNTEST
+#undef PRNTEST
 
 
 //Spooler Thread initiation information
@@ -272,8 +272,8 @@ void PortNWrite(cyg_addrword_t data)
 		
 //ZOTIPS	 	PrnStartPrintNegotiate( port );
 
-	 	while(PrnStartPrintNegotiate( port )!=0)	
-	 		cyg_thread_yield();
+         while(PrnStartPrintNegotiate( port )!=0)
+             cyg_thread_yield();
 	 	
 #ifdef SUPPORT_PRN_COUNT
 
@@ -342,7 +342,7 @@ void PortNWrite(cyg_addrword_t data)
 		
 //ZOTIPS		armond_printf("End writing\n");
 									
-		PrnEndPrintNegotiate( port );
+        //  PrnEndPrintNegotiate( port );
 
 		adjPortType[port] = PrnReadPortStatus( port );
 		

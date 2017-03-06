@@ -1085,13 +1085,16 @@ static int usblp_wwait(struct usblp *usblp, int nonblock)
         // cyg_thread_delay(msecs_to_jiffies(10));
         if (cyg_semaphore_timed_wait(&waita.wait_sem, cyg_current_time() + 150) == false)
         {
+            dbg("%s(%d) timeout !\n", __func__, __LINE__);
 			if (usblp->flags & LP_ABORT) {
+                dbg("%s(%d) LP_ABORT\n", __func__, __LINE__);
 				err = usblp_check_status(usblp, err);
 				if (err == 1) {	/* Paper out */
 					rc = -ENOSPC;
 					break;
 				}
 			} else {
+                dbg("%s(%d) to read printer status\n", __func__, __LINE__);
 				/* Prod the printer, Gentoo#251237. */
                 mutex_lock(&usblp->mut);
                 usblp_read_status(usblp, usblp->statusbuf);

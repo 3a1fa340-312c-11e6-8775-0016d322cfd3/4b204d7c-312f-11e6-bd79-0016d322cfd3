@@ -88,6 +88,7 @@ extern uint32 rdclock();
 #define UnixHolded        0x01
 #define UnixHoldAbort     0x02
 uint8 UnixHold[NUM_OF_PRN_PORT] = {0};
+cyg_mutex_t prn_unix_mutex;
 #define PrnIsUnixHold(Port)			(UnixHold[Port] & UnixHolded)
 #define PrnSetUnixHold(Port)		(UnixHold[Port] |= UnixHolded)
 #define PrnSetUnixUnHold(Port)		(UnixHold[Port] &= (~(UnixHolded|UnixHoldAbort)))
@@ -211,6 +212,8 @@ void lpdstart(cyg_addrword_t data)
     while (Network_TCPIP_ON == 0)
         ppause (100);
 #endif /* ARCH_ARM */
+
+    cyg_mutex_init(&prn_unix_mutex);	
 
     buf = malloc( BUFFER_SIZE );
 	if( buf == NULL )
@@ -464,7 +467,9 @@ int CheckServiceMode(int remote, FILE* network,int *Port, int *Mode, char* buf)
 		}
 #endif		
 		if(!PrnIsUnixHold(*Port)) {	//615wu::no psmain (no one hold, accept this connection.permit 'one' hold only)
+            cyg_mutex_lock(&prn_unix_mutex);
 			PrnSetUnixHold(*Port);
+            cyg_mutex_unlock(&prn_unix_mutex);
 			return LPD_RECEIVE_MODE;
 		}
 #endif
@@ -769,7 +774,9 @@ static int receive_data_file(int PortNumber, unsigned long filesize, int s, int 
 		//abort by user
 
 		PrnAbortSpooler(PortNumber,NULL);
+        cyg_mutex_lock(&prn_unix_mutex);
 		PrnSetUnixUnHold(PortNumber);
+        cyg_mutex_unlock(&prn_unix_mutex);
 		return (-1);
 	}
 
@@ -1260,7 +1267,9 @@ char *buf
 		PrnSetAbortUse(PortNumber);
 	}
 	else {
+        cyg_mutex_lock(&prn_unix_mutex);
 		PrnSetUnixHoldAbort(PortNumber);
+        cyg_mutex_unlock(&prn_unix_mutex);
 //os		ksignal(UNIX_SIGNAL_NO(PortNumber),1);
 //615wu::no psmain		cyg_semaphore_post( &UNIX_SIGNAL_NO );
 //os		kwait(0);
@@ -1380,7 +1389,9 @@ int hold_job(int PortNumber, int NumOfFile, int s)
 #endif
 
 	PrnSetUnixInUse(PortNumber);
+    cyg_mutex_lock(&prn_unix_mutex);
 	PrnSetUnixUnHold(PortNumber);
+    cyg_mutex_unlock(&prn_unix_mutex);
 	cyg_scheduler_unlock();	//615wu::No PSMain
 	
 	return (0);

@@ -215,6 +215,7 @@ void LightToggleProc(cyg_addrword_t data)
 	int flash_wps_led_count = 0;
 	int flash_wps_led_state = 0;
 #endif	// WPSBUTTON_LEDFLASH_FLICK
+    unsigned int usecnt = 0;
 
     Light_On(Status_Lite);
 	start_timer = jiffies;
@@ -473,6 +474,12 @@ void LightToggleProc(cyg_addrword_t data)
 		}
 #endif	//ZOT716u2			
         sys_check_stack();
+        if (usecnt % 100 == 0) {
+            diag_printf("%s(%d) use %d-%d\n", __func__, __LINE__,
+                    cyg_thread_measure_stack_usage(cyg_thread_self()),
+                    cyg_thread_get_stack_size(cyg_thread_self()));
+        }
+        usecnt ++;
 	}
 
 }

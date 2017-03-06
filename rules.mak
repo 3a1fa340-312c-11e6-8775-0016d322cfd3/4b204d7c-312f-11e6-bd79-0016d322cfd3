@@ -35,6 +35,7 @@ CFLAGS    = -Wall $(INC_DIR) -ffunction-sections -fdata-sections
 CFLAGS   += -D__ECOS -DECOS \
 			-D$(TARGET) \
 			-D$(ARCH) \
+			-DUSB_DBG \
 			-DUART_OUTPUT \
 			-DUSE_SYS_LIBS \
 			-DUSE_ADMIN_LIBS \

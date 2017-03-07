@@ -13,8 +13,12 @@ STRIP = $(GCC_DIR)/arm-elf-strip
 endif
 
 ifeq ($(CHIP),mt7688)
+ifeq ($(HOSTOS),Darwin)
+export COMMAND_PREFIX = mipsel-openwrt-linux-uclibc-
+export MAKE = gmake
+else
 export COMMAND_PREFIX = mipsisa32-elf-
-#export COMMAND_PREFIX = mipsel-linux-
+endif
 export CC = $(COMMAND_PREFIX)gcc
 export XCC= $(CC)
 export XCXX = $(XCC)
@@ -35,7 +39,6 @@ CFLAGS    = -Wall $(INC_DIR) -ffunction-sections -fdata-sections
 CFLAGS   += -D__ECOS -DECOS \
 			-D$(TARGET) \
 			-D$(ARCH) \
-			-DUSB_DBG \
 			-DUART_OUTPUT \
 			-DUSE_SYS_LIBS \
 			-DUSE_ADMIN_LIBS \

@@ -194,26 +194,26 @@ DRV_OBJS = $(join $(DRVSUBDIRS), $(foreach n,$(DRVSUBDIRS), $(shell echo "/"$(sh
 drvsubdirs: $(patsubst %, _dir_%, $(DRVSUBDIRS))
 
 $(patsubst %, _dir_%, $(DRVSUBDIRS)) :
-	$(MAKE) CFLAGS="$(CFLAGS)" ENDIAN=$(ENDIAN) -C $(patsubst _dir_%, %, $@)
+	$(MAKE) CFLAGS="$(CFLAGS)" ENDIAN=$(ENDIAN) -C $(patsubst _dir_%, %, $@) ;
 
 drivers.o: drvsubdirs $(DRV_OBJS)
-	$(LD) -r $(ENDIAN) -o $(OBJ_DIR)/drivers.o $(DRV_OBJS)
+	$(LD) -r $(ENDIAN) -o $(OBJ_DIR)/drivers.o $(DRV_OBJS) ;
 
 prod: $(patsubst %, _folder_%, $(PROD_MODULES))
 
 $(patsubst %, _folder_%, $(PROD_MODULES)) :
-	make -C $(patsubst _folder_%, $(APPS_DIR)/%/src, $@)
+	make -C $(patsubst _folder_%, $(APPS_DIR)/%/src, $@) ;
 
 prodclean: $(patsubst %, _clean_%, $(PROD_MODULES))
 
 $(patsubst %, _clean_%, $(PROD_MODULES)) :
-	make -C $(patsubst _clean_%, $(APPS_DIR)/%/src, $@) clean
+	make -C $(patsubst _clean_%, $(APPS_DIR)/%/src, $@) clean ;
 
 driver_clean: $(patsubst %, _drvclean_%, $(DRVSUBDIRS))
 
 $(patsubst %, _drvclean_%, $(DRVSUBDIRS)):
 	$(warning make -C $(patsubst _drvclean_%, %, $@) clean)
-	make -C $(patsubst _drvclean_%, %, $@) clean
+	make -C $(patsubst _drvclean_%, %, $@) clean ;
 
 
 N716U2:
@@ -245,17 +245,17 @@ endif
 	mv Target.def $(TARGET_DEF)
 
 target.ld:
-	cp $(ROOT_DIR)/ecos/$(HOSTOS)-target.ld $(PKG_INSTALL_DIR)/lib/$@
+	cp $(ROOT_DIR)/ecos/$(HOSTOS)-target.ld $(PKG_INSTALL_DIR)/lib/$@ ;
 
 lzmaImage: DIR_CHECK RM_AXF_FILE target.ld $(DST_NAME) $(PROD_NAME).bin $(PROD_NAME).map
-	$(MAKE) CFAGS="$(CFLAGS)" ENDIAN=$(ENDIAN) -C zload
-	$(ECOS_TOOL_PATH)/lzma e $(PROD_NAME).bin bin.gz	
-	$(XLD) $(ENDIAN) $(LD_EXTRA) -Ttext=$(CONFIG_ZLOAD_BUF) -Tzload/$(HOSTOS)-zload.ld -o $@ zload/zload.o -\( -b binary bin.gz -\) -Map zload.map
-	$(XNM) $@ | grep -v '\(compiled\)\|\(\.o$$\)\|\( [aUw] \)\|\(\.\.ng$$\)\|\(LASH[RL]DI\)' | sort > $@.map
+	$(MAKE) CFAGS="$(CFLAGS)" ENDIAN=$(ENDIAN) -C zload ;
+	$(ECOS_TOOL_PATH)/lzma e $(PROD_NAME).bin bin.gz ;	
+	$(XLD) $(ENDIAN) $(LD_EXTRA) -Ttext=$(CONFIG_ZLOAD_BUF) -Tzload/$(HOSTOS)-zload.ld -o $@ zload/zload.o -\( -b binary bin.gz -\) -Map zload.map ;
+	$(XNM) $@ | grep -v '\(compiled\)\|\(\.o$$\)\|\( [aUw] \)\|\(\.\.ng$$\)\|\(LASH[RL]DI\)' | sort > $@.map ;
 
 mt7688_ecos.img: lzmaImage.bin 
-	mkimage -A mips -T standalone -C none -a $(CONFIG_ZLOAD_BUF) -e $(CONFIG_ZLOAD_BUF) -n $(PROD_NAME) -d $< $@ 
-	sudo cp $@ $(TFTP_DIR) 
+	mkimage -A mips -T standalone -C none -a $(CONFIG_ZLOAD_BUF) -e $(CONFIG_ZLOAD_BUF) -n $(PROD_NAME) -d $< $@ ;
+	sudo cp $@ $(TFTP_DIR) ;
 
 loader: uboot.bin
 	cp $(TARGET_DEF) .
@@ -291,10 +291,7 @@ endif
 
 
 $(OBJ_DIR)/%.o: $(PROD_BUILD_DIR)/%.c
-	$(warning ecos_mipstool_path:$(ECOS_MIPSTOOL_PATH))
-	$(warning hostos = $(HOSTOS))
-	$(warning path = $(PATH))
-	$(CC) -c -o $(OBJ_DIR)/$*.o $(CFLAGS) $(EXTRACFLAGS) $<
+	$(CC) -c -o $(OBJ_DIR)/$*.o $(CFLAGS) $(EXTRACFLAGS) $< ;
 
 SRCS=$(PROD_BUILD_DIR)/zotmain.c
 OBJS=${SRCS:$(PROD_BUILD_DIR)/%.c=$(OBJ_DIR)/%.o}
@@ -310,7 +307,7 @@ DST=./$(DST_NAME)
 #	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(OBJ_DIR)/drivers.o $(PROD_LIBS) 
 
 $(DST_NAME): ${OBJS} prod $(DRIVERS)
-	$(CC) $(LDFLAGS) -Wl,-static -Wl,--cref -o $@ $(OBJS) $(EXTOBJS) $(PROD_LIBS) 
+	$(CC) $(LDFLAGS) -Wl,-static -Wl,--cref -o $@ $(OBJS) $(EXTOBJS) $(PROD_LIBS) ;
 
 #$(DST_NAME): ${OBJS} prod $(DRIVERS) $(DRV_OBJS)
 #	$(CC) $(LDFLAGS) -Wl,-static -Wl,--cref -o $@ $(OBJS) $(DRV_OBJS) $(PROD_LIBS) 

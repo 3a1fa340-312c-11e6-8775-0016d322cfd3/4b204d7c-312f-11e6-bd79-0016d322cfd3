@@ -189,62 +189,62 @@ endif
 	gzip -d -c $< > $*.o
 
 %.o: %.c
-	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) $(WFLAGS) -Wp,-MD,$*.d $<
+	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) $(WFLAGS) -Wp,-MD,$*.d $< ;
 
 %.o: %.cxx
-	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) $(WFLAGS) -Wp,-MD,$*.d $<
+	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) $(WFLAGS) -Wp,-MD,$*.d $< ;
 
 %.o: %.C
-	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) $(WFLAGS) -Wp,-MD,$*.d $<
+	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) $(WFLAGS) -Wp,-MD,$*.d $< ;
 
 %.o: %.cc
-	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) $(WFLAGS) -Wp,-MD,$*.d $<
+	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) $(WFLAGS) -Wp,-MD,$*.d $< ;
 
 %.o: %.S
-	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) $(WFLAGS) -Wp,-MD,$*.d $<
+	$(CC) -c -o $*.o $(CFLAGS) $(EXTRACFLAGS) $(CFLAGS_$@) $(WFLAGS) -Wp,-MD,$*.d $< ;
 
 %.d: %.o.gz
 	@echo "$@ : $<" > $@
 	gzip -d -c $< > $*.o
 	
 %.d : %.c
-	$(CC) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(WFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
+	$(CC) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(WFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $< ;
 	@sed -e '/^ *\\/d' -e "s#.*: #$@: #" $(@:.d=.tmp) > $@
 	@rm $(@:.d=.tmp)
 	
 %.d : %.cxx
-	$(CC) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(WFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
+	$(CC) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(WFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $< ;
 	@sed -e '/^ *\\/d' -e "s#.*: #$@: #" $(@:.d=.tmp) > $@
 	@rm $(@:.d=.tmp)
 	
 %.d : %.C
-	$(CC) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(WFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
+	$(CC) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(WFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $< ;
 	@sed -e '/^ *\\/d' -e "s#.*: #$@: #" $(@:.d=.tmp) > $@
 	@rm $(@:.d=.tmp)
 	
 %.d : %.cc
-	$(XCXX) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(WFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
+	$(XCXX) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(WFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $< ;
 	@sed -e '/^ *\\/d' -e "s#.*: #$@: #" $(@:.d=.tmp) > $@
 	@rm $(@:.d=.tmp)
 	
 %.d : %.S
-	$(XCXX) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(WFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $<
+	$(XCXX) -c  -o $(@:.d=.o) $(CFLAGS) $(EXTRACFLAGS) $(WFLAGS) $(CFLAGS_$(@:.d=.o)) -Wp,-MD,$(@:.d=.tmp) $< ;
 	@sed -e '/^ *\\/d' -e "s#.*: #$@: #" $(@:.d=.tmp) > $@
 	@rm $(@:.d=.tmp)
 
 %.i: %.c
-	$(XCC) -E -o $*.i $(CFLAGS) $(EXTRACFLAGS) $(WFLAGS) $(CFLAGS_$@) $< 
+	$(XCC) -E -o $*.i $(CFLAGS) $(EXTRACFLAGS) $(WFLAGS) $(CFLAGS_$@) $< ;
 		
 %.bin: %.axf
-	$(XOC) -O binary $(@:.bin=.axf) $@
+	$(XOC) -O binary $(@:.bin=.axf) $@ ;
 
 %.bin: %
-	$(XOC) -O binary $(@:.bin=) $@
+	$(XOC) -O binary $(@:.bin=) $@ ;
 
 %.map: %.axf
-	$(XNM) $(@:.map=.axf) | grep -v '\(compiled\)\|\(\.o$$\)\|\( [aUw] \)\|\(\.\.ng$$\)\|\(LASH[RL]DI\)' | sort > $@
+	$(XNM) $(@:.map=.axf) | grep -v '\(compiled\)\|\(\.o$$\)\|\( [aUw] \)\|\(\.\.ng$$\)\|\(LASH[RL]DI\)' | sort > $@ ;
 
 %.dis: %
-	$(XOD) -S --show-raw-insn $(@:.dis=) > $@
+	$(XOD) -S --show-raw-insn $(@:.dis=) > $@ ;
 
 

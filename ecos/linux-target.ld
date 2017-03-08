@@ -1,5 +1,5 @@
-OUTPUT_FORMAT("elf32-tradlittlemips", "elf32-tradbigmips",
-	      "elf32-tradlittlemips")
+OUTPUT_FORMAT("elf32-bigmips", "elf32-bigmips",
+              "elf32-littlemips")
 OUTPUT_ARCH(mips:isa32)
 STARTUP(vectors.o)
 ENTRY(reset_vector)

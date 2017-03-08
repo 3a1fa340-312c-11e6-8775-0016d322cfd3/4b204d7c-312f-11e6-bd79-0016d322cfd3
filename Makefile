@@ -20,7 +20,7 @@ TOPDIR = $(ROOT_DIR)
 HDR_MAK = $(ROOT_DIR)/rules.mak
 #ENDIAN=$(shell echo $(ECOS_GLOBAL_CFLAGS) | sed -e "s/.*-EL.*/-EL/" )
 ENDIAN = -EL
-HOSTOS = $(shell uname)
+HOSTOS = $(shell uname | tr A-Z a-z)
 
 PROD_DIR= $(ROOT_DIR)/prod
 APPS_DIR = $(ROOT_DIR)/apps

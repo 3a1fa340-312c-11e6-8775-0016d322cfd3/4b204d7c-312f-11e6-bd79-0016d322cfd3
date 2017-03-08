@@ -31,7 +31,7 @@ TARGET_DEF = $(PROD_BUILD_DIR)/Target.def
 TARGET_OS = ECOS
 ECOS_REPOSITORY := $(ROOT_DIR)/ecos/packages
 ECOS_TOOL_PATH := $(ROOT_DIR)/tools/$(HOSTOS)/bin
-ifeq ($(HOSTOS),Darwin)
+ifeq ($(HOSTOS),darwin)
 ECOS_MIPSTOOL_PATH := $(ROOT_DIR)/tools/mipsel-linux-uclibc/bin
 TFTP_DIR = /private/tftpboot
 export STAGING_DIR =
@@ -90,7 +90,7 @@ ARCH = ARCH_ARM
 endif
 
 ifeq ($(CHIP),mt7688)
-ifeq ($(HOSTOS),Darwin)
+ifeq ($(HOSTOS),darwin)
 GCC_DIR = $(ROOT_DIR)/tools/mipsel-linux-uclibc/bin
 else
 GCC_DIR = $(ROOT_DIR)/tools/mipsisa32-elf/bin

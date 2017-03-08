@@ -13,7 +13,7 @@ STRIP = $(GCC_DIR)/arm-elf-strip
 endif
 
 ifeq ($(CHIP),mt7688)
-ifeq ($(HOSTOS),Darwin)
+ifeq ($(HOSTOS),darwin)
 export COMMAND_PREFIX = mipsel-openwrt-linux-uclibc-
 export MAKE = gmake
 else

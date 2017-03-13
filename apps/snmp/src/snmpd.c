@@ -33,7 +33,7 @@ static cyg_handle_t     Snmpd_TaskHdl;
 
 //SnmpCheckStatus Task create information definition
 #define SnmpCheckStatus_TASK_PRI         20	//ZOT716u2
-#define SnmpCheckStatus_TASK_STACK_SIZE	 2048 //ZOT716u2 4096
+#define SnmpCheckStatus_TASK_STACK_SIZE	 4096 //ZOT716u2 4096
 static uint8 			SnmpCheckStatus_Stack[SnmpCheckStatus_TASK_STACK_SIZE];
 static cyg_thread       SnmpCheckStatus_Task;
 static cyg_handle_t     SnmpCheckStatus_TaskHdl;

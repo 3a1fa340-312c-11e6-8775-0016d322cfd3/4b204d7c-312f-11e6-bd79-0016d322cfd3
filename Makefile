@@ -13,7 +13,7 @@ export CHIPSET RT28xx_MODE PLATFORM
 endif
 
 # zot716u2w, zot716u2, zotdwp2020
-PROD_NAME ?= zotdwp2020
+PROD_NAME ?= zot716u2
 
 ROOT_DIR = $(shell pwd)
 TOPDIR = $(ROOT_DIR)

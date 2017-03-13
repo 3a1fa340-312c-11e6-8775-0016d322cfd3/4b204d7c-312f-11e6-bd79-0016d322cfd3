@@ -155,7 +155,7 @@ struct ehci_hcd {			/* one per controller */
 #endif
 
 	/* debug files */
-#ifdef DEBUG
+#ifdef USB_DBG
 	struct dentry		*debug_dir;
 #endif
 };
@@ -722,9 +722,9 @@ static inline u32 hc32_to_cpup (const struct ehci_hcd *ehci, const __hc32 *x)
 
 /*-------------------------------------------------------------------------*/
 
-#ifndef DEBUG
+#ifndef USB_DBG
 #define STUB_DEBUG_FILES
-#endif	/* DEBUG */
+#endif	/* USB_DBG */
 
 /*-------------------------------------------------------------------------*/
 

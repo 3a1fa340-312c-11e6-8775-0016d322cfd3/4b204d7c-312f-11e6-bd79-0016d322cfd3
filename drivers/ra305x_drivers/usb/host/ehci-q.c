@@ -150,6 +150,7 @@ static void ehci_clear_tt_buffer_complete(struct usb_hcd *hcd,
 	struct ehci_qh		*qh = ep->hcpriv;
 	unsigned long		flags;
 
+    diag_printf("%s(%d)\n", __func__, __LINE__);
 	spin_lock_irqsave(&ehci->lock, flags);
 	qh->clearing_tt = 0;
 	if (qh->qh_state == QH_STATE_IDLE && !list_empty(&qh->qtd_list)
@@ -161,8 +162,6 @@ static void ehci_clear_tt_buffer_complete(struct usb_hcd *hcd,
 static void ehci_clear_tt_buffer(struct ehci_hcd *ehci, struct ehci_qh *qh,
 		struct urb *urb, u32 token)
 {
-    diag_printf("%s(%d)\n", __func__, __LINE__);
-#if 0
 	/* If an async split transaction gets an error or is unlinked,
 	 * the TT buffer may be left in an indeterminate state.  We
 	 * have to clear the TT buffer.
@@ -170,17 +169,17 @@ static void ehci_clear_tt_buffer(struct ehci_hcd *ehci, struct ehci_qh *qh,
 	 * Note: this routine is never called for Isochronous transfers.
 	 */
 	if (urb->dev->tt && !usb_pipeint(urb->pipe) && !qh->clearing_tt) {
-#ifdef DEBUG
+#ifdef USB_DBG
 		struct usb_device *tt = urb->dev->tt->hub;
 		dev_dbg(&tt->dev,
 			"clear tt buffer port %d, a%d ep%d t%08x\n",
 			urb->dev->ttport, urb->dev->devnum,
 			usb_pipeendpoint(urb->pipe), token);
-#endif /* DEBUG */
+#endif /* USB_DBG */
 		if (!ehci_is_TDI(ehci)
 				|| urb->dev->tt->hub !=
 				   ehci_to_hcd(ehci)->self.root_hub) {
-			if (usb_hub_clear_tt_buffer(urb) == 0)
+            if (usb_hub_clear_tt_buffer(urb) == 0)
 				qh->clearing_tt = 1;
 		} else {
 
@@ -189,7 +188,6 @@ static void ehci_clear_tt_buffer(struct ehci_hcd *ehci, struct ehci_qh *qh,
 			 */
 		}
 	}
-#endif
 }
 
 static int qtd_copy_status (
@@ -1127,12 +1125,12 @@ submit_async (
 	epnum = urb->ep->desc.bEndpointAddress;
 
 #ifdef EHCI_URB_TRACE
-	ehci_dbg (ehci,
-		"%s %s urb %p ep%d%s len %d, qtd %p [qh %p]\n",
-		__func__, urb->dev->devpath, urb,
-		epnum & 0x0f, (epnum & USB_DIR_IN) ? "in" : "out",
-		urb->transfer_buffer_length,
-		qtd, urb->ep->hcpriv);
+    ehci_dbg (ehci,
+        "%s %s urb %p ep%d%s len %d, qtd %p [qh %p]\n",
+        __func__, urb->dev->devpath, urb,
+        epnum & 0x0f, (epnum & USB_DIR_IN) ? "in" : "out",
+        urb->transfer_buffer_length,
+        qtd, urb->ep->hcpriv);
 #endif
 
 	spin_lock_irqsave (&ehci->lock, flags);
@@ -1215,14 +1213,14 @@ static void start_unlink_async (struct ehci_hcd *ehci, struct ehci_qh *qh)
 	int		cmd = ehci_readl(ehci, &ehci->regs->command);
 	struct ehci_qh	*prev;
 
-#ifdef DEBUG
-	assert_spin_locked(&ehci->lock);
+#ifdef USB_DBG
+	//  assert_spin_locked(&ehci->lock);
 	if (ehci->reclaim
 			|| (qh->qh_state != QH_STATE_LINKED
 				&& qh->qh_state != QH_STATE_UNLINK_WAIT)
 			)
 		BUG ();
-#endif
+#endif /* USB_DBG */
 
 	/* stop async schedule right now? */
 	if (unlikely (qh == ehci->async)) {

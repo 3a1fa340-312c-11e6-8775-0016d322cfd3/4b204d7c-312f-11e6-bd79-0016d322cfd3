@@ -208,7 +208,7 @@ struct parport {
 	u8  *DataPtr;
 };
 
-#ifdef DEBUG
+#ifdef USB_DBG
 static void usblp_dump(struct usblp *usblp)
 {
 	int p;
@@ -499,19 +499,21 @@ static int usblp_open(struct usblp *usblp/*struct inode *inode, struct file *fil
 	if (retval < 0)
 		goto out;
 	usblp->used = 1;
+    diag_printf("%s(%d)\n", __func__, __LINE__);
 	// file->private_data = usblp;
 
 	usblp->wcomplete = 1; /* we begin writeable */
 	usblp->wstatus = 0;
 	usblp->rcomplete = 0;
 
-	if (handle_bidir(usblp) < 0) {
-		usb_autopm_put_interface(intf);
-		usblp->used = 0;
-		// file->private_data = NULL;
-		retval = -EIO;
-	}
-
+    if (handle_bidir(usblp) < 0) {
+        sys_check_stack();
+        usb_autopm_put_interface(intf);
+        usblp->used = 0;
+        // file->private_data = NULL;
+        retval = -EIO;
+    }
+#if 0
     // ZOTech Config
 	if(    (IS_SHARP_AR_M207 == 1) 
 		&& (PortIO[i1284].DataPtr[0] == 0x81) 
@@ -576,15 +578,17 @@ static int usblp_open(struct usblp *usblp/*struct inode *inode, struct file *fil
 		
 
 	}
-
+#endif /* if 0 */
 out:
 	mutex_unlock(&usblp_mutex);
+    sys_check_stack();
 	return retval;
 }
 
 static void usblp_cleanup(struct usblp *usblp)
 {
 	printk(KERN_INFO "usblp%d: removed\n", usblp->minor);
+    diag_printf("%s(%d) usblp removed\n", __func__, __LINE__);
 
 	kfree(usblp->readbuf);
 	kfree(usblp->device_id_string);
@@ -608,7 +612,7 @@ static int usblp_release(struct usblp *usblp, int nPort/*struct inode *inode, st
 	int total_len = 0;
 
 	usblp->flags &= ~LP_ABORT;
-
+#if 0
     if ((IS_SHARP_AR_M207 == 1) && (IS_SET_AR_M207_CMD == 1)) {
         IS_SET_AR_M207_CMD = 0;
 
@@ -657,10 +661,12 @@ static int usblp_release(struct usblp *usblp, int nPort/*struct inode *inode, st
             cyg_thread_delay(100);
         }
     }
+#endif
 
 	mutex_lock(&usblp_mutex);
 	usblp->used = 0;
 	if (usblp->present) {
+        diag_printf("%s(%d) usblp_unlink_urbs\n", __func__, __LINE__);
 		usblp_unlink_urbs(usblp);
 		usb_autopm_put_interface(usblp->intf);
 	} else		/* finish cleanup from disconnect */
@@ -762,7 +768,7 @@ static int usblp_release(struct usblp *usblp, int nPort/*struct inode *inode, st
 //                 goto done;
 //             }
 // 
-// #ifdef DEBUG
+// #ifdef USB_DBG
 //             if (arg == -10) {
 //                 usblp_dump(usblp);
 //                 break;
@@ -1085,16 +1091,19 @@ static int usblp_wwait(struct usblp *usblp, int nonblock)
         // cyg_thread_delay(msecs_to_jiffies(10));
         if (cyg_semaphore_timed_wait(&waita.wait_sem, cyg_current_time() + 150) == false)
         {
-            dbg("%s(%d) timeout !\n", __func__, __LINE__);
+            diag_printf("%s(%d) timout! \n", __func__, __LINE__);
+            //  dbg("%s(%d) timeout !\n", __func__, __LINE__);
 			if (usblp->flags & LP_ABORT) {
-                dbg("%s(%d) LP_ABORT\n", __func__, __LINE__);
+                diag_printf("%s(%d) LP_ABORT\n", __func__, __LINE__);
+                //  dbg("%s(%d) LP_ABORT\n", __func__, __LINE__);
 				err = usblp_check_status(usblp, err);
 				if (err == 1) {	/* Paper out */
 					rc = -ENOSPC;
 					break;
 				}
 			} else {
-                dbg("%s(%d) to read printer status\n", __func__, __LINE__);
+                diag_printf("%s(%d) to read printer status\n", __func__, __LINE__);
+                //  dbg("%s(%d) to read printer status\n", __func__, __LINE__);
 				/* Prod the printer, Gentoo#251237. */
                 mutex_lock(&usblp->mut);
                 usblp_read_status(usblp, usblp->statusbuf);
@@ -1290,7 +1299,11 @@ static struct usb_class_driver usblp_class = {
 // }
 // 
 // static DEVICE_ATTR(ieee1284_id, S_IRUGO, usblp_show_ieee1284_id, NULL);
+#ifdef USB_TEST
+extern cyg_handle_t usblp_mbox_handle;
+#endif /* USB_TEST */
 
+struct usblp *g_usblp = NULL;
 static int usblp_probe(struct usb_interface *intf,
 		       const struct usb_device_id *id)
 {
@@ -1374,7 +1387,7 @@ static int usblp_probe(struct usb_interface *intf,
 	// if (retval)
 	//     goto abort_intfdata;
 
-#ifdef DEBUG
+#ifdef USB_DBG
 	usblp_check_status(usblp, 0);
 #endif
 
@@ -1409,8 +1422,13 @@ static int usblp_probe(struct usb_interface *intf,
 		le16_to_cpu(usblp->dev->descriptor.idVendor),
 		le16_to_cpu(usblp->dev->descriptor.idProduct));
 
+    g_usblp = usblp;
 	usblp_table[usblp->minor] = usblp;
 	usbprn_attach( usblp->minor );
+
+#ifdef USB_TEST
+    cyg_mbox_put(usblp_mbox_handle, (void *)usblp);
+#endif /* USB_TEST */
 
 	if(	   (dev->descriptor.idVendor == 0x03F0) && (dev->descriptor.idProduct == 0x2B17)
 		|| (dev->descriptor.idVendor == 0x03F0) && (dev->descriptor.idProduct == 0x4117)
@@ -1753,9 +1771,9 @@ int usbprn_unattach( int minor )
 	struct usblp *usblp = usblp_table[minor];
 	int i1284 = NUM_OF_1284_PORT + usblp->dev->ttport;
 
-    if (usblp->used) {
-        usbprn_close(minor);
-    }
+    //  if (usblp->used) {
+    //      usbprn_close(minor);
+    //  }
 
     usb_minors[minor] = 0;
 
@@ -1796,11 +1814,9 @@ u8 usbprn_read_status( int nPort )
 int usbprn_open(int nPort)
 {
 #ifdef USE_PS_LIBS
-    struct usblp *usblp;
     if( PortIO[nPort].base && usblp_table[PortIO[nPort].base-1] ) {
-        usblp = (struct usblp *)usblp_table[PortIO[nPort].base -1];
-        if (!usblp->used)
-		    usblp_open(	usblp_table[PortIO[nPort].base-1] );
+        g_usblp = (struct usblp *)usblp_table[PortIO[nPort].base -1];
+        usblp_open(	usblp_table[PortIO[nPort].base-1] );
     }
 #endif /* USE_PS_LIBS */
 	return 0;
@@ -1822,15 +1838,52 @@ int usbprn_write(int nPort, u8 *pBuf, int nLength)
 		usblp_write( usblp_table[PortIO[nPort].base-1], pBuf, nLength, NULL );
     }
 #endif /* USE_PS_LIBS */
-	return nLength;
+    return nLength;
 }
 
 int usbprn_read(int nPort, u8 *pBuf, int nLength)
 {
 #ifdef USE_PS_LIBS
-	if( PortIO[nPort].base && usblp_table[PortIO[nPort].base-1] )
-		usblp_read( usblp_table[PortIO[nPort].base-1], pBuf, nLength, NULL );
+	//  if( PortIO[nPort].base && usblp_table[PortIO[nPort].base-1] )
+	//      usblp_read( usblp_table[PortIO[nPort].base-1], pBuf, nLength, NULL );
 #endif
-	return nLength;
+	//  return nLength;
+    return usblp_read(g_usblp, pBuf, nLength, NULL);
 }
 
+#ifdef USB_TEST
+extern unsigned char WirelessLightToggle;
+#define PRINT_QUEUE_ADDRESS 0x80E00000
+void usblp_test(struct usblp *usblp) 
+{
+	unsigned char *pBuf = PRINT_QUEUE_ADDRESS;
+    unsigned int file_sizes = 1024*1024*58; /* 100M */
+    unsigned int write_sizes = 0;
+    unsigned int file_rec = 0;
+    unsigned int write_cycle = 4;
+    unsigned usb_block_size = 4380;
+    int i;
+
+    diag_printf("======= USB TEST start ========\n");
+
+    while(1) {
+
+        usblp_open(usblp);
+        
+        write_sizes = 0;
+        while (write_sizes < file_sizes) {
+            for (i = 0; i < write_cycle; i++) {
+                usblp_write(usblp, pBuf, usb_block_size, NULL);
+                WirelessLightToggle ++;
+            }
+            write_sizes += write_cycle * usb_block_size;
+        }
+
+        usblp_release(usblp, 0);
+
+        file_rec ++;
+        diag_printf(" **** usb writted %d bytes - %d\n", file_sizes, file_rec);
+        cyg_thread_delay(20);
+    }
+}
+#endif /* USB_TEST */

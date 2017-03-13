@@ -88,7 +88,6 @@ extern uint32 rdclock();
 #define UnixHolded        0x01
 #define UnixHoldAbort     0x02
 uint8 UnixHold[NUM_OF_PRN_PORT] = {0};
-cyg_mutex_t prn_unix_mutex;
 #define PrnIsUnixHold(Port)			(UnixHold[Port] & UnixHolded)
 #define PrnSetUnixHold(Port)		(UnixHold[Port] |= UnixHolded)
 #define PrnSetUnixUnHold(Port)		(UnixHold[Port] &= (~(UnixHolded|UnixHoldAbort)))
@@ -213,7 +212,6 @@ void lpdstart(cyg_addrword_t data)
         ppause (100);
 #endif /* ARCH_ARM */
 
-    cyg_mutex_init(&prn_unix_mutex);	
 
     buf = malloc( BUFFER_SIZE );
 	if( buf == NULL )
@@ -467,9 +465,7 @@ int CheckServiceMode(int remote, FILE* network,int *Port, int *Mode, char* buf)
 		}
 #endif		
 		if(!PrnIsUnixHold(*Port)) {	//615wu::no psmain (no one hold, accept this connection.permit 'one' hold only)
-            cyg_mutex_lock(&prn_unix_mutex);
 			PrnSetUnixHold(*Port);
-            cyg_mutex_unlock(&prn_unix_mutex);
 			return LPD_RECEIVE_MODE;
 		}
 #endif
@@ -774,9 +770,7 @@ static int receive_data_file(int PortNumber, unsigned long filesize, int s, int 
 		//abort by user
 
 		PrnAbortSpooler(PortNumber,NULL);
-        cyg_mutex_lock(&prn_unix_mutex);
 		PrnSetUnixUnHold(PortNumber);
-        cyg_mutex_unlock(&prn_unix_mutex);
 		return (-1);
 	}
 
@@ -862,6 +856,7 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 	unsigned long total = 0;
 	char status = STATUS_OK;
 	struct prnbuf *pbuf;
+    int display_cnt = 0;
 #ifdef APP_SENDACK
 	uint32 startime;
 #endif /* APP_SENDACK */
@@ -891,6 +886,8 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 #ifdef APP_SENDACK
         startime = rdclock();
 #endif /* APP_SENDACK */
+        sys_check_stack();
+        display_cnt = 0;
 		while((pbuf = PrnGetInQueueBuf(PortNumber)) == NULL) {
 #ifdef APP_SENDACK	
 			//10/11/99 Send Ack When Buffer is empty *****************
@@ -905,11 +902,18 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 			cyg_thread_yield();
 #else
             cyg_thread_delay(20);
+            display_cnt ++;
+            if (display_cnt > 50) {
+                diag_printf("wait print queue\n");
+                DumpPrintQueue();
+                display_cnt = 0;
+            }
+            sys_check_stack();
 #endif /* APP_SENDACK */
 		}
+        sys_check_stack();
 
 		if(PrnGetPrinterStatus(PortNumber) == PrnAbortUsed) {
-
 			status = STATUS_ERR;
 			break;
 		}
@@ -920,11 +924,12 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 //		}
 		
 		// George Add April 3, 2007
-        cyg_scheduler_lock();
+        //  cyg_scheduler_lock();
 		startime_bin = rdclock();
-        cyg_scheduler_unlock();
+        //  cyg_scheduler_unlock();
 		
 ///*
+
 		bytes = 0;
 #ifndef USB_ZERO_CPY		
 		while( ( recv_bytes = recv( s, &pbuf->data[bytes], BLOCK_SIZE, 0 ) ) > 0 )
@@ -956,6 +961,8 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 				
 		}
 		
+        sys_check_stack();
+
 		if( recv_bytes <= 0 )
 		{
 			if ( bytes )
@@ -1019,17 +1026,18 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 				
 	} while( total < filesize );
 
+
 	if( status != STATUS_OK ) {
 		PrnAbortSpooler(PortNumber,pbuf);
 #ifdef SUPPORT_JOB_LOG
 		// George Add April 3, 2007
-        cyg_scheduler_lock();
+        //  cyg_scheduler_lock();
 		if((rdclock()-startime_bin) > ((uint32)(EEPROM_Data.TimeOutValue))*10) {
-            cyg_scheduler_unlock();
+            //  cyg_scheduler_unlock();
 			return -3;
         }
         else {
-            cyg_scheduler_unlock();
+            //  cyg_scheduler_unlock();
             return -1;
         }
 #endif //SUPPORT_JOB_LOG
@@ -1267,9 +1275,7 @@ char *buf
 		PrnSetAbortUse(PortNumber);
 	}
 	else {
-        cyg_mutex_lock(&prn_unix_mutex);
 		PrnSetUnixHoldAbort(PortNumber);
-        cyg_mutex_unlock(&prn_unix_mutex);
 //os		ksignal(UNIX_SIGNAL_NO(PortNumber),1);
 //615wu::no psmain		cyg_semaphore_post( &UNIX_SIGNAL_NO );
 //os		kwait(0);
@@ -1389,9 +1395,7 @@ int hold_job(int PortNumber, int NumOfFile, int s)
 #endif
 
 	PrnSetUnixInUse(PortNumber);
-    cyg_mutex_lock(&prn_unix_mutex);
 	PrnSetUnixUnHold(PortNumber);
-    cyg_mutex_unlock(&prn_unix_mutex);
 	cyg_scheduler_unlock();	//615wu::No PSMain
 	
 	return (0);

@@ -220,15 +220,16 @@ typedef struct {
 #define dev_warn(dev, format, arg...) diag_printf(format, ##arg)
 #define dev_err(dev, format, arg...) diag_printf(format, ##arg)
 #define dev_info(dev, format, arg...) diag_printf(format, ##arg)
+#define dbg_status(ehci, label, status) diag_printf("ehci: %s:%x\n", label, status)
 #else /* USB_DBG */
 #define dev_dbg(dev, format, arg...) 
 #define dev_warn(dev, format, arg...) 
 #define dev_err(dev, format, arg...) 
 #define dev_info(dev, format, arg...) 
+#define dbg_status(ehci, label, status) 
 #endif /* USB_DBG */
 
 #define dbg_cmd(ehci, label, command)
-#define dbg_status(ehci, label, status) 
 #define __devinit
 
 #define KERN_WARNING

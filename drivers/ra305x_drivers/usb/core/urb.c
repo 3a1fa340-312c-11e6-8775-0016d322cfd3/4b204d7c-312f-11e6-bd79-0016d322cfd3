@@ -406,7 +406,7 @@ int usb_submit_urb(struct urb *urb, gfp_t mem_flags)
 	if (urb->transfer_buffer_length > INT_MAX)
 		return -EMSGSIZE;
 
-#ifdef DEBUG
+#ifdef USB_DBG
 	/* stuff that drivers shouldn't do, but which shouldn't
 	 * cause problems in HCDs if they get it wrong.
 	 */
@@ -693,6 +693,7 @@ void usb_kill_anchored_urbs(struct usb_anchor *anchor)
 
 	spin_lock_irq(&anchor->lock);
 	while (!list_empty(&anchor->urb_list)) {
+        diag_printf("%s(%d) kill urb\n", __func__, __LINE__);
 		victim = list_entry(anchor->urb_list.prev, struct urb,
 				    anchor_list);
 		/* we must make sure the URB isn't freed before we kill it*/

@@ -14,7 +14,7 @@
 
 //PortNWrite Thread initiation information
 #define PortNWrite_TASK_PRI         	20	//ZOT716u2
-#define PortNWrite_TASK_STACK_SIZE  	2048
+#define PortNWrite_TASK_STACK_SIZE      10240 
 static	uint8			PortNWrite_Stack[PortNWrite_TASK_STACK_SIZE];
 static  cyg_thread		PortNWrite_Task;
 static  cyg_handle_t	PortNWrite_TaskHdl;
@@ -182,10 +182,19 @@ BYTE RealPortStatus(BYTE port)
 	return usbprn_read_status( port );
 }
 
+#ifdef PQ_USE_MUTEX
+extern cyg_mutex_t pq_mutex[NUM_OF_PRN_PORT];
+#endif /* PQ_USE_MUTEX */
 BYTE StartDMAIO(BYTE *SrcBuf, WORD DataSize, BYTE Port)
 {
+#ifdef PQ_USE_MUTEX
+    cyg_mutex_lock(&pq_mutex[Port]);
+#endif /* PQ_USE_MUTEX */
 	PortIO[Port].DataSize = DataSize;
 	PortIO[Port].DataPtr = SrcBuf;
+#ifdef PQ_USE_MUTEX
+    cyg_mutex_unlock(&pq_mutex[Port]);
+#endif /* PQ_USE_MUTEX */
 
 	if( G_PortReady & ( 1 << Port ) )
 		cyg_semaphore_post (&SP_SIGNAL_PORT_1);
@@ -251,6 +260,7 @@ void PortNWrite(cyg_addrword_t data)
 	uint32 start;
 	int    written;
 	int port = UsedPortNumber;
+    unsigned long busy_loop;
 #ifdef PRNTEST
     int   pktcnt = 0;
 #endif /* PRNTEST */
@@ -271,9 +281,10 @@ void PortNWrite(cyg_addrword_t data)
 		PNW_Statu[port] = 1;	//for dbg
 		
 //ZOTIPS	 	PrnStartPrintNegotiate( port );
-
+#ifndef PRNTEST
          while(PrnStartPrintNegotiate( port )!=0)
              cyg_thread_yield();
+#endif /* !PRNTEST */
 	 	
 #ifdef SUPPORT_PRN_COUNT
 
@@ -303,23 +314,18 @@ void PortNWrite(cyg_addrword_t data)
 				do {
 #ifndef PRNTEST
 					// check if it is IEEE1284 or USB printer device
-					written = usbprn_write( port, PortIO[port].DataPtr, PortIO[port].DataSize );
+                    CYG_ASSERT(PortIO[port].DataSize < 10240, "Error Data Size");
+                    written = usbprn_write( port, PortIO[port].DataPtr, PortIO[port].DataSize );
 #else					
                     written = PortIO[port].DataSize;			//615wu-spooler-temp
-                    //  written = PortIO[port].DataSize > 8192 ? 8192:PortIO[port].DataSize;
-                    cyg_thread_delay(2);
-                    pktcnt ++;
-                    if (pktcnt > 40) {
-                        pktcnt = 0;
-                        cyg_thread_delay(40);
-                    }
-#endif					
+#endif /* PRNTEST */					
 					PortIO[port].DataSize = PortIO[port].TotalSize - written;
 					if( PortIO[port].DataSize ) 
 						PortIO[port].PortTimeout++;
 					else
 						PortIO[port].PortTimeout = 0;
 				} while( written < PortIO[port].TotalSize );
+                //  diag_printf("%s(%d) write %d\n", __func__, __LINE__, PortIO[port].TotalSize);
 
 				start = jiffies;
 				PortIO[port].DataSize = 0;
@@ -328,21 +334,20 @@ void PortNWrite(cyg_addrword_t data)
 				Printing_StartNum[port] = 0;
 			}
 			
-//			cyg_thread_yield();
+            //  cyg_thread_yield();
 			
 			if( DMAPrinting( port ) == 0 ) {
-//				ppause( 20 );
-                cyg_thread_delay(10);
+                ppause( 30 );
                 if( PrnGetPrinterStatus( port ) == PrnNoUsed ) {
-                    cyg_thread_delay(100);
-                    //  ppause( 100 );
+                    ppause( 100 );
                 }
 			}
 		}							
 		
 //ZOTIPS		armond_printf("End writing\n");
-									
-        //  PrnEndPrintNegotiate( port );
+#ifndef PRNTEST									
+        PrnEndPrintNegotiate( port );
+#endif /* !PRNTEST */
 
 		adjPortType[port] = PrnReadPortStatus( port );
 		
@@ -353,7 +358,8 @@ void PortNWrite(cyg_addrword_t data)
 			usbprn_read( port, respbuf, 30 );
 			PageCount[port] = atol(memchr(respbuf,0x0A,30));
 		}
-#endif		
+#endif
+        diag_printf("%s(%d) reamin queue:%d\n", __func__, __LINE__, PrnGetAvailQueueNO(port));
 		
 		PNW_Statu[port] = 0;	//for dbg
 		
@@ -531,6 +537,6 @@ void Spooler_init(void)
                   &PrnStateSpooler_Task);
 	
 	//Start PrnStateSpooler Thread
-	cyg_thread_resume(PrnStateSpooler_TaskHdl);
+    cyg_thread_resume(PrnStateSpooler_TaskHdl);
 
 }

@@ -42,7 +42,7 @@
 #include "asm/r4kcache.h"
 
 /* if we are in debug mode, always announce new devices */
-#ifdef DEBUG
+#ifdef USB_DBG
 #ifndef CONFIG_USB_ANNOUNCE_NEW_DEVICES
 #define CONFIG_USB_ANNOUNCE_NEW_DEVICES
 #endif
@@ -484,43 +484,44 @@ hub_clear_tt_buffer (struct usb_device *hdev, u16 devinfo, u16 tt)
  * talking to TTs must queue control transfers (not just bulk and iso), so
  * both can talk to the same hub concurrently.
  */
-// static void hub_tt_work(struct work_struct *work)
-// {
-//     struct usb_hub      *hub =
-//         container_of(work, struct usb_hub, tt.clear_work);
-//     unsigned long       flags;
-//     int         limit = 100;
-// 
-//     spin_lock_irqsave (&hub->tt.lock, flags);
-//     while (--limit && !list_empty (&hub->tt.clear_list)) {
-//         struct list_head    *next;
-//         struct usb_tt_clear *clear;
-//         struct usb_device   *hdev = hub->hdev;
-//         const struct hc_driver  *drv;
-//         int         status;
-// 
-//         next = hub->tt.clear_list.next;
-//         clear = list_entry (next, struct usb_tt_clear, clear_list);
-//         list_del (&clear->clear_list);
-// 
-//         [> drop lock so HCD can concurrently report other TT errors <]
-//         spin_unlock_irqrestore (&hub->tt.lock, flags);
-//         status = hub_clear_tt_buffer (hdev, clear->devinfo, clear->tt);
-//         if (status)
-//             dev_err (&hdev->dev,
-//                 "clear tt %d (%04x) error %d\n",
-//                 clear->tt, clear->devinfo, status);
-// 
-//         [> Tell the HCD, even if the operation failed <]
-//         drv = clear->hcd->driver;
-//         if (drv->clear_tt_buffer_complete)
-//             (drv->clear_tt_buffer_complete)(clear->hcd, clear->ep);
-// 
-//         kfree(clear);
-//         spin_lock_irqsave(&hub->tt.lock, flags);
-//     }
-//     spin_unlock_irqrestore (&hub->tt.lock, flags);
-// }
+static void hub_tt_work(struct work_struct *work)
+{
+   struct usb_hub      *hub =
+       container_of(work, struct usb_hub, tt.clear_work);
+   unsigned long       flags;
+   int         limit = 100;
+
+   diag_printf("%s(%d)\n", __func__, __LINE__);
+   spin_lock_irqsave (&hub->tt.lock, flags);
+   while (--limit && !list_empty (&hub->tt.clear_list)) {
+       struct list_head    *next;
+       struct usb_tt_clear *clear;
+       struct usb_device   *hdev = hub->hdev;
+       const struct hc_driver  *drv;
+       int         status;
+
+       next = hub->tt.clear_list.next;
+       clear = list_entry (next, struct usb_tt_clear, clear_list);
+       list_del (&clear->clear_list);
+
+       /* drop lock so HCD can concurrently report other TT errors */
+       spin_unlock_irqrestore (&hub->tt.lock, flags);
+       status = hub_clear_tt_buffer (hdev, clear->devinfo, clear->tt);
+       if (status)
+           dev_err (&hdev->dev,
+               "clear tt %d (%04x) error %d\n",
+               clear->tt, clear->devinfo, status);
+
+       /* Tell the HCD, even if the operation failed */
+       drv = clear->hcd->driver;
+       if (drv->clear_tt_buffer_complete)
+           (drv->clear_tt_buffer_complete)(clear->hcd, clear->ep);
+
+       kfree(clear);
+       spin_lock_irqsave(&hub->tt.lock, flags);
+   }
+   spin_unlock_irqrestore (&hub->tt.lock, flags);
+}
 
 /**
  * usb_hub_clear_tt_buffer - clear control/bulk TT state in high speed hub
@@ -542,6 +543,7 @@ int usb_hub_clear_tt_buffer(struct urb *urb)
     unsigned long       flags;
     struct usb_tt_clear *clear;
 
+    diag_printf("%s(%d)\n", __func__, __LINE__);
     /* we've got to cope with an arbitrary number of pending TT clears,
      * since each TT has "at least two" buffers that can need it (and
      * there can be many TTs per hub).  even if they're uncommon.
@@ -569,7 +571,7 @@ int usb_hub_clear_tt_buffer(struct urb *urb)
     /* tell keventd to clear state for this TT */
     spin_lock_irqsave (&tt->lock, flags);
     list_add_tail (&clear->clear_list, &tt->clear_list);
-    // schedule_work(&tt->clear_work);
+    schedule_work(&tt->clear_work);
     spin_unlock_irqrestore (&tt->lock, flags);
     return 0;
 }
@@ -1055,7 +1057,7 @@ static int hub_configure(struct usb_hub *hub,
 
     spin_lock_init (&hub->tt.lock);
     INIT_LIST_HEAD (&hub->tt.clear_list);
-    // INIT_WORK(&hub->tt.clear_work, hub_tt_work);
+    INIT_WORK(&hub->tt.clear_work, hub_tt_work);
 
     switch (hdev->descriptor.bDeviceProtocol) {
         case 0:

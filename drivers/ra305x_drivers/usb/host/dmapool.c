@@ -153,6 +153,7 @@ static void *get_free_pages(size_t size)
 
 out:
     pr_debug("No free page!\n");
+    CYG_ASSERT(0, "dmapool no free page !");
     return NULL;
 }
 

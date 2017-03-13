@@ -5388,7 +5388,7 @@ cdl_option CYGFUN_KERNEL_ALL_THREADS_STACK_CHECKING {
 
     # Flavor: bool
     # No user value, uncomment the following line to provide one.
-    # user_value 0
+    user_value 1
     # value_source default
     # Default value: 0
     # Requires: CYGVAR_KERNEL_THREADS_LIST
@@ -5409,7 +5409,7 @@ cdl_option CYGNUM_KERNEL_THREADS_STACK_CHECK_DATA_SIZE {
 
     # Flavor: data
     # No user value, uncomment the following line to provide one.
-    # user_value 32
+    # user_value 32 
     # value_source default
     # Default value: 32
     # Legal values: 8 to 512
@@ -5626,7 +5626,8 @@ cdl_option CYGSEM_KERNEL_THREADS_DESTRUCTORS_PER_THREAD {
 #
 cdl_option CYGNUM_KERNEL_THREADS_IDLE_STACK_SIZE {
     # Flavor: data
-    user_value 4096
+    # user_value 4096
+    user_value 4096 
     # value_source user
     # Default value: 2048
     # Legal values: 512 to 65536

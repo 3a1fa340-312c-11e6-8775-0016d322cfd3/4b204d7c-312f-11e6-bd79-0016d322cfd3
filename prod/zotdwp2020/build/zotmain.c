@@ -46,6 +46,16 @@ extern void usb_drv_init();
 inline void sys_check_stack(void)
 {
 #ifdef CYGDBG_USE_ASSERTS
+    int stack_used, stack_max;
+    stack_used = cyg_thread_measure_stack_usage(cyg_thread_self());
+    stack_max = cyg_thread_get_stack_size(cyg_thread_self());
+
+    //  if (stack_used > (stack_max << 1)/3) {
+    //      diag_printf("warning !!! thread:%x %d - %d\n", (unsigned int)cyg_thread_self(),
+    //              cyg_thread_measure_stack_usage(cyg_thread_self()),
+    //              cyg_thread_get_stack_size(cyg_thread_self()));
+    //  }
+
     CYG_ASSERT(cyg_thread_measure_stack_usage(cyg_thread_self()) <
                cyg_thread_get_stack_size(cyg_thread_self()), "stack overflow !!!");
 #endif

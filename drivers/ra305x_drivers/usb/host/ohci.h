@@ -414,7 +414,7 @@ struct ohci_hcd {
 	struct ed		*ed_to_check;
 	unsigned		zf_delay;
 
-#ifdef DEBUG
+#ifdef USB_DBG
 	struct dentry		*debug_dir;
 	struct dentry		*debug_async;
 	struct dentry		*debug_periodic;
@@ -470,9 +470,9 @@ static inline struct usb_hcd *ohci_to_hcd (const struct ohci_hcd *ohci)
 
 /*-------------------------------------------------------------------------*/
 
-#ifndef DEBUG
+#ifndef USB_DBG
 #define STUB_DEBUG_FILES
-#endif	/* DEBUG */
+#endif	/* USB_DBG */
 
 #define ohci_dbg(ohci, fmt, args...) \
 	dev_dbg (ohci_to_hcd(ohci)->self.controller , fmt , ## args )

@@ -17,6 +17,7 @@ extern int dirps();
 static PrnBuf *pNoUseBuf[NUM_OF_PRN_PORT];
 static PrnBuf *PrnGetOutQueueBuf(int PrnPort);
 static struct printstatus PrinterList[NUM_OF_PRN_PORT];
+cyg_mutex_t NoUseBuf_mutex;
 
 #ifdef CONST_DATA
 //move this table to constant.c 3/24/98
@@ -40,6 +41,8 @@ const char *PrnUsedMessage[]= {
 ///////////////////////////
 // Initial Printer Queue //
 ///////////////////////////
+cyg_mutex_t pq_mutex[NUM_OF_PRN_PORT];
+
 void PrnQueueInit(void)
 {
 	char *pBuf = PRINT_QUEUE_ADDRESS;
@@ -55,6 +58,7 @@ void PrnQueueInit(void)
 		}
 //ZOTIPS		PrinterList[i].reverse.data = pBuf;
 //ZOTIPS		pBuf += ( BLOCKSIZE + 20 );
+
 	}
 #else
 	for(i = 0 ; i < NUM_OF_PRN_PORT; i++)
@@ -93,7 +97,37 @@ void PrnPrinterInit( void )
 			PrinterList[PrnPort].buf[i].Nextbuf = i+1;
 		}
 		PrinterList[PrnPort].buf[i].Nextbuf = NULL_BYTE;
+#ifdef PQ_USE_MUTEX
+        cyg_mutex_init(&pq_mutex[PrnPort]);
+#endif /* PQ_USE_MUTEX */
 	}
+
+    cyg_mutex_init(&NoUseBuf_mutex);
+}
+
+void DumpPrintQueue ()
+{
+    int PrnPort, i;
+
+	for(PrnPort = 0;PrnPort < NUM_OF_PRN_PORT;PrnPort++) {
+        diag_printf("=================================================\n");
+        diag_printf("PrinterName:%s\n", PrinterList[PrnPort].PrinterName);
+        diag_printf("OutQueueHead:%d\n", PrinterList[PrnPort].OutQueueHead);
+        diag_printf("OutQueueTail:%d\n", PrinterList[PrnPort].OutQueueTail);
+        diag_printf("Inuse       :%x\n", PrinterList[PrnPort].InUse);
+        diag_printf("HoldMode    :%x\n", PrinterList[PrnPort].HoldMode);
+        diag_printf("AvailOueueNO:%d\n", PrinterList[PrnPort].AvailQueueNO);
+        diag_printf("InQueue     :%d\n", PrinterList[PrnPort].InQueue);
+        diag_printf("pNoUseBuf   :%x\n", (unsigned int)pNoUseBuf[PrnPort]);
+        diag_printf("=================================================\n");
+    }
+
+    for(i = 0 ; i < PRNQUEUELEN-1; i++) {
+        diag_printf("------- PrnQueue %d -------\n", i);
+        diag_printf("buf addr:%x\n", (unsigned int)PrinterList[0].buf[i].data);
+        diag_printf("buf flag:%x\n", (unsigned int)PrinterList[0].buf[i].flags);
+        diag_printf("---------------------------\n");
+    }
 }
 
 //////////////////////////////////////////////////////////////////
@@ -184,13 +218,19 @@ void PrnSetJobUnHold( int PrnPort, int value )
 {
 	int i_state;
 
+#ifdef PQ_USE_MUTEX
+    cyg_mutex_lock(&pq_mutex[PrnPort]);
+#else
 	i_state = dirps();
-//	cyg_scheduler_lock();
+#endif /* PQ_USE_MUTEX */
 
 	PrinterList[PrnPort].HoldMode &= (~value);
 
-//	cyg_scheduler_unlock();
+#ifdef PQ_USE_MTEX
+    cyg_mutex_unlock(&pq_mutex[PrnPort]);
+#else
 	restore(i_state);
+#endif /* PQ_USE_MUTEX */
 }
 
 /////////////////////////////////////////////////////
@@ -200,13 +240,19 @@ void PrnSetJobHold( int PrnPort, int value )
 {
 	int i_state;
 
+#ifdef PQ_USE_MUTEX
+    cyg_mutex_lock(&pq_mutex[PrnPort]);
+#else
 	i_state = dirps();
-//	cyg_scheduler_lock();
+#endif /* PQ_USE_MUTEX */
 	
 	PrinterList[PrnPort].HoldMode |= value;
 	
-//	cyg_scheduler_unlock();
+#ifdef PQ_USE_MUTEX
+    cyg_mutex_unlock(&pq_mutex[PrnPort]);
+#else
 	restore(i_state);
+#endif /* PQ_USE_MUTEX */
 }
 
 ///////////////////////////////
@@ -217,14 +263,19 @@ PrnSetQueueInUse( int PrnPort, int value )
 {
 	int i_state;
 
+#ifdef PQ_USE_MUTEX
+    cyg_mutex_lock(&pq_mutex[PrnPort]);
+#else
 	i_state = dirps();
-//	cyg_scheduler_lock();
+#endif /* PQ_USE_MUTEX */
 
-    //  diag_printf("%s(%d) value = %x\n", __func__, __LINE__, value);
 	PrinterList[PrnPort].InUse = value;
 
-//	cyg_scheduler_unlock();
+#ifdef PQ_USE_MUTEX
+    cyg_mutex_unlock(&pq_mutex[PrnPort]);
+#else
 	restore(i_state);
+#endif /* PQ_USE_MUTEX */
 }
 
 ////////////////////////////////////////////////////////
@@ -238,23 +289,30 @@ PrnSetQueueInUse( int PrnPort, int value )
 ////////////////////////////////////////////////////////
 PrnBuf * PrnGetInQueueBuf( int PrnPort )
 {
+#ifndef PQ_USE_MUTEX
 	int i_state = dirps(); //12/7/98
+#endif /* ! PQ_USE_MUTEX */
 		
 	uint8 InQueueNo;
-//	cyg_scheduler_lock();
 	
 	if(PrinterList[PrnPort].InQueue == NULL_BYTE) {
-//		cyg_scheduler_unlock();
+#ifndef PQ_USE_MUTEX
 		restore(i_state);  //12/7/98
+#endif /* ! PQ_USE_MUTEX */
 		return NULL;
 	}
+#ifdef PQ_USE_MUTEX
+    cyg_mutex_lock(&pq_mutex[PrnPort]);
+#endif /* PQ_USE_MUTEX */
 	PrinterList[PrnPort].AvailQueueNO--;
 	InQueueNo = PrinterList[PrnPort].InQueue;
 	PrinterList[PrnPort].InQueue = PrinterList[PrnPort].buf[InQueueNo].Nextbuf;
-
+#ifdef PQ_USE_MUTEX
+    cyg_mutex_unlock(&pq_mutex[PrnPort]);
+#else
 //	armond_printf("Queue Buffer AvailQueueNO:%d\n",PrinterList[PrnPort].AvailQueueNO);
-//	cyg_scheduler_unlock();
 	restore(i_state);  //12/7/98
+#endif /* PQ_USE_MUTEX */
 	return((PrinterList[PrnPort].buf)+InQueueNo);
 }
 
@@ -264,11 +322,16 @@ PrnBuf * PrnGetInQueueBuf( int PrnPort )
 ////////////////////////////////////////////////////////
 void PrnPutOutQueueBuf( int PrnPort, PrnBuf *Buf, int flags )
 {
+    uint8 OutQueueTail;
+    uint8 CurQueueNO;
+#ifdef PQ_USE_MUTEX
+    cyg_mutex_lock(&pq_mutex[PrnPort]);
+#else
 	int i_state = dirps(); //12/7/98
+#endif /* PQ_USE_MUTEX */
 
-	uint8 OutQueueTail = PrinterList[PrnPort].OutQueueTail;
-	uint8 CurQueueNO = Buf - PrinterList[PrnPort].buf;
-//	cyg_scheduler_lock();
+	OutQueueTail = PrinterList[PrnPort].OutQueueTail;
+	CurQueueNO = Buf - PrinterList[PrnPort].buf;
 
 	Buf->Nextbuf = NULL_BYTE;
 	Buf->flags = flags;
@@ -279,9 +342,11 @@ void PrnPutOutQueueBuf( int PrnPort, PrnBuf *Buf, int flags )
 	} else {
 		PrinterList[PrnPort].buf[OutQueueTail].Nextbuf = CurQueueNO;
 	}
-
-//	cyg_scheduler_unlock();
+#ifdef PQ_USE_MUTEX
+    cyg_mutex_unlock(&pq_mutex[PrnPort]);
+#else
 	restore(i_state);  //12/7/98
+#endif /* PQ_USE_MUTEX */
 }
 
 ////////////////////////////////////////////////////////
@@ -294,15 +359,21 @@ void PrnPutOutQueueBuf( int PrnPort, PrnBuf *Buf, int flags )
 ////////////////////////////////////////////////////////
 static PrnBuf * PrnGetOutQueueBuf( int PrnPort )
 {
-	int i_state = dirps(); //12/7/98
 
 	uint8 OutQueueNo;
-//	cyg_scheduler_lock();
+#ifdef PQ_USE_MUTEX
+    cyg_mutex_lock(&pq_mutex[PrnPort]);
+#else
+	int i_state = dirps(); //12/7/98
+#endif /* PQ_USE_MUTEX */
 
 	if(PrinterList[PrnPort].OutQueueHead == NULL_BYTE)
 	{
-//		cyg_scheduler_unlock();
+#ifdef PQ_USE_MUTEX
+        cyg_mutex_unlock(&pq_mutex[PrnPort]);
+#else
 		restore(i_state);  //12/7/98
+#endif /* PQ_USE_MUTEX */
 		return NULL;
 	}
 
@@ -311,8 +382,11 @@ static PrnBuf * PrnGetOutQueueBuf( int PrnPort )
 	if( PrinterList[PrnPort].OutQueueHead == NULL_BYTE )
 	    PrinterList[PrnPort].OutQueueTail = NULL_BYTE;
 
-//	cyg_scheduler_unlock();
+#ifdef PQ_USE_MUTEX
+    cyg_mutex_unlock(&pq_mutex[PrnPort]);
+#else
 	restore(i_state);  //12/7/98
+#endif /* PQ_USE_MUTEX */
 	return((PrinterList[PrnPort].buf)+OutQueueNo);
 }
 
@@ -322,20 +396,25 @@ static PrnBuf * PrnGetOutQueueBuf( int PrnPort )
 ////////////////////////////////////////////////////////
 void PrnPutInQueueBuf( int PrnPort, PrnBuf *Buf )
 {
-	int i_state = dirps(); //12/7/98
 	
 	uint8 InQueue;
 	uint8 CurQueueNO = Buf - PrinterList[PrnPort].buf;
-
-//	cyg_scheduler_lock();	
+#ifdef PQ_USE_MUTEX
+    cyg_mutex_lock(&pq_mutex[PrnPort]);
+#else
+	int i_state = dirps(); //12/7/98
+#endif /* PQ_USE_MUTEX */
 
 	InQueue = PrinterList[PrnPort].InQueue;
 	PrinterList[PrnPort].InQueue = CurQueueNO;
 	PrinterList[PrnPort].buf[CurQueueNO].Nextbuf = InQueue;
 	PrinterList[PrnPort].AvailQueueNO++;
 
-//	cyg_scheduler_unlock();
+#ifdef PQ_USE_MUTEX
+    cyg_mutex_unlock(&pq_mutex[PrnPort]);
+#else
 	restore(i_state);  //12/7/98
+#endif /* PQ_USE_MUTEX */
 }
 
 PrnBuf * PrnGetReverseQueueBuf( int PrnPort )
@@ -373,17 +452,24 @@ BYTE DMAPrinting(int PrnPort)
 {
 	PrnBuf *pBuf;
 
+    cyg_mutex_lock(&NoUseBuf_mutex);
 	if(pNoUseBuf[PrnPort]) PrnPutInQueueBuf(PrnPort,pNoUseBuf[PrnPort]);
+    cyg_mutex_unlock(&NoUseBuf_mutex);
 
 	if((pBuf = PrnGetOutQueueBuf(PrnPort)) == NULL || pBuf->size == 0) {
 		if(pBuf) {
+            diag_printf("%s(%d) pbuf size is 0\n", __func__, __LINE__);
 			PrnPutInQueueBuf(PrnPort,pBuf); //size = 0			
 		}
+        cyg_mutex_lock(&NoUseBuf_mutex);
 		pNoUseBuf[PrnPort] = NULL;
+        cyg_mutex_unlock(&NoUseBuf_mutex);
 		return (0);
 	}
 
+    cyg_mutex_lock(&NoUseBuf_mutex);
 	pNoUseBuf[PrnPort] = pBuf;
+    cyg_mutex_unlock(&NoUseBuf_mutex);
 	
     return StartDMAIO(pBuf->data, pBuf->size, PrnPort);
 	
@@ -408,15 +494,21 @@ BYTE PrnPrintPattern(BYTE PrnPort, BYTE *Data, WORD wSize)
 	memcpy( pBuf->data,Data, wSize );
 	pBuf->size = wSize;
 
-	i_state = dirps();
+	//  i_state = dirps();
 //	cyg_scheduler_lock();
 	
+#ifdef PQ_USE_MUTEX
+    cyg_mutex_lock(&pq_mutex[PrnPort]);
+#endif /* PQ_USE_MUTEX */
 	G_PortReady &= ~PortMask;
+#ifdef PQ_USE_MUTEX
+    cyg_mutex_unlock(&pq_mutex[PrnPort]);
+#endif /* PQ_USE_MUTEX */
 
 	StartDMAIO(pBuf->data, pBuf->size, PrnPort);
 
 //	cyg_scheduler_unlock();
-	restore(i_state);
+	//  restore(i_state);
 
 	PrnPutInQueueBuf(PrnPort,pBuf);
 

@@ -72,11 +72,13 @@
 
 static const char   hcd_name [] = "ehci_hcd";
 
+#ifdef USB_DBG
+#define EHCI_STATS
+#define VERBOSE_DEBUG
+#define EHCI_URB_TRACE
+#else
 #undef VERBOSE_DEBUG
 #undef EHCI_URB_TRACE
-
-#ifdef DEBUG
-#define EHCI_STATS
 #endif
 
 /* magic numbers that can affect system performance */
@@ -299,7 +301,7 @@ static void ehci_quiesce (struct ehci_hcd *ehci)
 {
     u32 temp;
 
-#ifdef DEBUG
+#ifdef USB_DBG
     if (!HC_IS_RUNNING (ehci_to_hcd(ehci)->state))
         BUG ();
 #endif
@@ -750,7 +752,7 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
 {
     struct ehci_hcd     *ehci = hcd_to_ehci (hcd);
     u32         status, masked_status, pcd_status = 0, cmd;
-    // int         bh;
+    //  int         bh;
 
     spin_lock (&ehci->lock);
 
@@ -866,9 +868,9 @@ dead:
         bh = 1;
     }
 
-    if (bh) {
-        ehci_work (ehci);
-    }
+    //  if (bh) {
+    //      ehci_work (ehci);
+    //  }
     spin_unlock (&ehci->lock);
     if (pcd_status)
         usb_hcd_poll_rh_status(hcd);
@@ -877,12 +879,12 @@ dead:
 
 void ehci_dirq (struct usb_hcd *hcd)
 {
-    // struct ehci_hcd     *ehci = hcd_to_ehci (hcd);
-    // if (bh) {
-    //     spin_lock_irq (&ehci->lock);
-    //     ehci_work(ehci);
-    //     spin_unlock_irq (&ehci->lock);
-    // }
+    struct ehci_hcd     *ehci = hcd_to_ehci (hcd);
+    if (bh) {
+       spin_lock_irq (&ehci->lock);
+       ehci_work(ehci);
+       spin_unlock_irq (&ehci->lock);
+    }
 }
 
 /*-------------------------------------------------------------------------*/

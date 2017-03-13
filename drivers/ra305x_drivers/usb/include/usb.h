@@ -1607,7 +1607,7 @@ usb_maxpacket(struct usb_device *udev, int pipe, int is_out)
 extern void usb_register_notify(struct notifier_block *nb);
 extern void usb_unregister_notify(struct notifier_block *nb);
 
-#ifdef DEBUG
+#ifdef USB_DBG
 #define dbg(format, arg...)						\
 	printk(KERN_DEBUG "%s: " format "\n", __FILE__, ##arg)
 #else

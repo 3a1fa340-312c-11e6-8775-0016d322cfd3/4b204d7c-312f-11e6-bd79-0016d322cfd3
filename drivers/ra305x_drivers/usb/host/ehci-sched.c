@@ -164,7 +164,7 @@ periodic_usecs (struct ehci_hcd *ehci, unsigned frame, unsigned uframe)
 			break;
 		}
 	}
-#ifdef	DEBUG
+#ifdef	USB_DBG
 	if (usecs > 100)
 		ehci_err (ehci, "uframe %d sched overrun: %d usecs\n",
 			frame * 8 + uframe, usecs);

@@ -26,10 +26,19 @@ cyg_handle_t usb_thread_handle;
 cyg_thread usb_thread_data;
 extern struct list_head usb_hcd_list;
 
+#ifdef USB_TEST
+cyg_handle_t usblp_mbox_handle;
+cyg_mbox usblp_mbox;
+#endif /* USB_TEST */
+
 void usb_thread (cyg_addrword_t parameter)
 {
+#ifdef USB_TEST
+	struct usblp *usblp;
+#endif /* USB_TEST */
     cyg_sem_t forever_sem;
     cyg_semaphore_init(&forever_sem, 0);
+
 
     /*
      * create work queue thread
@@ -44,11 +53,21 @@ void usb_thread (cyg_addrword_t parameter)
 
     usblp_init();
     sys_check_stack();
+
+#ifdef USB_TEST
+    usblp = cyg_mbox_get(usblp_mbox_handle);
+    usblp_test(usblp);
+#endif /* USB_TEST */
+
     cyg_semaphore_wait(&forever_sem);
 } /* usb_thread */
 
 void usb_drv_init()
 {
+#ifdef USB_TEST
+    cyg_mbox_create (&usblp_mbox_handle, &usblp_mbox);
+#endif /* USB_TEST */
+
     cyg_thread_create (USB_THREAD_PRIO,
             usb_thread,
             0,
@@ -350,10 +369,9 @@ cyg_mbox wq_mbox_data;
 void wq_thread (cyg_addrword_t parameter)
 {
     struct work_struct *work;
-    cyg_handle_t *mbox_handle = (cyg_handle_t)parameter;
     
     while (true) {
-        work = cyg_mbox_get (mbox_handle);
+        work = cyg_mbox_get (wq_mbox_handle);
         if (work->delay)
             cyg_thread_delay(work->delay);
         if (work) {
@@ -369,7 +387,7 @@ void wq_init (void)
 
     cyg_thread_create (QUEUE_WORK_PRIO,
         wq_thread,
-        (cyg_addrword_t)wq_mbox_handle,
+        (cyg_addrword_t)NULL,
         "queue work thread",
         wq_stack, 
         WORK_QUEUE_STACK_SIZE,

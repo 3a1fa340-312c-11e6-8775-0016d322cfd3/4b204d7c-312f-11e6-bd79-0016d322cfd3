@@ -11,7 +11,7 @@
 
 //LED Task Task create information definition
 #define LED_TASK_PRI         20	//ZOT716u2
-#define LED_TASK_STACK_SIZE  2048//512 //ZOT716u2 1024
+#define LED_TASK_STACK_SIZE  3072//512 //ZOT716u2 1024
 
 static unsigned char	LED_Stack[LED_TASK_STACK_SIZE];
 static cyg_thread       LED_Task;
@@ -203,285 +203,240 @@ extern uint32 usb_devices_per_port[NUM_PORTS] ;
 #ifdef WPSBUTTON_LEDFLASH_FLICK
 // Lance
 extern int flash_wps_led;
-#endif	// WPSBUTTON_LEDFLASH_FLICK
+#endif	/* WPSBUTTON_LEDFLASH_FLICK */
 
-void LightToggleProc(cyg_addrword_t data)
+void LightToggleProc (cyg_addrword_t data)
 {
-	int nLEDValue,nTempLEDValue;
-	uint32 start_timer = 0;
-	int nUSBLED=0;
+    int    nLEDValue, nTempLEDValue;
+    uint32 start_timer = 0;
+    int    nUSBLED     = 0;
 
 #ifdef WPSBUTTON_LEDFLASH_FLICK
-	int flash_wps_led_count = 0;
-	int flash_wps_led_state = 0;
-#endif	// WPSBUTTON_LEDFLASH_FLICK
-    unsigned int usecnt = 0;
+    int flash_wps_led_count = 0;
+    int flash_wps_led_state = 0;
+#endif  /* WPSBUTTON_LEDFLASH_FLICK */
 
     Light_On(Status_Lite);
-	start_timer = jiffies;
+    start_timer = jiffies;
 
-	for(;;) {
-
+    for ( ; ; ) {
         /* Read the current GPIO value */
 
 #ifdef WPSBUTTON_LEDFLASH_FLICK
-        if(flash_wps_led == 1)
-		{
-			flash_wps_led_count++;
+        if (flash_wps_led == 1) {
+            flash_wps_led_count++;
 
-			if(flash_wps_led_state == 0)
-			{
-					flash_wps_led_state = 1;
-					Light_On( Wireless_Lite );
-			}
-			else
-			{
-					flash_wps_led_state = 0;
-					Light_Off( Wireless_Lite );
-			}
-
-			if(flash_wps_led_count > 300)
-			{
-					flash_wps_led = 0;
-			}
-		}
-      	else
-      	{
-	      	flash_wps_led_count = 0;
-#endif	// WPSBUTTON_LEDFLASH_FLICK
-#ifdef WIRELESS_CARD
-            if( wlan_get_linkup() == 1 )
-                Light_On( Wireless_Lite );
-            else {
-                Light_Off( Wireless_Lite );
+            if (flash_wps_led_state == 0) {
+                flash_wps_led_state = 1;
+                Light_On(Wireless_Lite);
             }
-#endif
+            else{
+                flash_wps_led_state = 0;
+                Light_Off(Wireless_Lite);
+            }
+
+            if (flash_wps_led_count > 300) {
+                flash_wps_led = 0;
+            }
+        }
+        else{
+            flash_wps_led_count = 0;
+#endif  /* WPSBUTTON_LEDFLASH_FLICK */
+#ifdef WIRELESS_CARD
+        if (wlan_get_linkup() == 1) {
+            Light_On(Wireless_Lite);
+        }
+        else {
+            Light_Off(Wireless_Lite);
+        }
+#endif /* WIRELESS_CARD */
 
 #ifdef WPSBUTTON_LEDFLASH_FLICK
-        }	// end of if(flash_wps_led == 1)
-#endif	// WPSBUTTON_LEDFLASH_FLICK
+    }    // end of if(flash_wps_led == 1)
+#endif  /* WPSBUTTON_LEDFLASH_FLICK */
 
-      	if(usb_devices_per_port[0] == 1)
-      		Light_On(Usb11_Lite);
-      	else
-      		Light_Off(Usb11_Lite);
-      	
-      	
-		nLEDValue = 0; 
+        if (usb_devices_per_port[0] == 1) {
+            Light_On(Usb11_Lite);
+        }
+        else{
+            Light_Off(Usb11_Lite);
+        }
 
-		if (StatusLightToggle){
-			nLEDValue |= (1 <<Status_Lite);
-			StatusLightToggle--;			
-			if( StatusLightToggle > 5 ) StatusLightToggle = 5;	
-		}
+
+        nLEDValue = 0;
+
+        if (StatusLightToggle) {
+            nLEDValue |= (1 << Status_Lite);
+            StatusLightToggle--;
+
+            if (StatusLightToggle > 5) {
+                StatusLightToggle = 5;
+            }
+        }
 
 #if defined(WIRELESS_CARD)
-		if( WirelessLightToggle )
-		{
-			nLEDValue |= (1 << Wireless_Lite);
+        if (WirelessLightToggle) {
+            nLEDValue |= (1 << Wireless_Lite);
 
-			WirelessLightToggle--;
-			if( WirelessLightToggle > 5 ) WirelessLightToggle = 5;
-		}
-#endif
+            WirelessLightToggle--;
+
+            if (WirelessLightToggle > 5) {
+                WirelessLightToggle = 5;
+            }
+        }
+#endif /* WIRELESS_CARD */
 #if defined(N716U2W) || defined(N716U2)
-		if( LANLightToggle )
-		{
+        if (LANLightToggle) {
             nLEDValue |= (1 << Status_Lite);
 #if defined(N716U2)
             nLEDValue |= (1 << Network_Lite);
-#endif /* N716U2 */
+#endif /* N716U2 || N716U2W */
 
-			LANLightToggle--;
-			if( LANLightToggle > 5 ) LANLightToggle = 5;
-		}
-		
-		if( LANLightToggle_down )
-		{
-			Light_Off(Status_Lite);
+            LANLightToggle--;
+
+            if (LANLightToggle > 5) {
+                LANLightToggle = 5;
+            }
+        }
+
+        if (LANLightToggle_down) {
+            Light_Off(Status_Lite);
             cyg_thread_delay(50);
-			Light_On( Status_Lite );	
+            Light_On(Status_Lite);
             cyg_thread_delay(50);
-            // LANLightToggle_down--;
-            // if( LANLightToggle_down > 5 ) LANLightToggle_down = 5;
-		}
+        }
 #endif
 
-#ifdef  USB_LED		
-#if 0	//ZOT716u2
-		if (USBLightToggle){
-		    nLEDValue |= (1 << Usb_Lite);
+#ifdef  USB_LED
+        if (USBTestLightToggle) {
+            USBTestLightToggle--;
 
-			USBLightToggle--;			
-			if( USBLightToggle > 5 ) USBLightToggle = 5;	
-		}
-#else	//ZOT716u2
-		if (USBTestLightToggle){
-			USBTestLightToggle --;
-			if(nUSBLED)
-			{
-				nUSBLED = 0;
-				nLEDValue |= (1 << Usb11_Lite);
-			}
-			else
-			{
-				nUSBLED = 1;
-				nLEDValue |= (1 << Usb20_Lite);
-			}
-			if( USBTestLightToggle > 5 ) USBTestLightToggle = 5;		
-		}else if (USB11LightToggle){
-			USB11LightToggle--;	
-			nLEDValue |= (1 << Usb11_Lite);		
-			if( USB11LightToggle > 5 ) USB11LightToggle = 5;	
-		}else if (USB20LightToggle){
-			USB20LightToggle--;	
-			nLEDValue |= (1 << Usb20_Lite);
-			if( USB20LightToggle > 5 ) USB20LightToggle = 5;	
-		}		
-#endif	//ZOT716u2	
-#endif		
-#if 0	//ZOT716u2
-		if (nLEDValue){
-			WL_READ_WORD(GPIO_REG_OUTPUTS, CurLEDvalue);	
-			
-			CurLEDvalue |= nLEDValue;			
-			
-			WL_WRITE_WORD(GPIO_REG_OUTPUTS, CurLEDvalue);		
-			ppause(50);
-			
-			if( (usb_devices_per_port[0] == 0) && ( nLEDValue & (1 << Usb_Lite)) )
-				nLEDValue &= ~(1 << Usb_Lite);
-			
-			WL_READ_WORD(GPIO_REG_OUTPUTS, CurLEDvalue);
-			CurLEDvalue &= ~nLEDValue;
-						
-			WL_WRITE_WORD(GPIO_REG_OUTPUTS, CurLEDvalue);		
-			ppause(30);
-		} else {					
-			/* wait for next polling*/
-			ppause(50);
-		}
-#else	//ZOT716u2	
-		if (nLEDValue){
-            #if defined(ARCH_ARM)
-			CurLEDvalue = GPIOA_DATA_INPUT_REG;	
-			nTempLEDValue = CurLEDvalue;
-			CurLEDvalue &= LED_MASK;
-            #endif /* defined ARCH_ARM */
-			
-			//Light off
-			if(nLEDValue & (1 << Status_Lite)){
-                #if defined(ARCH_ARM)
-                #if defined(N716U2W) || defined(N716U2)
-				CurLEDvalue |= (GPIO_16_MASK);
-                #endif
-                #if defined(NDWP2020)
-				CurLEDvalue |= (GPIO_15_MASK);
-                #endif
-                #endif /* defined ARCH_ARM */
-                #if defined(ARCH_MIPS)
+            if (nUSBLED) {
+                nUSBLED    = 0;
+                nLEDValue |= (1 << Usb11_Lite);
+            }
+            else{
+                nUSBLED    = 1;
+                nLEDValue |= (1 << Usb20_Lite);
+            }
+
+            if (USBTestLightToggle > 5) {
+                USBTestLightToggle = 5;
+            }
+        }
+        else if (USB11LightToggle) {
+            USB11LightToggle--;
+            nLEDValue |= (1 << Usb11_Lite);
+
+            if (USB11LightToggle > 5) {
+                USB11LightToggle = 5;
+            }
+        }
+        else if (USB20LightToggle) {
+            USB20LightToggle--;
+            nLEDValue |= (1 << Usb20_Lite);
+
+            if (USB20LightToggle > 5) {
+                USB20LightToggle = 5;
+            }
+        }
+#endif /* USB_LED */
+
+        if (nLEDValue) {
+#if defined(ARCH_ARM)
+            CurLEDvalue   = GPIOA_DATA_INPUT_REG;
+            nTempLEDValue = CurLEDvalue;
+            CurLEDvalue  &= LED_MASK;
+#endif /* ARCH_ARM */
+
+            //Light off
+            if (nLEDValue & (1 << Status_Lite)) {
+#if defined(ARCH_ARM)
+#if defined(N716U2W) || defined(N716U2)
+                CurLEDvalue |= (GPIO_16_MASK);
+#endif
+#if defined(NDWP2020)
+                CurLEDvalue |= (GPIO_15_MASK);
+#endif
+#endif /* ARCH_ARM */
+#if defined(ARCH_MIPS)
                 light_status_off();
-                #if defined(N716U2) 
+#if defined(N716U2)
                 light_network_off();
-                #endif /* N716U2 */
-                #endif /* defined ARCH_MIPS */
-			}
+#endif /* N716U2 */
+#endif /* ARCH_MIPS */
+            }
 
 #if defined(WIRELESS_CARD)
-			if(nLEDValue & (1 << Wireless_Lite)){
-                #if defined (ARCH_ARM)
-				CurLEDvalue |= (GPIO_14_MASK);
-                #endif /* defined ARCH_ARM */
-                #if defined(ARCH_MIPS)
+            if (nLEDValue & (1 << Wireless_Lite)) {
+#if defined (ARCH_ARM)
+                CurLEDvalue |= (GPIO_14_MASK);
+#endif /* ARCH_ARM */
+#if defined(ARCH_MIPS)
                 light_wireless_off();
-                #endif /* defined ARCH_MIPS */
-			}
+#endif /* ARCH_MIPS */
+            }
+#endif /* WIRELESS_CARD */
+
+            if ((nLEDValue & (1 << Usb11_Lite)) || (nLEDValue & (1 << Usb20_Lite))) {
+#if defined(ARCH_ARM)
+#if defined(N716U2W) || defined(N716U2)
+                CurLEDvalue |= (GPIO_15_MASK);
 #endif
-			
-			if((nLEDValue & (1 << Usb11_Lite)) || (nLEDValue & (1 << Usb20_Lite))){		
-                #if defined(ARCH_ARM)
-                #if defined(N716U2W) || defined(N716U2)
-				CurLEDvalue |= (GPIO_15_MASK);
-                #endif
-                #if defined(NDWP2020)
-				CurLEDvalue |= (GPIO_16_MASK);
-                #endif
-                #endif /* defined ARCH_ARM */
-                #if defined(ARCH_MIPS)
+#if defined(NDWP2020)
+                CurLEDvalue |= (GPIO_16_MASK);
+#endif
+#endif /* ARCH_ARM */
+#if defined(ARCH_MIPS)
                 light_usb_off();
-                #endif /* defined ARCH_MIPS */
-			}				
-						
-            #if defined(ARCH_ARM)
-			GPIOA_DATA_OUTPUT_REG = CurLEDvalue;		
-            #endif /* defined ARCH_ARM */
-			ppause(50);
+#endif /* ARCH_MIPS */
+            }
 
-/*
-			CurLEDvalue = GPIOA_DATA_INPUT_REG;	
-			CurLEDvalue &= LED_MASK;
-			
-			//Light on
-			if(nLEDValue & (1 << Status_Lite)){
-				CurLEDvalue &= ~(GPIO_16_MASK);
-			}
+#if defined(ARCH_ARM)
+            GPIOA_DATA_OUTPUT_REG = CurLEDvalue;
+#endif /* ARCH_ARM */
+            ppause(50);
 
-#if defined(WIRELESS_CARD)
-			if(nLEDValue & (1 << Wireless_Lite)){
-				CurLEDvalue &= ~(GPIO_14_MASK);
-			}
-#endif
-
-			if(nLEDValue & (1 << Usb11_Lite)){		
-				CurLEDvalue &= ~(GPIO_15_MASK);
-			}else if(nLEDValue & (1 << Usb20_Lite)){
-				CurLEDvalue &= ~(GPIO_15_MASK);
-			}			
-*/						
-            #if defined(ARCH_ARM)
-			CurLEDvalue = nTempLEDValue;
-			GPIOA_DATA_OUTPUT_REG = CurLEDvalue;		
-            #endif /* defined ARCH_ARM */
-            #if defined(ARCH_MIPS)
-            if (nLEDValue & (1 << Status_Lite)){
+#if defined(ARCH_ARM)
+            CurLEDvalue           = nTempLEDValue;
+            GPIOA_DATA_OUTPUT_REG = CurLEDvalue;
+#endif /* ARCH_ARM */
+#if defined(ARCH_MIPS)
+            if (nLEDValue & (1 << Status_Lite)) {
                 light_status_on();
             }
-            if (nLEDValue & (1 << Wireless_Lite)){
+
+            if (nLEDValue & (1 << Wireless_Lite)) {
                 light_wireless_on();
             }
+
             if (nLEDValue & (1 << Usb11_Lite)) {
                 light_usb_on();
             }
-            else if(nLEDValue & (1 << Usb20_Lite)) {
-                light_usb_on(); 
+            else if (nLEDValue & (1 << Usb20_Lite)) {
+                light_usb_on();
             }
-            if (nLEDValue & (1 << Network_Lite)) {
-                #if defined(N716U2)
-                if (LANLightToggle_down == 0) {
-                    if (LANLightToggle_100)
-                        light_network_on_100M();
-                    else
-                        light_network_on_10M();
-                }
-                #endif /* N716U2 */
-            }
-            #endif /* defined ARCH_MIPS */
-			ppause(30);
-			
-		} else {					
-			/* wait for next polling*/
-			ppause(50);
-		}
-#endif	//ZOT716u2			
-        sys_check_stack();
-        if (usecnt % 100 == 0) {
-            diag_printf("%s(%d) use %d-%d\n", __func__, __LINE__,
-                    cyg_thread_measure_stack_usage(cyg_thread_self()),
-                    cyg_thread_get_stack_size(cyg_thread_self()));
-        }
-        usecnt ++;
-	}
 
+            if (nLEDValue & (1 << Network_Lite)) {
+#if defined(N716U2)
+                if (LANLightToggle_down == 0) {
+                    if (LANLightToggle_100) {
+                        light_network_on_100M();
+                    }
+                    else{
+                        light_network_on_10M();
+                    }
+                }
+#endif /* N716U2 */
+            }
+#endif /* ARCH_MIPS */
+            ppause(30);
+        }
+        else {
+            /* wait for next polling*/
+            ppause(50);
+        }
+    }
 }
 
 //ZOT716u2 void Light_Flash( int nOnLoop, int nOffLoop ){}

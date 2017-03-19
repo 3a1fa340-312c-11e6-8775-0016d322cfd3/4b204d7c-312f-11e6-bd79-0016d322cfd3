@@ -26,6 +26,14 @@ cyg_handle_t usb_thread_handle;
 cyg_thread usb_thread_data;
 extern struct list_head usb_hcd_list;
 
+#define EHCI_WORK_PRIO 20
+#define EHCI_WORK_STACK_SIZE 4096
+static char ehci_work_stack[EHCI_WORK_STACK_SIZE];
+cyg_handle_t ehci_work_thread_handle;
+cyg_thread ehci_work_thread_data;
+cyg_handle_t ehci_work_mbox_handle;
+cyg_mbox ehci_work_mbox;
+
 #ifdef USB_TEST
 cyg_handle_t usblp_mbox_handle;
 cyg_mbox usblp_mbox;
@@ -54,6 +62,7 @@ void usb_thread (cyg_addrword_t parameter)
     usblp_init();
     sys_check_stack();
 
+
 #ifdef USB_TEST
     usblp = cyg_mbox_get(usblp_mbox_handle);
     usblp_test(usblp);
@@ -62,11 +71,13 @@ void usb_thread (cyg_addrword_t parameter)
     cyg_semaphore_wait(&forever_sem);
 } /* usb_thread */
 
+extern void ehci_work_thread(cyg_addrword_t parameter);
 void usb_drv_init()
 {
 #ifdef USB_TEST
     cyg_mbox_create (&usblp_mbox_handle, &usblp_mbox);
 #endif /* USB_TEST */
+    cyg_mbox_create (&ehci_work_mbox_handle, &ehci_work_mbox);
 
     cyg_thread_create (USB_THREAD_PRIO,
             usb_thread,
@@ -78,6 +89,17 @@ void usb_drv_init()
             &usb_thread_data
             );
     cyg_thread_resume(usb_thread_handle);
+
+    cyg_thread_create (EHCI_WORK_PRIO,
+            ehci_work_thread,
+            0,
+            "ehci_work_thread",
+            ehci_work_stack,
+            EHCI_WORK_STACK_SIZE,
+            &ehci_work_thread_handle,
+            &ehci_work_thread_data
+            );
+    cyg_thread_resume(ehci_work_thread_handle);
 } /* usb_drv_init */
 
 // void *kzalloc(size_t size,int gfp)

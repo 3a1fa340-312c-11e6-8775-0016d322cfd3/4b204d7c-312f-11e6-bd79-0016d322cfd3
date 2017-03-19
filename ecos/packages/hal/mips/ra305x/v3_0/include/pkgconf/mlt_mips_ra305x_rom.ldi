@@ -7,13 +7,13 @@
 MEMORY
 {
     ram : ORIGIN = 0x80000400, LENGTH = 0xfffc00
-    rom : ORIGIN = 0x9fc00000, LENGTH = 0x400000
+    rom : ORIGIN = 0xbfc00000, LENGTH = 0x400000
 }
 
 SECTIONS
 {
     SECTIONS_BEGIN
-    SECTION_rom_vectors (rom, 0x9fc00000, LMA_EQ_VMA)
+    SECTION_rom_vectors (rom, 0xbfc00000, LMA_EQ_VMA)
     SECTION_ROMISC (rom, ALIGN (0x40), LMA_EQ_VMA)
     SECTION_RELOCS (rom, ALIGN (0x40), LMA_EQ_VMA)
     SECTION_init (rom, ALIGN (0x40), LMA_EQ_VMA)

@@ -47,7 +47,7 @@ inline void sys_check_stack(void)
 {
 #ifdef CYGDBG_USE_ASSERTS
     CYG_ASSERT(cyg_thread_measure_stack_usage(cyg_thread_self()) <
-               cyg_thread_get_stack_size(cyg_thread_self()), "stack overflow !!!");
+               cyg_thread_get_stack_size(cyg_thread_self()) - 512, "stack overflow !!!");
 #endif
 }
 

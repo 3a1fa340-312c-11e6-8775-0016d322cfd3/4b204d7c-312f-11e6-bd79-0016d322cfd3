@@ -9,6 +9,7 @@ GROUP(libtarget.a libgcc.a libsupc++.a)
 MEMORY
 {
     ram : ORIGIN = 0x80000000, LENGTH = 0x1000000
+    rom : ORIGIN = 0xBFC00000, LENGTH = 0x400000
 }
 
 SECTIONS

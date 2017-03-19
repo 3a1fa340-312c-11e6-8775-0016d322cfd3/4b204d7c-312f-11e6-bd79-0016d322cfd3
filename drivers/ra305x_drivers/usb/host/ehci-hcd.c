@@ -384,11 +384,13 @@ static void ehci_iaa_watchdog(unsigned long param)
     spin_unlock_irqrestore(&ehci->lock, flags);
 }
 
+extern cyg_handle_t ehci_work_mbox_handle;
 static void ehci_watchdog(unsigned long param)
 {
     struct ehci_hcd     *ehci = (struct ehci_hcd *) param;
     unsigned long       flags;
 
+#ifdef LINUX
     spin_lock_irqsave(&ehci->lock, flags);
 
     /* stop async processing after it's idled a bit */
@@ -399,6 +401,9 @@ static void ehci_watchdog(unsigned long param)
     ehci_work (ehci);
 
     spin_unlock_irqrestore (&ehci->lock, flags);
+#else
+    cyg_mbox_put(ehci_work_mbox_handle, (void *)ehci);
+#endif /* LINUX */
 }
 
 /* On some systems, leaving remote wakeup enabled prevents system shutdown.
@@ -472,6 +477,8 @@ static void ehci_port_power (struct ehci_hcd *ehci, int is_on)
  */
 static void ehci_work (struct ehci_hcd *ehci)
 {
+
+    //  diag_printf("stack:%x\n", cyg_thread_get_stack_base(cyg_thread_self()));
     timer_action_done (ehci, TIMER_IO_WATCHDOG);
 
     /* another CPU may drop ehci->lock during a schedule scan while
@@ -754,6 +761,12 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
     u32         status, masked_status, pcd_status = 0, cmd;
     //  int         bh;
 
+    //  cyg_exception_call_handler(
+    //      cyg_thread_self(),
+    //      CYGNUM_HAL_EXCEPTION_MAX,
+    //      (cyg_addrword_t)99);
+
+    //  diag_printf("stack:%x\n", cyg_thread_get_stack_base(cyg_thread_self()));
     spin_lock (&ehci->lock);
 
     status = ehci_readl(ehci, &ehci->regs->status);
@@ -871,21 +884,44 @@ dead:
     //  if (bh) {
     //      ehci_work (ehci);
     //  }
+
     spin_unlock (&ehci->lock);
     if (pcd_status)
         usb_hcd_poll_rh_status(hcd);
     return IRQ_HANDLED;
 }
 
+//  extern cyg_handle_t ehci_work_mbox_handle;
 void ehci_dirq (struct usb_hcd *hcd)
 {
     struct ehci_hcd     *ehci = hcd_to_ehci (hcd);
     if (bh) {
-       spin_lock_irq (&ehci->lock);
-       ehci_work(ehci);
-       spin_unlock_irq (&ehci->lock);
+        #ifdef LINUX        
+        spin_lock_irq (&ehci->lock);
+        ehci_work(ehci);
+        spin_unlock_irq (&ehci->lock);
+        #else
+        cyg_mbox_put(ehci_work_mbox_handle, (void *)ehci);
+        #endif /* LINUX */
     }
 }
+
+void ehci_work_thread(cyg_addrword_t parameter)
+{
+    struct ehci_hcd     *ehci;
+
+    while (1) {
+        ehci = (struct ehci_hcd *)cyg_mbox_get(ehci_work_mbox_handle);
+
+        spin_lock_irq (&ehci->lock);
+        if (test_bit (TIMER_ASYNC_OFF, &ehci->actions))
+            start_unlink_async (ehci, ehci->async);
+
+        ehci_work(ehci);
+        spin_unlock_irq (&ehci->lock);
+    }
+}
+
 
 /*-------------------------------------------------------------------------*/
 

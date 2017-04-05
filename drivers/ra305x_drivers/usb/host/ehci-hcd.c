@@ -891,7 +891,6 @@ dead:
     return IRQ_HANDLED;
 }
 
-//  extern cyg_handle_t ehci_work_mbox_handle;
 void ehci_dirq (struct usb_hcd *hcd)
 {
     struct ehci_hcd     *ehci = hcd_to_ehci (hcd);

@@ -650,7 +650,7 @@ cdl_component CYGPKG_HAL_COMMON_INTERRUPTS {
 #
 cdl_option CYGIMP_HAL_COMMON_INTERRUPTS_USE_INTERRUPT_STACK {
     # Flavor: bool
-    user_value 0
+    user_value 1
     # value_source user
     # Default value: 1
 };
@@ -674,7 +674,7 @@ cdl_option CYGIMP_HAL_COMMON_INTERRUPTS_USE_INTERRUPT_STACK {
 cdl_option CYGNUM_HAL_COMMON_INTERRUPTS_STACK_SIZE {
     # Flavor: data
     # No user value, uncomment the following line to provide one.
-    # user_value 4096
+    user_value 4096
     # value_source default
     # Default value:  CYGPKG_KERNEL ? 4096 : 32768 
     #     CYGPKG_KERNEL == v3_0
@@ -5389,7 +5389,7 @@ cdl_option CYGFUN_KERNEL_ALL_THREADS_STACK_CHECKING {
 
     # Flavor: bool
     # No user value, uncomment the following line to provide one.
-    # user_value 0
+    user_value 1
     # value_source default
     # Default value: 0
     # Requires: CYGVAR_KERNEL_THREADS_LIST
@@ -5627,7 +5627,8 @@ cdl_option CYGSEM_KERNEL_THREADS_DESTRUCTORS_PER_THREAD {
 #
 cdl_option CYGNUM_KERNEL_THREADS_IDLE_STACK_SIZE {
     # Flavor: data
-    user_value 4096
+    # user_value 4096
+    user_value 4096 
     # value_source user
     # Default value: 2048
     # Legal values: 512 to 65536

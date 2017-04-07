@@ -11,7 +11,7 @@
 
 //LED Task Task create information definition
 #define LED_TASK_PRI         20	//ZOT716u2
-#define LED_TASK_STACK_SIZE  3072//512 //ZOT716u2 1024
+#define LED_TASK_STACK_SIZE  3192//512 //ZOT716u2 1024
 
 static unsigned char	LED_Stack[LED_TASK_STACK_SIZE];
 static cyg_thread       LED_Task;
@@ -97,6 +97,10 @@ void Light_On(unsigned char LED)
             #endif /* defined ARCH_MIPS */
 			break;
 		case Usb11_Lite:
+            #if defined(ARCH_MIPS) && defined(N716U2)
+            light_usb_1x_on();
+            break;
+            #endif /* defined ARCH_MIPS */
         case Usb20_Lite:
             #if defined(ARCH_ARM)
             #if defined(N716U2W) || defined(N716U2)
@@ -107,7 +111,7 @@ void Light_On(unsigned char LED)
             #endif
             #endif /* defined ARCH_ARM */
             #if defined(ARCH_MIPS)
-            light_usb_on();
+            light_usb_20_on();
             #endif
 			break;
 		case Wireless_Lite:
@@ -147,6 +151,10 @@ void Light_Off(unsigned char LED)
             #endif
 			break;
 		case Usb11_Lite:
+            #if defined(ARCH_MIPS) && defined(N716U2)
+            light_usb_1x_off();
+            break;
+            #endif
 		case Usb20_Lite:			
             #if defined(ARCH_ARM)
             #if defined(N716U2W) || defined(N716U2)
@@ -157,7 +165,7 @@ void Light_Off(unsigned char LED)
             #endif
             #endif /* defined ARCH_ARM */
             #if defined(ARCH_MIPS)
-            light_usb_off();
+            light_usb_20_off();
             #endif /* defined ARCH_MIPS */
 			break;			
 		case Wireless_Lite:
@@ -255,12 +263,12 @@ void LightToggleProc (cyg_addrword_t data)
     }    // end of if(flash_wps_led == 1)
 #endif  /* WPSBUTTON_LEDFLASH_FLICK */
 
-        if (usb_devices_per_port[0] == 1) {
-            Light_On(Usb11_Lite);
-        }
-        else{
-            Light_Off(Usb11_Lite);
-        }
+        //  if (usb_devices_per_port[0] == 1) {
+        //      Light_On(Usb11_Lite);
+        //  }
+        //  else{
+        //      Light_Off(Usb11_Lite);
+        //  }
 
 
         nLEDValue = 0;
@@ -360,7 +368,7 @@ void LightToggleProc (cyg_addrword_t data)
 #endif
 #endif /* ARCH_ARM */
 #if defined(ARCH_MIPS)
-                light_status_off();
+                //  light_status_off();
 #if defined(N716U2)
                 light_network_off();
 #endif /* N716U2 */
@@ -388,7 +396,8 @@ void LightToggleProc (cyg_addrword_t data)
 #endif
 #endif /* ARCH_ARM */
 #if defined(ARCH_MIPS)
-                light_usb_off();
+                light_usb_1x_off();
+                light_usb_20_off();
 #endif /* ARCH_MIPS */
             }
 
@@ -411,10 +420,10 @@ void LightToggleProc (cyg_addrword_t data)
             }
 
             if (nLEDValue & (1 << Usb11_Lite)) {
-                light_usb_on();
+                light_usb_1x_on();
             }
             else if (nLEDValue & (1 << Usb20_Lite)) {
-                light_usb_on();
+                light_usb_20_on();
             }
 
             if (nLEDValue & (1 << Network_Lite)) {

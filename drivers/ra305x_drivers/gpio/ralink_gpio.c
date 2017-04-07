@@ -5,6 +5,9 @@
 #include "ralink_gpio.h"
 #include "eth_ra305x/if_ra305x.h"
 
+#if defined(N716U2)
+unsigned char is_use_usb0 = 0;
+#endif /* N716U2 */
 
 int ralink_gpio_init (void)
 {
@@ -35,11 +38,28 @@ int ralink_gpio_init (void)
     // 0 -> input
     //
     REG(RALINK_REG_PIO6332DIR) = 0;
-    REG(RALINK_REG_PIO6332DIR) |= (1 << PS_GPIO_POS_USB | 
+    REG(RALINK_REG_PIO6332DIR) |= (1 << PS_GPIO_POS_USB1 | 
                                    1 << PS_GPIO_POS_STATUS | 
                                    1 << PS_GPIO_POS_WIRELESS |
                                    1 << PS_GPIO_POS_100M |
                                    1 << PS_GPIO_POS_10M);
+
+#if defined(N716U2)
+    //
+    // to check hardware version
+    // N716U2(old hardware version), N716U2W, DPW2020 led only use GPIO44
+    // N716U2 new hardware version use GPIO38, GPIO44 to switch usb1.x/usb2.0
+    // usb1.x GPIO38(high), GPIO44(low)
+    // usb2.0 GPIO38(low),  GPIO44(high)
+    //
+    REG(RALINK_REG_PIO6332DATA) |= (1 << PS_GPIO_POS_USB1);
+    if (0x40 == get_wps_input()) {
+        REG(RALINK_REG_PIO6332DIR) |= (1 << PS_GPIO_POS_USB0);
+        is_use_usb0 = 1;
+    }
+    REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_USB1));
+
+#endif /* N716U2 */
 
     // 
     // test function
@@ -53,14 +73,50 @@ int ralink_gpio_init (void)
     //     diag_printf("wps key press !\n");
 }
 
-inline void light_usb_on(void)
+inline void light_usb_1x_on(void)
 {
-    REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_USB)); 
+#if defined(N716U2)
+    if (is_use_usb0) {
+        REG(RALINK_REG_PIO6332DATA) |= (1 << PS_GPIO_POS_USB0);
+        REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_USB1));
+    }
+    else
+        REG(RALINK_REG_PIO6332DATA) |= (1 << PS_GPIO_POS_USB1);
+#endif /* N716U2 */
 }
 
-inline void light_usb_off(void)
+inline void light_usb_1x_off(void)
 {
-    REG(RALINK_REG_PIO6332DATA) |= (1 << PS_GPIO_POS_USB);
+#if defined(N716U2)
+    if (is_use_usb0) {
+        REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_USB0)); 
+        REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_USB1)); 
+    }
+    else
+        REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_USB1)); 
+#endif /* N716U2 */
+}
+
+inline void light_usb_20_on(void)
+{
+    #if defined(N716U2)
+    if (is_use_usb0) 
+        REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_USB0));
+    REG(RALINK_REG_PIO6332DATA) |= (1 << PS_GPIO_POS_USB1);
+    #else
+    REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_USB1)); 
+    #endif /* N716U2 */
+}
+
+inline void light_usb_20_off(void)
+{
+    #if defined(N716U2) 
+    if (is_use_usb0) 
+        REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_USB0)); 
+    REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_USB1)); 
+    #else 
+    REG(RALINK_REG_PIO6332DATA) |= (1 << PS_GPIO_POS_USB1);
+    #endif /* N716U2 */
 }
 
 inline void light_status_on(void)

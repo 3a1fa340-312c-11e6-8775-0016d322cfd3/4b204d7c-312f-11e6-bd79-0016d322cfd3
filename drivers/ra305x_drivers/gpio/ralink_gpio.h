@@ -134,8 +134,9 @@
 #define PS_LED_USB                  8
 
 #define PS_GPIO_POS_WPS             6
+#define PS_GPIO_POS_USB0            6               // for 716u2 only
 #define PS_GPIO_POS_RESET           7
-#define PS_GPIO_POS_USB             8               // (40 - 32)
+#define PS_GPIO_POS_USB1            8               // (40 - 32)
 #define PS_GPIO_POS_STATUS          9               // (41 - 32) 
 #define PS_GPIO_POS_10M             10              // (42 - 32) 
 #define PS_GPIO_POS_100M            11              // (43 - 32) 

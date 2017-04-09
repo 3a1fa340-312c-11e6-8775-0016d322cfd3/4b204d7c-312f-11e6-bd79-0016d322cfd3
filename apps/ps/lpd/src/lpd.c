@@ -786,6 +786,7 @@ static int receive_data_file(int PortNumber, unsigned long filesize, int s, int 
 		startime = rdclock();  //10/11/99
 #endif /* APP_SENDACK */
 		while((pbuf = PrnGetInQueueBuf(PortNumber)) == NULL) {
+
 #ifdef APP_SENDACK
 			//10/11/99 Send Ack When Buffer is empty *****************
 			if(((rdclock()-startime) > ((uint32)TICKS_PER_SEC*5))) {
@@ -793,14 +794,9 @@ static int receive_data_file(int PortNumber, unsigned long filesize, int s, int 
 				startime = rdclock();
 			}
 			//********************************************************
-
-//os			kwait(0);
-			cyg_thread_yield();
-			//queue buffer is full, waiting for printing
-			//printf("Warning: Can not get In buffer !!!\n");
-#else
-            cyg_thread_delay(20);
 #endif /* APP_SENDACK */
+
+			cyg_thread_yield();
 		}
 
 		if(PrnGetPrinterStatus(PortNumber) == PrnAbortUsed) {
@@ -856,7 +852,6 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 	unsigned long total = 0;
 	char status = STATUS_OK;
 	struct prnbuf *pbuf;
-    int display_cnt = 0;
 #ifdef APP_SENDACK
 	uint32 startime;
 #endif /* APP_SENDACK */
@@ -886,8 +881,7 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 #ifdef APP_SENDACK
         startime = rdclock();
 #endif /* APP_SENDACK */
-        sys_check_stack();
-        display_cnt = 0;
+
 		while((pbuf = PrnGetInQueueBuf(PortNumber)) == NULL) {
 #ifdef APP_SENDACK	
 			//10/11/99 Send Ack When Buffer is empty *****************
@@ -898,20 +892,10 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 				startime = rdclock();
 			}
 			//********************************************************
-//os			kwait(0);
-			cyg_thread_yield();
-#else
-            cyg_thread_delay(20);
-            display_cnt ++;
-            if (display_cnt > 50) {
-                diag_printf("wait print queue\n");
-                DumpPrintQueue();
-                display_cnt = 0;
-            }
-            sys_check_stack();
+
 #endif /* APP_SENDACK */
+			cyg_thread_yield();
 		}
-        sys_check_stack();
 
 		if(PrnGetPrinterStatus(PortNumber) == PrnAbortUsed) {
 			status = STATUS_ERR;
@@ -1071,11 +1055,8 @@ static int receive_txt_data_file(int PortNumber,unsigned long filesize, int s)
 		}
 		//********************************************************
 
-//os		kwait(0);
-		cyg_thread_yield();
-#else
-        cyg_thread_delay(20);
 #endif /* APP_SENDACK */
+		cyg_thread_yield();
 	}
 	pbuf[2]->size = 0;
 
@@ -1083,25 +1064,23 @@ static int receive_txt_data_file(int PortNumber,unsigned long filesize, int s)
 #ifdef APP_SENDACK
 		startime = 0;  //10/11/99
 #endif /* APP_SENDACK */
-		for(i = 0 ; i < 2; i++) {
-			while((pbuf[i] = PrnGetInQueueBuf(PortNumber)) == NULL) {
-#ifdef APP_SENDACK
-				//********************************************************
-				if(((rdclock()-startime) > ((uint32)TICKS_PER_SEC*5))) {
-					//if(startime)	//2003Nov28
-					sendack(s);
-					startime = rdclock();
-				}
-				//********************************************************
+        for(i = 0 ; i < 2; i++) {
+            while((pbuf[i] = PrnGetInQueueBuf(PortNumber)) == NULL) {
 
-//os				kwait(0);
-				cyg_thread_yield();
-#else
-                cyg_thread_delay(20);
+#ifdef APP_SENDACK
+                //********************************************************
+                if(((rdclock()-startime) > ((uint32)TICKS_PER_SEC*5))) {
+                    //if(startime)	//2003Nov28
+                    sendack(s);
+                    startime = rdclock();
+                }
+                //********************************************************
 #endif /* APP_SENDACK */
-			}
-			pbuf[i]->size = 0;
-		}
+
+                cyg_thread_yield();
+            }
+            pbuf[i]->size = 0;
+        }
 
 		if(PrnGetPrinterStatus(PortNumber) == PrnAbortUsed) {
 			status = STATUS_ERR;

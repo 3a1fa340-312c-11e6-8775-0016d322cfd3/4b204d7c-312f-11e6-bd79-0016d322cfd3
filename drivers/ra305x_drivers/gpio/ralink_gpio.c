@@ -55,6 +55,7 @@ int ralink_gpio_init (void)
     REG(RALINK_REG_PIO6332DATA) |= (1 << PS_GPIO_POS_USB1);
     if (0x40 == get_wps_input()) {
         REG(RALINK_REG_PIO6332DIR) |= (1 << PS_GPIO_POS_USB0);
+        REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_USB0));
         is_use_usb0 = 1;
     }
     REG(RALINK_REG_PIO6332DATA) &= (~(1 << PS_GPIO_POS_USB1));

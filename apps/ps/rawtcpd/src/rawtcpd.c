@@ -87,10 +87,8 @@ void rawtcpd(cyg_addrword_t data)
 					sendack(s);
 					startime = rdclock();
 				}
-				cyg_thread_yield();
-#else
-                cyg_thread_delay(20);
 #endif /* APP_SENDACK */
+				cyg_thread_yield();
 			
 				cyg_scheduler_lock();	//615wu::No PSMain
 			
@@ -124,11 +122,8 @@ void rawtcpd(cyg_addrword_t data)
 							startime = rdclock();
 						}
 						//********************************************************
-//os					kwait(0);
-						cyg_thread_yield();
-#else
-                        cyg_thread_delay(20);
 #endif /* APP_SENDACK */
+						cyg_thread_yield();
 				}
 				pbuf->size = 0;
 				btTimeout = 0;

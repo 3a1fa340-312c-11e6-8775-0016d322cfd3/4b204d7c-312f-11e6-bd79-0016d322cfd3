@@ -472,12 +472,8 @@ void ippProcessJob(cyg_addrword_t data)
 								
 				startime = rdclock();
 			}
-			
-			cyg_thread_yield();
-#else
-
-            cyg_thread_delay(10);
 #endif /* APP_SENDACK */
+			cyg_thread_yield();
 			
 			cyg_scheduler_lock();	//615wu::No PSMain
 			
@@ -572,34 +568,34 @@ void ippProcessBINJob (int port, ipp_t *ippObj)
 	
 	
 	do {
+
 #ifdef APP_SENDACK
 		startime = rdclock();
 #endif /* APP_SENDACK */
-		while((pbuf = PrnGetInQueueBuf(port)) == NULL) {
+
+        while((pbuf = PrnGetInQueueBuf(port)) == NULL) {
+
 #ifdef APP_SENDACK
-			//********************************************************
-			if(((rdclock()-startime) > ((uint32)TICKS_PER_SEC*5))) {
-//				if(startime)	//2003Nov28
+            //********************************************************
+            if(((rdclock()-startime) > ((uint32)TICKS_PER_SEC*5))) {
+                //				if(startime)	//2003Nov28
 
-				sendack(ippObj->s);
-				//Because lwip don't send ack, send here! 
-				TmpObjList = ippObj;
-				for(i=1; i < ippJobsNo[port ]; i++)
-				{
-					TmpObjList = TmpObjList->next;
-					sendack(TmpObjList->s);					
-				}
+                sendack(ippObj->s);
+                //Because lwip don't send ack, send here! 
+                TmpObjList = ippObj;
+                for(i=1; i < ippJobsNo[port ]; i++)
+                {
+                    TmpObjList = TmpObjList->next;
+                    sendack(TmpObjList->s);					
+                }
 
-				startime = rdclock();
-			}
-			//********************************************************
-
-//os			kwait(0);
-			cyg_thread_yield();
-#else
-            cyg_thread_delay(20);
+                startime = rdclock();
+            }
+            //********************************************************
 #endif /* APP_SENDACK */
-		}
+
+            cyg_thread_yield();
+        }
 
 		if((pbuf->size = httpRead(ippObj,pbuf->data,BLOCKSIZE)) <= 0) {
 			if(ippObj->ippreq == IPP_PRINT_JOB_TIME_OUT) {
@@ -679,12 +675,9 @@ void ippProcessTXTJob(int port, ipp_t *ippObj)
 			startime = rdclock();
 		}
 		//********************************************************
-
-//os		kwait(0);
-		cyg_thread_yield();
-#else
-        cyg_thread_delay(20);
 #endif /* APP_SENDACK */
+
+		cyg_thread_yield();
 	}
 	pbuf[2]->size = 0;
 
@@ -703,12 +696,9 @@ void ippProcessTXTJob(int port, ipp_t *ippObj)
 					startime = rdclock();
 				}
 				//********************************************************
-
-//os				kwait(0);
-				cyg_thread_yield();
-#else
-                cyg_thread_delay(20);
 #endif /* APP_SENDACK */
+
+				cyg_thread_yield();
 			}
 			pbuf[i]->size = 0;
 		}

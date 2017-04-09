@@ -694,6 +694,10 @@ void ps_init(void)
 		//Start SMBInit Thread
         cyg_thread_resume(SMBInit_TaskHdl);
 	}
+    Light_On( Status_Lite );
+    cyg_thread_delay(10);
+    Light_Off( Status_Lite );
+    cyg_thread_delay(10);
 #endif /* 0 */
 #endif	// !defined(N716U2S) && !defined(O_ELEC)
 #endif SMBD
@@ -736,12 +740,10 @@ void ps_init(void)
 			//Start Rawtcpd Thread
             cyg_thread_resume(Rawtcpd_TaskHdl);
 	}
-#if defined(N716U2) && defined(O_TPLINK)
     Light_On( Status_Lite );
     cyg_thread_delay(10);
     Light_Off( Status_Lite );
     cyg_thread_delay(10);
-#endif //defined(N716U2)
 #endif RAWTCPD
 
 
@@ -822,12 +824,10 @@ void ps_init(void)
 		//Start ZIP Thread
         cyg_thread_resume(ZIP_TaskHdl);
 	}
-#if defined(N716U2) && defined(O_TPLINK)
     Light_On( Status_Lite );
     cyg_thread_delay(10);
     Light_Off( Status_Lite );
     cyg_thread_delay(10);
-#endif //defined(N716U2)
 #endif	// !defined(N716U2S) && !defined(O_ELEC)
 #endif ATALKD
 
@@ -879,12 +879,10 @@ void ps_init(void)
 		//Start Novell-Connect Thread
         cyg_thread_resume(NCON_TaskHdl);
 	}
-#if defined(N716U2) && defined(O_TPLINK)
     Light_On( Status_Lite );
     cyg_thread_delay(10);
     Light_Off( Status_Lite );
     cyg_thread_delay(10);
-#endif //defined(N716U2)
 #endif	// !defined(N716U2S) && !defined(O_ELEC)
 #endif NOVELL_PS	
 //////// Supported Novell Print Server <NDS>
@@ -956,18 +954,14 @@ void ps_init(void)
 //Supported HTTP
 //////// Supported Windows Print Server <IPP>
 #ifdef HTTPD
-	//Andy:20161229 add LINEUP disable httpd function+++ 
-	#if defined(O_ZOTCH) || defined(O_LINEUP)
-	//Andy:20161229 add LINEUP disable httpd function--- 
+	#if defined(O_ZOTCH)||defined(O_LINEUP)
 	if(PSMode2 & PS_HTTP_MODE)
-	#endif	// defined(O_ZOTCH) || defined(O_LINEUP)
+	#endif	/* defined(O_ZOTCH)||defined(O_LINEUP) */
 	httpd_init();
-#if defined(N716U2) && defined(O_TPLINK)
     Light_On( Status_Lite );
     cyg_thread_delay(10);
     Light_Off( Status_Lite );
     cyg_thread_delay(10);
-#endif //defined(N716U2)
 #endif HTTPD	
 
 #ifdef UNIXUTIL_TFTP

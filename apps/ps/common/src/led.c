@@ -263,12 +263,6 @@ void LightToggleProc (cyg_addrword_t data)
     }    // end of if(flash_wps_led == 1)
 #endif  /* WPSBUTTON_LEDFLASH_FLICK */
 
-        //  if (usb_devices_per_port[0] == 1) {
-        //      Light_On(Usb11_Lite);
-        //  }
-        //  else{
-        //      Light_Off(Usb11_Lite);
-        //  }
 
 
         nLEDValue = 0;
@@ -307,12 +301,6 @@ void LightToggleProc (cyg_addrword_t data)
             }
         }
 
-        if (LANLightToggle_down) {
-            Light_Off(Status_Lite);
-            cyg_thread_delay(50);
-            Light_On(Status_Lite);
-            cyg_thread_delay(50);
-        }
 #endif
 
 #ifdef  USB_LED
@@ -368,7 +356,6 @@ void LightToggleProc (cyg_addrword_t data)
 #endif
 #endif /* ARCH_ARM */
 #if defined(ARCH_MIPS)
-                //  light_status_off();
 #if defined(N716U2)
                 light_network_off();
 #endif /* N716U2 */

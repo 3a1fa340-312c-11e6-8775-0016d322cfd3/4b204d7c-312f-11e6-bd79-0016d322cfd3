@@ -74,7 +74,8 @@ ifeq ($(TARGET),N716U2W)
 SRCS += endmark_716u2w_tp.c
 endif
 ifeq ($(TARGET),N716U2)
-SRCS += endmark_716u2_tp.c
+#SRCS += endmark_716u2_tp.c
+SRCS += endmark.c
 endif
 
 # DO not edit OBJS and DST

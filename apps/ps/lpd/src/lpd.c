@@ -1015,15 +1015,9 @@ static int receive_bin_data_file(int PortNumber,unsigned long filesize, int s)
 		PrnAbortSpooler(PortNumber,pbuf);
 #ifdef SUPPORT_JOB_LOG
 		// George Add April 3, 2007
-        //  cyg_scheduler_lock();
-		if((rdclock()-startime_bin) > ((uint32)(EEPROM_Data.TimeOutValue))*10) {
-            //  cyg_scheduler_unlock();
+		if((rdclock()-startime_bin) > ((uint32)(EEPROM_Data.TimeOutValue))*10)
 			return -3;
-        }
-        else {
-            //  cyg_scheduler_unlock();
-            return -1;
-        }
+		else
 #endif //SUPPORT_JOB_LOG
 		return -1;
 	}

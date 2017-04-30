@@ -183,29 +183,30 @@ eth_drv_send(struct netif *netif, struct pbuf *p)
   //LWIP_ASSERT("netif->state != eth_drv_sc", netif->state != WLanface);
 #endif
 
+    while (!(sc->funs->can_send) (sc)){
+        return;
+    };
 
-  while (!(sc->funs->can_send) (sc)); 
-
-  for (q = p; q != NULL; q = q->next) {
-    sg_list[sg_len].buf = (CYG_ADDRESS) q->payload;
-    sg_list[sg_len++].len = q->len;
-  }
+    for (q = p; q != NULL; q = q->next) {
+        sg_list[sg_len].buf = (CYG_ADDRESS) q->payload;
+        sg_list[sg_len++].len = q->len;
+    }
 #ifdef _LOCK_WITH_ROM_MONITOR
-  debug_chan = CYGACC_CALL_IF_SET_DEBUG_COMM(CYGNUM_CALL_IF_SET_COMM_ID_QUERY_CURRENT);
-  if (debug_chan == RedBoot_TCP_CHANNEL) {
-    need_lock = true;
-    cyg_drv_dsr_lock();
-  }
+    debug_chan = CYGACC_CALL_IF_SET_DEBUG_COMM(CYGNUM_CALL_IF_SET_COMM_ID_QUERY_CURRENT);
+    if (debug_chan == RedBoot_TCP_CHANNEL) {
+        need_lock = true;
+        cyg_drv_dsr_lock();
+    }
 #endif // _LOCK_WITH_ROM_MONITOR
 
-  (sc->funs->send) (sc, sg_list, sg_len, p->tot_len,
-		    (CYG_ADDRWORD) p);
+    (sc->funs->send) (sc, sg_list, sg_len, p->tot_len,
+            (CYG_ADDRWORD) p);
 
 #ifdef _LOCK_WITH_ROM_MONITOR
-  // Unlock the driver & hardware.  It can once again be safely shared.
-  if (need_lock) {
-    cyg_drv_dsr_unlock();
-  }
+    // Unlock the driver & hardware.  It can once again be safely shared.
+    if (need_lock) {
+        cyg_drv_dsr_unlock();
+    }
 #endif // _LOCK_WITH_ROM_MONITOR
 
 }

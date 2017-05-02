@@ -31,7 +31,6 @@ static cyg_thread thread_data;
 static cyg_handle_t thread_handle;
 #endif /* 1 */
 
-void cyg_net_init(void);
 int flsh_init (void);
 void WLan_get_EEPData (void);
 int ralink_gpio_init(void);
@@ -54,13 +53,14 @@ inline void sys_check_stack(void)
 void zotmain( void )
 //void zotmain(cyg_addrword_t p)
 {
-    cyg_net_init();
     flsh_init();
     ralink_gpio_init();
 
     read_version();
     EEPROMInit();
-    WLan_get_EEPData(); 
+#ifdef USE_WIRELESS_LIBS
+    WLan_get_EEPData();
+#endif /* USE_WIRELESS_LIB */
 
     zot_network_init();
     

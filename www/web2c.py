@@ -144,8 +144,6 @@ def generate_files_list(dir_name, file_content):
     return files_list
 
 def relink(dirs_list, files_list, file_content):
-    print 'dirs_list:', dirs_list.__len__()
-    print 'file_list:', files_list.__len__()
 
     #  dirs_list_size
     #  files_list_size[0]
@@ -349,9 +347,6 @@ def bin_to_endmark():
 web_data = []
 
 def main(argv):
-
-    print("hello world!")
-
 
     if (argv.__len__() != 3):
         print 'usage: www.py oem_mark html_folder output_folder'

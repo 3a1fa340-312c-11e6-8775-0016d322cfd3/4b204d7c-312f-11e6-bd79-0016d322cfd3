@@ -6,7 +6,7 @@ export CHIP
 endif
 
 ifeq ($(CHIP),mt7688)
-CHIPSET = mt7628
+CHIPSET = mt7628 
 PLATFORM = MT7628
 RT28xx_MODE = STA
 export CHIPSET RT28xx_MODE PLATFORM
@@ -14,6 +14,8 @@ endif
 
 # zot716u2w, zot716u2, zotdwp2020
 PROD_NAME ?= zot716u2
+# TPLINK, ZOTECH, ZOT, LINEUP, ATEN(IOGEAR), REPOTECH, ASSMAN, DIGISOL, LONGSHINE, LEVELONE
+OEM ?= TPLINK
 
 ROOT_DIR = $(shell pwd)
 TOPDIR = $(ROOT_DIR)
@@ -31,7 +33,7 @@ TARGET_DEF = $(PROD_BUILD_DIR)/Target.def
 TARGET_OS = ECOS
 ECOS_REPOSITORY := $(ROOT_DIR)/ecos/packages
 ECOS_TOOL_PATH := $(ROOT_DIR)/tools/$(HOSTOS)/bin
-ifeq ($(HOSTOS),Darwin)
+ifeq ($(HOSTOS),darwin)
 ECOS_MIPSTOOL_PATH := $(ROOT_DIR)/tools/mipsel-linux-uclibc/bin
 TFTP_DIR = /private/tftpboot
 export STAGING_DIR =
@@ -90,7 +92,7 @@ ARCH = ARCH_ARM
 endif
 
 ifeq ($(CHIP),mt7688)
-ifeq ($(HOSTOS),Darwin)
+ifeq ($(HOSTOS),darwin)
 GCC_DIR = $(ROOT_DIR)/tools/mipsel-linux-uclibc/bin
 else
 GCC_DIR = $(ROOT_DIR)/tools/mipsisa32-elf/bin
@@ -126,6 +128,7 @@ endif
 
 export PATH ROOT_DIR TOPDIR PROD_DIR APPS_DIR HDR_MAK FTR_MAK GCC_DIR TARGET_DEF ARCH
 export PKG_INSTALL_DIR ECOS_REPOSITORY ECOS_TOOL_PATH ECOS_MIPSTOOL_PATH TARGET_OS HOSTOS
+export PROD_NAME OEM
 
 ifeq ($(CHIP),arm9)
 all: DIR_CHECK RM_AXF_FILE $(DST_NAME) 
@@ -222,10 +225,12 @@ N716U2:
 N716U2W:
 	make package PROD_NAME=zot716u2w
 
-DWP2020:
+NDWP2020:
 	make package PROD_NAME=zotdwp2020
+
 package:
 	make PROD_NAME=$(PROD_NAME) clean
+	
 ifeq ($(CHIP),arm9)
 	make COPTFLAGS=-O2 
 	cp $(DST_NAME) $(PROD_NAME).bin
@@ -241,7 +246,7 @@ endif
 	cp $(TARGET_DEF) .
 	wine $(TOOLS_DIR)/maketarget 
 	wine $(TOOLS_DIR)/makimage $(PSMODELINDEX) $(CODE2MARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersionPlus) $(BuildVer) $(MAKER_AND_CPU) $(PROD_NAME).gz MPS$(PSMODELINDEX).bin
-	cp MPS$(PSMODELINDEX).bin $(ROOT_DIR)/img/.
+	cp MPS$(PSMODELINDEX).bin $(ROOT_DIR)/img/MPS$(PSMODELINDEX)_$(OEM).bin
 	mv Target.def $(TARGET_DEF)
 
 target.ld:
@@ -306,8 +311,11 @@ DST=./$(DST_NAME)
 #$(DST_NAME): ${OBJS} prod $(DRIVERS)
 #	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(OBJ_DIR)/drivers.o $(PROD_LIBS) 
 
-$(DST_NAME): ${OBJS} prod $(DRIVERS)
+$(DST_NAME): build_web ${OBJS} prod $(DRIVERS)
 	$(CC) $(LDFLAGS) -Wl,-static -Wl,--cref -o $@ $(OBJS) $(EXTOBJS) $(PROD_LIBS) ;
+
+build_web:
+	$(MAKE) -C ./www
 
 #$(DST_NAME): ${OBJS} prod $(DRIVERS) $(DRV_OBJS)
 #	$(CC) $(LDFLAGS) -Wl,-static -Wl,--cref -o $@ $(OBJS) $(DRV_OBJS) $(PROD_LIBS) 

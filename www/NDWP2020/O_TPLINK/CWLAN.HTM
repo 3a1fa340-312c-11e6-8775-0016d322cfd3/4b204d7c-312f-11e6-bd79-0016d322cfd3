@@ -620,8 +620,34 @@ function chooseESSID(itabindex, iChannel, iNetworkType)
 			<TD><INPUT NAME=WLESSID SIZE=17 MAXLENGTH=32 VALUE="ZO__I-WLESSID" >
 			</TD>
 		</TR>
+			<!-- ZONE -->
+		<TR><TD><Script Language="JavaScript">showtext10(textindex10++);</script></TD>
+			<TD><select name="WLZone"  size="1" VALUE="ZO__T-WLZone">
+					<Script Language="JavaScript">
+						var WLZoneMode=ZO__T-WLZone;
+						switch(WLZoneMode)
+						{
+							case 161:
+								document.write("<OPTION selected=true VALUE=161>USA</OPTION>");
+								document.write("<OPTION VALUE=162>EU</OPTION>");
+								break;
+							case 162:
+								document.write("<OPTION VALUE=161>USA</OPTION>");
+								document.write("<OPTION selected=true VALUE=162>EU</OPTION>");
+								break;
+							default:
+								document.write("<OPTION VALUE=161>USA</OPTION>");
+								document.write("<OPTION VALUE=162>EU</OPTION>");
+								break;
+						}
+					</script>
+				</SELECT></TD>
+		</TR>
+		<TR><TD></TD><TD><Script Language="JavaScript">showtext10(textindex10++);</script></TD></TR>
+		<TR><TD></TD><TD><Script Language="JavaScript">showtext10(textindex10++);</script></TD></TR>
 			<!-- Channel -->
 		<TR><TD><Script Language="JavaScript">showtext10(textindex10++);</script></TD> 
+		
 			<TD><SCRIPT LANGUAGE=JavaScript>  
 					var iWLC = "ZO__T-WLCountry";
 					var iWLMode = "ZO__T-WLMode";

@@ -1,16 +1,17 @@
-Len_html = 7;
-Len_tab = 11;
+Len_html = 9;		// original: 8
+Len_tab = 13;		// original: 12
 
-Len_text0 = 14;		// CSYSTEM.HTM
-Len_text1 = 5;		// CPRINTER.HTM
+Len_text0 = 18;		// CSYSTEM.HTM		original: 16, 14
+Len_text1 = 13;		// CPRINTER.HTM		original: 11
 Len_text2 = 12;		// CTCPIP.HTM, Rendezvous
-Len_text3 = 9;		// CAPPLE.HTM
-Len_text4 = 14;		// CSNMP.HTM
+Len_text3 = 12;		// CAPPLE.HTM		original: 9
+Len_text4 = 27;		// CSNMP.HTM		original: 24
 Len_text5 = 7;
 Len_text6 = 8;
-Len_text7 = 2;		// ERROR.HTM
-Len_text8 = 15;		// CNETWARE.HTM
-Len_text9 = 7;		// CSMB.HTM
+Len_text7 = 14;		// ERROR.HTM
+Len_text8 = 19;		// CNETWARE.HTM
+Len_text9 = 10;		// CSMB.HTM			original: 7
+Len_text10 = 31;	// CSERVICES.HTM	original: 26
 
 htmArray = new Array(Len_html);
 
@@ -27,8 +28,9 @@ textArray6= new Array(Len_text6);
 textArray7= new Array(Len_text7);
 textArray8= new Array(Len_text8);
 textArray9= new Array(Len_text9);
+textArray10= new Array(Len_text10);
 
-htmArray = ['csystem','ctcpip','cnetware','capple','csnmp','csmb'];
+htmArray = ['csystem','cprinter','ctcpip','cservices','cnetware','capple','csnmp','csmb'];
 
 browserLangu = 'e';
 
@@ -37,25 +39,86 @@ function adjuestlanguage()
 	var languages = navigator.browserLanguage;
 	var userAgents = navigator.userAgent;
 	var userLanguages = navigator.userLanguage;
+	var chromeLanguages = navigator.language;
 
 	if(navigator.appName=="Netscape")
 	{
 		if(navigator.appVersion.indexOf("5.0")!=-1)
 		{
-			if(navigator.appVersion.indexOf("Safari")!=-1)
+			if((navigator.appVersion.indexOf("Chrome")!=-1) || 
+				(navigator.appVersion.indexOf("Maxthon")!=-1))
 			{
-				if(userAgents.indexOf("zh-tw")!=-1)
+				if((chromeLanguages.indexOf("zh-TW")!=-1) || 
+					(chromeLanguages.indexOf("zh-HK")!=-1) || 
+					(chromeLanguages.indexOf("zh-MO")!=-1) || 
+					(chromeLanguages.indexOf("zh-HANT")!=-1))
 					browserLangu = 'z';
-				else if(userAgents.indexOf("zh-cn")!=-1)
+				else if((chromeLanguages.indexOf("zh-CN")!=-1) || 
+					(chromeLanguages.indexOf("zh-SG")!=-1) || 
+					(chromeLanguages.indexOf("zh-HANS")!=-1))
+					browserLangu = 'c';
+				else
+					browserLangu = 'e';
+			}
+			else if(navigator.appVersion.indexOf("Safari")!=-1)
+			{
+				if((userAgents.indexOf("zh-tw")!=-1) || 
+					(userAgents.indexOf("zh-TW")!=-1) || 
+					(chromeLanguages.indexOf("zh-TW")!=-1) || 
+					(userAgents.indexOf("zh-hk")!=-1) || 
+					(userAgents.indexOf("zh-HK")!=-1) || 
+					(chromeLanguages.indexOf("zh-HK")!=-1) || 
+					(userAgents.indexOf("zh-mo")!=-1) || 
+					(userAgents.indexOf("zh-MO")!=-1) || 
+					(chromeLanguages.indexOf("zh-MO")!=-1) || 
+					(userAgents.indexOf("zh-hant")!=-1) || 
+					(userAgents.indexOf("zh-HANT")!=-1) || 
+					(chromeLanguages.indexOf("zh-HANT")!=-1))
+					browserLangu = 'z';
+				else if((userAgents.indexOf("zh-cn")!=-1) || 
+					(userAgents.indexOf("zh-CN")!=-1) || 
+					(chromeLanguages.indexOf("zh-CN")!=-1) || 
+					(userAgents.indexOf("zh-sg")!=-1) || 
+					(userAgents.indexOf("zh-SG")!=-1) || 
+					(chromeLanguages.indexOf("zh-SG")!=-1) || 
+					(userAgents.indexOf("zh-hans")!=-1) || 
+					(userAgents.indexOf("zh-HANS")!=-1) || 
+					(chromeLanguages.indexOf("zh-HANS")!=-1))
+					browserLangu = 'c';
+				else
+					browserLangu = 'e';
+			}
+			else if(navigator.appVersion.indexOf("Android")!=-1)
+			{
+				if((userAgents.indexOf("zh-tw")!=-1) || 
+					(userAgents.indexOf("zh-hk")!=-1) || 
+					(userAgents.indexOf("zh-mo")!=-1) || 
+					(userAgents.indexOf("zh-hant")!=-1))
+					browserLangu = 'z';
+				else if((userAgents.indexOf("zh-cn")!=-1) || 
+					(userAgents.indexOf("zh-sg")!=-1) || 
+					(userAgents.indexOf("zh-hans")!=-1))
 					browserLangu = 'c';
 				else
 					browserLangu = 'e';
 			}
 			else
 			{
-				if(userAgents.indexOf("zh-TW")!=-1)
+				if((userAgents.indexOf("zh-TW")!=-1) || 
+					(chromeLanguages.indexOf("zh-TW")!=-1) || 
+					(userAgents.indexOf("zh-HK")!=-1) || 
+					(chromeLanguages.indexOf("zh-HK")!=-1) || 
+					(userAgents.indexOf("zh-MO")!=-1) || 
+					(chromeLanguages.indexOf("zh-MO")!=-1) || 
+					(userAgents.indexOf("zh-HANT")!=-1) || 
+					(chromeLanguages.indexOf("zh-HANT")!=-1))
 					browserLangu = 'z';
-				else if(userAgents.indexOf("zh-CN")!=-1)
+				else if((userAgents.indexOf("zh-CN")!=-1) || 
+					(chromeLanguages.indexOf("zh-CN")!=-1) || 
+					(userAgents.indexOf("zh-SG")!=-1) || 
+					(chromeLanguages.indexOf("zh-SG")!=-1) || 
+					(userAgents.indexOf("zh-HANS")!=-1) || 
+					(chromeLanguages.indexOf("zh-HANS")!=-1))
 					browserLangu = 'c';
 				else
 					browserLangu = 'e';
@@ -68,9 +131,14 @@ function adjuestlanguage()
 	{
 		if(navigator.appVersion.indexOf("5.0")!=-1)
 		{
-			if(userLanguages.indexOf("zh_TW")!=-1)
+			if((userLanguages.indexOf("zh_TW")!=-1) || 
+				(userLanguages.indexOf("zh_HK")!=-1) || 
+				(userLanguages.indexOf("zh_MO")!=-1) || 
+				(userLanguages.indexOf("zh_HANT")!=-1))
 				browserLangu = 'z';
-			else if(userLanguages.indexOf("zh_CN")!=-1)
+			else if((userLanguages.indexOf("zh_CN")!=-1) || 
+				(userLanguages.indexOf("zh_SG")!=-1) || 
+				(userLanguages.indexOf("zh_HANS")!=-1))
 				browserLangu = 'c';
 			else
 				browserLangu = 'e';
@@ -82,9 +150,14 @@ function adjuestlanguage()
 	{
 		switch (languages){
 			case "zh-tw":
+			case "zh-hk":
+			case "zh-mo":
+			case "zh-hant":
 				browserLangu = 'z';
 				break;
 			case "zh-cn":
+			case "zh-sg":
+			case "zh-hans":
 				browserLangu = 'c';
 				break;
 		    default:
@@ -116,39 +189,11 @@ function SaveSetting(szURL)
 	return false;
 }
 
-function CheckPwd(szURL)
+function SaveServices(szURL)
 {
- 	if(document.forms[0].SetupPWD.value != document.forms[0].ConfirmPWD.value && document.forms[0].SetupPWD.value != "ZO__I-SetupPassword" )
-	{
-		alert("Administrator's Password and confirmed do not match !");
-		return false;
-	}
-	document.forms[0].action=szURL;
-	document.forms[0].submit();
-	return false; 
-}
-
-function CheckSMB(szURL)
-{
-	if(document.forms[0].SMBWorkGroup.value == '')
-	{
-		alert("ERROR! The workgroup name cannot be empty!");
-		return false;
-	}
-	else
-	{
-		if(document.forms[0].SMBPrint1.value == '')
-		{		
-			alert("ERROR! The SMB shared printer name cannot be empty!");
-		 	return false; 
-		}
-		else
-		{			
-			document.forms[0].action=szURL;
-			document.forms[0].submit(); 
-			return false;
-		}
-	}
+	document.CSERVICES.action=szURL;
+	document.CSERVICES.submit();
+	return false;
 }
 
 function checkPreSharedKey(szURL)
@@ -254,6 +299,12 @@ function showtext8(iPoision)
 function showtext9(iPoision)
 {
 	document.write(textArray9[iPoision]);
+	return true;
+}
+
+function showtext10(iPoision)
+{
+	document.write(textArray10[iPoision]);
 	return true;
 }
 adjuestlanguage();

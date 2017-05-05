@@ -13,8 +13,9 @@ headArray[iIndex++] ="<br>This page allows you to upgrade the firmware of the pr
 iIndex = 0;
 
 	//default.htm
-textArray1[iIndex++] = "<b>Click Factory Default</b> then <b>OK</b> to reload all default settings in the print server. Warning! All current settings will be erased.";
-textArray1[iIndex++] = "<b>Click Firmware Upgrade</b> to browse to your firmware directory and reload the print server with new firmware.";
+textArray1[iIndex++] = "Click <b>Factory Default</b> then <b>OK</b> to reload all default settings in the print server.<BR><FONT CLASS=F1 COLOR=#FF3300><B>Warning! All current settings will be erased.</B></FONT>";
+textArray1[iIndex++] = "Load default, including TCP/IP settings.";
+textArray1[iIndex++] = "You cannot connect the print server with the current IP address after it restarts.";
 // Translate                               Only OK is to be translated
 textArray1[iIndex++] = '<input type=button  value="&nbsp;&nbsp;OK&nbsp;&nbsp;" onClick="';
 // Begin don't translate
@@ -54,4 +55,11 @@ iIndex = 0;
 textArray6[iIndex++] = "Loading Factory Defaults ...";
 textArray6[iIndex++] = "After loading the default settings, the print server will automatically restart.<BR><BR>You will be redirected to the Status page when the print server has been restarted.";
 iIndex = 0;
+
+// Character Encoding
+function CharacterEncoding()
+{
+	document.write('<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML; charset=iso-8859-1">');
+}
+
 // out of English

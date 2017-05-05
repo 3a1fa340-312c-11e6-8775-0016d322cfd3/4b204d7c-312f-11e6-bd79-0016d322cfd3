@@ -1,0 +1,68 @@
+/*==========================================================================*/
+/* font_style.css                                                           */
+/*                                                                          */
+/*                                                                          */
+/* Angel                                                                    */
+/*==========================================================================*/
+
+	.TOPTitle {
+		font-family: Arial, Verdana, Georgia, MingLiU, "Times New Roman", Times;
+		font-size: 26px;	
+		font-style: normal;  
+		font-weight: bold;
+		line-height: 28px;  
+		color: #FFFFFF;
+		}
+
+	.ActiveLinkG {
+  		font-family: Verdana, Arial, MingLiU, Helvetica, sans-serif;
+		font-size: 12px;  
+		font-style: normal;  
+		font-weight: bold;
+		line-height: 14px;
+		text-decoration: none;
+		color: #FFFFFF;
+		}
+		
+	.ActiveLinkP {
+  		font-family: Verdana, Arial, MingLiU, Helvetica, sans-serif;
+		font-size: 12px;  
+		font-style: normal;  
+		font-weight: bold;
+		line-height: 14px;
+		text-decoration: none;
+		color: #000000;
+		}
+	
+	.ActiveLinkB {
+  		font-family: Verdana, Arial, MingLiU, Helvetica, sans-serif;
+		font-size: 12px;  
+		font-style: normal;  
+		font-weight: bold;
+		line-height: 14px;
+		text-decoration: none;
+		color: #666666;
+		}
+	
+	
+	.ActiveLinkSG {
+  		font-family: Verdana, Arial, MingLiU, Helvetica, sans-serif;
+		font-size: 12px;  
+		font-style: normal;  
+		font-weight: bold;
+		line-height: 14px;
+		text-decoration: none;
+		color: #FFFFFF;
+		}
+
+	.ActiveLinkSB {
+  		font-family: Verdana, Arial, MingLiU, Helvetica, sans-serif;
+		font-size: 12px;  
+		font-style: normal;  
+		font-weight: bold;
+		line-height: 14px;
+		text-decoration: none;
+		color: #666666;
+		}
+
+

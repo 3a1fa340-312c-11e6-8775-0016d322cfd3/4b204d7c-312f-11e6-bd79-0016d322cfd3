@@ -1,14 +1,18 @@
 <HTML>
 <HEAD>
-<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">    
+<SCRIPT language="JavaScript1.2" src="status.js"></SCRIPT>
+<SCRIPT language="JavaScript1.2" src="top.js"></SCRIPT>
+<SCRIPT language="JavaScript1.2" src="effect_setting.js"></SCRIPT>
+<SCRIPT language="JavaScript">
+	//CharacterEncoding();
+</script>
 <LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="basic_style.css"/>
 <LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="font_style.css"/>
 <LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="picture.css"/>
 </HEAD>
-<SCRIPT language="JavaScript1.2" src="top.js"></SCRIPT>
-<SCRIPT language="JavaScript1.2" src="status.js"></SCRIPT>
-<SCRIPT language="JavaScript1.2" src="effect_setting.js"></SCRIPT>
 <CENTER>
+
 <BODY TOPMARGIN=0 MARGINWIDTH=0 MARGINHEIGHT=0>
 <BR>
 <SCRIPT language="JavaScript">ShowTopBlock();</script>
@@ -100,7 +104,8 @@
 			<TD><BR>ZO__T-PSName</TD>
 		</TR>
 		<TR><TD><Script Language="JavaScript">showtext2(textindex++);</script></TD> 
-			<TD>ZO__T-PollingTime seconds</TD>
+			<TD>ZO__T-PollingTime&nbsp;
+			<Script Language="JavaScript">showtext2(textindex++);</script></TD>
 		</TR>
 		</TABLE>
 	</td></tr>
@@ -113,7 +118,27 @@
     	</TABLE> 
 		<TABLE CELLSPACING=1 CELLPADDING=1 BORDER=0 BGCOLOR=#FFFFFF WIDTH=100%>
 		<TR><TD WIDTH=30%><BR><Script Language="JavaScript">showtext2(textindex++);</script></TD> 
-			<TD><BR>ZO__T-NDSMode</TD>
+			<TD><BR>
+			<Script Language="JavaScript">
+			var strNDSMode = "ZO__T-NDSMode";
+
+			switch(strNDSMode)
+			{
+			case "Disable":
+				showtext2(textindex++);
+				textindex += 1;
+				break;
+			case "Enable":
+				textindex += 1;
+				showtext2(textindex++);
+				break;
+			default:
+				showtext2(textindex++);
+				textindex += 1;
+				break;
+			}
+			</script>
+			</TD>
 		</TR>
 		<TR><TD><Script Language="JavaScript">showtext2(textindex++);</script></TD> 
 			<TD>ZO__T-NDSTreeName</TD>
@@ -136,7 +161,27 @@
 				</script></TD>
 		</TR>
 			<TR><TD><Script Language="JavaScript">showtext2(textindex++);</script></TD> 
-			<TD>ZO__T-NDSConnect</TD>
+			<TD>
+			<Script Language="JavaScript">
+			var strNDSConnect = "ZO__T-NDSConnect";
+
+			switch(strNDSConnect)
+			{
+			case "Disconnected":
+				showtext2(textindex++);
+				textindex += 1;
+				break;
+			case "Connected":
+				textindex += 1;
+				showtext2(textindex++);
+				break;
+			default:
+				showtext2(textindex++);
+				textindex += 1;
+				break;
+			}
+			</script>
+			</TD>
 		</TR>
 		</TABLE>
 	</td></tr>
@@ -149,13 +194,53 @@
     	</TABLE> 
 		<TABLE CELLSPACING=1 CELLPADDING=1 BORDER=0 BGCOLOR=#FFFFFF WIDTH=100%>
 		<TR><TD WIDTH=30%><BR><Script Language="JavaScript">showtext2(textindex++);</script></TD> 
-			<TD><BR>ZO__T-NetWareMode</TD>
+			<TD><BR>
+			<Script Language="JavaScript">
+			var strNetWareMode = "ZO__T-NetWareMode";
+
+			switch(strNetWareMode)
+			{
+			case "Disable":
+				showtext2(textindex++);
+				textindex += 1;
+				break;
+			case "Enable":
+				textindex += 1;
+				showtext2(textindex++);
+				break;
+			default:
+				showtext2(textindex++);
+				textindex += 1;
+				break;
+			}
+			</script>
+			</TD>
 		</TR>
 		<TR><TD><Script Language="JavaScript">showtext2(textindex++);</script></TD> 
 			<TD>ZO__T-FSName</TD>
 		</TR>
 		<TR><TD><Script Language="JavaScript">showtext2(textindex++);</script></TD> 
-			<TD>ZO__T-NetWareConnect</TD>
+			<TD>
+			<Script Language="JavaScript">
+			var strNetWareConnect = "ZO__T-NetWareConnect";
+
+			switch(strNetWareConnect)
+			{
+			case "Disconnected":
+				showtext2(textindex++);
+				textindex += 1;
+				break;
+			case "Connected":
+				textindex += 1;
+				showtext2(textindex++);
+				break;
+			default:
+				showtext2(textindex++);
+				textindex += 1;
+				break;
+			}
+			</script>
+			</TD>
 		</TR>
 		</TABLE>
 	</td></tr>

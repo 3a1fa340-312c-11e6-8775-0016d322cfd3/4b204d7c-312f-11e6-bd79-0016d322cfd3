@@ -8,7 +8,7 @@ Len_text3 = 9;
 Len_text4 = 24;		// CSNMP.HTM
 Len_text5 = 7;
 Len_text6 = 8;
-Len_text7 = 13;		// ERROR.HTM
+Len_text7 = 14;		// ERROR.HTM
 Len_text8 = 20;		// CNETWARE.HTM
 Len_text9 = 7;		// CSMB.HTM
 
@@ -37,21 +37,54 @@ function adjuestlanguage()
 	var languages = navigator.browserLanguage;
 	var userAgents = navigator.userAgent;
 	var userLanguages = navigator.userLanguage;
+	var chromeLanguages = navigator.language;
 
 	if(navigator.appName=="Netscape")
 	{
 		if(navigator.appVersion.indexOf("5.0")!=-1)
 		{
-			if(navigator.appVersion.indexOf("Safari")!=-1)
+			if((navigator.appVersion.indexOf("Chrome")!=-1) || 
+				(navigator.appVersion.indexOf("Maxthon")!=-1))
 			{
-				if(userAgents.indexOf("zh-cn")!=-1)
+				if((chromeLanguages.indexOf("zh-CN")!=-1) || 
+					(chromeLanguages.indexOf("zh-SG")!=-1) || 
+					(chromeLanguages.indexOf("zh-HANS")!=-1))
+					browserLangu = 'c';
+				else
+					browserLangu = 'e';
+			}
+			else if(navigator.appVersion.indexOf("Safari")!=-1)
+			{
+				if((userAgents.indexOf("zh-cn")!=-1) || 
+					(userAgents.indexOf("zh-CN")!=-1) || 
+					(chromeLanguages.indexOf("zh-CN")!=-1) || 
+					(userAgents.indexOf("zh-sg")!=-1) || 
+					(userAgents.indexOf("zh-SG")!=-1) || 
+					(chromeLanguages.indexOf("zh-SG")!=-1) || 
+					(userAgents.indexOf("zh-hans")!=-1) || 
+					(userAgents.indexOf("zh-HANS")!=-1) || 
+					(chromeLanguages.indexOf("zh-HANS")!=-1))
+					browserLangu = 'c';
+				else
+					browserLangu = 'e';
+			}
+			else if(navigator.appVersion.indexOf("Android")!=-1)
+			{
+				if((userAgents.indexOf("zh-cn")!=-1) || 
+					(userAgents.indexOf("zh-sg")!=-1) || 
+					(userAgents.indexOf("zh-hans")!=-1))
 					browserLangu = 'c';
 				else
 					browserLangu = 'e';
 			}
 			else
 			{
-				if(userAgents.indexOf("zh-CN")!=-1)
+				if((userAgents.indexOf("zh-CN")!=-1) || 
+					(chromeLanguages.indexOf("zh-CN")!=-1) || 
+					(userAgents.indexOf("zh-SG")!=-1) || 
+					(chromeLanguages.indexOf("zh-SG")!=-1) || 
+					(userAgents.indexOf("zh-HANS")!=-1) || 
+					(chromeLanguages.indexOf("zh-HANS")!=-1))
 					browserLangu = 'c';
 				else
 					browserLangu = 'e';
@@ -64,7 +97,9 @@ function adjuestlanguage()
 	{
 		if(navigator.appVersion.indexOf("5.0")!=-1)
 		{
-			if(userLanguages.indexOf("zh_CN")!=-1)
+			if((userLanguages.indexOf("zh_CN")!=-1) || 
+				(userLanguages.indexOf("zh_SG")!=-1) || 
+				(userLanguages.indexOf("zh_HANS")!=-1))
 				browserLangu = 'c';
 			else
 				browserLangu = 'e';
@@ -76,6 +111,8 @@ function adjuestlanguage()
 	{
 		switch (languages){
 			case "zh-cn":
+			case "zh-sg":
+			case "zh-hans":
 				browserLangu = 'c';
 				break;
 		    default:

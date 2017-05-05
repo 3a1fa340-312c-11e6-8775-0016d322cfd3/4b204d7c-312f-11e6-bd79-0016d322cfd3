@@ -1,23 +1,26 @@
 <HTML>
 <HEAD>
-<meta http-equiv="cache-control" content="no-cache">	<!-- http 1.1 -->
-<meta http-equiv="pragma" content="no-cache">			<!-- http 1.0 -->
-<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="basic_style.css">
-<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="font_style.css">
-<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="picture.css">
 <SCRIPT language="JavaScript1.2" src="status.js"></SCRIPT>
 <SCRIPT language="JavaScript1.2" src="top.js"></SCRIPT>
 <SCRIPT language="JavaScript1.2" src="effect_setting.js"></SCRIPT>
 <SCRIPT language="JavaScript">
+	CharacterEncoding();
+</script>
+<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="basic_style.css"/>
+<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="font_style.css"/>
+<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="picture.css"/>
+</HEAD>
+
+<SCRIPT language="JavaScript">
 function onJobLog()
 {
-	var strFeatures="left=24,screenX=24,top=24,screenY=24,width=600,height=420,scrollbars=1,resizable=1";
-	newwindow=window.open("JobLog.HTM","",strFeatures);
-	return false;
+var strFeatures="left=24,screenX=24,top=24,screenY=24,width=600,height=420,scrollbars=1,resizable=1";
+newwindow=window.open("JobLog.HTM","",strFeatures);
+return false;
 }
 </script>
-</HEAD>
 <CENTER>
+
 <BODY TOPMARGIN=0 MARGINWIDTH=0 MARGINHEIGHT=0>
 <BR>
 <SCRIPT language="JavaScript">ShowTopBlock();</script>
@@ -125,13 +128,24 @@ function onJobLog()
 			<TD>ZO__T-NodeID&nbsp;</TD>
 		</TR>
        	<TR><TD><Script Language="JavaScript">showtext(textindex++);</script></TD>
-			<!-- <TD>ZO__S-ALERT&nbsp;</TD>  -->
 			<TD><Script Language="JavaScript">
 				var iALERT="ZO__S-ALERT";
-				if (iALERT==1) 
-					document.write("Enable");
-				else
-					document.write("Disable");
+
+				switch(iALERT)
+				{
+				case '0':
+					showtext(textindex++);
+					textindex += 1;
+					break;
+				case '1':
+					textindex += 1;
+					showtext(textindex++);
+					break;
+				default:
+					showtext(textindex++);
+					textindex += 1;
+					break;
+				}
 			</Script></TD>
 		</TR>
    		</TABLE>

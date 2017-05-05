@@ -14,8 +14,14 @@ endif
 
 # zot716u2w, zot716u2, zotdwp2020
 PROD_NAME ?= zot716u2
-# TPLINK, ZOTECH, ZOT, LINEUP, ATEN(IOGEAR), REPOTECH, ASSMAN, DIGISOL, LONGSHINE, LEVELONE
+# TPLINK, ZOTEH, ZOT, ZOTCHS, LINEUP, IOG(IOGEAR), ASSMAN, DIGISOL, LS(LONGSHINE), LEVELO(LEVELONE)
 OEM ?= TPLINK
+
+ifeq ($(OEM),ZOTCHS)
+P_MARK = X
+else
+P_MARK = G
+endif
 
 ROOT_DIR = $(shell pwd)
 TOPDIR = $(ROOT_DIR)
@@ -173,8 +179,6 @@ ADMIN_LIBS 		= ps/ntps ipxbeui
 PS_LIBS			= spooler ps/novell ps/nds ps/lpd ps/ippd ps/atalk ps/rawtcpd rendezvous snmp ps/tftp_zot
 NETAPP_LIBS 	= ps/telnet ps/smbd
 
-#PROD_MODULES = ps/psutility tcpip ps/common ps/ntps usb_host ipxbeui spooler ps/novell ps/nds ps/ippd http_zot ps/lpd ps/rawtcpd\
-#				 ps/telnet ps/smbd ps/tftp_zot ps/atalk snmp rendezvous
 endif
 
 ifneq ($(findstring USE_SYS_LIBS,$(CFLAGS)),)
@@ -243,11 +247,8 @@ ifeq ($(CHIP),mt7688)
 	make mt7688_ecos.img
 	mv mt7688_ecos.img $(PROD_NAME).gz
 endif
-	cp $(TARGET_DEF) .
-	wine $(TOOLS_DIR)/maketarget 
-	wine $(TOOLS_DIR)/makimage $(PSMODELINDEX) $(CODE2MARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersionPlus) $(BuildVer) $(MAKER_AND_CPU) $(PROD_NAME).gz MPS$(PSMODELINDEX).bin
+	./mkimage.py $(PSMODELINDEX) $(CODE2MARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersionPlus) $(BuildVer) $(MAKER_AND_CPU) $(P_MARK) $(PROD_NAME).gz MPS$(PSMODELINDEX).bin
 	cp MPS$(PSMODELINDEX).bin $(ROOT_DIR)/img/MPS$(PSMODELINDEX)_$(OEM).bin
-	mv Target.def $(TARGET_DEF)
 
 target.ld:
 	cp $(ROOT_DIR)/ecos/$(HOSTOS)-target.ld $(PKG_INSTALL_DIR)/lib/$@ ;
@@ -264,17 +265,19 @@ mt7688_ecos.img: lzmaImage.bin
 
 loader: uboot.bin
 	cp $(TARGET_DEF) .
-	wine $(TOOLS_DIR)/maketarget 
-	wine $(TOOLS_DIR)/makimage $(PSMODELINDEX) $(LOADERMARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersionPlus) $(BuildVer) $(MAKER_AND_CPU) $< MPS$(PSMODELINDEX)_loader.bin
+	# wine $(TOOLS_DIR)/maketarget
+	# wine $(TOOLS_DIR)/makimage $(PSMODELINDEX) $(LOADERMARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersionPlus) $(BuildVer) $(MAKER_AND_CPU) $< MPS$(PSMODELINDEX)_loader.bin
+	./makimage.py $(PSMODELINDEX) $(LOADERMARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersionPlus) $(BuildVer) $(MAKER_AND_CPU) $(P_MARK) $< MPS$(PSMODELINDEX)_loader.bin
 	cp MPS$(PSMODELINDEX)_loader.bin $(ROOT_DIR)/img/.
-	mv Target.def $(TARGET_DEF)
+	# mv Target.def $(TARGET_DEF)
 
 eeprom: 7688A_v2_1.bin
 	cp $(TARGET_DEF) .
-	wine $(TOOLS_DIR)/maketarget 
-	wine $(TOOLS_DIR)/makimage $(PSMODELINDEX) $(WIFIEPMARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersionPlus) $(BuildVer) $(MAKER_AND_CPU) $< MPS$(PSMODELINDEX)_eeprom.bin
+	# wine $(TOOLS_DIR)/maketarget
+	# wine $(TOOLS_DIR)/makimage $(PSMODELINDEX) $(WIFIEPMARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersionPlus) $(BuildVer) $(MAKER_AND_CPU) $< MPS$(PSMODELINDEX)_eeprom.bin
+	./mkimage.py $(PSMODELINDEX) $(WIFIEPMARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersionPlus) $(BuildVer) $(MAKER_AND_CPU) $(P_MARK) $< MPS$(PSMODELINDEX)_eeprom.bin
 	cp MPS$(PSMODELINDEX)_eeprom.bin $(ROOT_DIR)/img/.
-	mv Target.def $(TARGET_DEF)
+	# mv Target.def $(TARGET_DEF)
 
 OBJ_DIR       = $(PROD_BUILD_DIR)/obj
 LIB_DIR       = $(PROD_BUILD_DIR)/lib

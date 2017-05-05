@@ -1,14 +1,18 @@
 <HTML>
 <HEAD>
-<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">    
+<SCRIPT language="JavaScript1.2" src="top.js"></SCRIPT>
+<SCRIPT language="JavaScript1.2" src="setup.js"></SCRIPT>
+<SCRIPT language="JavaScript1.2" src="effect_setting.js"></SCRIPT>
+<SCRIPT language="JavaScript">
+	//CharacterEncoding();
+</script>
 <LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="basic_style.css"/>
 <LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="font_style.css"/>
 <LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="picture.css"/>
 </HEAD>
-<SCRIPT language="JavaScript1.2" src="top.js"></SCRIPT>
-<SCRIPT language="JavaScript1.2" src="setup.js"></SCRIPT>
-<SCRIPT language="JavaScript1.2" src="effect_setting.js"></SCRIPT>
 <CENTER>
+
 <BODY TOPMARGIN=0 MARGINWIDTH=0 MARGINHEIGHT=0>
 <BR>
 <SCRIPT language="JavaScript">ShowTopBlock();</script>
@@ -96,11 +100,11 @@
 		<TR><TD><Script Language="JavaScript">showtext3(textindex++);</script></TD></TR>
 		</TABLE> 
 		<TABLE CELLSPACING=1 CELLPADDING=1 BORDER=0 BGCOLOR=#FFFFFF WIDTH=100%>
-		<TR><TD WIDTH=20%><br><Script Language="JavaScript">showtext3(textindex++);</script></TD> 
-			<TD WIDTH=80%><br><INPUT TYPE=TEXT NAME="AtalkSetZoneName" SIZE=15 MAXLENGTH=32 VALUE=ZO__I-AtalkZoneName></TD>
+		<TR><TD WIDTH=30%><br><Script Language="JavaScript">showtext3(textindex++);</script></TD> 
+			<TD WIDTH=70%><br><INPUT TYPE=TEXT NAME="AtalkSetZoneName" SIZE=20 MAXLENGTH=32 VALUE=ZO__I-AtalkZoneName></TD>
 		</TR>
 		<TR><TD><Script Language="JavaScript">showtext3(textindex++);</script></TD> 
-			<TD><INPUT TYPE=TEXT NAME="AtalkSetPortName" SIZE=15 MAXLENGTH=12 VALUE=ZO__I-AtalkPortName></TD></TR>
+			<TD><INPUT TYPE=TEXT NAME="AtalkSetPortName" SIZE=20 MAXLENGTH=12 VALUE=ZO__I-AtalkPortName></TD></TR>
 		</TABLE>
 		</TD>
 	</TR>
@@ -111,8 +115,8 @@
 		<TR><TD><Script Language="JavaScript">showtext3(textindex++);</script></TD></TR>
 		</TABLE>
 		<TABLE CELLSPACING=1 CELLPADDING=1 BORDER=0 WIDTH=100% bgcolor="#FFFFFF">
-		<TR><TD WIDTH=20%><BR><Script Language="JavaScript">showtext3(textindex++);</script></TD> 
-			<TD><BR><INPUT TYPE=TEXT NAME="AtalkPort1Type" SIZE=15 MAXLENGTH=20 VALUE=ZO__I-AtalkPort1Type></TD>
+		<TR><TD WIDTH=30%><BR><Script Language="JavaScript">showtext3(textindex++);</script></TD> 
+			<TD><BR><INPUT TYPE=TEXT NAME="AtalkPort1Type" SIZE=20 MAXLENGTH=20 VALUE=ZO__I-AtalkPort1Type></TD>
 		</TR>
 		<TR><TD><Script Language="JavaScript">showtext3(textindex++);</script></TD> 
 			<TD><SELECT NAME="AtalkSetPort1DataMode" SIZE="1">
@@ -124,7 +128,6 @@
 		</TR>
 		<SCRIPT LANGUAGE=JavaScript>
 		var iP1Mode="ZO__S-AtalkPort1DataMode";
-			document.forms[0].AtalkSetPort1DataMode[iP1Mode].defaultSelected=true;
 			document.forms[0].AtalkSetPort1DataMode[iP1Mode].selected=true;
 		</SCRIPT>
 		</TABLE>

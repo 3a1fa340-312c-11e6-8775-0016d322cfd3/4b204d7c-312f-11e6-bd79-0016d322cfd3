@@ -1,16 +1,17 @@
 <HTML>
 <HEAD>
-<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML">
-<meta http-equiv="cache-control" content="no-cache">	<!-- http 1.1 -->
-<meta http-equiv="pragma" content="no-cache">			<!-- http 1.0 -->
+<SCRIPT language="JavaScript1.2" src="top.js"></SCRIPT>
+<SCRIPT language="JavaScript1.2" src="setup.js"></SCRIPT>
+<SCRIPT language="JavaScript1.2" src="effect_setting.js"></SCRIPT>
+<SCRIPT language="JavaScript">
+	CharacterEncoding();
+</script>
 <LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="basic_style.css"/>
 <LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="font_style.css"/>
 <LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="picture.css"/>
 </HEAD>
-<SCRIPT language="JavaScript1.2" src="top.js"></SCRIPT>
-<SCRIPT language="JavaScript1.2" src="setup.js"></SCRIPT>
-<SCRIPT language="JavaScript1.2" src="effect_setting.js"></SCRIPT>
 <CENTER>
+
 <BODY TOPMARGIN=0 MARGINWIDTH=0 MARGINHEIGHT=0>
 <BR>
 <SCRIPT language="JavaScript">ShowTopBlock();</script>
@@ -99,42 +100,82 @@
 		</TABLE>
               
 		<TABLE CELLSPACING=1 CELLPADDING=1 BORDER=0 BGCOLOR=#FFFFFF WIDTH=100%>
-		<TR><TD WIDTH=30%><br><Script Language="JavaScript">showtext4(textindex++);</script></TD> 
-			<TD><br><SELECT NAME="WebJetAdmin" SIZE=1><OPTION VALUE=0>Disable</OPTION><OPTION VALUE=1>Enable</OPTION></SELECT></TD>
-		</TR>
+		<!-- Support HP Web JetAdmin -->
 		<SCRIPT LANGUAGE=JavaScript>
-			var iWebJetAdmin="ZO__T-WebJetAdmin";
-			document.forms[0].WebJetAdmin[iWebJetAdmin].defaultSelected=true;
-			document.forms[0].WebJetAdmin[iWebJetAdmin].selected=true;
+		var iWebJetAdmin=ZO__T-WebJetAdmin;
+		
+		document.write("<TR><TD WIDTH=35%><br>");
+		showtext4(textindex++);
+		document.write("</TD>");
+		document.write("<TD><br>");
+		document.write("<SELECT NAME=WebJetAdmin SIZE=1>");
+		document.write("<OPTION VALUE=0>");
+		showtext4(textindex++);
+		document.write("</OPTION>");
+		document.write("<OPTION VALUE=1>");
+		showtext4(textindex++);
+		document.write("</OPTION>");
+		document.write("</SELECT>");
+		document.write("</TD></TR>");
+					
+		document.forms[0].WebJetAdmin[iWebJetAdmin].selected=true;
 		</SCRIPT>
 		<TR><TD><Script Language="JavaScript">showtext4(textindex++);</script></TD> 
-			<TD><INPUT TYPE=TEXT NAME="SnmpCommunity1" SIZE=12 MAXLENGTH=12 VALUE="ZO__I-SnmpCommunity1"></TD>
+			<TD><INPUT TYPE=TEXT NAME="SnmpCommunity1" SIZE=20 MAXLENGTH=12 VALUE="ZO__I-SnmpCommunity1"></TD>
 		</TR>
-		<TR><TD><Script Language="JavaScript">showtext4(textindex++);</script></TD>
-			<TD><SELECT NAME="SnmpSetComm1Access" SIZE=1><OPTION VALUE=1>Read-Only</OPTION><OPTION VALUE=3>Read-Write</OPTION></SELECT></TD>
-		</TR><SCRIPT LANGUAGE=JavaScript>
-				var iC1Access="ZO__S-SnmpSetComm1Access";
-				if(iC1Access==3)
-					iC1Access=1;
-				else
-					iC1Access=0;
-				document.forms[0].SnmpSetComm1Access[iC1Access].defaultSelected=true;
-				document.forms[0].SnmpSetComm1Access[iC1Access].selected=true;
-			  </SCRIPT>
+		<!-- SNMP Community 1 Access -->
+		<SCRIPT LANGUAGE=JavaScript>
+		var iC1Access=ZO__S-SnmpSetComm1Access;
+		
+		document.write("<TR><TD>");
+		showtext4(textindex++);
+		document.write("</TD>");
+		document.write("<TD>");
+		document.write("<SELECT NAME=SnmpSetComm1Access SIZE=1>");
+		document.write("<OPTION VALUE=1>");
+		showtext4(textindex++);
+		document.write("</OPTION>");
+		document.write("<OPTION VALUE=3>");
+		showtext4(textindex++);
+		document.write("</OPTION>");
+		document.write("</SELECT>");
+		document.write("</TD></TR>");
+						
+		if(iC1Access==3)
+			iC1Access=1;
+		else
+			iC1Access=0;
+		
+		document.forms[0].SnmpSetComm1Access[iC1Access].selected=true;
+		</SCRIPT>
 		<TR><TD><Script Language="JavaScript">showtext4(textindex++);</script></TD> 
-			<TD><INPUT TYPE=TEXT NAME="SnmpCommunity2" SIZE=12 MAXLENGTH=12 VALUE="ZO__I-SnmpCommunity2"></TD>
+			<TD><INPUT TYPE=TEXT NAME="SnmpCommunity2" SIZE=20 MAXLENGTH=12 VALUE="ZO__I-SnmpCommunity2"></TD>
 		</TR>
-		<TR><TD><Script Language="JavaScript">showtext4(textindex++);</script></TD>
-			<TD><SELECT NAME="SnmpSetComm2Access" SIZE=1><OPTION VALUE=1>Read-Only</OPTION><OPTION VALUE=3>Read-Write</OPTION></SELECT></TD>
-		</TR><SCRIPT LANGUAGE=JavaScript>
-				var iC2Access="ZO__S-SnmpSetComm2Access";
-				if(iC2Access==3)
-					iC2Access=1;
-				else
-					iC2Access=0;
-				document.forms[0].SnmpSetComm2Access[iC2Access].defaultSelected=true;
-				document.forms[0].SnmpSetComm2Access[iC2Access].selected=true;
-		 	 </SCRIPT>
+		<!-- SNMP Community 2 Access -->
+		<SCRIPT LANGUAGE=JavaScript>
+		var iC2Access=ZO__S-SnmpSetComm2Access;
+		
+		document.write("<TR><TD>");
+		showtext4(textindex++);
+		document.write("</TD>");
+		document.write("<TD>");
+		document.write("<SELECT NAME=SnmpSetComm2Access SIZE=1>");
+		document.write("<OPTION VALUE=1>");
+		showtext4(textindex++);
+		document.write("</OPTION>");
+		document.write("<OPTION VALUE=3>");
+		showtext4(textindex++);
+		document.write("</OPTION>");
+		document.write("</SELECT>");
+		document.write("</TD></TR>");
+						
+		if(iC2Access==3)
+			iC2Access=1;
+		else
+			iC2Access=0;
+		
+		document.forms[0].SnmpSetComm2Access[iC2Access].selected=true;
+		</SCRIPT>
 		</TABLE>
 	</TD></TR>
 	</TABLE>
@@ -146,20 +187,47 @@
 		</TABLE> 
                 
 		<TABLE CELLSPACING=1 CELLPADDING=1 BORDER=0 BGCOLOR=#FFFFFF WIDTH=100%>
-		<TR><TD WIDTH=30%><BR><Script Language="JavaScript">showtext4(textindex++);</script></TD>
-			<TD><BR><SELECT NAME="SnmpSetTrapEnable" SIZE=1><OPTION VALUE=0>Disable</OPTION><OPTION VALUE=1>Enable</OPTION></SELECT></TD>
-		</TR><SCRIPT LANGUAGE=JavaScript>
-				var iTrap="ZO__S-SnmpSetTrapEnable";
-				document.forms[0].SnmpSetTrapEnable[iTrap].defaultSelected=true;
-				document.forms[0].SnmpSetTrapEnable[iTrap].selected=true;
-		 	 </SCRIPT>
-		<TR><TD><Script Language="JavaScript">showtext4(textindex++);</script></TD> 
-			<TD><SELECT NAME="SnmpSetAuthTrapEnable" SIZE=1><OPTION VALUE=2>Disable</OPTION><OPTION VALUE=1>Enable</OPTION></SELECT></TD>
-		</TR><SCRIPT LANGUAGE=JavaScript>
-				var iAuthTrap="ZO__S-SnmpSetAuthTrapEnable";
-				document.forms[0].SnmpSetAuthTrapEnable[2-iAuthTrap].defaultSelected=true;
-				document.forms[0].SnmpSetAuthTrapEnable[2-iAuthTrap].selected=true;
-			</SCRIPT>
+		<!-- Send SNMP Traps -->
+		<SCRIPT LANGUAGE=JavaScript>
+		var iTrap=ZO__S-SnmpSetTrapEnable;
+		
+		document.write("<TR><TD WIDTH=35%><BR>");
+		showtext4(textindex++);
+		document.write("</TD>");
+		document.write("<TD><BR>");
+		document.write("<SELECT NAME=SnmpSetTrapEnable SIZE=1>");
+		document.write("<OPTION VALUE=0>");
+		showtext4(textindex++);
+		document.write("</OPTION>");
+		document.write("<OPTION VALUE=1>");
+		showtext4(textindex++);
+		document.write("</OPTION>");
+		document.write("</SELECT>");
+		document.write("</TD></TR>");
+						
+		document.forms[0].SnmpSetTrapEnable[iTrap].selected=true;
+		</SCRIPT>
+		
+		<!-- Use Authentication Traps -->
+		<SCRIPT LANGUAGE=JavaScript>
+		var iAuthTrap=ZO__S-SnmpSetAuthTrapEnable;
+		
+		document.write("<TR><TD>");
+		showtext4(textindex++);
+		document.write("</TD>");
+		document.write("<TD>");
+		document.write("<SELECT NAME=SnmpSetAuthTrapEnable SIZE=1>");
+		document.write("<OPTION VALUE=2>");
+		showtext4(textindex++);
+		document.write("</OPTION>");
+		document.write("<OPTION VALUE=1>");
+		showtext4(textindex++);
+		document.write("</OPTION>");
+		document.write("</SELECT>");
+		document.write("</TD></TR>");
+						
+		document.forms[0].SnmpSetAuthTrapEnable[2-iAuthTrap].selected=true;
+		</SCRIPT>
 		<TR><TD><Script Language="JavaScript">showtext4(textindex++);</script></TD>
 			<TD><INPUT TYPE=TEXT NAME="SnmpTrapIP1" SIZE=16 MAXLENGTH=15 VALUE="ZO__I-SnmpTrapIP1"></TD>
 		</TR>

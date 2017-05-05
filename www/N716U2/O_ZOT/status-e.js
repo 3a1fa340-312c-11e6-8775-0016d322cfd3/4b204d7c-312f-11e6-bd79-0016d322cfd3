@@ -27,13 +27,15 @@ iIndex = 0;
 
 //system.htm
 textArray0[iIndex++]="System Information";
-textArray0[iIndex++]="Print Server Name:";
-textArray0[iIndex++]="System Contact:";
-textArray0[iIndex++]="System Location:";
-textArray0[iIndex++]="System Up Time:";
-textArray0[iIndex++]="Firmware Version:";
-textArray0[iIndex++]="MAC Address:";
-textArray0[iIndex++]="EMail Alert:";
+textArray0[iIndex++]="Print Server Name :";
+textArray0[iIndex++]="System Contact :";
+textArray0[iIndex++]="System Location :";
+textArray0[iIndex++]="System Up Time :";
+textArray0[iIndex++]="Firmware Version :";
+textArray0[iIndex++]="MAC Address :";
+textArray0[iIndex++]="E-mail Alert :";
+textArray0[iIndex++]="Disabled";
+textArray0[iIndex++]="Enabled";
 //PRINTJOB.htm
 textArray0[iIndex++]="Print Jobs";
 textArray0[iIndex++]="Job";
@@ -52,38 +54,53 @@ textArray1[iIndex++]="Manufacturer";
 textArray1[iIndex++]="Model Number";
 textArray1[iIndex++]="Printing Language Supported";
 textArray1[iIndex++]="Current Status";
+textArray1[iIndex++]="Waiting for job";
+textArray1[iIndex++]="Paper Out";
+textArray1[iIndex++]="Offline";
+textArray1[iIndex++]="Printing";
 iIndex = 0;
 
 //NETWARE.htm
 textArray2[iIndex++]="General Settings";
-textArray2[iIndex++]="Print Server Name:";
-textArray2[iIndex++]="Polling Time:";
+textArray2[iIndex++]="Print Server Name :";
+textArray2[iIndex++]="Polling Time :";
+textArray2[iIndex++]="seconds";
 textArray2[iIndex++]="NetWare NDS Settings";
-textArray2[iIndex++]="Use NDS Mode:";
-textArray2[iIndex++]="Name of the NDS Tree:";
-textArray2[iIndex++]="Name of the NDS Context:";
+textArray2[iIndex++]="Use NDS Mode :";
+textArray2[iIndex++]="Disabled";
+textArray2[iIndex++]="Enabled";
+textArray2[iIndex++]="Name of the NDS Tree :";
+textArray2[iIndex++]="Name of the NDS Context :";
 textArray2[iIndex++]="Current Status:";
+textArray2[iIndex++]="Disconnected";
+textArray2[iIndex++]="Connected";
 textArray2[iIndex++]="NetWare Bindery Settings";
-textArray2[iIndex++]="Use Bindery Mode:";
-textArray2[iIndex++]="Name of the File Server:";
-textArray2[iIndex++]="Current Status:";
+textArray2[iIndex++]="Use Bindery Mode :";
+textArray2[iIndex++]="Disabled";
+textArray2[iIndex++]="Enabled";
+textArray2[iIndex++]="Name of the File Server :";
+textArray2[iIndex++]="Current Status :";
+textArray2[iIndex++]="Disconnected";
+textArray2[iIndex++]="Connected";
 iIndex = 0;
 //tcpip.htm
 textArray3[iIndex++]="TCP/IP Settings";
-textArray3[iIndex++]="Use DHCP/BOOTP:";
-textArray3[iIndex++]="IP Address:";
-textArray3[iIndex++]="Subnet Mask:";
-textArray3[iIndex++]="Gateway:";
+textArray3[iIndex++]="Use DHCP/BOOTP :";
+textArray3[iIndex++]="Disabled (Fixed IP address)";
+textArray3[iIndex++]="Enabled (Obtain an IP address automatically)";
+textArray3[iIndex++]="IP Address :";
+textArray3[iIndex++]="Subnet Mask :";
+textArray3[iIndex++]="Gateway :";
 //randvoo.htm
 textArray3[iIndex++]="Rendezvous Settings";
-textArray3[iIndex++]="Rendezvous Settings:";
-//textArray3[iIndex++]="Disable";
-//textArray3[iIndex++]="Enable";
-textArray3[iIndex++]="Service Name:";
+textArray3[iIndex++]="Rendezvous Settings :";
+//textArray3[iIndex++]="Disabled";
+//textArray3[iIndex++]="Enabled";
+textArray3[iIndex++]="Service Name :";
 iIndex = 0;
 //APPLE.htm
 textArray4[iIndex++]="AppleTalk Settings";
-textArray4[iIndex++]="AppleTalk:";
+textArray4[iIndex++]="AppleTalk Zone Name :";
 textArray4[iIndex++]="Printer Information";
 textArray4[iIndex++]="Port Name:";
 textArray4[iIndex++]="Printer Type:";
@@ -91,13 +108,21 @@ textArray4[iIndex++]="Data Format:";
 iIndex = 0;
 //SNMP.htm
 textArray5[iIndex++]="SNMP Community Settings";
-textArray5[iIndex++]="SNMP Community 1:";
-textArray5[iIndex++]="SNMP Community 2:";
+textArray5[iIndex++]="SNMP Community 1 :";
+textArray5[iIndex++]="Read-Only";
+textArray5[iIndex++]="Read-Write";
+textArray5[iIndex++]="SNMP Community 2 :";
+textArray5[iIndex++]="Read-Only";
+textArray5[iIndex++]="Read-Write";
 textArray5[iIndex++]="SNMP Trap Settings";
-textArray5[iIndex++]="Send SNMP Traps:";
-textArray5[iIndex++]="Use Authentication Traps:";
-textArray5[iIndex++]="Trap Address 1:";
-textArray5[iIndex++]="Trap Address 2:";
+textArray5[iIndex++]="Send SNMP Traps :";
+textArray5[iIndex++]="Disabled";
+textArray5[iIndex++]="Enabled";
+textArray5[iIndex++]="Use Authentication Traps :";
+textArray5[iIndex++]="Disabled";
+textArray5[iIndex++]="Enabled";
+textArray5[iIndex++]="Trap Address 1 :";
+textArray5[iIndex++]="Trap Address 2 :";
 iIndex = 0;
 
 //JOBLOG.htm
@@ -120,6 +145,12 @@ textArray7[iIndex++]="Workgroup";
 textArray7[iIndex++]="Name:";
 textArray7[iIndex++]="Shared Name";
 textArray7[iIndex++]="Printer:";
+iIndex = 0;
 
+// Character Encoding
+function CharacterEncoding()
+{
+	document.write('<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML; charset=iso-8859-1">');
+}
 
 // out of English

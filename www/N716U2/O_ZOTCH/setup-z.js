@@ -4,80 +4,102 @@ tabindex = 0;
 textindex = 0;
 var iIndex = 0;
 
-//Language : English
-tabArray=['PU201 °ª³t USB ¦Lªí¦øªA¾¹','ª¬ºA','³]©w','¨ä¥¦','­«·s±Ò°Ê','¨t²Î','TCP/IP','NetWare','AppleTalk','SNMP','SMB','',''];
+//Language : Chinese
+//tabArray=['PU211 USB åŸ å°è¡¨ä¼ºæœå™¨','ç‹€æ…‹','è¨­å®š','å…¶å®ƒ','é‡æ–°å•Ÿå‹•','ç³»çµ±','TCP/IP','é€²éš','NetWare','AppleTalk','SNMP','SMB','',''];
+tabArray=['ç³»çµ±','TCP/IP','é€²éš','NetWare','AppleTalk','SNMP','SMB','',''];
 
 //csystem
-headArray[iIndex++] = "<BR>¥»­¶¥i¥HÅı§A­×§ï¦¹¦Lªí¦øªA¾¹ªº°ò¥»³]©w¡C<br>";
+headArray[iIndex++] = "<BR>æœ¬é å¯ä»¥è®“ä½ ä¿®æ”¹æ­¤å°è¡¨ä¼ºæœå™¨çš„åŸºæœ¬è¨­å®šã€‚<br>";
+//cprinter.htm
+headArray[iIndex++] = "<BR>æœ¬é å¯ä»¥è®“ä½ å•Ÿå‹•æˆ–å–æ¶ˆå°è¡¨ä¼ºæœå™¨é€£æ¥åŸ çš„é›™å‘åˆ—å°åŠŸèƒ½ã€‚";
 //ctcpip.htm
-headArray[iIndex++] = "<BR>¥»­¶¥i¥HÅı§A­×§ï¦¹¦Lªí¦øªA¾¹ TCP/IP ¬ÛÃöªº³]©w¶µ¥Ø¡C";
+headArray[iIndex++] = "<BR>æœ¬é å¯ä»¥è®“ä½ ä¿®æ”¹æ­¤å°è¡¨ä¼ºæœå™¨ TCP/IP çš„è¨­å®šã€‚";
+//cservices.htm
+headArray[iIndex++] = "<BR>æœ¬é å¯ä»¥è®“ä½ ä¿®æ”¹æ­¤å°è¡¨ä¼ºæœå™¨é€²éšç›¸é—œçš„è¨­å®šé …ç›®ã€‚";
 //cnetware.htm
-headArray[iIndex++] = "<BR>¥»­¶¥i¥HÅı§A­×§ï¦¹¦Lªí¦øªA¾¹ NetWare ¬ÛÃöªº³]©w¶µ¥Ø¡C";
+headArray[iIndex++] = "<BR>æœ¬é å¯ä»¥è®“ä½ ä¿®æ”¹æ­¤å°è¡¨ä¼ºæœå™¨ NetWare ç›¸é—œçš„è¨­å®šé …ç›®ã€‚";
 //capple.htm 
-headArray[iIndex++] ="<BR>¥»­¶¥i¥HÅı§A­×§ï¦¹¦Lªí¦øªA¾¹ AppleTalk ¬ÛÃöªº³]©w¶µ¥Ø¡C<br>";
+headArray[iIndex++] = "<BR>æœ¬é å¯ä»¥è®“ä½ ä¿®æ”¹æ­¤å°è¡¨ä¼ºæœå™¨ AppleTalk ç›¸é—œçš„è¨­å®šé …ç›®ã€‚<br>";
 //csnmp.htm
-headArray[iIndex++] ="<BR>¥»­¶¥i¥HÅı§A­×§ï¦¹¦Lªí¦øªA¾¹ªº SNMP ªº³]©w¡C";
+headArray[iIndex++] = "<BR>æœ¬é å¯ä»¥è®“ä½ ä¿®æ”¹æ­¤å°è¡¨ä¼ºæœå™¨çš„ SNMP çš„è¨­å®šã€‚";
 //csmp.htm
-headArray[iIndex++] ="<BR>¥»­¶¥i¥HÅı§A­×§ï¦¹¦Lªí¦øªA¾¹ªº·L³nºô¸ôªÚ¾F¦Lªí¾÷¤À¨É³]©w¡C";
+headArray[iIndex++] = "<BR>æœ¬é å¯ä»¥è®“ä½ ä¿®æ”¹æ­¤å°è¡¨ä¼ºæœå™¨çš„å¾®è»Ÿç¶²è·¯èŠ³é„°å°è¡¨æ©Ÿåˆ†äº«è¨­å®šã€‚";
 iIndex = 0;
 
 //csystem.htm
-textArray0[iIndex++]="E-Mail Äµ¥Ü³]©w";
-textArray0[iIndex++]="E-Mail Äµ¥Ü:";
-textArray0[iIndex++]="¥~±H¶l¥ó¦øªA¾¹ IP ¦a§}:";
-textArray0[iIndex++]="ºŞ²zªÌ E-mail «H½c:";
-textArray0[iIndex++]="¨t²Î³]©w";
-textArray0[iIndex++]="¸Ë¸m¦WºÙ:";
-textArray0[iIndex++]="³sµ¸¤H:";
-textArray0[iIndex++]="¸Ë¸m¦ì¸m:";
-textArray0[iIndex++]="¨t²ÎºŞ²zªÌ±K½X";
-textArray0[iIndex++]="±K½X:";
-textArray0[iIndex++]="±K½X½T»{:";
+textArray0[iIndex++]="E-mail è­¦ç¤ºè¨­å®š";
+textArray0[iIndex++]="E-mail è­¦ç¤º:";
+textArray0[iIndex++]="åœç”¨";
+textArray0[iIndex++]="å•Ÿç”¨";
+textArray0[iIndex++]="å¤–å¯„éƒµä»¶ä¼ºæœå™¨ IP åœ°å€:";
+textArray0[iIndex++]="ç®¡ç†è€… E-mail ä¿¡ç®±:";
+textArray0[iIndex++]="ç³»çµ±è¨­å®š";
+textArray0[iIndex++]="è£ç½®åç¨± :";
+textArray0[iIndex++]="é€£çµ¡äºº :";
+textArray0[iIndex++]="è£ç½®ä½ç½® :";
+textArray0[iIndex++]="ç³»çµ±ç®¡ç†è€…å¯†ç¢¼";
+textArray0[iIndex++]="ç®¡ç†è€…å¸³è™Ÿ :";
+textArray0[iIndex++]="admin";
+textArray0[iIndex++]="å¯†ç¢¼ :";
+textArray0[iIndex++]="å¯†ç¢¼ç¢ºèª :";
 // Translate                                  only "Save & Restart" is to be translated
-textArray0[iIndex++]='<input type="button"  value="Àx¦s¨Ã­«·s±Ò°Ê" onClick="return CheckPwd(';
+textArray0[iIndex++]='<input type="button"  value="å„²å­˜ä¸¦é‡æ–°å•Ÿå‹•" onClick="return CheckPwd(';
 // Begin don't translate
 textArray0[iIndex++]="'RESTART.HTM');";
 textArray0[iIndex++]='">';
 iIndex = 0;
 // End don't translate
 //CPRINTER.htm
-textArray1[iIndex++]="¥­¦æ°ğ - Âù¦V¦C¦L³]©w";
-textArray1[iIndex++]="³s±µ°ğ:";
-textArray1[iIndex++]='<input type="button" value="Àx¦s¨Ã­«·s±Ò°Ê" onClick="return SaveSetting(';
+textArray1[iIndex++]="å¹³è¡ŒåŸ  - é›™å‘åˆ—å°è¨­å®š";
+textArray1[iIndex++]="é€£æ¥åŸ  :";
+textArray1[iIndex++]="åœç”¨";
+textArray1[iIndex++]="è‡ªå‹•åµæ¸¬";
+textArray1[iIndex++]="åˆ—å°é€Ÿåº¦ :";
+textArray1[iIndex++]="å¿«";
+textArray1[iIndex++]="ä¸­ç­‰";
+textArray1[iIndex++]="æ…¢";
+textArray1[iIndex++]="è‹¥å°è¡¨æ©Ÿç‚ºé›·å°„å°è¡¨æ©Ÿâˆ•å½±å°æ©Ÿï¼Œå»ºè­°è¨­å®šç‚ºå¿«ã€‚";
+textArray1[iIndex++]="è‹¥å°è¡¨æ©Ÿç‚ºé»çŸ©é™£å¼å°è¡¨æ©Ÿï¼Œå»ºè­°è¨­å®šç‚ºæ…¢ã€‚";
+//textArray1[iIndex++]="LPR ä½‡åˆ—åç¨± :";
+//textArray1[iIndex++]="(æœ€é•· 12 å€‹è‹±æ•¸å­—å…ƒ, ä¸èƒ½æœ‰ç©ºç™½å­—å…ƒ)";
+textArray1[iIndex++]='<input type="button" value="å„²å­˜ä¸¦é‡æ–°å•Ÿå‹•" onClick="return SaveSetting(';
 // Begin don't translate
 textArray1[iIndex++]="'RESTART.HTM');";
 textArray1[iIndex++]='">';
 iIndex = 0;
 // End don't translate
 //CTCPIP.htm
-textArray2[iIndex++]="TCP/IP ³]©w";
-textArray2[iIndex++]="¦Û°Ê¨ú±o IP ¦ì§} (¨Ï¥Î DHCP/BOOTP)";
-textArray2[iIndex++]="«ü©w IP ¦ì§}";
-textArray2[iIndex++]="IP ¦ì§}:";
-textArray2[iIndex++]="¤lºô¸ô¾B¸n:";
-textArray2[iIndex++]="¹w³]¹h¹D¾¹:";
+textArray2[iIndex++]="TCP/IP è¨­å®š";
+textArray2[iIndex++]="è‡ªå‹•å–å¾— IP ä½å€ (ä½¿ç”¨ DHCP/BOOTP)";
+textArray2[iIndex++]="æŒ‡å®š IP ä½å€";
+textArray2[iIndex++]="IP ä½å€ :";
+textArray2[iIndex++]="å­ç¶²è·¯é®ç½© :";
+textArray2[iIndex++]="é è¨­é–˜é“å™¨ :";
 //crandvoo.htm
-textArray2[iIndex++]="Rendezvous ³]©w";
-textArray2[iIndex++]="Rendezvous ³]©w:";
-//textArray2[iIndex++]="Disable";
-//textArray2[iIndex++]="Enable";
-textArray2[iIndex++]="ªA°È¦WºÙ:";
+textArray2[iIndex++]="Rendezvous è¨­å®š";
+textArray2[iIndex++]="Rendezvous è¨­å®š :";
+//textArray2[iIndex++]="åœç”¨";
+//textArray2[iIndex++]="å•Ÿç”¨";
+textArray2[iIndex++]="æœå‹™åç¨± :";
 // Translate                                  only "Save & Restart" is to be translated
-textArray2[iIndex++]='<input type="button" value="Àx¦s¨Ã­«·s±Ò°Ê" onClick="return SaveSetting(';
+textArray2[iIndex++]='<input type="button" value="å„²å­˜ä¸¦é‡æ–°å•Ÿå‹•" onClick="return SaveSetting(';
 // Begin don't translate
 textArray2[iIndex++]="'RESTART.HTM');";
 textArray2[iIndex++]='">';
 iIndex = 0;
 // End don't translate
 //CAPPLE.htm
-textArray3[iIndex++]="AppleTalk ³]©w";
-textArray3[iIndex++]="AppleTalk °Ï°ì¦WºÙ:";
-textArray3[iIndex++]="³s±µ°ğ¦WºÙ:";
-textArray3[iIndex++]="³s±µ°ğ";
-textArray3[iIndex++]="¦Lªí¾÷§Î¦¡:";
-textArray3[iIndex++]="¸ê®Æ®æ¦¡:";
+textArray3[iIndex++]="AppleTalk è¨­å®š";
+textArray3[iIndex++]="AppleTalk æœå‹™ :";
+textArray3[iIndex++]="åœç”¨";
+textArray3[iIndex++]="å•Ÿç”¨";
+textArray3[iIndex++]="AppleTalk å€åŸŸåç¨± :";
+textArray3[iIndex++]="é€£æ¥åŸ åç¨± :";
+textArray3[iIndex++]="é€£æ¥åŸ ";
+textArray3[iIndex++]="å°è¡¨æ©Ÿå½¢å¼ :";
+textArray3[iIndex++]="è³‡æ–™æ ¼å¼ :";
 // Translate                                  only "Save & Restart" is to be translated
-textArray3[iIndex++]='<input type=button value="Àx¦s¨Ã­«·s±Ò°Ê" onClick="return SaveSetting(';
+textArray3[iIndex++]='<input type=button value="å„²å­˜ä¸¦é‡æ–°å•Ÿå‹•" onClick="return SaveSetting(';
 // Begin don't translate
 textArray3[iIndex++]="'RESTART.HTM');";
 textArray3[iIndex++]='">';
@@ -85,19 +107,32 @@ textArray3[iIndex++]='">';
 
 iIndex = 0;
 //CSNMP.htm
-textArray4[iIndex++]="SNMP ¸sÅé³]©w";
-textArray4[iIndex++]="¤ä´© HP WebJetAdmin:";
-textArray4[iIndex++]="¸sÅé¦WºÙ 1:";
-textArray4[iIndex++]="¸sÅéÅv­­:";
-textArray4[iIndex++]="¸sÅé¦WºÙ 2:";
-textArray4[iIndex++]="¸sÅéÅv­­:";
-textArray4[iIndex++]="SNMP ³´¨À³]©w";
-textArray4[iIndex++]="¨Ï¥Î³´¨À¸É§ì:";
-textArray4[iIndex++]="¶Ç°e½T»{³´¨À:";
-textArray4[iIndex++]="³´¨À¥Ø¼Ğ IP ¦ì§} 1:";
-textArray4[iIndex++]="³´¨À¥Ø¼Ğ IP ¦ì§} 2:";
+textArray4[iIndex++]="SNMP ç¾¤é«”è¨­å®š";
+textArray4[iIndex++]="SNMP æœå‹™ :";
+textArray4[iIndex++]="åœç”¨";
+textArray4[iIndex++]="å•Ÿç”¨";
+textArray4[iIndex++]="æ”¯æ´ HP WebJetAdmin :";
+textArray4[iIndex++]="åœç”¨";
+textArray4[iIndex++]="å•Ÿç”¨";
+textArray4[iIndex++]="ç¾¤é«”åç¨± 1 :";
+textArray4[iIndex++]="ç¾¤é«”æ¬Šé™ :";
+textArray4[iIndex++]="åªèƒ½è®€";
+textArray4[iIndex++]="è®€å¯«çš†å¯";
+textArray4[iIndex++]="ç¾¤é«”åç¨± 2 :";
+textArray4[iIndex++]="ç¾¤é«”æ¬Šé™ :";
+textArray4[iIndex++]="åªèƒ½è®€";
+textArray4[iIndex++]="è®€å¯«çš†å¯";
+textArray4[iIndex++]="SNMP é™·é˜±è¨­å®š";
+textArray4[iIndex++]="ä½¿ç”¨é™·é˜±è£œæŠ“ :";
+textArray4[iIndex++]="åœç”¨";
+textArray4[iIndex++]="å•Ÿç”¨";
+textArray4[iIndex++]="å‚³é€ç¢ºèªé™·é˜± :";
+textArray4[iIndex++]="åœç”¨";
+textArray4[iIndex++]="å•Ÿç”¨";
+textArray4[iIndex++]="é™·é˜±ç›®æ¨™ IP ä½å€ 1 :";
+textArray4[iIndex++]="é™·é˜±ç›®æ¨™ IP ä½å€ 2 :";
 // Translate                                  only "Save & Restart" is to be translated
-textArray4[iIndex++]='<input type="button" value="Àx¦s¨Ã­«·s±Ò°Ê" onClick="return SaveSetting(';
+textArray4[iIndex++]='<input type="button" value="å„²å­˜ä¸¦é‡æ–°å•Ÿå‹•" onClick="return SaveSetting(';
 // Begin don't translate
 textArray4[iIndex++]="'RESTART.HTM');";
 textArray4[iIndex++]='">';
@@ -111,7 +146,7 @@ iIndex = 0;
 //textArray5[iIndex++]="For 64-bit (sometimes called 40-bit) WEP encryption, enter the key which contains 5 alphanumeric characters or 10 hexadecimal digits. For example: AbZ12 (alphanumeric format) or ABCDEF1234 (hexadecimal format).";
 //textArray5[iIndex++]="For 128-bit WEP encryption, enter the key which contains 13 alphanumeric characters or 26 hexadecimal digits.";
 // Translate                                  only "Close" is to be translated
-textArray5[iIndex++]='<INPUT TYPE=button VALUE=" Ãö³¬ " onClick="window.close()">';
+textArray5[iIndex++]='<INPUT TYPE=button VALUE=" é—œé–‰ " onClick="window.close()">';
 iIndex = 0;
 //browser.htm
 //textArray6[iIndex++]="SSID";
@@ -127,37 +162,215 @@ iIndex = 0;
 //iIndex = 0;
 // End don't translate
 // ERROR.htm
-textArray7[iIndex++]="¿ù»~";
-textArray7[iIndex++]="¦^¨ì¤W¤@­¶";
+textArray7[iIndex++]="éŒ¯èª¤";
+textArray7[iIndex++]="IP åœ°å€éŒ¯èª¤";
+textArray7[iIndex++]="å­ç¶²è·¯é®ç½©éŒ¯èª¤";
+textArray7[iIndex++]="é–˜é“å™¨ IP åœ°å€éŒ¯èª¤";
+textArray7[iIndex++]="è¼ªè©¢é€±æœŸå€¼éŒ¯èª¤";
+textArray7[iIndex++]="å°è¡¨ä¼ºæœå™¨åç¨±éŒ¯èª¤";
+textArray7[iIndex++]="NetWare æª”æ¡ˆä¼ºæœå™¨åç¨±éŒ¯èª¤";
+textArray7[iIndex++]="æ‰¾ä¸åˆ° DHCP/BOOTP ä¼ºæœå™¨";
+textArray7[iIndex++]="SNMP é™·é˜± IP åœ°å€éŒ¯èª¤";
+textArray7[iIndex++]="å¯†ç¢¼éŒ¯èª¤";
+textArray7[iIndex++]="éŸŒé«”æœ‰å•é¡Œæˆ–å‡ç´šå¤±æ•—";
+textArray7[iIndex++]="åŒ¯å…¥è¨­å®šæª” CFG.bin å¤±æ•—";
+textArray7[iIndex++]="";
+textArray7[iIndex++]="å›åˆ°ä¸Šä¸€é ";
 iIndex = 0;
 
 // CNETWARE.htm
-textArray8[iIndex++]="°ò¥»³]©w";
-textArray8[iIndex++]="¦Lªí¦øªA¾¹¦WºÙ:";
-textArray8[iIndex++]="½ü¸ß®É¶¡:";
-textArray8[iIndex++]="&nbsp;¬í (³Ì¤p: 3 ¬í, ³Ì¤j: 29 ¬í)";
-textArray8[iIndex++]="µn¤J NetWare ªº±K½X:";
-textArray8[iIndex++]="NetWare NDS ³]©w";
-textArray8[iIndex++]="¨Ï¥Î NDS ¼Ò¦¡:";
-textArray8[iIndex++]="NDS Tree ¦WºÙ:";
-textArray8[iIndex++]="NDS Context ¦WºÙ:";
-textArray8[iIndex++]="NetWare Bindery ³]©w";
-textArray8[iIndex++]="¨Ï¥Î Bindery ¼Ò¦¡:";
-textArray8[iIndex++]="ÀÉ®×¦øªA¾¹¦WºÙ:";
-textArray8[iIndex++]='<input type="button" value="Àx¦s¨Ã­«·s±Ò°Ê" onClick="return SaveSetting(';
+textArray8[iIndex++]="åŸºæœ¬è¨­å®š";
+textArray8[iIndex++]="å°è¡¨ä¼ºæœå™¨åç¨± :";
+textArray8[iIndex++]="è¼ªè©¢æ™‚é–“ :";
+textArray8[iIndex++]="&nbsp;ç§’ (æœ€å°: 3 ç§’, æœ€å¤§: 29 ç§’)";
+textArray8[iIndex++]="ç™»å…¥ NetWare çš„å¯†ç¢¼ :";
+textArray8[iIndex++]="NetWare NDS è¨­å®š";
+textArray8[iIndex++]="ä½¿ç”¨ NDS æ¨¡å¼ :";
+textArray8[iIndex++]="åœç”¨";
+textArray8[iIndex++]="å•Ÿç”¨";
+textArray8[iIndex++]="NDS Tree åç¨± :";
+textArray8[iIndex++]="NDS Context åç¨± :";
+textArray8[iIndex++]="NetWare Bindery è¨­å®š";
+textArray8[iIndex++]="ä½¿ç”¨ Bindery æ¨¡å¼ :";
+textArray8[iIndex++]="åœç”¨";
+textArray8[iIndex++]="å•Ÿç”¨";
+textArray8[iIndex++]="æª”æ¡ˆä¼ºæœå™¨åç¨± :";
+textArray8[iIndex++]='<input type="button" value="å„²å­˜ä¸¦é‡æ–°å•Ÿå‹•" onClick="return SaveSetting(';
 // Begin don't translate
 textArray8[iIndex++]="'RESTART.HTM');";
 textArray8[iIndex++]='">';
 iIndex = 0;
 
 // CSMB.htm
-textArray9[iIndex++]="¤u§@¸s²Õ";
-textArray9[iIndex++]="¦WºÙ:";
-textArray9[iIndex++]="¦Lªí¾÷¦@¥Î¦WºÙ";
-textArray9[iIndex++]="¦@¥Î¦WºÙ:";
-textArray9[iIndex++]='<input type="button" value="Àx¦s¨Ã­«·s±Ò°Ê" onClick="return CheckSMB(';
+textArray9[iIndex++]="å·¥ä½œç¾¤çµ„";
+textArray9[iIndex++]="SMB æœå‹™ :";
+textArray9[iIndex++]="åœç”¨";
+textArray9[iIndex++]="å•Ÿç”¨";
+textArray9[iIndex++]="åç¨± :";
+textArray9[iIndex++]="å°è¡¨æ©Ÿå…±ç”¨åç¨±";
+textArray9[iIndex++]="é€£æ¥åŸ  :";
+textArray9[iIndex++]='<input type="button" value="å„²å­˜ä¸¦é‡æ–°å•Ÿå‹•" onClick="return CheckSMB(';
 // Begin don't translate
 textArray9[iIndex++]="'RESTART.HTM');";
 textArray9[iIndex++]='">';
 iIndex = 0;
+
+//CSERVICES.htm
+textArray10[iIndex++]="åˆ—å°æ–¹å¼";
+textArray10[iIndex++]="ä½¿ç”¨ LPR/LPD åˆ—å° :";
+textArray10[iIndex++]="åœç”¨";
+textArray10[iIndex++]="å•Ÿç”¨";
+textArray10[iIndex++]="ä½¿ç”¨ AppleTalk åˆ—å° :";
+textArray10[iIndex++]="åœç”¨";
+textArray10[iIndex++]="å•Ÿç”¨";
+textArray10[iIndex++]="ä½¿ç”¨ IPP åˆ—å° :";
+textArray10[iIndex++]="åœç”¨";
+textArray10[iIndex++]="å•Ÿç”¨";
+textArray10[iIndex++]="ä½¿ç”¨ SMB åˆ—å° :";
+textArray10[iIndex++]="åœç”¨";
+textArray10[iIndex++]="å•Ÿç”¨";
+textArray10[iIndex++]="æœå‹™";
+textArray10[iIndex++]="Telnet :";
+textArray10[iIndex++]="åœç”¨";
+textArray10[iIndex++]="å•Ÿç”¨";
+textArray10[iIndex++]="SNMP :";
+textArray10[iIndex++]="åœç”¨";
+textArray10[iIndex++]="å•Ÿç”¨";
+textArray10[iIndex++]="E-mail å’ŒçµæŸé è­¦ç¤º :";
+textArray10[iIndex++]="åœç”¨";
+textArray10[iIndex++]="å•Ÿç”¨";
+textArray10[iIndex++]="HTTP :";
+textArray10[iIndex++]="åœç”¨";
+textArray10[iIndex++]="å•Ÿç”¨";
+textArray10[iIndex++]="è«‹æ³¨æ„: åœ¨æ‚¨åœç”¨ HTTP å¾Œ, åªèƒ½ç”¨ Reset éµå•Ÿç”¨å®ƒ.";
+textArray10[iIndex++]="è€Œä¸”, åœç”¨ HTTP ä¹Ÿæœƒä¸€ä½µåœç”¨ IPP åˆ—å°.";
+textArray10[iIndex++]='<input type="button" value="å„²å­˜ä¸¦é‡æ–°å•Ÿå‹•" onClick="return SaveServices(';
+// Begin don't translate
+textArray10[iIndex++]="'RESTART.HTM');";
+textArray10[iIndex++]='">';
+iIndex = 0;
+
+// Character Encoding
+function CharacterEncoding()
+{
+	document.write('<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML; charset=big5">');
+}
+
+// functions
+// CSYSTEM.HTM
+function CheckPwd(szURL)
+{
+ 	if(document.CSYSTEM.SetupPWD.value != document.CSYSTEM.ConfirmPWD.value && document.CSYSTEM.SetupPWD.value != "ZO__I-SetupPassword" )
+	{
+		alert("ç³»çµ±ç®¡ç†è€…çš„å¯†ç¢¼èˆ‡å¯†ç¢¼ç¢ºèªä¸ç¬¦ !");
+		return false;
+	}
+	document.CSYSTEM.action=szURL;
+	document.CSYSTEM.submit();
+	return false;
+}
+
+// CPRINTER.HTM
+function CheckLPRQueueName(szURL)
+{
+	var ch;
+	var lprname1 = document.forms[0].LPRQueue1.value;
+
+	if (document.forms[0].LPRQueue1.value == '')
+	{
+		alert("éŒ¯èª¤! LPR ä½‡åˆ—åç¨±ä¸èƒ½ç©ºç™½!");
+	 	return false; 
+	}
+	else
+	{
+		for(var i = 0 ; i < lprname1.length ; i++ )
+		{
+	    	ch = lprname1.charAt(i).toUpperCase();
+	
+			if(!((ch >= '0' && ch <= '9') ||
+				(ch >= 'A' && ch <= 'Z') || 
+				(ch >= 'a' && ch <= 'z') || 
+				(ch == '-') || (ch == '_')))
+			{
+				alert ("LPR ä½‡åˆ—åç¨± " + lprname1 + " çš„ " + ch + " ç‚ºç„¡æ•ˆå­—å…ƒ.");
+				document.forms[0].LPRQueue1.focus();
+				return false;
+			}
+		}
+
+		document.forms[0].action=szURL;
+		document.forms[0].submit(); 
+		return false; 
+	}
+}
+
+// CTCPTP.HTM
+
+// CNETWARE.HTM
+
+// CAPPLE.HTM
+
+// CSNMP.HTM
+
+// CSMB.HTM
+function CheckSMB(szURL)
+{
+	if(document.forms[0].SMBWorkGroup.value == '')
+	{
+		alert("éŒ¯èª¤! å·¥ä½œç¾¤çµ„åç¨±ä¸èƒ½ç©ºç™½!");
+		return false;
+	}
+	else
+	{
+		if(document.forms[0].SMBPrint1.value == '')
+		{		
+			alert("éŒ¯èª¤! SMB å…±äº«å°è¡¨æ©Ÿåç¨±ä¸èƒ½ç©ºç™½!"); 
+		 	return false; 
+		}
+		else
+		{
+			document.forms[0].action=szURL;
+			document.forms[0].submit(); 
+			return false;
+		}
+	}
+}
+
+
+// Title or Model Name
+function TitleModelName()
+{
+	document.write('<title>PU211 USB åŸ å°è¡¨ä¼ºæœå™¨</title>');
+}
+
+// Character Encoding
+function CharacterEncoding()
+{
+	document.write('<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML; charset=big5">');
+}
+
+// MM_preloadImages
+function BodyPreloadImages()
+{
+	document.write("<body onload=MM_preloadImages('imgzhtw/MenuBtn-CS-setup2.gif','imgzhtw/MenuBtn-CS-other2.gif','imgzhtw/MenuBtn-CS-restart2.gif')>");
+}
+
+// mainView-Title
+function MainViewTitle()
+{
+	document.write('<tr><td><img src="images/mainView-2.gif" width="301" height="32" /></td>');
+	document.write('<td><img src="imgzhtw/mainView-Title.gif" width="431" height="32">');
+	document.write('</td></tr>');
+}
+
+// Row MenuBtn
+function RowMenuBtn()
+{
+	document.write("<td><a href=SYSTEM.HTM target=_parent onmouseover=MM_swapImage('Image14','','imgzhtw/MenuBtn-CS-status2.gif',1) onmouseout=MM_swapImgRestore()><img src=imgzhtw/MenuBtn-CS-status1.gif name=Image14 width=93 height=36 border=0 id=Image14></a></td>");
+	document.write('<td><img src="imgzhtw/MenuBtn-CS-setup3.gif" width="92" height="36" /></td>');
+	document.write("<td><a href=DEFAULT.HTM target=_parent onmouseover=MM_swapImage('Image15','','imgzhtw/MenuBtn-CS-other2.gif',1) onmouseout=MM_swapImgRestore()><img src=imgzhtw/MenuBtn-CS-other1.gif name=Image15 width=93 height=36 border=0 id=Image15></a></td>");
+	document.write("<td><a href=RESET.HTM target=_parent onmouseover=MM_swapImage('Image16','','imgzhtw/MenuBtn-CS-restart2.gif',1) onmouseout=MM_swapImgRestore()><img src=imgzhtw/MenuBtn-CS-restart1.gif name=Image16 width=93 height=36 border=0 id=Image16></a></td>");
+}
+
+
 // out of Chinese

@@ -64,3 +64,4 @@
 (07) "Invalid SNMP Trap IP Address"
 (08) "Setup password and confirmed do not match"
 (09) "Wrong firmware or upgrade failed"
+(10) "Failed in importing the CFG file"

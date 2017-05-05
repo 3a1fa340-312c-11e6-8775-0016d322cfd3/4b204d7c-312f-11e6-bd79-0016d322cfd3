@@ -6,36 +6,40 @@ textindex = 0;
 var iIndex = 0;
 
 //Language : Chinese
-tabArray=['PU201 °ª³t USB ¦Lªí¦øªA¾¹','ª¬ºA','³]©w','¨ä¥¦','­«·s±Ò°Ê','¦^´_¥X¼t­È','¶´Åé¤É¯Å'];
+//tabArray=['PU211 USB åŸ å°è¡¨ä¼ºæœå™¨','ç‹€æ…‹','è¨­å®š','å…¶å®ƒ','é‡æ–°å•Ÿå‹•','å›å¾©å‡ºå» å€¼','éŸŒé«”å‡ç´š'];
+tabArray=['å›å¾©å‡ºå» å€¼','éŸŒé«”å‡ç´š'];
 
 	//upgrade.htm
-headArray[iIndex++] ="<br>¥»­¶¥i¥HÅı§A¤É¯Å¦Lªí¦øªA¾¹ªº¶´Åé¡C<BR><font color=red>ªşµù:</font> ¦b°õ¦æ¤É¯Å¤§«e, ½Ğ½T©w§Aªº¶´Åé¬O¥¿½Tªº¡C°²¦p§A¤£ª¾¹D¸Ó¥Î­şºØ¶´Åé, ½Ğ»P§Aªº¼t°ÓÁpµ¸¥H´M¨D§Ş³N¤Wªº¤ä´©¡C";
+headArray[iIndex++] ="<br>æœ¬é å¯ä»¥è®“æ‚¨å‡ç´šå°è¡¨ä¼ºæœå™¨çš„éŸŒé«”ã€‚<BR><font color=red>é™„è¨»:</font> åœ¨åŸ·è¡Œå‡ç´šä¹‹å‰, è«‹ç¢ºå®šæ‚¨çš„éŸŒé«”æ˜¯æ­£ç¢ºçš„ã€‚å‡å¦‚æ‚¨ä¸çŸ¥é“è©²ç”¨å“ªç¨®éŸŒé«”, è«‹èˆ‡å» å•†è¯çµ¡ä»¥å°‹æ±‚æŠ€è¡“ä¸Šçš„æ”¯æ´ã€‚";
 iIndex = 0;
 
 	//default.htm
-textArray1[iIndex++] = "ÂIÀ» ¡u<b>½T©w</b>¡v ¥H¦^´_¥X¼tªº¹w³]­È¡C½Ğª`·N! ©Ò¦³¥Ø«eªº³]©w­È³£±N³Q©Ù°£¡C";
-textArray1[iIndex++] = "ÂIÀ» ¡u<b>¶´Åé¤É¯Å</b>¡v ÂsÄı¶´Åé¥Ø¿ı, ­«·s¸ü¤J¨ã³Æ·s¶´Åéªº¦C¦L¦øªA¾¹¡C";
+textArray1[iIndex++] = "é»æ“Šã€Œ<b>ç¢ºå®š</b>ã€ ä»¥å›å¾©å‡ºå» çš„é è¨­å€¼ã€‚<BR><FONT CLASS=F1 COLOR=#FF3300><B>è«‹æ³¨æ„! æ‰€æœ‰ç›®å‰çš„è¨­å®šå€¼éƒ½å°‡è¢«æŠ¹é™¤ã€‚</B></FONT>";
+textArray1[iIndex++] = "å›å¾©å‡ºå» å€¼, ä¸åŒ…æ‹¬ TCP/IP è¨­å®š. (æ¨è–¦)";
+textArray1[iIndex++] = "åœ¨å®ƒé‡æ–°å•Ÿå‹•å¾Œ, æ‚¨ä»ç„¶èƒ½ç”¨ç›®å‰çš„ IP é€£åˆ°å®ƒã€‚";
+textArray1[iIndex++] = "å›å¾©å‡ºå» å€¼, åŒ…æ‹¬ TCP/IP è¨­å®š.";
+textArray1[iIndex++] = "åœ¨å®ƒé‡æ–°å•Ÿå‹•å¾Œ, æ‚¨ç„¡æ³•ç”¨ç›®å‰çš„ IP é€£åˆ°å®ƒã€‚";
 // Translate                               Only OK is to be translated
-textArray1[iIndex++] = '<input type=button  value="&nbsp;&nbsp;½T©w&nbsp;&nbsp;" onClick="';
+textArray1[iIndex++] = '<input type=button  value="&nbsp;&nbsp;ç¢ºå®š&nbsp;&nbsp;" onClick="return SaveIPSetting(';
 // Begin don't translate
-textArray1[iIndex++] = "window.location='DRESTART.HTM'";
+textArray1[iIndex++] = "'DRESTART.HTM');";
 textArray1[iIndex++] = '">';
 iIndex = 0;
 // End don't translate
 
 //upgrade.htm
-textArray2[iIndex++]="¶´Åé¤É¯Å";
-textArray2[iIndex++]="¿ï¾ÜÀÉ®×:";
+textArray2[iIndex++]="éŸŒé«”å‡ç´š";
+textArray2[iIndex++]="é¸æ“‡æª”æ¡ˆ:";
 // Begin don't translate
-textArray2[iIndex++]='<input type=button value="¶´Åé¤É¯Å" onClick="return WebUpgrade()">';
+textArray2[iIndex++]='<input type=button value="éŸŒé«”å‡ç´š" onClick="return WebUpgrade()">';
 iIndex = 0;
 // End don't translate
 
 //reset.htm
-textArray3[iIndex++]="¥»­¶¥i¥HÅı§A­«·s±Ò°Ê¦Lªí¦øªA¾¹¡C<br>";
-textArray3[iIndex++]="<FONT CLASS=F1 COLOR=#FF3300><B>­«·s±Ò°Ê¦Lªí¦øªA¾¹</B></FONT><br><br>§A·Q­n­«·s±Ò°Ê¦Lªí¦øªA¾¹¶Ü?<br><br>";
+textArray3[iIndex++]="æœ¬é å¯ä»¥è®“æ‚¨é‡æ–°å•Ÿå‹•å°è¡¨ä¼ºæœå™¨ã€‚<br>";
+textArray3[iIndex++]="<FONT CLASS=F1 COLOR=#FF3300><B>é‡æ–°å•Ÿå‹•å°è¡¨ä¼ºæœå™¨</B></FONT><br><br>ä½ æƒ³è¦é‡æ–°å•Ÿå‹•å°è¡¨ä¼ºæœå™¨å—?<br><br>";
 // Translate                               Only OK is to be translated
-textArray3[iIndex++]='<input type=button value="&nbsp;&nbsp;½T©w&nbsp;&nbsp;" onClick="window.location=';
+textArray3[iIndex++]='<input type=button value="&nbsp;&nbsp;ç¢ºå®š&nbsp;&nbsp;" onClick="window.location=';
 // Begin don't translate
 textArray3[iIndex++]="'RESTART.HTM'";
 textArray3[iIndex++]='">';
@@ -43,15 +47,65 @@ iIndex = 0;
 // End don't translate
 
 	//restart.htm
-textArray4[iIndex++] = "­«·s±Ò°Ê¤¤ ...";
-textArray4[iIndex++] = "½Ğµ¥«İ¦Lªí¦øªA¾¹­«·s±Ò°Ê¡C";
+textArray4[iIndex++] = "é‡æ–°å•Ÿå‹•ä¸­ ...";
+textArray4[iIndex++] = "è«‹ç­‰å¾…å°è¡¨ä¼ºæœå™¨é‡æ–°å•Ÿå‹•ã€‚";
 iIndex = 0;
 	//urestart.htm
-textArray5[iIndex++] = "¤É¯Å¦¨¥\ !";
-textArray5[iIndex++] = "¶´Åé¤É¯Å¦¨¥\«á, ¦Lªí¦øªA¾¹±N·|¦Û°Ê­«·s±Ò°Ê¡C½Ğµ¥«İ¦Lªí¦øªA¾¹­«·s±Ò°Ê¡C";
+textArray5[iIndex++] = "å‡ç´šæˆåŠŸ !";
+textArray5[iIndex++] = "éŸŒé«”å‡ç´šæˆåŠŸå¾Œ, å°è¡¨ä¼ºæœå™¨å°‡æœƒè‡ªå‹•é‡æ–°å•Ÿå‹•ã€‚è«‹ç­‰å¾…å°è¡¨ä¼ºæœå™¨é‡æ–°å•Ÿå‹•ã€‚";
 iIndex = 0;
 	//drestart.htm
-textArray6[iIndex++] = "¦^´_¬°¥X¼tªº³]©w­È¤¤ ...";
-textArray6[iIndex++] = " ¦^´_¬°¥X¼tªº³]©w­È«á, ¦Lªí¦øªA¾¹±N·|¦Û°Ê­«·s±Ò°Ê¡C<BR><BR>½Ğµ¥«İ¦Lªí¦øªA¾¹­«·s±Ò°Ê¡C";
+textArray6[iIndex++] = "å›å¾©ç‚ºå‡ºå» çš„è¨­å®šå€¼ä¸­ ...";
+textArray6[iIndex++] = " å›å¾©ç‚ºå‡ºå» çš„è¨­å®šå€¼å¾Œ, å°è¡¨ä¼ºæœå™¨å°‡æœƒè‡ªå‹•é‡æ–°å•Ÿå‹•ã€‚<BR><BR>è«‹ç­‰å¾…å°è¡¨ä¼ºæœå™¨é‡æ–°å•Ÿå‹•ã€‚";
 iIndex = 0;
+
+// Character Encoding
+function CharacterEncoding()
+{
+	document.write('<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML; charset=big5">');
+}
+
+// Title or Model Name
+function TitleModelName()
+{
+	document.write('<title>PU211 USB åŸ å°è¡¨ä¼ºæœå™¨</title>');
+}
+
+// MM_preloadImages
+function BodyPreloadImages2()
+{
+	document.write("<body onload=OnLoadTasks()>");
+}
+
+function OnLoadTasks()
+{
+	MM_preloadImages('imgzhtw/MenuBtn-CS-setup2.gif','imgzhtw/MenuBtn-CS-other2.gif','imgzhtw/MenuBtn-CS-restart2.gif');
+	GoToLastPage();
+}
+
+// mainView-Title
+function MainViewTitle()
+{
+	document.write('<tr><td><img src="images/mainView-2.gif" width="301" height="32" /></td>');
+	document.write('<td><img src="imgzhtw/mainView-Title.gif" width="431" height="32">');
+	document.write('</td></tr>');
+}
+
+// Row MenuBtn
+function RowMenuBtn()
+{
+	document.write("<td><a href=SYSTEM.HTM target=_parent onmouseover=MM_swapImage('Image14','','imgzhtw/MenuBtn-CS-status2.gif',1) onmouseout=MM_swapImgRestore()><img src=imgzhtw/MenuBtn-CS-status1.gif name=Image14 width=93 height=36 border=0 id=Image14></a></td>");
+	document.write("<td><a href=CSYSTEM.HTM target=_parent onmouseover=MM_swapImage('Image15','','imgzhtw/MenuBtn-CS-setup2.gif',1) onmouseout=MM_swapImgRestore()><img src=imgzhtw/MenuBtn-CS-setup1.gif name=Image15 width=93 height=36 border=0 id=Image15></a></td>");
+	document.write('<td><img src="imgzhtw/MenuBtn-CS-other3.gif" width="92" height="36" /></td>');
+	document.write("<td><a href=RESET.HTM target=_parent onmouseover=MM_swapImage('Image16','','imgzhtw/MenuBtn-CS-restart2.gif',1) onmouseout=MM_swapImgRestore()><img src=imgzhtw/MenuBtn-CS-restart1.gif name=Image16 width=93 height=36 border=0 id=Image16></a></td>");
+}
+
+function RowMenuBtn4()
+{
+	document.write("<td><a href=SYSTEM.HTM target=_parent onmouseover=MM_swapImage('Image14','','imgzhtw/MenuBtn-CS-status2.gif',1) onmouseout=MM_swapImgRestore()><img src=imgzhtw/MenuBtn-CS-status1.gif name=Image14 width=93 height=36 border=0 id=Image14></a></td>");
+	document.write("<td><a href=CSYSTEM.HTM target=_parent onmouseover=MM_swapImage('Image15','','imgzhtw/MenuBtn-CS-setup2.gif',1) onmouseout=MM_swapImgRestore()><img src=imgzhtw/MenuBtn-CS-setup1.gif name=Image15 width=93 height=36 border=0 id=Image15></a></td>");
+	document.write("<td><a href=DEFAULT.HTM target=_parent onmouseover=MM_swapImage('Image16','','imgzhtw/MenuBtn-CS-other2.gif',1) onmouseout=MM_swapImgRestore()><img src=imgzhtw/MenuBtn-CS-other1.gif name=Image16 width=93 height=36 border=0 id=Image16></a></td>");
+	document.write('<td><img src="imgzhtw/MenuBtn-CS-restart3.gif" width="92" height="36" /></td>');
+}
+
 // out of Chinese

@@ -387,5 +387,8 @@ def main(argv):
     # web data convert to endmark.c
     bin_to_endmark()
 
+    shutil.rmtree(output_folder)
+    os.remove('www.tmp')
+
 if __name__ == "__main__":
     main(sys.argv[1:]);

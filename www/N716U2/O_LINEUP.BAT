@@ -1,0 +1,1 @@
+call ..\W2IMAGE Z O_LINEUP ..\O_LINEUP.WWW ..\N716U2_LINEUP.BIN ..\web_info_LINEUP.def

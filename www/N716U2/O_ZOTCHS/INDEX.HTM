@@ -1,0 +1,58 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML">
+<TITLE></TITLE>
+</HEAD>
+<BODY BGCOLOR=#FFFFFF>
+<SCRIPT LANGUAGE=JavaScript>
+var languages = navigator.browserLanguage;
+var userAgents = navigator.userAgent;
+var userLanguages = navigator.userLanguage;
+
+if(navigator.appName=="Netscape")
+{
+	if(navigator.appVersion.indexOf("5.0")!=-1)
+	{
+		if(navigator.appVersion.indexOf("Safari")!=-1)
+		{
+			if(userAgents.indexOf("zh-cn")!=-1)
+				document.location.href="ONE-zhCN.HTM";
+			else
+				document.location.href="ONE.HTM";
+		}
+		else
+		{
+			if(userAgents.indexOf("zh-CN")!=-1)
+				document.location.href="ONE-zhCN.HTM";
+			else
+				document.location.href="ONE.HTM";
+		}
+	}
+	else
+		document.location.href="ONE.HTM";
+}
+else if(navigator.appName=="Konqueror")
+{
+	if(navigator.appVersion.indexOf("5.0")!=-1)
+	{
+		if(userLanguages.indexOf("zh_CN")!=-1)
+			document.location.href="ONE-zhCN.HTM";
+		else
+			document.location.href="ONE.HTM";
+	}
+	else
+		document.location.href="ONE.HTM";
+}
+else
+{
+	switch (languages){
+		case "zh-cn":
+			document.location.href="ONE-zhCN.HTM";
+			break;
+	    default:
+	    	document.location.href="ONE.HTM";
+	}
+}
+</script>
+</BODY>
+</HTML>

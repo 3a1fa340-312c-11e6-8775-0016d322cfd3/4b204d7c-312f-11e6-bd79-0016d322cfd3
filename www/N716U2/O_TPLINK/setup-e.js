@@ -27,7 +27,7 @@ textArray0[iIndex++]="E-mail Alert:";
 textArray0[iIndex++]="Disabled";
 textArray0[iIndex++]="Enabled";
 textArray0[iIndex++]="SMTP Server IP Address:";
-textArray0[iIndex++]="Administrator E-mail Address:";
+textArray0[iIndex++]="Administrator's E-mail Address:";
 textArray0[iIndex++]="System Settings";
 textArray0[iIndex++]="Print Server Name :";
 textArray0[iIndex++]="System Contact :";
@@ -36,7 +36,7 @@ textArray0[iIndex++]="Administrator's Password";
 textArray0[iIndex++]="Account :";
 textArray0[iIndex++]="admin";
 textArray0[iIndex++]="Password :";
-textArray0[iIndex++]="Re-type Password :";
+textArray0[iIndex++]="Confirm password :";
 // Translate                                  only "Save & Restart" is to be translated
 textArray0[iIndex++]='<input type="button"  value="Save & Restart" onClick="return CheckPwd(';
 // Begin don't translate
@@ -152,6 +152,7 @@ textArray7[iIndex++]="DHCP/BOOTP Server not found";
 textArray7[iIndex++]="Invalid SNMP Trap IP Address";
 textArray7[iIndex++]="Setup password and confirmed do not match";
 textArray7[iIndex++]="Wrong firmware or upgrade failed";
+textArray7[iIndex++]="Failed in importing the CFG file";
 textArray7[iIndex++]="";
 textArray7[iIndex++]="Go Back";
 iIndex = 0;
@@ -190,6 +191,12 @@ textArray9[iIndex++]='<input type="button" value="Save & Restart" onClick="retur
 textArray9[iIndex++]="'RESTART.HTM');";
 textArray9[iIndex++]='">';
 iIndex = 0;
+
+// Character Encoding
+function CharacterEncoding()
+{
+	document.write('<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML; charset=iso-8859-1">');
+}
 
 // functions
 // CSYSTEM.HTM

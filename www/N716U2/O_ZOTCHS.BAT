@@ -1,0 +1,1 @@
+call ..\W2IMAGE X O_ZOTCHS ..\O_ZOTCHS.WWW ..\N716U2_ZOTCHS.BIN ..\web_info_ZOTCHS.def

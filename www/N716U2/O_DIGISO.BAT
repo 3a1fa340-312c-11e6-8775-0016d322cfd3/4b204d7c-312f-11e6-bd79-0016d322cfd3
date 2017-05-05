@@ -1,0 +1,1 @@
+call ..\W2IMAGE D O_DIGISO ..\O_DIGISO.WWW ..\N716U2_DIGISO.BIN ..\web_info_DIGISO.def

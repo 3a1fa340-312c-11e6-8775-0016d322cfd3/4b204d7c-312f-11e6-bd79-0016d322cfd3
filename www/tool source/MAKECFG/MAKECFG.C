@@ -2,7 +2,8 @@
 #include <stdlib.h>
 
 //#define MAX_WWW_SIZE					( 256 * 1024 )	// Roper's .WWW exceeds 180KB
-#define MAX_WWW_SIZE					( 384 * 1024 )	// George modified on July 10, 2009
+//#define MAX_WWW_SIZE					( 384 * 1024 )	// George modified on July 10, 2009
+#define MAX_WWW_SIZE					( 512 * 1024 )	// George modified on June 15, 2011
 #define MAX_CHARS_PER_LINE				16
 
 

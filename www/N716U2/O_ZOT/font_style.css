@@ -6,16 +6,16 @@
 /*==========================================================================*/
 
 	.TOPTitle {
-		font-family: Georgia, 細明體, "Times New Roman", Times;
+		font-family: Georgia, MingLiU, "Times New Roman", Times;
 		font-size: 24px;	
 		font-style: normal;  
 		font-weight: bold;
-		line-height: 24px;  
+		line-height: 28px;  
 		color: #9B262C;
 		}
 
 	.ActiveLinkG {
-  		font-family: Verdana, 細明體, Helvetica, Arial, sans-serif;
+  		font-family: Verdana, MingLiU, Helvetica, Arial, sans-serif;
 		font-size: 12px;  
 		font-style: normal;  
 		font-weight: bold;
@@ -25,7 +25,7 @@
 		}
 	
 	.ActiveLinkB {
-  		font-family: Verdana, 細明體, Helvetica, Arial, sans-serif;
+  		font-family: Verdana, MingLiU, Helvetica, Arial, sans-serif;
 		font-size: 12px;  
 		font-style: normal;  
 		font-weight: bold;
@@ -36,8 +36,8 @@
 	
 	
 	.ActiveLinkSG {
-  		font-family: Verdana, 細明體, Helvetica, Arial, sans-serif;
-		font-size: 10px;  
+  		font-family: Verdana, MingLiU, Helvetica, Arial, sans-serif;
+		font-size: 12px;  
 		font-style: normal;  
 		font-weight: bold;
 		line-height: 14px;	
@@ -46,8 +46,8 @@
 		}
 
 	.ActiveLinkSB {
-  		font-family: Verdana, 細明體, Helvetica, Arial, sans-serif;
-		font-size: 10px;  
+  		font-family: Verdana, MingLiU, Helvetica, Arial, sans-serif;
+		font-size: 12px;  
 		font-style: normal;  
 		font-weight: bold;
 		line-height: 14px;	

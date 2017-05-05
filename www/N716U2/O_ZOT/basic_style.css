@@ -1,6 +1,6 @@
 
 	body {
-		font-family: Verdana, 細明體, Helvetica, Arial, sans-serif;
+		font-family: Verdana, MingLiU, Helvetica, Arial, sans-serif;
 		font-size: 11px;
 		line-height: 14px;
 		color: #000000;
@@ -10,14 +10,14 @@
 		}
 			
 	td {
-		font-family: Verdana, 細明體, Helvetica, Arial, sans-serif;
+		font-family: Verdana, MingLiU, Helvetica, Arial, sans-serif;
 		font-size: 11px;	
 		font-style: normal;
 		line-height: 14px;  
 		color: #000000;
 		}
 	th {
-		font-family: Verdana, 細明體, Helvetica, Arial, sans-serif;
+		font-family: Verdana, MingLiU, Helvetica, Arial, sans-serif;
 		font-size: 11px;	
 		font-style: normal;
 		line-height: 14px;  
@@ -28,25 +28,25 @@
 		}
 		
 	select {
-		font-family: Verdana, 細明體, Helvetica, Arial, sans-serif;
+		font-family: Verdana, MingLiU, Helvetica, Arial, sans-serif;
 		font-size: 11px;  
 		color: #000000;
 		}
 		
 	input {
-		font-family: Verdana, 細明體, Helvetica, Arial, sans-serif;
+		font-family: Verdana, MingLiU, Helvetica, Arial, sans-serif;
 		font-size: 11px;  
 		color: #000000;
         background-color: #FFFFFF;
 		}
 		
 	textarea {
-		font-family: Verdana, 細明體, Helvetica, Arial, sans-serif;
+		font-family: Verdana, MingLiU, Helvetica, Arial, sans-serif;
 		font-size: 11px;  
 		color: #000000;
 		}
 
-	h1 {font-family: Georgia, 細明體, "Times New Roman", Times;
+	h1 {font-family: Georgia, MingLiU, "Times New Roman", Times;
 		font-size: 24px;	 
 		font-style: normal; 
 		font-weight: bold;
@@ -55,7 +55,7 @@
 		}
 		
 	h2 {
-		font-family: Georgia, 細明體, "Times New Roman", Times;
+		font-family: Georgia, MingLiU, "Times New Roman", Times;
 		font-size: 19px;	 
 		font-style: normal;  
 		font-weight: bold;
@@ -64,7 +64,7 @@
 		}
 		
 	h3 {
-		font-family: Georgia, 細明體, "Times New Roman", Times;
+		font-family: Georgia, MingLiU, "Times New Roman", Times;
 		font-size: 12px;
 		font-style: normal;
 		font-weight: bold;

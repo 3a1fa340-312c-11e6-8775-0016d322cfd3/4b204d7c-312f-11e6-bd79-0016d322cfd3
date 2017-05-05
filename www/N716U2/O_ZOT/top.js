@@ -2,7 +2,7 @@ function ShowTopBlock()
 {
 document.write('<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH=570>');
 document.write('<TR><TD></TD>');
-document.write('<TD HEIGHT=40 ALGIN=CENTER CLASS=TOPTitle><Script Language="JavaScript">showtab(tabindex++);</script></TD>');
+document.write('<TD HEIGHT=40 align=left CLASS=TOPTitle><Script Language="JavaScript">showtab(tabindex++);</script></TD>');
 document.write('</TR></table><br>');
 
 }

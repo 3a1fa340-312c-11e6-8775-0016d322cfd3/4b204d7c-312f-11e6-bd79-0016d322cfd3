@@ -143,6 +143,12 @@ textArray7[iIndex++]="工作组";
 textArray7[iIndex++]="名称 :";
 textArray7[iIndex++]="共享打印机名称";
 textArray7[iIndex++]="共享名 :";
+iIndex = 0;
 
+// Character Encoding
+function CharacterEncoding()
+{
+	document.write('<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML; charset=gb2312">');
+}
 
 // out of Simplified Chinese

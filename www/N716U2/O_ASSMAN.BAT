@@ -1,0 +1,1 @@
+call ..\W2IMAGE H O_ASSMAN ..\O_ASSMAN.WWW ..\N716U2_ASSMANN.BIN ..\web_info_ASSMANN.def

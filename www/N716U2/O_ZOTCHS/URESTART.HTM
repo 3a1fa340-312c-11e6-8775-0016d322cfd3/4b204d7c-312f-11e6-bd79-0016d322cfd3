@@ -1,0 +1,62 @@
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=big5">
+<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="basic_style.css"/>
+<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="font_style.css"/>
+<LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="picture.css"/>
+</HEAD>
+<SCRIPT language="JavaScript1.2" src="top.js"></SCRIPT>
+<SCRIPT language="JavaScript1.2" src="misc.js"></SCRIPT>
+<SCRIPT LANGUAGE=JavaScript>
+var entcount=0;
+function GoToLastPage()
+{
+	if( entcount==1 )
+		document.location.href = 'ZO__T-HomeAddr';
+	else
+		setTimeout("GoToLastPage()", 20000);
+	entcount=1;
+}
+</SCRIPT>
+<CENTER>
+<BODY TOPMARGIN=0 MARGINWIDTH=0 MARGINHEIGHT=0 onLoad="GoToLastPage()">
+<BR>
+<SCRIPT language="JavaScript">ShowTopBlock();</script>
+
+<!-- Webpage Table start -->
+<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=3 WIDTH=640 BGCOLOR=#E2E2E2>
+<TR><TD WIDTH=100%>
+	<!-- Restart Start -->
+	<TABLE CELLSPACING=0 CELLPADDING=1 BORDER=0 WIDTH=100%>
+	<TR>
+		<TD height=10>&nbsp;<br></td>
+	</tr>
+	<TR>
+		<TD ALIGN=CENTER><b><Script Language="JavaScript">showtext5(textindex++);</script></b></td>
+	</tr>
+	<TR>
+		<TD height=10>&nbsp;<br></td>
+	</tr>
+	<tr>
+		<td align=center><IMG SRC=IMAGES/t_CLOCK.GIF></td>
+	</tr>
+	<tr><td align=center><br><Script Language="JavaScript">showtext5(textindex++);</script><BR></TD>
+	</TR>
+	</TABLE>
+	ZO_T-SysReboot
+	<!-- Restart END -->
+	<BR><CENTER>
+	<!-- Logo Start -->
+	<TABLE border=0 WIDTH=560>
+	<TR><TD align="right" height="40"><IMG SRC="images/LOGO.GIF"></TD>
+	</TR>
+	</TABLE>
+	<!-- Logo END -->
+	<BR><BR>
+</TD></TR>
+</TABLE>
+<BR><BR>
+<!-- Webpage Table END  -->
+</BODY>
+</CENTER>
+</HTML>

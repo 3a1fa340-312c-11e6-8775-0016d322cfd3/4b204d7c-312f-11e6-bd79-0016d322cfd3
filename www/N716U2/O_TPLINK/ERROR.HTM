@@ -1,19 +1,22 @@
 <HTML>
 <HEAD>
-<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML">
 <LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="basic_style.css"/>
 <LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="font_style.css"/>
 <LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="picture.css"/>
 </HEAD>
 <SCRIPT language="JavaScript1.2" src="top.js"></SCRIPT>
 <SCRIPT language="JavaScript1.2" src="setup.js"></SCRIPT>
+<SCRIPT language="JavaScript">
+	CharacterEncoding();
+</script>
 <SCRIPT LANGUAGE=JavaScript>
 function GoToLastPage() 
 {
 	if(navigator.appVersion.indexOf("Safari")!=-1)
 		window.history.go(-2);
 	else
-	window.history.go(-1);
+		window.history.go(-1);
+
 	return false;
 }
 </SCRIPT>
@@ -100,55 +103,60 @@ function GoToLastPage()
 	    {
 	    case "Invalid IP Address":
 	    	showtext7(textindex++);
-	    	textindex += 10;
+	    	textindex += 11;
 	    	break;
 	    case "Invalid Subnet Mask Address":
 	    	textindex += 1;
 	    	showtext7(textindex++);
-	    	textindex += 9;
+	    	textindex += 10;
 	    	break;
 	    case "Invalid Gateway Address":
 	    	textindex += 2;
 	    	showtext7(textindex++);
-	    	textindex += 8;
+	    	textindex += 9;
 	    	break;
 	    case "Invalid Polling Time Value":
 	    	textindex += 3;
 	    	showtext7(textindex++);
-	    	textindex += 7;
+	    	textindex += 8;
 	    	break;
 	    case "Invalid Print Server Name":
 	    	textindex += 4;
 	    	showtext7(textindex++);
-	    	textindex += 6;
+	    	textindex += 7;
 	    	break;
 	    case "Invalid File Server Name":
 	    	textindex += 5;
 	    	showtext7(textindex++);
-	    	textindex += 5;
+	    	textindex += 6;
 	    	break;
 	    case "DHCP/BOOTP Server not found":
 	    	textindex += 6;
 	    	showtext7(textindex++);
-	    	textindex += 4;
+	    	textindex += 5;
 	    	break;
 	    case "Invalid SNMP Trap IP Address":
 	    	textindex += 7;
 	    	showtext7(textindex++);
-	    	textindex += 3;
+	    	textindex += 4;
 	    	break;
 	    case "Setup password and confirmed do not match":
 	    	textindex += 8;
 	    	showtext7(textindex++);
-	    	textindex += 2;
+	    	textindex += 3;
 	    	break;
 	    case "Wrong firmware or upgrade failed":
 	    	textindex += 9;
 	    	showtext7(textindex++);
+	    	textindex += 2;
+	    	break;
+	    case "Failed in importing the CFG file":
+	    	textindex += 10;
+	    	showtext7(textindex++);
 	    	textindex += 1;
 	    	break;
 	    default:
-	    	textindex += 10;
+	    	textindex += 11;
 	    	showtext7(textindex++);
 	    	break;
 	    }

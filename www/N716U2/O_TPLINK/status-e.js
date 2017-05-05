@@ -143,6 +143,12 @@ textArray7[iIndex++]="Workgroup";
 textArray7[iIndex++]="Name:";
 textArray7[iIndex++]="Shared Name";
 textArray7[iIndex++]="Printer:";
+iIndex = 0;
 
+// Character Encoding
+function CharacterEncoding()
+{
+	document.write('<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML; charset=iso-8859-1">');
+}
 
 // out of English

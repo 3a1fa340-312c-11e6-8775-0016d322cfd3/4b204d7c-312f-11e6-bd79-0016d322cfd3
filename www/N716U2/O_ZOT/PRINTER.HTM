@@ -1,14 +1,18 @@
 <HTML>
 <HEAD>
-<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<SCRIPT language="JavaScript1.2" src="status.js"></SCRIPT>
+<SCRIPT language="JavaScript1.2" src="top.js"></SCRIPT>
+<SCRIPT language="JavaScript1.2" src="effect_setting.js"></SCRIPT>
+<SCRIPT language="JavaScript">
+	//CharacterEncoding();
+</script>
 <LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="basic_style.css"/>
 <LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="font_style.css"/>
 <LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="picture.css"/>
 </HEAD>
-<SCRIPT language="JavaScript1.2" src="top.js"></SCRIPT>
-<SCRIPT language="JavaScript1.2" src="status.js"></SCRIPT>
-<SCRIPT language="JavaScript1.2" src="effect_setting.js"></SCRIPT>
 <CENTER>
+
 <BODY TOPMARGIN=0 MARGINWIDTH=0 MARGINHEIGHT=0>
 <BR>
 <SCRIPT language="JavaScript">ShowTopBlock();</script>
@@ -96,15 +100,45 @@
         <TR><TD><Script Language="JavaScript">showtext1(textindex++);</script></TD></TR>
       	</TABLE>
 		<TABLE CELLSPACING=1 CELLPADDING=1 BORDER=0 BGCOLOR=#FFFFFF WIDTH=100%> 
-		<TR><TD><B><Script Language="JavaScript">showtext1(textindex++);</script></B></TD>
-			<TD><B><Script Language="JavaScript">showtext1(textindex++);</script></B></TD> 
-			<TD><B><Script Language="JavaScript">showtext1(textindex++);</script></B></TD> 
-			<TD><B><Script Language="JavaScript">showtext1(textindex++);</script></B></TD>
+		<TR><TD><BR><B><Script Language="JavaScript">showtext1(textindex++);</script></B></TD>
+			<TD><BR><B><Script Language="JavaScript">showtext1(textindex++);</script></B></TD> 
+			<TD><BR><B><Script Language="JavaScript">showtext1(textindex++);</script></B></TD> 
+			<TD><BR><B><Script Language="JavaScript">showtext1(textindex++);</script></B></TD>
        	</TR>
         <TR><TD>ZO__T-Port1Manufacture&nbsp;</TD>
 			<TD>ZO__T-Port1Model&nbsp;</TD>
 			<TD>ZO__T-Port1CommandSet</TD>
-			<TD>ZO__T-Port1&nbsp;</TD>
+			<TD>
+			<Script Language="JavaScript">
+			var strPort1 = "ZO__T-Port1";
+
+			switch(strPort1)
+			{
+			case "Waiting for job":
+				showtext1(textindex++);
+				textindex += 3;
+				break;
+			case "Paper Out":
+				textindex += 1;
+				showtext1(textindex++);
+				textindex += 2;
+				break;
+			case "Off Line":
+				textindex += 2;
+				showtext1(textindex++);
+				textindex += 1;
+				break;
+			case "Printing":
+				textindex += 3;
+				showtext1(textindex++);
+				break;
+			default:
+				showtext1(textindex++);
+				textindex += 3;
+				break;
+			}
+			</script>
+			</TD>
         </TR>
       	</TABLE>
 	</td></tr>

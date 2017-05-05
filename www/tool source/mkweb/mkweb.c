@@ -3,7 +3,7 @@
 #include <time.h>
 #include <windows.h>
 
-#define MEM_SIZE					( 384 * 1024 )	//1M
+#define MEM_SIZE					( 512 * 1024 )	//1M. original: 384 * 1024
 #define HEADER_SIZE					256
 #define MAX_CHARS_PER_LINE			512
 #define BLOCK_SIZE					1024
@@ -157,7 +157,7 @@ void main(int nArgc, char *szArgv[])
 	
 	//read Src file
 		IMGSrcPtr = IMGMem + HEADER_SIZE;
-		SrcSize = fread( IMGSrcPtr, 1, MEM_SIZE, SrcFile );	
+		SrcSize = fread( IMGSrcPtr, 1, (MEM_SIZE-HEADER_SIZE), SrcFile );	
 		
 		if( SrcSize >= (MEM_SIZE - HEADER_SIZE))
 		{

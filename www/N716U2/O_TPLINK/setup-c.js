@@ -154,6 +154,7 @@ textArray7[iIndex++]="未找到 DHCP/BOOTP 服务器";
 textArray7[iIndex++]="无效 SNMP Trap IP 地址";
 textArray7[iIndex++]="密码不匹配";
 textArray7[iIndex++]="软件失效或升级失败";
+textArray7[iIndex++]="CFG.bin 文件失效或导入失败";
 textArray7[iIndex++]="";
 textArray7[iIndex++]="后退";
 iIndex = 0;
@@ -193,6 +194,12 @@ textArray9[iIndex++]="'RESTART.HTM');";
 textArray9[iIndex++]='">';
 iIndex = 0;
 
+// Character Encoding
+function CharacterEncoding()
+{
+	document.write('<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML; charset=gb2312">');
+}
+
 // functions
 // CSYSTEM.HTM
 function CheckPwd(szURL)
@@ -222,14 +229,14 @@ function CheckSMB(szURL)
 {
 	if(document.forms[0].SMBWorkGroup.value == '')
 	{
-		alert("ERROR! The workgroup name cannot be empty!");
+		alert("错误! 工作组名称不能空白!");
 		return false;
 	}
 	else
 	{
 		if(document.forms[0].SMBPrint1.value == '')
 		{		
-			alert("ERROR! The SMB shared printer name cannot be empty!");
+			alert("错误! 共享打印机名称不能空白!");
 		 	return false; 
 		}
 		else

@@ -49,14 +49,14 @@ var typ;
 var cook = getCurrState();
 	if(cook == "1" ){
 		typ="visible";
-		document.getElementById("more").value ="back";
+		document.getElementById("more").value ="\<\<";
 		document.getElementById("apple").style.visibility = typ;
 		document.getElementById("snmp").style.visibility = typ;
 		document.getElementById("smb").style.visibility = typ;
 		document.getElementById("netware").style.visibility = typ;
 	}else{
 		typ="hidden";
-		document.getElementById("more").value ="more";
+		document.getElementById("more").value ="\>\>";
 		document.getElementById("apple").style.visibility = typ;
 		document.getElementById("snmp").style.visibility = typ;
 		document.getElementById("smb").style.visibility = typ;
@@ -71,7 +71,7 @@ function MODE_CHANG(){
 	var typ;
 	if (EXPRESS_MODE == 1){
 		typ="visible";
-		document.getElementById("more").value ="back";
+		document.getElementById("more").value ="\<\<";
 		document.getElementById("apple").style.visibility = typ;
 		document.getElementById("snmp").style.visibility = typ;
 		document.getElementById("smb").style.visibility = typ;
@@ -79,7 +79,7 @@ function MODE_CHANG(){
 		explode();
 	}else{
 		typ="hidden";
-		document.getElementById("more").value ="more";
+		document.getElementById("more").value ="\>\>";
 		document.getElementById("apple").style.visibility = typ;
 		document.getElementById("snmp").style.visibility = typ;
 		document.getElementById("smb").style.visibility = typ;

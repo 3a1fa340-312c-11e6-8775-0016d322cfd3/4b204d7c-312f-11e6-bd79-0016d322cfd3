@@ -6,7 +6,7 @@ export CHIP
 endif
 
 ifeq ($(CHIP),mt7688)
-CHIPSET = mt7628 
+CHIPSET = mt7628
 PLATFORM = MT7628
 RT28xx_MODE = STA
 export CHIPSET RT28xx_MODE PLATFORM

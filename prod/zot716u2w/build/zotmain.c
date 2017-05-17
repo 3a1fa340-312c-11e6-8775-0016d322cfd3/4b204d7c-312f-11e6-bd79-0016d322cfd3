@@ -31,7 +31,9 @@ static cyg_thread thread_data;
 static cyg_handle_t thread_handle;
 #endif /* 1 */
 
+#ifdef USE_WIRELESS_LIBS
 void cyg_net_init(void);
+#endif /* USE_WIRELESS_LIBS */
 int flsh_init (void);
 void WLan_get_EEPData (void);
 int ralink_gpio_init(void);
@@ -54,7 +56,9 @@ inline void sys_check_stack(void)
 void zotmain( void )
 //void zotmain(cyg_addrword_t p)
 {
+    #ifdef USE_WIRELESS_LIBS
     cyg_net_init();
+    #endif /* USE_WIRELESS_LIBS */
     flsh_init();
     ralink_gpio_init();
 
@@ -73,15 +77,18 @@ void zotmain( void )
     //
     //Print Server module
     //
-    
+    #if defined(USE_PS_LIBS)    
 	IPXInitialize();
 	NETBEUInit();
 	Spooler_init();
+    #endif /* USE_PS_LIBS */
     
 	ps_init();
     LED_Init();
 
+    #if defined(USE_PS_LIBS)
     usb_drv_init();
+    #endif /* USE_PS_LIBS */
 	zot_idle_task_init();
 
     diag_printf("use zot function\n");

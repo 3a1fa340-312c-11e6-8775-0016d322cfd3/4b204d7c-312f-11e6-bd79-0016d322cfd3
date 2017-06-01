@@ -1748,9 +1748,9 @@ int usbprn_attach( int minor )
 			parse_device_id( i1284, &tmp[2] );
 			free( tmp );
 			
-			if(memcmp(PortIO[i1284].Manufacture ,sharp_string, 5) == 0 )
+			if( PortIO[i1284].Manufacture && memcmp(PortIO[i1284].Manufacture ,sharp_string, 5) == 0 )
 			{
-				if(memcmp(PortIO[i1284].CommandSet , sharp_language, 6) == 0 )
+				if( PortIO[i1284].CommandSet && memcmp(PortIO[i1284].CommandSet , sharp_language, 6) == 0 )
 					IS_SHARP_AR_M207 = 1;
 				
 				if( !(PortIO[i1284].SupportLang & (P1284_PJL | P1284_PCL | P1284_POSTSCRIPT)) )

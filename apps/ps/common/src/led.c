@@ -32,7 +32,7 @@ WORD LEDErrorCode;
 BYTE WirelessLightToggle;
 #endif
 BYTE LANLightToggle = 0;		//eason 20100809
-BYTE LANLightToggle_down = 0;	//eason 20100809
+BYTE LANLightToggle_down = 1;	//eason 20100809
 BYTE LANLightToggle_100 = 0;
 
 void LightToggleProc(cyg_addrword_t data);
@@ -289,10 +289,12 @@ void LightToggleProc (cyg_addrword_t data)
 #endif /* WIRELESS_CARD */
 #if defined(N716U2W) || defined(N716U2)
         if (LANLightToggle) {
-            nLEDValue |= (1 << Status_Lite);
-#if defined(N716U2)
+//  #if defined(N716U2W)
+//              nLEDValue |= (1 << Status_Lite);
+//  #endif [> N716U2W <]
+//  #if defined(N716U2)
             nLEDValue |= (1 << Network_Lite);
-#endif /* N716U2 || N716U2W */
+//  #endif /* N716U2 || N716U2W */
 
             LANLightToggle--;
 
@@ -300,8 +302,18 @@ void LightToggleProc (cyg_addrword_t data)
                 LANLightToggle = 5;
             }
         }
-
+        else if (LANLightToggle_down == 0) {
+            light_status_on();
+        }
 #endif
+#if defined(N716U2W)
+        if (LANLightToggle_down) {
+            light_status_on();
+            cyg_thread_delay(50);
+            light_status_off();
+            cyg_thread_delay(50);
+        }
+#endif /* N716U2W */
 
 #ifdef  USB_LED
         if (USBTestLightToggle) {
@@ -356,10 +368,21 @@ void LightToggleProc (cyg_addrword_t data)
 #endif
 #endif /* ARCH_ARM */
 #if defined(ARCH_MIPS)
+//  #if defined(N716U2)
+//                  light_network_off();
+//  #endif [> N716U2 <]
+#if defined(N716U2W)
+                light_status_off();
+#endif
+#endif /* ARCH_MIPS */
+            }
+            if (nLEDValue & (1 << Network_Lite)) {
 #if defined(N716U2)
                 light_network_off();
 #endif /* N716U2 */
-#endif /* ARCH_MIPS */
+#if defined(N716U2W)
+                light_status_off();
+#endif /* N716U2W */
             }
 
 #if defined(WIRELESS_CARD)
@@ -424,6 +447,9 @@ void LightToggleProc (cyg_addrword_t data)
                     }
                 }
 #endif /* N716U2 */
+#if defined(N716U2W)
+                light_status_on();
+#endif /* N716U2W */
             }
 #endif /* ARCH_MIPS */
             ppause(30);

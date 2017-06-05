@@ -250,6 +250,9 @@ endif
 	./mkimage.py $(PSMODELINDEX) $(CODE2MARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersionPlus) $(BuildVer) $(MAKER_AND_CPU) $(P_MARK) $(PROD_NAME).gz MPS$(PSMODELINDEX).bin
 	cp MPS$(PSMODELINDEX).bin $(ROOT_DIR)/img/MPS$(PSMODELINDEX)_$(OEM).bin
 
+mkimage:
+	./mkimage.py $(PSMODELINDEX) $(CODE2MARK) $(MajorVer) $(MinorVer) $(ReleaseVer) $(RDVersionPlus) $(BuildVer) $(MAKER_AND_CPU) $(PROD_NAME).gz MPS$(PSMODELINDEX)-py.bin
+
 target.ld:
 	cp $(ROOT_DIR)/ecos/$(HOSTOS)-target.ld $(PKG_INSTALL_DIR)/lib/$@ ;
 

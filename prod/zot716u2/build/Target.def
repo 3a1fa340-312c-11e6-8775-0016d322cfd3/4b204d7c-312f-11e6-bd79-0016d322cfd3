@@ -1,5 +1,5 @@
 MAKER_AND_CPU   = STR8132
-HTML_FILE   = O_TPLINK
+HTML_FILE   = O_ZOT
 TARGET      = N716U2
 CODE_TYPE   = 2
 
@@ -7,9 +7,9 @@ PSMODELINDEX  = 56
 MajorVer      = 9
 MinorVer      = 9
 ReleaseVer    = 114
-RDVersion     = 245
+RDVersion     = 246
 BuildVer      = 9030
-FirmwareString = (STR8132-9.09.56.9030.00000245r-2017/06/02 07:08:37)
+FirmwareString = (STR8132-9.09.56.9030.00000246r-2017/06/05 14:49:09)
 
 #FLASH_SIZE UNIT Mbyte
 FLASH_SIZE    = 1

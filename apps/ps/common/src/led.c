@@ -368,21 +368,20 @@ void LightToggleProc (cyg_addrword_t data)
 #endif
 #endif /* ARCH_ARM */
 #if defined(ARCH_MIPS)
-//  #if defined(N716U2)
-//                  light_network_off();
-//  #endif [> N716U2 <]
 #if defined(N716U2W)
                 light_status_off();
 #endif
 #endif /* ARCH_MIPS */
             }
             if (nLEDValue & (1 << Network_Lite)) {
+#if defined(ARCH_MIPS)
 #if defined(N716U2)
                 light_network_off();
 #endif /* N716U2 */
 #if defined(N716U2W)
                 light_status_off();
 #endif /* N716U2W */
+#endif /* ARCH_MIPS */
             }
 
 #if defined(WIRELESS_CARD)

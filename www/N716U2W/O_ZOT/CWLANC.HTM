@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML">
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML" CHARSET="UTF-8">
 <LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="basic_style.css"/>
 <LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="font_style.css"/>
 <LINK REL=STYLESHEET TYPE="TEXT/CSS" HREF="picture.css"/>
@@ -40,6 +40,7 @@ function initialValue()
 			f.WLChannel.disabled = false;
 			
 			// Disable WEP, WPA-PSK, and WPA2-PSK options and properties
+			f.security_mode[1].disabled = true;
 			f.security_mode[2].disabled = true;
 			f.security_mode[3].disabled = true;
 			

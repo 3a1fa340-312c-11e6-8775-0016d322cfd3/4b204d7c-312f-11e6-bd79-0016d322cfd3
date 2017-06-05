@@ -28,7 +28,7 @@ all:
 ifeq ("$(wildcard ./$(WEB_FOLDER)/O_$(OEM))","")
 	$(error $(WEB_FOLDER)/O_$(OEM) folder is not exist!)
 endif
-	-rm end_mark.c
+	- rm end_mark.c
 	./web2c.py $($(OEM)_MARK) ./$(WEB_FOLDER)/O_$(OEM) out_web;
 	cp end_mark.c ../apps/http_zot/src/endmark.c
 	rm end_mark.c

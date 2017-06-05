@@ -1,5 +1,3 @@
-
-
 //vaiable
 tabindex = 0;
 textindex = 0;
@@ -7,60 +5,65 @@ var iIndex = 0;
 
 //Language : Traditional Chinese
 //tabArray=['<IMG SRC=images/LOGO.gif>','Status','Setup','Misc','Restart','Factory Default','Firmware Upgrade','Restart'];
-tabArray=['µL½u/¦³½uÂù¤¶­±¦Lªí¦øªA¾¹','ª¬ºA','³]©w','¨ä¥¦','­«·s±Ò°Ê','¦^´_¥X¼t­È','¶´Åé¤É¯Å','­«·s±Ò°Ê'];
+tabArray=['ç„¡ç·š/æœ‰ç·šé›™ä»‹é¢å°è¡¨ä¼ºæœå™¨','ç‹€æ…‹','è¨­å®š','å…¶å®ƒ','é‡æ–°å•Ÿå‹•','å›å¾©å‡ºå» å€¼','éŸŒé«”å‡ç´š','é‡æ–°å•Ÿå‹•'];
 
-	//upgrade.htm
-headArray[iIndex++] ="<br>¥»­¶¥i¥HÅı±z¤É¯Å¦Lªí¦øªA¾¹ªº¶´Åé¡C<BR><font color=red>ªşµù:</font> ¦b°õ¦æ¤É¯Å¤§«e, ½Ğ½T©w±zªº¶´Åé¬O¥¿½Tªº¡C°²¦p±z¤£ª¾¹D¸Ó¥Î­şºØ¶´Åé, ½Ğ»P¼t°ÓÁpµ¸¥H´M¨D§Ş³N¤Wªº¤ä´©¡C";
-iIndex = 0;
+  //upgrade.htm
+  headArray[iIndex++] =
+      "<br>æœ¬é å¯ä»¥è®“æ‚¨å‡ç´šå°è¡¨ä¼ºæœå™¨çš„éŸŒé«”ã€‚<BR><font color=red>é™„è¨»:</font> åœ¨åŸ·è¡Œå‡ç´šä¹‹å‰, è«‹ç¢ºå®šæ‚¨çš„éŸŒé«”æ˜¯æ­£ç¢ºçš„ã€‚å‡å¦‚æ‚¨ä¸çŸ¥é“è©²ç”¨å“ªç¨®éŸŒé«”, è«‹èˆ‡å» å•†è¯çµ¡ä»¥å°‹æ±‚æŠ€è¡“ä¸Šçš„æ”¯æ´ã€‚";
+  iIndex = 0;
 
-	//default.htm
-textArray1[iIndex++] = "ÂIÀ»¡u<b>½T©w</b>¡v ¥H¦^´_¥X¼tªº¹w³]­È¡C<BR><FONT CLASS=F1 COLOR=#FF3300><B>½Ğª`·N! ©Ò¦³¥Ø«eªº³]©w­È³£±N³Q©Ù°£¡C</B></FONT>";
-textArray1[iIndex++] = "¦^´_¥X¼t­È, ¤£¥]¬A TCP/IP ³]©w. (±ÀÂË)";
-textArray1[iIndex++] = "¦b¥¦­«·s±Ò°Ê«á, ±z¤´µM¯à¥Î¥Ø«eªº IP ³s¨ì¥¦¡C";
-// Translate                               Only OK is to be translated
-textArray1[iIndex++] = '<input type=button  value="&nbsp;&nbsp;½T©w&nbsp;&nbsp;" onClick="';
-// Begin don't translate
-textArray1[iIndex++] = "window.location='DRESTART.HTM'";
-textArray1[iIndex++] = '">';
-iIndex = 0;
-// End don't translate
+  //default.htm
+  textArray1[iIndex++] =
+      "é»æ“Šã€Œ<b>ç¢ºå®š</b>ã€ ä»¥å›å¾©å‡ºå» çš„é è¨­å€¼ã€‚<BR><FONT CLASS=F1 COLOR=#FF3300><B>è«‹æ³¨æ„! æ‰€æœ‰ç›®å‰çš„è¨­å®šå€¼éƒ½å°‡è¢«æŠ¹é™¤ã€‚</B></FONT>";
+  textArray1[iIndex++] = "å›å¾©å‡ºå» å€¼, ä¸åŒ…æ‹¬ TCP/IP è¨­å®š. (æ¨è–¦)";
+  textArray1[iIndex++] = "åœ¨å®ƒé‡æ–°å•Ÿå‹•å¾Œ, æ‚¨ä»ç„¶èƒ½ç”¨ç›®å‰çš„ IP é€£åˆ°å®ƒã€‚";
+  // Translate                               Only OK is to be translated
+  textArray1[iIndex++] = '<input type=button  value="&nbsp;&nbsp;ç¢ºå®š&nbsp;&nbsp;" onClick="';
+  // Begin don't translate
+  textArray1[iIndex++] = "window.location='DRESTART.HTM'";
+  textArray1[iIndex++] = '">';
+  iIndex = 0;
+  // End don't translate
 
-//upgrade.htm
-textArray2[iIndex++]="¶´Åé¤É¯Å";
-textArray2[iIndex++]="¿ï¾ÜÀÉ®×:";
-// Begin don't translate
-textArray2[iIndex++]='<input type=button value="¶´Åé¤É¯Å" onClick="return WebUpgrade()">';
-iIndex = 0;
-// End don't translate
+  //upgrade.htm
+  textArray2[iIndex++] = "éŸŒé«”å‡ç´š";
+  textArray2[iIndex++] = "é¸æ“‡æª”æ¡ˆ:";
+  // Begin don't translate
+  textArray2[iIndex++] = '<input type=button value="éŸŒé«”å‡ç´š" onClick="return WebUpgrade()">';
+  iIndex = 0;
+  // End don't translate
 
-//reset.htm
-textArray3[iIndex++]="¥»­¶¥i¥HÅı±z­«·s±Ò°Ê¦Lªí¦øªA¾¹¡C<br>";
-textArray3[iIndex++]="<FONT CLASS=F1 COLOR=#FF3300><B>­«·s±Ò°Ê¦Lªí¦øªA¾¹</B></FONT><br><br>§A·Q­n­«·s±Ò°Ê¦Lªí¦øªA¾¹¶Ü?<br><br>";
-// Translate                               Only OK is to be translated
-textArray3[iIndex++]='<input type=button value="&nbsp;&nbsp;½T©w&nbsp;&nbsp;" onClick="window.location=';
-// Begin don't translate
-textArray3[iIndex++]="'RESTART.HTM'";
-textArray3[iIndex++]='">';
-iIndex = 0;
-// End don't translate
+  //reset.htm
+  textArray3[iIndex++] = "æœ¬é å¯ä»¥è®“æ‚¨é‡æ–°å•Ÿå‹•å°è¡¨ä¼ºæœå™¨ã€‚<br>";
+  textArray3[iIndex++] =
+      "<FONT CLASS=F1 COLOR=#FF3300><B>é‡æ–°å•Ÿå‹•å°è¡¨ä¼ºæœå™¨</B></FONT><br><br>ä½ æƒ³è¦é‡æ–°å•Ÿå‹•å°è¡¨ä¼ºæœå™¨å—?<br><br>";
+  // Translate                               Only OK is to be translated
+  textArray3[iIndex++] =
+      '<input type=button value="&nbsp;&nbsp;ç¢ºå®š&nbsp;&nbsp;" onClick="window.location=';
+  // Begin don't translate
+  textArray3[iIndex++] = "'RESTART.HTM'";
+  textArray3[iIndex++] = '">';
+  iIndex = 0;
+  // End don't translate
 
-	//restart.htm
-textArray4[iIndex++] = "­«·s±Ò°Ê¤¤ ...";
-textArray4[iIndex++] = "½Ğµ¥«İ¦Lªí¦øªA¾¹­«·s±Ò°Ê¡C";
-iIndex = 0;
-	//urestart.htm
-textArray5[iIndex++] = "¤É¯Å¦¨¥\ !";
-textArray5[iIndex++] = "¶´Åé¤É¯Å¦¨¥\«á, ¦Lªí¦øªA¾¹±N·|¦Û°Ê­«·s±Ò°Ê¡C½Ğµ¥«İ¦Lªí¦øªA¾¹­«·s±Ò°Ê¡C";
-iIndex = 0;
-	//drestart.htm
-textArray6[iIndex++] = "¦^´_¬°¥X¼tªº³]©w­È¤¤ ...";
-textArray6[iIndex++] = "¦^´_¬°¥X¼tªº³]©w­È«á, ¦Lªí¦øªA¾¹±N·|¦Û°Ê­«·s±Ò°Ê¡C<BR><BR>½Ğµ¥«İ¦Lªí¦øªA¾¹­«·s±Ò°Ê¡C";
-iIndex = 0;
+  //restart.htm
+  textArray4[iIndex++] = "é‡æ–°å•Ÿå‹•ä¸­ ...";
+  textArray4[iIndex++] = "è«‹ç­‰å¾…å°è¡¨ä¼ºæœå™¨é‡æ–°å•Ÿå‹•ã€‚";
+  iIndex = 0;
+  //urestart.htm
+  textArray5[iIndex++] = "å‡ç´šæˆåŠŸ !";
+  textArray5[iIndex++] = "éŸŒé«”å‡ç´šæˆåŠŸå¾Œ, å°è¡¨ä¼ºæœå™¨å°‡æœƒè‡ªå‹•é‡æ–°å•Ÿå‹•ã€‚è«‹ç­‰å¾…å°è¡¨ä¼ºæœå™¨é‡æ–°å•Ÿå‹•ã€‚";
+  iIndex = 0;
+  //drestart.htm
+  textArray6[iIndex++] = "å›å¾©ç‚ºå‡ºå» çš„è¨­å®šå€¼ä¸­ ...";
+  textArray6[iIndex++] = "å›å¾©ç‚ºå‡ºå» çš„è¨­å®šå€¼å¾Œ, å°è¡¨ä¼ºæœå™¨å°‡æœƒè‡ªå‹•é‡æ–°å•Ÿå‹•ã€‚<BR><BR>è«‹ç­‰å¾…å°è¡¨ä¼ºæœå™¨é‡æ–°å•Ÿå‹•ã€‚";
+  iIndex = 0;
 
-// Character Encoding
-function CharacterEncoding()
-{
-	document.write('<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML; charset=big5">');
-}
+  // Character Encoding
+  function CharacterEncoding ()
+  {
+      document.write('<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML; charset=big5">');
+  }
 
-// out of Traditional Chinese
+
+  // out of Traditional Chinese'

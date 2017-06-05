@@ -1,95 +1,94 @@
-
 //vaiable
 tabindex = 0;
 textindex = 0;
-textindex10 = 0;		// CWLAN.htm Basic Settings
-textindex11 = 0;		// CWLAN.htm Advanced Settings
-textindex12 = 0;		// CWLAN.htm Site Survey
+textindex10 = 0;      // CWLAN.htm Basic Settings
+textindex11 = 0;      // CWLAN.htm Advanced Settings
+textindex12 = 0;      // CWLAN.htm Site Survey
 var iIndex = 0;
 
 //Language : Simplified Chinese
-//tabArray=['<IMG SRC=images/LOGO.gif>','×´Ì¬','ÉèÖÃ','ÆäËü','ÖØÆô','ÏµÍ³','ÎŞÏß','TCP/IP','NetWare','AppleTalk','SNMP','SMB','',''];
-tabArray=['ÎŞÏß/ÓĞÏß Ë«Ä£´òÓ¡·şÎñÆ÷','×´Ì¬','ÉèÖÃ','ÆäËü','ÖØÆô','ÏµÍ³','ÎŞÏß','TCP/IP','NetWare','AppleTalk','SNMP','SMB','',''];
+//tabArray=['<IMG SRC=images/LOGO.gif>','çŠ¶æ€','è®¾ç½®','å…¶å®ƒ','é‡å¯','ç³»ç»Ÿ','æ— çº¿','TCP/IP','NetWare','AppleTalk','SNMP','SMB','',''];
+tabArray=['æ— çº¿/æœ‰çº¿ åŒæ¨¡æ‰“å°æœåŠ¡å™¨','çŠ¶æ€','è®¾ç½®','å…¶å®ƒ','é‡å¯','ç³»ç»Ÿ','æ— çº¿','TCP/IP','NetWare','AppleTalk','SNMP','SMB','',''];
 
 //csystem
-headArray[iIndex++] = "<BR>´ËÆÁÄ»ÔÊĞíÄú¶Ô´òÓ¡·şÎñÆ÷½øĞĞ»ù±¾ÅäÖÃ²Ù×÷¡£<br>";
+headArray[iIndex++] = "<BR>æ­¤å±å¹•å…è®¸æ‚¨å¯¹æ‰“å°æœåŠ¡å™¨è¿›è¡ŒåŸºæœ¬é…ç½®æ“ä½œã€‚<br>";
 //cprinter.htm
-//headArray[iIndex++] = "<BR>´ËÆÁÄ»ÔÊĞíÄúÆô¶¯»òÕß¹Ø±Õ´òÓ¡·şÎñÆ÷Ã¿¸ö¶Ë¿ÚµÄË«Ïò´òÓ¡¹¦ÄÜ¡£";
+//headArray[iIndex++] = "<BR>æ­¤å±å¹•å…è®¸æ‚¨å¯åŠ¨æˆ–è€…å…³é—­æ‰“å°æœåŠ¡å™¨æ¯ä¸ªç«¯å£çš„åŒå‘æ‰“å°åŠŸèƒ½ã€‚";
 //cwlan.htm
-headArray[iIndex++] = "<BR>´ËÆÁÄ»ÔÊĞíÄú¸ü¸Ä´òÓ¡·şÎñÆ÷µÄÎŞÏßÉèÖÃ¡£";
+headArray[iIndex++] = "<BR>æ­¤å±å¹•å…è®¸æ‚¨æ›´æ”¹æ‰“å°æœåŠ¡å™¨çš„æ— çº¿è®¾ç½®ã€‚";
 //ctcpip.htm
-headArray[iIndex++] = "<BR>´ËÆÁÄ»ÔÊĞíÄú¸ü¸Ä´òÓ¡·şÎñÆ÷µÄ TCP/IP ÉèÖÃ¡£";
+headArray[iIndex++] = "<BR>æ­¤å±å¹•å…è®¸æ‚¨æ›´æ”¹æ‰“å°æœåŠ¡å™¨çš„ TCP/IP è®¾ç½®ã€‚";
 //cnetware.htm
-headArray[iIndex++] = "<BR>´ËÆÁÄ»ÔÊĞíÄú¸ü¸Ä´òÓ¡·şÎñÆ÷µÄ NetWare ÉèÖÃ¡£";
+headArray[iIndex++] = "<BR>æ­¤å±å¹•å…è®¸æ‚¨æ›´æ”¹æ‰“å°æœåŠ¡å™¨çš„ NetWare è®¾ç½®ã€‚";
 //capple.htm 
-headArray[iIndex++] ="<BR>´ËÆÁÄ»ÔÊĞíÄú¸ü¸Ä´òÓ¡·şÎñÆ÷µÄ AppleTalk ÉèÖÃ¡£<br>";
+headArray[iIndex++] ="<BR>æ­¤å±å¹•å…è®¸æ‚¨æ›´æ”¹æ‰“å°æœåŠ¡å™¨çš„ AppleTalk è®¾ç½®ã€‚<br>";
 //csnmp.htm
-headArray[iIndex++] ="<BR>´ËÆÁÄ»ÔÊĞíÄú¸ü¸Ä´òÓ¡·şÎñÆ÷µÄ SNMP ÉèÖÃ¡£";
+headArray[iIndex++] ="<BR>æ­¤å±å¹•å…è®¸æ‚¨æ›´æ”¹æ‰“å°æœåŠ¡å™¨çš„ SNMP è®¾ç½®ã€‚";
 //csmp.htm
-headArray[iIndex++] ="<BR>´ËÆÁÄ»ÔÊĞíÄú¸ü¸Ä´òÓ¡·şÎñÆ÷ÔÚÎ¢ÈíÍøÉÏÁÚ¾ÓµÄ¹²ÏíÉèÖÃ¡£";
+headArray[iIndex++] ="<BR>æ­¤å±å¹•å…è®¸æ‚¨æ›´æ”¹æ‰“å°æœåŠ¡å™¨åœ¨å¾®è½¯ç½‘ä¸Šé‚»å±…çš„å…±äº«è®¾ç½®ã€‚";
 iIndex = 0;
 
 //csystem.htm
-textArray0[iIndex++]="µçÓÊÍ¨ÖªÉèÖÃ";
-textArray0[iIndex++]="µçÓÊÍ¨Öª:";
-textArray0[iIndex++]="¹Ø±Õ";
-textArray0[iIndex++]="ÆôÓÃ";
-textArray0[iIndex++]="SMTP ·şÎñÆ÷ IP µØÖ·:";
-textArray0[iIndex++]="¹ÜÀíÔ±µçÓÊµØÖ·:";
-textArray0[iIndex++]="ÏµÍ³ÉèÖÃ";
-textArray0[iIndex++]="Éè±¸Ãû³Æ :";
-textArray0[iIndex++]="ÏµÍ³×¢ÊÍ :";
-textArray0[iIndex++]="Î»ÖÃ :";
-textArray0[iIndex++]="¹ÜÀíÔ±ÃÜÂë";
-textArray0[iIndex++]="ÓÃ»§Ãû :";
+textArray0[iIndex++]="ç”µé‚®é€šçŸ¥è®¾ç½®";
+textArray0[iIndex++]="ç”µé‚®é€šçŸ¥:";
+textArray0[iIndex++]="å…³é—­";
+textArray0[iIndex++]="å¯ç”¨";
+textArray0[iIndex++]="SMTP æœåŠ¡å™¨ IP åœ°å€:";
+textArray0[iIndex++]="ç®¡ç†å‘˜ç”µé‚®åœ°å€:";
+textArray0[iIndex++]="ç³»ç»Ÿè®¾ç½®";
+textArray0[iIndex++]="è®¾å¤‡åç§° :";
+textArray0[iIndex++]="ç³»ç»Ÿæ³¨é‡Š :";
+textArray0[iIndex++]="ä½ç½® :";
+textArray0[iIndex++]="ç®¡ç†å‘˜å¯†ç ";
+textArray0[iIndex++]="ç”¨æˆ·å :";
 textArray0[iIndex++]="admin";
-textArray0[iIndex++]="ÃÜÂë :";
-textArray0[iIndex++]="È·ÈÏÃÜÂë :";
+textArray0[iIndex++]="å¯†ç  :";
+textArray0[iIndex++]="ç¡®è®¤å¯†ç  :";
 // Translate                                  only "Save & Restart" is to be translated
-textArray0[iIndex++]='<input type="button"  value="±£´æ²¢ÖØÆô" onClick="return CheckPwd(';
+textArray0[iIndex++]='<input type="button"  value="ä¿å­˜å¹¶é‡å¯" onClick="return CheckPwd(';
 // Begin don't translate
 textArray0[iIndex++]="'RESTART.HTM');";
 textArray0[iIndex++]='">';
 iIndex = 0;
 // End don't translate
 //CPRINTER.htm
-textArray1[iIndex++]="Ë«Ïò´òÓ¡¹¦ÄÜÉèÖÃ";
-textArray1[iIndex++]="´òÓ¡·şÎñÆ÷µÚÒ»¶Ë¿Ú :";
-textArray1[iIndex++]='<input type="button" value="±£´æ²¢ÖØÆô" onClick="return SaveSetting(';
+textArray1[iIndex++]="åŒå‘æ‰“å°åŠŸèƒ½è®¾ç½®";
+textArray1[iIndex++]="æ‰“å°æœåŠ¡å™¨ç¬¬ä¸€ç«¯å£ :";
+textArray1[iIndex++]='<input type="button" value="ä¿å­˜å¹¶é‡å¯" onClick="return SaveSetting(';
 // Begin don't translate
 textArray1[iIndex++]="'RESTART.HTM');";
 textArray1[iIndex++]='">';
 iIndex = 0;
 // End don't translate
 //CTCPIP.htm
-textArray2[iIndex++]="TCP/IP ÉèÖÃ";
-textArray2[iIndex++]="×Ô¶¯»ñµÃ TCP/IP ÉèÖÃ (Ê¹ÓÃ DHCP/BOOTP)";
-textArray2[iIndex++]="Ê¹ÓÃÒÔÏÂ TCP/IP ÉèÖÃ";
-textArray2[iIndex++]="IP µØÖ· :";
-textArray2[iIndex++]="×ÓÍøÑÚÂë :";
-textArray2[iIndex++]="Ä¬ÈÏÍø¹Ø :";
+textArray2[iIndex++]="TCP/IP è®¾ç½®";
+textArray2[iIndex++]="è‡ªåŠ¨è·å¾— TCP/IP è®¾ç½® (ä½¿ç”¨ DHCP/BOOTP)";
+textArray2[iIndex++]="ä½¿ç”¨ä»¥ä¸‹ TCP/IP è®¾ç½®";
+textArray2[iIndex++]="IP åœ°å€ :";
+textArray2[iIndex++]="å­ç½‘æ©ç  :";
+textArray2[iIndex++]="é»˜è®¤ç½‘å…³ :";
 //crandvoo.htm
-textArray2[iIndex++]="Rendezvous ÉèÖÃ";
-textArray2[iIndex++]="Rendezvous ÉèÖÃ :";
+textArray2[iIndex++]="Rendezvous è®¾ç½®";
+textArray2[iIndex++]="Rendezvous è®¾ç½® :";
 //textArray2[iIndex++]="Disable";
 //textArray2[iIndex++]="Enable";
-textArray2[iIndex++]="·şÎñÃû³Æ :";
+textArray2[iIndex++]="æœåŠ¡åç§° :";
 // Translate                                  only "Save & Restart" is to be translated
-textArray2[iIndex++]='<input type="button" value="±£´æ²¢ÖØÆô" onClick="return SaveSetting(';
+textArray2[iIndex++]='<input type="button" value="ä¿å­˜å¹¶é‡å¯" onClick="return SaveSetting(';
 // Begin don't translate
 textArray2[iIndex++]="'RESTART.HTM');";
 textArray2[iIndex++]='">';
 iIndex = 0;
 // End don't translate
 //CAPPLE.htm
-textArray3[iIndex++]="AppleTalk ÉèÖÃ";
-textArray3[iIndex++]="AppleTalk Zone Ãû³Æ :";
-textArray3[iIndex++]="¶Ë¿ÚÃû³Æ :";
-textArray3[iIndex++]="´òÓ¡»ú";
-textArray3[iIndex++]="´òÓ¡»úÀàĞÍ :";
-textArray3[iIndex++]="Êı¾İ¸ñÊ½ :";
+textArray3[iIndex++]="AppleTalk è®¾ç½®";
+textArray3[iIndex++]="AppleTalk Zone åç§° :";
+textArray3[iIndex++]="ç«¯å£åç§° :";
+textArray3[iIndex++]="æ‰“å°æœº";
+textArray3[iIndex++]="æ‰“å°æœºç±»å‹ :";
+textArray3[iIndex++]="æ•°æ®æ ¼å¼ :";
 // Translate                                  only "Save & Restart" is to be translated
-textArray3[iIndex++]='<input type=button value="±£´æ²¢ÖØÆô" onClick="return SaveSetting(';
+textArray3[iIndex++]='<input type=button value="ä¿å­˜å¹¶é‡å¯" onClick="return SaveSetting(';
 // Begin don't translate
 textArray3[iIndex++]="'RESTART.HTM');";
 textArray3[iIndex++]='">';
@@ -97,29 +96,29 @@ textArray3[iIndex++]='">';
 
 iIndex = 0;
 //CSNMP.htm
-textArray4[iIndex++]="SNMP Community ÉèÖÃ";
-textArray4[iIndex++]="ÔÊĞíÊ¹ÓÃ HP WebJetAdmin :";
-textArray4[iIndex++]="¹Ø±Õ";
-textArray4[iIndex++]="ÆôÓÃ";
-textArray4[iIndex++]="Community 1 Ãû³Æ :";
-textArray4[iIndex++]="È¨ÏŞ :";
-textArray4[iIndex++]="Ö»¶Á";
-textArray4[iIndex++]="¶ÁĞ´";
-textArray4[iIndex++]="Community 2 Ãû³Æ :";
-textArray4[iIndex++]="È¨ÏŞ :";
-textArray4[iIndex++]="Ö»¶Á";
-textArray4[iIndex++]="¶ÁĞ´";
-textArray4[iIndex++]="SNMP Trap ÉèÖÃ";
-textArray4[iIndex++]="·¢ËÍ SNMP Traps :";
-textArray4[iIndex++]="¹Ø±Õ";
-textArray4[iIndex++]="ÆôÓÃ";
-textArray4[iIndex++]="Ê¹ÓÃÊÚÈ¨µÄ Traps :";
-textArray4[iIndex++]="¹Ø±Õ";
-textArray4[iIndex++]="ÆôÓÃ";
-textArray4[iIndex++]="·¢ËÍ Traps µ½µÚÒ»¸ö IP µØÖ· :";
-textArray4[iIndex++]="·¢ËÍ Traps µ½µÚ¶ş¸ö IP µØÖ· :";
+textArray4[iIndex++]="SNMP Community è®¾ç½®";
+textArray4[iIndex++]="å…è®¸ä½¿ç”¨ HP WebJetAdmin :";
+textArray4[iIndex++]="å…³é—­";
+textArray4[iIndex++]="å¯ç”¨";
+textArray4[iIndex++]="Community 1 åç§° :";
+textArray4[iIndex++]="æƒé™ :";
+textArray4[iIndex++]="åªè¯»";
+textArray4[iIndex++]="è¯»å†™";
+textArray4[iIndex++]="Community 2 åç§° :";
+textArray4[iIndex++]="æƒé™ :";
+textArray4[iIndex++]="åªè¯»";
+textArray4[iIndex++]="è¯»å†™";
+textArray4[iIndex++]="SNMP Trap è®¾ç½®";
+textArray4[iIndex++]="å‘é€ SNMP Traps :";
+textArray4[iIndex++]="å…³é—­";
+textArray4[iIndex++]="å¯ç”¨";
+textArray4[iIndex++]="ä½¿ç”¨æˆæƒçš„ Traps :";
+textArray4[iIndex++]="å…³é—­";
+textArray4[iIndex++]="å¯ç”¨";
+textArray4[iIndex++]="å‘é€ Traps åˆ°ç¬¬ä¸€ä¸ª IP åœ°å€ :";
+textArray4[iIndex++]="å‘é€ Traps åˆ°ç¬¬äºŒä¸ª IP åœ°å€ :";
 // Translate                                  only "Save & Restart" is to be translated
-textArray4[iIndex++]='<input type="button" value="±£´æ²¢ÖØÆô" onClick="return SaveSetting(';
+textArray4[iIndex++]='<input type="button" value="ä¿å­˜å¹¶é‡å¯" onClick="return SaveSetting(';
 // Begin don't translate
 textArray4[iIndex++]="'RESTART.HTM');";
 textArray4[iIndex++]='">';
@@ -133,124 +132,124 @@ iIndex = 0;
 //textArray5[iIndex++]="For 64-bit (sometimes called 40-bit) WEP encryption, enter the key which contains 5 alphanumeric characters or 10 hexadecimal digits. For example: AbZ12 (alphanumeric format) or ABCDEF1234 (hexadecimal format).";
 //textArray5[iIndex++]="For 128-bit WEP encryption, enter the key which contains 13 alphanumeric characters or 26 hexadecimal digits.";
 // Translate                                  only "Close" is to be translated
-textArray5[iIndex++]='<INPUT TYPE=button VALUE=" ¹Ø±Õ " onClick="window.close()">';
+textArray5[iIndex++]='<INPUT TYPE=button VALUE=" å…³é—­ " onClick="window.close()">';
 iIndex = 0;
 //browser.htm
 //textArray6[iIndex++]="SSID";
-//textArray6[iIndex++]="AP µÄ MAC µØÖ·»ò BSSID";
-//textArray6[iIndex++]="Æµ¶Î(ĞÅµÀ)";
-//textArray6[iIndex++]="ÍøÂçÀàĞÍ";
-//textArray6[iIndex++]="°²È«ÀàĞÍ";
-//textArray6[iIndex++]="ĞÅºÅÃÜ¶È";
+//textArray6[iIndex++]="AP çš„ MAC åœ°å€æˆ– BSSID";
+//textArray6[iIndex++]="é¢‘æ®µ(ä¿¡é“)";
+//textArray6[iIndex++]="ç½‘ç»œç±»å‹";
+//textArray6[iIndex++]="å®‰å…¨ç±»å‹";
+//textArray6[iIndex++]="ä¿¡å·å¯†åº¦";
 // Translate                                  only "Rescan" is to be translated
-//textArray6[iIndex++]='<INPUT TYPE=submit VALUE=" Ë¢ĞÂ ">';
+//textArray6[iIndex++]='<INPUT TYPE=submit VALUE=" åˆ·æ–° ">';
 // Translate                                  only "Close" is to be translated
-//textArray6[iIndex++]='<INPUT TYPE=button VALUE=" ¹Ø±Õ " onClick="window.close()">';
+//textArray6[iIndex++]='<INPUT TYPE=button VALUE=" å…³é—­ " onClick="window.close()">';
 //iIndex = 0;
 // End don't translate
 // ERROR.htm
-textArray7[iIndex++]="´íÎó";
-textArray7[iIndex++]="ÎŞĞ§ IP µØÖ·";
-textArray7[iIndex++]="ÎŞĞ§×ÓÍøÑÚÂë";
-textArray7[iIndex++]="ÎŞĞ§Íø¹ØµØÖ·";
-textArray7[iIndex++]="Polling Time ÖµÎŞĞ§";
-textArray7[iIndex++]="ÎŞĞ§´òÓ¡·şÎñÆ÷Ãû";
-textArray7[iIndex++]="ÎŞĞ§ÎÄ¼ş·şÎñÆ÷Ãû";
-textArray7[iIndex++]="Î´ÕÒµ½ DHCP/BOOTP ·şÎñÆ÷";
-textArray7[iIndex++]="ÎŞĞ§ SNMP Trap IP µØÖ·";
-textArray7[iIndex++]="ÃÜÂë²»Æ¥Åä";
-textArray7[iIndex++]="Èí¼şÊ§Ğ§»òÉı¼¶Ê§°Ü";
+textArray7[iIndex++]="é”™è¯¯";
+textArray7[iIndex++]="æ— æ•ˆ IP åœ°å€";
+textArray7[iIndex++]="æ— æ•ˆå­ç½‘æ©ç ";
+textArray7[iIndex++]="æ— æ•ˆç½‘å…³åœ°å€";
+textArray7[iIndex++]="Polling Time å€¼æ— æ•ˆ";
+textArray7[iIndex++]="æ— æ•ˆæ‰“å°æœåŠ¡å™¨å";
+textArray7[iIndex++]="æ— æ•ˆæ–‡ä»¶æœåŠ¡å™¨å";
+textArray7[iIndex++]="æœªæ‰¾åˆ° DHCP/BOOTP æœåŠ¡å™¨";
+textArray7[iIndex++]="æ— æ•ˆ SNMP Trap IP åœ°å€";
+textArray7[iIndex++]="å¯†ç ä¸åŒ¹é…";
+textArray7[iIndex++]="è½¯ä»¶å¤±æ•ˆæˆ–å‡çº§å¤±è´¥";
 textArray7[iIndex++]="";
-textArray7[iIndex++]="ºóÍË";
+textArray7[iIndex++]="åé€€";
 iIndex = 0;
 
 // CNETWARE.htm
-textArray8[iIndex++]="»ù±¾ÉèÖÃ";
-textArray8[iIndex++]="´òÓ¡·şÎñÆ÷Ãû³Æ :";
-textArray8[iIndex++]="ÂÖÑ¯Ê±¼ä :";
-textArray8[iIndex++]="&nbsp;Ãë (3-29)";
-textArray8[iIndex++]="µÇÂ¼ÃÜÂë :";
-textArray8[iIndex++]="NetWare NDS ÉèÖÃ";
-textArray8[iIndex++]="Ê¹ÓÃ NDS Ä£Ê½ :";
-textArray8[iIndex++]="¹Ø±Õ";
-textArray8[iIndex++]="ÆôÓÃ";
-textArray8[iIndex++]="NDS Tree Ãû³Æ :";
-textArray8[iIndex++]="NDS Context Ãû³Æ :";
-textArray8[iIndex++]="NetWare Bindery ÉèÖÃ";
-textArray8[iIndex++]="Ê¹ÓÃ Bindery Ä£Ê½ :";
-textArray8[iIndex++]="¹Ø±Õ";
-textArray8[iIndex++]="ÆôÓÃ";
-textArray8[iIndex++]="ÎÄ¼ş·şÎñÆ÷Ãû³Æ :";
-textArray8[iIndex++]="Ã»ÓĞÕÒµ½ÎÄ¼ş·şÎñÆ÷ !";
-textArray8[iIndex++]='<input type="button" value="±£´æ²¢ÖØÆô" onClick="return SaveSetting(';
+textArray8[iIndex++]="åŸºæœ¬è®¾ç½®";
+textArray8[iIndex++]="æ‰“å°æœåŠ¡å™¨åç§° :";
+textArray8[iIndex++]="è½®è¯¢æ—¶é—´ :";
+textArray8[iIndex++]="&nbsp;ç§’ (3-29)";
+textArray8[iIndex++]="ç™»å½•å¯†ç  :";
+textArray8[iIndex++]="NetWare NDS è®¾ç½®";
+textArray8[iIndex++]="ä½¿ç”¨ NDS æ¨¡å¼ :";
+textArray8[iIndex++]="å…³é—­";
+textArray8[iIndex++]="å¯ç”¨";
+textArray8[iIndex++]="NDS Tree åç§° :";
+textArray8[iIndex++]="NDS Context åç§° :";
+textArray8[iIndex++]="NetWare Bindery è®¾ç½®";
+textArray8[iIndex++]="ä½¿ç”¨ Bindery æ¨¡å¼ :";
+textArray8[iIndex++]="å…³é—­";
+textArray8[iIndex++]="å¯ç”¨";
+textArray8[iIndex++]="æ–‡ä»¶æœåŠ¡å™¨åç§° :";
+textArray8[iIndex++]="æ²¡æœ‰æ‰¾åˆ°æ–‡ä»¶æœåŠ¡å™¨ !";
+textArray8[iIndex++]='<input type="button" value="ä¿å­˜å¹¶é‡å¯" onClick="return SaveSetting(';
 // Begin don't translate
 textArray8[iIndex++]="'RESTART.HTM');";
 textArray8[iIndex++]='">';
 iIndex = 0;
 
 // CSMB.htm
-textArray9[iIndex++]="¹¤×÷×é";
-textArray9[iIndex++]="Ãû³Æ :";
-textArray9[iIndex++]="¹²Ïí´òÓ¡»úÃû³Æ";
-textArray9[iIndex++]="¹²ÏíÃû :";
-textArray9[iIndex++]='<input type="button" value="±£´æ²¢ÖØÆô" onClick="return CheckSMB(';
+textArray9[iIndex++]="å·¥ä½œç»„";
+textArray9[iIndex++]="åç§° :";
+textArray9[iIndex++]="å…±äº«æ‰“å°æœºåç§°";
+textArray9[iIndex++]="å…±äº«å :";
+textArray9[iIndex++]='<input type="button" value="ä¿å­˜å¹¶é‡å¯" onClick="return CheckSMB(';
 // Begin don't translate
 textArray9[iIndex++]="'RESTART.HTM');";
 textArray9[iIndex++]='">';
 iIndex = 0;
 
 // CWLAN.htm Basic Settings
-textArray10[iIndex++]="»ù±¾ÉèÖÃ";
-textArray10[iIndex++]="ÍøÂçÀàĞÍ :";
+textArray10[iIndex++]="åŸºæœ¬è®¾ç½®";
+textArray10[iIndex++]="ç½‘ç»œç±»å‹ :";
 textArray10[iIndex++]="SSID :";
-textArray10[iIndex++]="Æµ¶Î :";
-//textArray10[iIndex++]="ÎŞÏßÇøÓò´úÂë :";
-//textArray10[iIndex++]="1 - 11, ÃÀ¹ú, ¼ÓÄÃ´ó, ÎÚ¿ËÀ¼, ÖĞ¹ú";
-//textArray10[iIndex++]="1 - 13, Å·ÖŞ (ETSI), ²»°üÀ¨·¨¹úºÍÎ÷°àÑÀ";
-//textArray10[iIndex++]="10 - 13, ·¨¹ú, ĞÂ¼ÓÆÂ";
-//textArray10[iIndex++]="10 - 11, Î÷°àÑÀ, Ä«Î÷¸ç";
-//textArray10[iIndex++]="ÉèÖÃÎŞÏßÇøÓò´úÂë±ØĞë×ñÊØµ±µØµçĞÅ·¨ÂÉºÍ¹æ¶¨.";
-//textArray10[iIndex++]="Çë±£´æÉèÖÃ²¢ÖØÆô´òÓ¡·şÎñÆ÷ÒÔÓ¦ÓÃ´ËÉèÖÃ.";
-//textArray10[iIndex++]='<input type="button" value="±£´æ²¢ÖØÆô" onClick="return SaveSettingCWLAN(';
+textArray10[iIndex++]="é¢‘æ®µ :";
+//textArray10[iIndex++]="æ— çº¿åŒºåŸŸä»£ç  :";
+//textArray10[iIndex++]="1 - 11, ç¾å›½, åŠ æ‹¿å¤§, ä¹Œå…‹å…°, ä¸­å›½";
+//textArray10[iIndex++]="1 - 13, æ¬§æ´² (ETSI), ä¸åŒ…æ‹¬æ³•å›½å’Œè¥¿ç­ç‰™";
+//textArray10[iIndex++]="10 - 13, æ³•å›½, æ–°åŠ å¡";
+//textArray10[iIndex++]="10 - 11, è¥¿ç­ç‰™, å¢¨è¥¿å“¥";
+//textArray10[iIndex++]="è®¾ç½®æ— çº¿åŒºåŸŸä»£ç å¿…é¡»éµå®ˆå½“åœ°ç”µä¿¡æ³•å¾‹å’Œè§„å®š.";
+//textArray10[iIndex++]="è¯·ä¿å­˜è®¾ç½®å¹¶é‡å¯æ‰“å°æœåŠ¡å™¨ä»¥åº”ç”¨æ­¤è®¾ç½®.";
+//textArray10[iIndex++]='<input type="button" value="ä¿å­˜å¹¶é‡å¯" onClick="return SaveSettingCWLAN(';
 // Begin don't translate
 //textArray10[iIndex++]="'RESTART.HTM');";
 //textArray10[iIndex++]='">';
-textArray10[iIndex++]="´«ÊäËÙÂÊ :";
-textArray10[iIndex++]="×Ô¶¯";
-textArray10[iIndex++]="ÎŞÏßÄ£Ê½ :";
-textArray10[iIndex++]="B/G/N »ìºÏÄ£Ê½";
-textArray10[iIndex++]="B/G »ìºÏÄ£Ê½";
-textArray10[iIndex++]="11B Ä£Ê½";
-textArray10[iIndex++]="11G Ä£Ê½";
+textArray10[iIndex++]="ä¼ è¾“é€Ÿç‡ :";
+textArray10[iIndex++]="è‡ªåŠ¨";
+textArray10[iIndex++]="æ— çº¿æ¨¡å¼ :";
+textArray10[iIndex++]="B/G/N æ··åˆæ¨¡å¼";
+textArray10[iIndex++]="B/G æ··åˆæ¨¡å¼";
+textArray10[iIndex++]="11B æ¨¡å¼";
+textArray10[iIndex++]="11G æ¨¡å¼";
 iIndex = 0;
 // End don't translate
 
 //CWLAN.htm Advanced Settings
-textArray11[iIndex++]="¸ß¼¶ÉèÖÃ";
-textArray11[iIndex++]="°²È«ÀàĞÍ";
-textArray11[iIndex++]="½ûÓÃ";
+textArray11[iIndex++]="é«˜çº§è®¾ç½®";
+textArray11[iIndex++]="å®‰å…¨ç±»å‹";
+textArray11[iIndex++]="ç¦ç”¨";
 textArray11[iIndex++]="WEP";
-textArray11[iIndex++]="ÃÜÔ¿Ñ¡Ôñ :";
-textArray11[iIndex++]="ÃÜÔ¿¸ñÊ½ :";
-textArray11[iIndex++]="64 Î» (10 ¸öÊ®Áù½øÖÆÊı)";
-textArray11[iIndex++]="64 Î» (5 ¸ö×Ö·û)";
-textArray11[iIndex++]="128 Î» (26 ¸öÊ®Áù½øÖÆÊı)";
-textArray11[iIndex++]="128 Î» (13 ¸ö×Ö·û)";
-textArray11[iIndex++]="ÃÜÔ¿ 1 :";
-textArray11[iIndex++]="ÃÜÔ¿ 2 :";
-textArray11[iIndex++]="ÃÜÔ¿ 3 :";
-textArray11[iIndex++]="ÃÜÔ¿ 4 :";
-textArray11[iIndex++]="ÈÏÖ¤·½Ê½ :";
-textArray11[iIndex++]="¿ª·ÅÏµÍ³";
-textArray11[iIndex++]="¹²ÏíÃÜÔ¿";
-//textArray11[iIndex++]="×Ô¶¯";
+textArray11[iIndex++]="å¯†é’¥é€‰æ‹© :";
+textArray11[iIndex++]="å¯†é’¥æ ¼å¼ :";
+textArray11[iIndex++]="64 ä½ (10 ä¸ªåå…­è¿›åˆ¶æ•°)";
+textArray11[iIndex++]="64 ä½ (5 ä¸ªå­—ç¬¦)";
+textArray11[iIndex++]="128 ä½ (26 ä¸ªåå…­è¿›åˆ¶æ•°)";
+textArray11[iIndex++]="128 ä½ (13 ä¸ªå­—ç¬¦)";
+textArray11[iIndex++]="å¯†é’¥ 1 :";
+textArray11[iIndex++]="å¯†é’¥ 2 :";
+textArray11[iIndex++]="å¯†é’¥ 3 :";
+textArray11[iIndex++]="å¯†é’¥ 4 :";
+textArray11[iIndex++]="è®¤è¯æ–¹å¼ :";
+textArray11[iIndex++]="å¼€æ”¾ç³»ç»Ÿ";
+textArray11[iIndex++]="å…±äº«å¯†é’¥";
+//textArray11[iIndex++]="è‡ªåŠ¨";
 textArray11[iIndex++]="WPA-PSK";
 textArray11[iIndex++]="WPA2-PSK";
-textArray11[iIndex++]="ÃÜÔ¿¸ñÊ½ :";
-textArray11[iIndex++]="ÍøÂç°²È«ÃÜÔ¿ :";
-textArray11[iIndex++]="( ÊäÈë 8 µ½ 63 ¸ö×Ö·û ( 0 µ½ 9, A µ½ Z ), »òÊäÈë 64 ¸öÊ®Áù½øÖÆÊı×Ö ( 0 µ½ 9, A µ½ F ) )";
+textArray11[iIndex++]="å¯†é’¥æ ¼å¼ :";
+textArray11[iIndex++]="ç½‘ç»œå®‰å…¨å¯†é’¥ :";
+textArray11[iIndex++]="( è¾“å…¥ 8 åˆ° 63 ä¸ªå­—ç¬¦ ( 0 åˆ° 9, A åˆ° Z  ), æˆ–è¾“å…¥ 64 ä¸ªåå…­è¿›åˆ¶æ•°å­— ( 0 åˆ° 9, A åˆ° F  )  )";
 // Translate                                  only "Save & Restart" is to be translated
-textArray11[iIndex++]='<input type="button" value="±£´æ²¢ÖØÆô" onClick="return SaveSettingCWLAN(';
+textArray11[iIndex++]='<input type="button" value="ä¿å­˜å¹¶é‡å¯" onClick="return SaveSettingCWLAN(';
 // Begin don't translate
 textArray11[iIndex++]="'RESTART.HTM');";
 textArray11[iIndex++]='">';
@@ -258,63 +257,63 @@ iIndex = 0;
 // End don't translate
 
 //CWLAN.htm Site Survey
-textArray12[iIndex++]="ÎŞÏßÍøÂçÁĞ±í";
+textArray12[iIndex++]="æ— çº¿ç½‘ç»œåˆ—è¡¨";
 textArray12[iIndex++]="SSID";
-textArray12[iIndex++]="MAC µØÖ·";
-textArray12[iIndex++]="Æµ¶Î";
-textArray12[iIndex++]="¹¤×÷Ä£Ê½";
-textArray12[iIndex++]="°²È«ÀàĞÍ";
-textArray12[iIndex++]="ĞÅºÅÇ¿¶È(dBm)";
-textArray12[iIndex++]='<input name="refresh" onclick="return OnSiteSurvey()" type=button value=" Ë¢ĞÂ " style="font-family: Verdana; font-size: 11px;">';
+textArray12[iIndex++]="MAC åœ°å€";
+textArray12[iIndex++]="é¢‘æ®µ";
+textArray12[iIndex++]="å·¥ä½œæ¨¡å¼";
+textArray12[iIndex++]="å®‰å…¨ç±»å‹";
+textArray12[iIndex++]="ä¿¡å·å¼ºåº¦(dBm)";
+textArray12[iIndex++]='<input name="refresh" onclick="return OnSiteSurvey()" type=button value=" åˆ·æ–° " style="font-family: Verdana; font-size: 11px;">';
 iIndex = 0;
 
 // Character Encoding
 function CharacterEncoding()
 {
-	document.write('<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML; charset=gb2312">');
+  document.write('<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="TEXT/HTML; charset=gb2312">');
+  
 }
 
 // functions
 // CSYSTEM.HTM
-function CheckPwd(szURL)
+function CheckPwd (szURL)
 {
- 	if(document.forms[0].SetupPWD.value != document.forms[0].ConfirmPWD.value && document.forms[0].SetupPWD.value != "ZO__I-SetupPassword" )
-	{
-		alert("¹ÜÀíÔ±ÃÜÂëºÍÈ·ÈÏÃÜÂë²»Æ¥Åä !");
-		return false;
-	}
-	document.forms[0].action=szURL;
-	document.forms[0].submit();
-	return false;
+    if ((document.forms[0].SetupPWD.value != document.forms[0].ConfirmPWD.value) &&
+        (document.forms[0].SetupPWD.value != "ZO__I-SetupPassword")) {
+        alert("ç®¡ç†å‘˜å¯†ç å’Œç¡®è®¤å¯†ç ä¸åŒ¹é… !");
+        return false;
+    }
+
+    document.forms[0].action = szURL;
+    document.forms[0].submit();
+    return false;
 }
 
+
 // CPRINTER.HTM
-function CheckLPRQueueName(szURL)
+function CheckLPRQueueName (szURL)
 {
-	if ((document.forms[0].LPRQueue1.value == '')
-		||(document.forms[0].LPRQueue2.value == '')
-		||(document.forms[0].LPRQueue3.value == ''))
-	{
-		alert("´íÎó! LPR ¶ÓÁĞÃû³Æ²»ÄÜ¿Õ°×!");
-	 	return false; 
-	}
-	else
-	{
-		if ((document.forms[0].LPRQueue1.value == document.forms[0].LPRQueue2.value)
-			||(document.forms[0].LPRQueue2.value == document.forms[0].LPRQueue3.value)
-			||(document.forms[0].LPRQueue1.value == document.forms[0].LPRQueue3.value))
-	 	{
-	 		alert("´íÎó! LPR ¶ÓÁĞÃû³Æ²»ÄÜÖØ¸´!");
-	 		return false; 
-	 	}
-		else
-		{
-			document.forms[0].action=szURL;
-			document.forms[0].submit(); 
-			return false; 
-		}
-	}
+    if ((document.forms[0].LPRQueue1.value == '') ||
+        (document.forms[0].LPRQueue2.value == '') ||
+        (document.forms[0].LPRQueue3.value == '')) {
+        alert("é”™è¯¯! LPR é˜Ÿåˆ—åç§°ä¸èƒ½ç©ºç™½!");
+        return false;
+    }
+    else{
+        if ((document.forms[0].LPRQueue1.value == document.forms[0].LPRQueue2.value) ||
+            (document.forms[0].LPRQueue2.value == document.forms[0].LPRQueue3.value) ||
+            (document.forms[0].LPRQueue1.value == document.forms[0].LPRQueue3.value)) {
+            alert("é”™è¯¯! LPR é˜Ÿåˆ—åç§°ä¸èƒ½é‡å¤!");
+            return false;
+        }
+        else {
+            document.forms[0].action = szURL;
+            document.forms[0].submit();
+            return false;
+        }
+    }
 }
+
 
 // CTCPTP.HTM
 
@@ -325,394 +324,433 @@ function CheckLPRQueueName(szURL)
 // CSNMP.HTM
 
 // CSMB.HTM
-function CheckSMB(szURL)
+function CheckSMB (szURL)
 {
-	if(document.forms[0].SMBWorkGroup.value == '')
-	{
-		alert("´íÎó! ¹¤×÷×éÃû³Æ²»ÄÜ¿Õ°×!");
-		return false;
-	}
-	else
-	{
-		if(document.forms[0].SMBPrint1.value == '')
-		{		
-			alert("´íÎó! ¹²Ïí´òÓ¡»úÃû³Æ²»ÄÜ¿Õ°×!");
-		 	return false; 
-		}
-		else
-		{
-			document.forms[0].action=szURL;
-			document.forms[0].submit(); 
-			return false; 
-		}
-	}
+    if (document.forms[0].SMBWorkGroup.value == '') {
+        alert("é”™è¯¯! å·¥ä½œç»„åç§°ä¸èƒ½ç©ºç™½!");
+        return false;
+    }
+    else{
+        if (document.forms[0].SMBPrint1.value == '') {
+            alert("é”™è¯¯! å…±äº«æ‰“å°æœºåç§°ä¸èƒ½ç©ºç™½!");
+            return false;
+        }
+        else {
+            document.forms[0].action = szURL;
+            document.forms[0].submit();
+            return false;
+        }
+    }
 }
+
 
 // CWLAN.HTM
 //-----------------------------------------------------------------------------
-function OnSiteSurvey()
+function OnSiteSurvey ()
 {
-	newwindow=window.open("WLANTMP0.HTM","","toolbar=0,location=0,directories=0,status=0,menubar=0,width=700,height=400,scrollbars=1");
-	return false;
+    newwindow = window.open("WLANTMP0.HTM",
+                            "",
+                            "toolbar=0,location=0,directories=0,status=0,menubar=0,width=700,height=400,scrollbars=1");
+    return false;
 }
+
 
 //-----------------------------------------------------------------------------
-function validate_Preshared()
-{	
-	var f = document.myform;
-	
-	if( !CheckWPASharedKey(f) )
-		return false;
-	else
-		return true;
+function validate_Preshared ()
+{
+    var f = document.myform;
+
+    if (!CheckWPASharedKey(f)) {
+        return false;
+    }
+    else{
+        return true;
+    }
 }
+
 
 //-----------------------------------------------------------------------------
-function CheckWPASharedKey(f)
+function CheckWPASharedKey (f)
 {
-	var k = f.WPA_Pass.value;
-	
-	if( k == '' )
-	{
-		alert("ÇëÊäÈë WPA-PSK WPA2-PSK ÍøÂç°²È«ÃÜÔ¿.");
-		return false;
-	}
-	
-	if( k.length == 64 )
-	{
-		if( !CheckHexKey(k) )
-			return false;
-	}
-	else if( k.length < 8 || k.length > 63 )
-	{
-		alert("ÊäÈë 8 µ½ 63 ¸ö×Ö·û ( 0 µ½ 9, A µ½ Z ).");
-		return false;
-	}
-	
-	return true;
+    var k = f.WPA_Pass.value;
+
+    if (k == '') {
+        alert("è¯·è¾“å…¥ WPA-PSK WPA2-PSK ç½‘ç»œå®‰å…¨å¯†é’¥.");
+        return false;
+    }
+
+    if (k.length == 64) {
+        if (!CheckHexKey(k)) {
+            return false;
+        }
+    }
+    else if ((k.length < 8) || (k.length > 63)) {
+        alert("è¾“å…¥ 8 åˆ° 63 ä¸ªå­—ç¬¦ ( 0 åˆ° 9, A åˆ° Z  ).");
+        return false;
+    }
+
+    return true;
 }
+
 
 //-----------------------------------------------------------------------------
-function CheckWPASharedKey(f)
+function CheckWPASharedKey (f)
 {
-	var k = f.WPA_Pass.value;
-	
-	if( k == '' )
-	{
-		alert("ÇëÊäÈë WPA-PSK WPA2-PSK ÍøÂç°²È«ÃÜÔ¿.");
-		return false;
-	}
-	
-	if( k.length == 64 )
-	{
-		if( !CheckHexKey(k) )
-			return false;
-	}
-	else if( k.length < 8 || k.length > 63 )
-	{
-		alert("ÊäÈë 8 µ½ 63 ¸ö×Ö·û ( 0 µ½ 9, A µ½ Z ).");
-		return false;
-	}
-	
-	return true;
+    var k = f.WPA_Pass.value;
+
+    if (k == '') {
+        alert("è¯·è¾“å…¥ WPA-PSK WPA2-PSK ç½‘ç»œå®‰å…¨å¯†é’¥.");
+        return false;
+    }
+
+    if (k.length == 64) {
+        if (!CheckHexKey(k)) {
+            return false;
+        }
+    }
+    else if ((k.length < 8) || (k.length > 63)) {
+        alert("è¾“å…¥ 8 åˆ° 63 ä¸ªå­—ç¬¦ ( 0 åˆ° 9, A åˆ° Z  ).");
+        return false;
+    }
+
+    return true;
 }
+
 
 //-----------------------------------------------------------------------------
-function CheckHexKey(k)
+function CheckHexKey (k)
 {
-	var iln, ch;
+    var iln, ch;
 
-	for ( iln = 0; iln < k.length; iln++ )
-	{
-    	ch = k.charAt(iln).toLowerCase();
-		
-	  	if ( (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') )
-			continue;
-	  	else 
-		{
-	    	alert("ÎŞĞ§×Ö·û " + ch + " £¬Î»ÓÚµÚ " + k);
-	    	return false;
-	  	}
-	}
+    for (iln = 0; iln < k.length; iln++) {
+        ch = k.charAt(iln).toLowerCase();
 
-	return true;
+        if (((ch >= '0') && (ch <= '9')) || ((ch >= 'a') && (ch <= 'f'))) {
+            continue;
+        }
+        else {
+            alert("æ— æ•ˆå­—ç¬¦ " + ch + " ï¼Œä½äºç¬¬ " + k);
+            return false;
+        }
+    }
+
+    return true;
 }
+
 
 //-----------------------------------------------------------------------------
-function SaveSettingCWLAN(szURL)
+function SaveSettingCWLAN (szURL)
 {
-	var f = document.myform;
-	var iln, ch;
+    var f = document.myform;
+    var iln, ch;
 
-	// Basic Settings
-	// Wireless Mode
-	
-	// Advanced Settings
-	// Security Mode
-	if( f.security_mode[1].checked )
-	{
-		// WEP 64-bit or WEP 128-bit
-		var hs;
-	
-		var iWEP_sel;			// Key Index
-		var iWEP_type;			// WEP Encryption
-		
-		if (f.wep_sel[0].checked)
-		{
-			iWEP_sel = 0;
-			
-			if(f.wep_key1.value == '')
-			{
-				alert("WEP ÃÜÔ¿²»ÄÜ¿Õ°×!");
-				return false;
-			}
-		}
-		if (f.wep_sel[1].checked)
-		{
-			iWEP_sel = 1;
-			
-			if(f.wep_key2.value == '')
-			{
-				alert("WEP ÃÜÔ¿²»ÄÜ¿Õ°×!");
-				return false;
-			}
-		}
-		if (f.wep_sel[2].checked)
-		{
-			iWEP_sel = 2;
-			
-			if(f.wep_key3.value == '')
-			{
-				alert("WEP ÃÜÔ¿²»ÄÜ¿Õ°×!");
-				return false;
-			}
-		}
-		if (f.wep_sel[3].checked)
-		{
-			iWEP_sel = 3;
-			
-			if(f.wep_key4.value == '')
-			{
-				alert("WEP ÃÜÔ¿²»ÄÜ¿Õ°×!");
-				return false;
-			}
-		}
-		
-		f.WLWEPKeySel.value = iWEP_sel;
+    // Basic Settings
+    // Wireless Mode
 
-		iWEP_type = f.wep_type.selectedIndex;
-		// [0]: 64-bit 10 hex digits	[1]: 64-bit 5 characters
-		// [2]: 128-bit 26 hex digits	[3]: 128-bit 13 characters
+    // Advanced Settings
+    // Security Mode
+    if (f.security_mode[1].checked) {
+        // WEP 64-bit or WEP 128-bit
+        var hs;
 
-		// 64-bit hex or 128-bit hex
-		if((iWEP_type == 0) || (iWEP_type == 2))
-		{
-			f.WLWEPFormat.value = 1;	// Hexadecimal
+        var iWEP_sel;          // Key Index
+        var iWEP_type;         // WEP Encryption
 
-			switch(iWEP_sel)
-			{
-			case 0:			// WEP key 1
-				hs = convertHexString (document.myform.wep_key1.value,(iWEP_type) ? (13) : (5),13);
-				if (!hs) {
-					alert ("\"WEP ÃÜÔ¿ 1\" ÎŞĞ§!");
-					return false;
-				}
-				break;
-			case 1:			// WEP key 2
-				hs = convertHexString (document.myform.wep_key2.value,(iWEP_type) ? (13) : (5),13);
-				if (!hs) {
-					alert ("\"WEP ÃÜÔ¿ 2\" ÎŞĞ§!");
-					return false;
-				}
-				break;
-			case 2:			// WEP key 3
-				hs = convertHexString (document.myform.wep_key3.value,(iWEP_type) ? (13) : (5),13);
-				if (!hs) {
-					alert ("\"WEP ÃÜÔ¿ 3\" ÎŞĞ§!");
-					return false;
-				}
-				break;
-			case 3:			// WEP key 4
-				hs = convertHexString (document.myform.wep_key4.value,(iWEP_type) ? (13) : (5),13);
-				if (!hs) {
-					alert ("\"WEP ÃÜÔ¿ 4\" ÎŞĞ§!");
-					return false;
-				}
-				break;
-			default:		// WEP key 1
-				hs = convertHexString (document.myform.wep_key1.value,(iWEP_type) ? (13) : (5),13);
-				if (!hs) {
-					alert ("\"WEP ÃÜÔ¿ 1\" ÎŞĞ§!");
-					return false;
-				}
-			}
-		}	// end of if((iWEP_type == 0) || (iWEP_type == 2))
-		
-		// 64-bit Alphanumeric or 128-bit Alphanumeric
-		if((iWEP_type == 1) || (iWEP_type == 3))
-		{
-			f.WLWEPFormat.value = 0;		// Alphanumeric
-			
-			switch(iWEP_sel)
-			{
-			case 0:			// WEP key 1
-				for ( iln = 0; iln < f.wep_key1.value.length; iln++ )
-				{
-			    	ch = f.wep_key1.value.charAt(iln);
-					
-				  	if ( (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch == '!') || (ch == '?') )
-				  		continue;
-				  	else
-				  	{
-				  		alert ("\"WEP ÃÜÔ¿ 1\" ÎŞĞ§!");
-				  		return false;
-				  	}
-				}
-				break;
-			case 1:			// WEP key 2
-				for ( iln = 0; iln < f.wep_key2.value.length; iln++ )
-				{
-			    	ch = f.wep_key2.value.charAt(iln);
+        if (f.wep_sel[0].checked) {
+            iWEP_sel = 0;
 
-				  	if ( (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch == '!') || (ch == '?') )
-				  		continue;
-				  	else
-				  	{
-				  		alert ("\"WEP ÃÜÔ¿ 2\" ÎŞĞ§!");
-				  		return false;
-				  	}
-				}
-				break;
-			case 2:			// WEP key 3
-				for ( iln = 0; iln < f.wep_key3.value.length; iln++ )
-				{
-			    	ch = f.wep_key3.value.charAt(iln);
-					
-				  	if ( (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch == '!') || (ch == '?') )
-				  		continue;
-				  	else
-				  	{
-				  		alert ("\"WEP ÃÜÔ¿ 3\" ÎŞĞ§!");
-				  		return false;
-				  	}
-				}
-				break;
-			case 3:			// WEP key 4
-				for ( iln = 0; iln < f.wep_key4.value.length; iln++ )
-				{
-			    	ch = f.wep_key4.value.charAt(iln);
-					
-				  	if ( (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch == '!') || (ch == '?') )
-				  		continue;
-				  	else
-				  	{
-				  		alert ("\"WEP ÃÜÔ¿ 4\" ÎŞĞ§!");
-				  		return false;
-				  	}
-				}
-				break;
-			default:		// WEP key 1
-				for ( iln = 0; iln < f.wep_key1.value.length; iln++ )
-				{
-			    	ch = f.wep_key1.value.charAt(iln);
-					
-				  	if ( (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch == '!') || (ch == '?') )
-				  		continue;
-				  	else
-				  	{
-				  		alert ("\"WEP ÃÜÔ¿ 1\" ÎŞĞ§!");
-				  		return false;
-				  	}
-				}
-			}
-		}
-		
-		f.WLWEPType.value = 1;	// default 1: WEP 64-bit
+            if (f.wep_key1.value == '') {
+                alert("WEP å¯†é’¥ä¸èƒ½ç©ºç™½!");
+                return false;
+            }
+        }
 
-		if((f.wep_type.options[0].selected) || (f.wep_type.options[1].selected))
-		{
-			f.WLWEPType.value = 1;	// WEP 64-bit
+        if (f.wep_sel[1].checked) {
+            iWEP_sel = 1;
 
-			f.WLWEPKey1.value = f.wep_key1.value;
-			f.WLWEPKey2.value = f.wep_key2.value;
-			f.WLWEPKey3.value = f.wep_key3.value;
-			f.WLWEPKey4.value = f.wep_key4.value;
-		}
+            if (f.wep_key2.value == '') {
+                alert("WEP å¯†é’¥ä¸èƒ½ç©ºç™½!");
+                return false;
+            }
+        }
 
-		if((f.wep_type.options[2].selected) || (f.wep_type.options[3].selected))
-		{
-			// WEP 128-bit
-			f.WLWEPType.value = 2;
-			
-			f.WLWEP128Key.value = f.wep_key1.value;
-			f.WLWEP128Key2.value = f.wep_key2.value;
-			f.WLWEP128Key3.value = f.wep_key3.value;
-			f.WLWEP128Key4.value = f.wep_key4.value;
-		}
+        if (f.wep_sel[2].checked) {
+            iWEP_sel = 2;
 
-		// Authentication
-		if(f.wep_authmode[0].selected)
-			f.WLAuthType.value = 1;		// Open System
-		if(f.wep_authmode[1].selected)
-			f.WLAuthType.value = 2;		// Shared Key
-	}
-	else if( f.security_mode[2].checked )
-	{
-		// WPA-PSK
-		f.WLAuthType.value = 4;
+            if (f.wep_key3.value == '') {
+                alert("WEP å¯†é’¥ä¸èƒ½ç©ºç™½!");
+                return false;
+            }
+        }
 
-		if(!validate_Preshared())
-			return false;
-	}
-	else if( f.security_mode[3].checked )
-	{
-		// WPA2-PSK
-		f.WLAuthType.value = 5;
+        if (f.wep_sel[3].checked) {
+            iWEP_sel = 3;
 
-		if(!validate_Preshared())
-			return false;
-	}
-	else
-	{
-		// Disabled
-		f.WLWEPType.value = 0;
-		f.WLAuthType.value = 1;
-	}
+            if (f.wep_key4.value == '') {
+                alert("WEP å¯†é’¥ä¸èƒ½ç©ºç™½!");
+                return false;
+            }
+        }
 
-	document.forms[0].action=szURL;
-	document.forms[0].submit();
-	return false; 
+        f.WLWEPKeySel.value = iWEP_sel;
+
+        iWEP_type = f.wep_type.selectedIndex;
+        // [0]: 64-bit 10 hex digits    [1]: 64-bit 5 characters
+        // [2]: 128-bit 26 hex digits   [3]: 128-bit 13 characters
+
+        // 64-bit hex or 128-bit hex
+        if ((iWEP_type == 0) || (iWEP_type == 2)) {
+            f.WLWEPFormat.value = 1;// Hexadecimal
+
+            switch (iWEP_sel) {
+                case 0:             // WEP key 1
+                    hs =
+                        convertHexString(document.myform.wep_key1.value,
+                                         (iWEP_type) ? (13) : (5),
+                                         13);
+
+                    if (!hs) {
+                        alert("\"WEP å¯†é’¥ 1\" æ— æ•ˆ!");
+                        return false;
+                    }
+
+                    break;
+
+                case 1:         // WEP key 2
+                    hs =
+                        convertHexString(document.myform.wep_key2.value,
+                                         (iWEP_type) ? (13) : (5),
+                                         13);
+
+                    if (!hs) {
+                        alert("\"WEP å¯†é’¥ 2\" æ— æ•ˆ!");
+                        return false;
+                    }
+
+                    break;
+
+                case 2:         // WEP key 3
+                    hs =
+                        convertHexString(document.myform.wep_key3.value,
+                                         (iWEP_type) ? (13) : (5),
+                                         13);
+
+                    if (!hs) {
+                        alert("\"WEP å¯†é’¥ 3\" æ— æ•ˆ!");
+                        return false;
+                    }
+
+                    break;
+
+                case 3:         // WEP key 4
+                    hs =
+                        convertHexString(document.myform.wep_key4.value,
+                                         (iWEP_type) ? (13) : (5),
+                                         13);
+
+                    if (!hs) {
+                        alert("\"WEP å¯†é’¥ 4\" æ— æ•ˆ!");
+                        return false;
+                    }
+
+                    break;
+
+                default:        // WEP key 1
+                    hs =
+                        convertHexString(document.myform.wep_key1.value,
+                                         (iWEP_type) ? (13) : (5),
+                                         13);
+
+                    if (!hs) {
+                        alert("\"WEP å¯†é’¥ 1\" æ— æ•ˆ!");
+                        return false;
+                    }
+            }
+        }    // end of if((iWEP_type == 0) || (iWEP_type == 2))
+
+        // 64-bit Alphanumeric or 128-bit Alphanumeric
+        if ((iWEP_type == 1) || (iWEP_type == 3)) {
+            f.WLWEPFormat.value = 0;// Alphanumeric
+
+            switch (iWEP_sel) {
+                case 0:             // WEP key 1
+
+                    for (iln = 0; iln < f.wep_key1.value.length; iln++) {
+                        ch = f.wep_key1.value.charAt(iln);
+
+                        if (((ch >= '0') && (ch <= '9')) ||
+                            ((ch >= 'a') && (ch <= 'z')) ||
+                            ((ch >= 'A') && (ch <= 'Z')) ||
+                            (ch == '!') || (ch == '?')) {
+                            continue;
+                        }
+                        else {
+                            alert("\"WEP å¯†é’¥ 1\" æ— æ•ˆ!");
+                            return false;
+                        }
+                    }
+
+                    break;
+
+                case 1:         // WEP key 2
+
+                    for (iln = 0; iln < f.wep_key2.value.length; iln++) {
+                        ch = f.wep_key2.value.charAt(iln);
+
+                        if (((ch >= '0') && (ch <= '9')) ||
+                            ((ch >= 'a') && (ch <= 'z')) ||
+                            ((ch >= 'A') && (ch <= 'Z')) ||
+                            (ch == '!') || (ch == '?')) {
+                            continue;
+                        }
+                        else {
+                            alert("\"WEP å¯†é’¥ 2\" æ— æ•ˆ!");
+                            return false;
+                        }
+                    }
+
+                    break;
+
+                case 2:         // WEP key 3
+
+                    for (iln = 0; iln < f.wep_key3.value.length; iln++) {
+                        ch = f.wep_key3.value.charAt(iln);
+
+                        if (((ch >= '0') && (ch <= '9')) ||
+                            ((ch >= 'a') && (ch <= 'z')) ||
+                            ((ch >= 'A') && (ch <= 'Z')) ||
+                            (ch == '!') || (ch == '?')) {
+                            continue;
+                        }
+                        else {
+                            alert("\"WEP å¯†é’¥ 3\" æ— æ•ˆ!");
+                            return false;
+                        }
+                    }
+
+                    break;
+
+                case 3:         // WEP key 4
+
+                    for (iln = 0; iln < f.wep_key4.value.length; iln++) {
+                        ch = f.wep_key4.value.charAt(iln);
+
+                        if (((ch >= '0') && (ch <= '9')) ||
+                            ((ch >= 'a') && (ch <= 'z')) ||
+                            ((ch >= 'A') && (ch <= 'Z')) ||
+                            (ch == '!') || (ch == '?')) {
+                            continue;
+                        }
+                        else {
+                            alert("\"WEP å¯†é’¥ 4\" æ— æ•ˆ!");
+                            return false;
+                        }
+                    }
+
+                    break;
+
+                default:        // WEP key 1
+
+                    for (iln = 0; iln < f.wep_key1.value.length; iln++) {
+                        ch = f.wep_key1.value.charAt(iln);
+
+                        if (((ch >= '0') && (ch <= '9')) ||
+                            ((ch >= 'a') && (ch <= 'z')) ||
+                            ((ch >= 'A') && (ch <= 'Z')) ||
+                            (ch == '!') || (ch == '?')) {
+                            continue;
+                        }
+                        else {
+                            alert("\"WEP å¯†é’¥ 1\" æ— æ•ˆ!");
+                            return false;
+                        }
+                    }
+            }
+        }
+
+        f.WLWEPType.value = 1;    // default 1: WEP 64-bit
+
+        if ((f.wep_type.options[0].selected) || (f.wep_type.options[1].selected)) {
+            f.WLWEPType.value = 1;    // WEP 64-bit
+
+            f.WLWEPKey1.value = f.wep_key1.value;
+            f.WLWEPKey2.value = f.wep_key2.value;
+            f.WLWEPKey3.value = f.wep_key3.value;
+            f.WLWEPKey4.value = f.wep_key4.value;
+        }
+
+        if ((f.wep_type.options[2].selected) || (f.wep_type.options[3].selected)) {
+            // WEP 128-bit
+            f.WLWEPType.value = 2;
+
+            f.WLWEP128Key.value  = f.wep_key1.value;
+            f.WLWEP128Key2.value = f.wep_key2.value;
+            f.WLWEP128Key3.value = f.wep_key3.value;
+            f.WLWEP128Key4.value = f.wep_key4.value;
+        }
+
+        // Authentication
+        if (f.wep_authmode[0].selected) {
+            f.WLAuthType.value = 1;    // Open System
+        }
+
+        if (f.wep_authmode[1].selected) {
+            f.WLAuthType.value = 2;    // Shared Key
+        }
+    }
+    else if (f.security_mode[2].checked) {
+        // WPA-PSK
+        f.WLAuthType.value = 4;
+
+        if (!validate_Preshared()) {
+            return false;
+        }
+    }
+    else if (f.security_mode[3].checked) {
+        // WPA2-PSK
+        f.WLAuthType.value = 5;
+
+        if (!validate_Preshared()) {
+            return false;
+        }
+    }
+    else{
+        // Disabled
+        f.WLWEPType.value  = 0;
+        f.WLAuthType.value = 1;
+    }
+
+    document.forms[0].action = szURL;
+    document.forms[0].submit();
+    return false;
 }
 
-function checkPreSharedKey(szURL)
-{
-	var theForm = document.forms[0];
 
-	if( theForm.WLAuthType.value == "4" )
-	{
-		if( theForm.WPAPASS.value.length < 8 )
-		{
-			alert("ÊäÈë 8 µ½ 63 ¸ö×Ö·û ( 0 µ½ 9, A µ½ Z )!");
-			return false;
-		}
-		else if( theForm.WPAPASS.value.indexOf(" ") >= 0 )
-		{
-			alert("ÃÜÔ¿ÖĞ¼ä²»ÄÜÓĞ¿Õ°×!");
-			return false;
-		}
-		else
-		{
-			theForm.action=szURL;
-			theForm.submit();
-			return false;
-		}
-	}
-	else
-	{
-		theForm.action=szURL;
-		theForm.submit();
-		return false;
-	}
+function checkPreSharedKey (szURL)
+{
+    var theForm = document.forms[0];
+
+    if (theForm.WLAuthType.value == "4") {
+        if (theForm.WPAPASS.value.length < 8) {
+            alert("è¾“å…¥ 8 åˆ° 63 ä¸ªå­—ç¬¦ ( 0 åˆ° 9, A åˆ° Z  )!");
+            return false;
+        }
+        else if (theForm.WPAPASS.value.indexOf(" ") >= 0) {
+            alert("å¯†é’¥ä¸­é—´ä¸èƒ½æœ‰ç©ºç™½!");
+            return false;
+        }
+        else {
+            theForm.action = szURL;
+            theForm.submit();
+            return false;
+        }
+    }
+    else{
+        theForm.action = szURL;
+        theForm.submit();
+        return false;
+    }
 }
+
 
 // out of Simplified Chinese

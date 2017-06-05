@@ -65,18 +65,7 @@ $(OBJ_DIR)/%.o: %.c
 #    OBJS     :: list of object files
 #    DST      :: name of build product, like a library
 # You need only add new file to the list in SRCS
-SRCS = http_constant.c gmtime.c pfs.c httpd.c
-
-ifeq ($(TARGET),NDWP2020)
-SRCS += endmark_dwp2020_tp.c
-endif
-ifeq ($(TARGET),N716U2W)
-SRCS += endmark_716u2w_tp.c
-endif
-ifeq ($(TARGET),N716U2)
-#SRCS += endmark_716u2_tp.c
-SRCS += endmark.c
-endif
+SRCS = http_constant.c gmtime.c pfs.c httpd.c endmark.c
 
 # DO not edit OBJS and DST
 OBJS=${SRCS:%.c=$(OBJ_DIR)/%.o}

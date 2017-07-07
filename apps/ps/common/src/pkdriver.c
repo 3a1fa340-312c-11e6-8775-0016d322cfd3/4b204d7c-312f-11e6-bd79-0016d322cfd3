@@ -780,7 +780,7 @@ void LanRecv(unsigned char *data, unsigned int len)
 	}//if		
 	LANLightToggle++;	//eason 20100809
 }
-#endif
+#endif /* STAR_MAC */
 
 #ifdef MT7688_MAC
 void ecosif_input(struct netif *netif, struct pbuf *p)

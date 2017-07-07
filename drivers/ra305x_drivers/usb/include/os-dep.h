@@ -1448,6 +1448,9 @@ static inline int device_trylock(struct device *dev)
 
 #define unreachable()   do{}while(1)
 #define BRK_BUG		512	/* Used by BUG() */
+
+#define             ETH_ALEN    6
+
 static inline void  BUG(void)
 {
 	__asm__ __volatile__("break %0" : : "i" (BRK_BUG));
